@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Camera, RefreshCw, Search, Sprout } from 'lucide-react';
+import { AlertTriangle, Camera, RefreshCw, Search, Sprout, Stethoscope } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
 import type { CropProtectionCategory, CropProtectionCrop, CropProtectionItem, LanguageCode } from '../services/cropProtectionService';
@@ -105,6 +105,7 @@ export function CropProtectionDashboard({
     <div className="space-y-4">
       {showCompactHeader ? (
         <CompactToolkitHeader
+          icon={Stethoscope}
           title={label('Crop Doctor', language)}
           subtitle={label('Crop, pest, disease, weed and nutrient deficiency guidance for field officers.', language)}
           actions={(
@@ -114,20 +115,29 @@ export function CropProtectionDashboard({
       ) : (
       <section className="relative overflow-hidden rounded-2xl border border-emerald-200 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-800 via-green-700 to-emerald-800 p-4 text-white shadow-sm sm:p-5">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex min-w-0 items-start gap-3">
-            <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" className="mt-0.5" />
-            <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-wide text-emerald-100">{label('Officer Toolkit', language)}</p>
-              <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">
-                {label('Crop Doctor', language)}
-              </h1>
-              <p className="mt-1 max-w-2xl text-sm font-semibold text-emerald-50">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-3.5">
+            <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" className="mt-1 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                  <Stethoscope className="h-6 w-6 text-white" aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
+                    {label('Officer Toolkit', language)}
+                  </p>
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                    {label('Crop Doctor', language)}
+                  </h1>
+                </div>
+              </div>
+              <p className="mt-2 text-xs sm:text-sm font-medium text-emerald-50 leading-relaxed max-w-3xl">
                 {label('Crop, pest, disease, weed and nutrient deficiency guidance for field officers.', language)}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 self-end lg:self-start">
+          <div className="flex shrink-0 items-center gap-2 self-end sm:self-start pt-1">
             <LanguageToggle language={language} onClick={() => setLanguage((value) => (value === 'en' ? 'te' : 'en'))} tone="solid" />
           </div>
         </div>

@@ -10,6 +10,7 @@ import { inferFileTypeFromName } from '../../../shared/lib/fileTypes';
 import { uploadPortalFile } from '../../../shared/lib/uploadFile';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { classifyPublicForm, comparePublicForms, PUBLIC_FORM_SUBGROUPS } from '../../auth/pages/PublicOfficerTools';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 const folders = [
@@ -55,7 +56,7 @@ async function withNetworkRetry<T>(fn: () => PromiseLike<T>, retries = 3): Promi
 export function FormsLibrary() {
   const { isAdminUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [forms, setForms] = useState<FormDownload[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -145,11 +146,13 @@ export function FormsLibrary() {
   const selectedForms = useMemo(() => {
     const list = forms.filter((form) => form.category === selectedFolder);
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter((form) =>
-      (form.title || '').toLowerCase().includes(q) ||
-      (form.description || '').toLowerCase().includes(q)
-    );
+    const filtered = !q
+      ? list
+      : list.filter((form) =>
+          (form.title || '').toLowerCase().includes(q) ||
+          (form.description || '').toLowerCase().includes(q)
+        );
+    return [...filtered].sort(comparePublicForms);
   }, [forms, selectedFolder, searchQuery]);
   const activeFolder = folders.find((folder) => folder.id === selectedFolder) || folders[0];
 
@@ -489,15 +492,35 @@ export function FormsLibrary() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {selectedForms.map((form, index) => (
-                  <tr key={form.id} className="transition hover:bg-emerald-50/40 dark:hover:bg-slate-800/60">
-                    <td className="px-3 py-2 text-sm font-bold text-slate-600 dark:text-slate-300">{index + 1}</td>
-                    <td className="px-3 py-2">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                        <h3 className="max-w-[28rem] truncate text-sm text-gray-950 dark:text-white">{form.title}</h3>
-                      </div>
-                    </td>
+                {selectedForms.map((form, index) => {
+                  const subGroup = classifyPublicForm(form);
+                  const meta = PUBLIC_FORM_SUBGROUPS[subGroup];
+                  const badgeClasses =
+                    subGroup === 'sampling'
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300'
+                      : subGroup === 'enforcement'
+                      ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300'
+                      : 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300';
+
+                  return (
+                    <tr key={form.id} className="transition hover:bg-emerald-50/40 dark:hover:bg-slate-800/60">
+                      <td className="px-3 py-2 text-sm font-bold text-slate-600 dark:text-slate-300">{index + 1}</td>
+                      <td className="px-3 py-2">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="max-w-[28rem] truncate text-sm font-bold text-gray-950 dark:text-white">{form.title}</h3>
+                              <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${badgeClasses}`}>
+                                {language === 'te' ? meta.badgeTelugu : meta.badge}
+                              </span>
+                            </div>
+                            {form.description && (
+                              <p className="truncate text-xs text-slate-500 dark:text-slate-400">{form.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
                     <td className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-slate-400">
                       {new Date(form.created_at).toLocaleDateString()}
                     </td>
@@ -525,7 +548,8 @@ export function FormsLibrary() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>

@@ -157,7 +157,13 @@ export function classifyPublicForm(form: FormDownload): PublicFormSubGroup {
     text.includes('registered pesticide') ||
     text.includes('formulations') ||
     text.includes('guidelines') ||
-    text.includes('follow up actions')
+    text.includes('follow up actions') ||
+    text.includes('desert locust') ||
+    text.includes('public health') ||
+    text.includes('house hold') ||
+    text.includes('household') ||
+    text.includes('rodenticide') ||
+    text.includes('biostimulant')
   ) {
     return 'reference';
   }
@@ -237,6 +243,9 @@ export function getPublicFormWorkflowRank(form: FormDownload): number {
     if (text.includes('handbook') || text.includes('drawal procedure') || text.includes('sampling procedure') || text.includes('procedure') || text.includes('sop')) return 340;
     if (text.includes('banned') || text.includes('restricted')) return 350;
     if (text.includes('registered pesticide') || text.includes('formulations')) return 360;
+    if (text.includes('desert locust')) return 362;
+    if (text.includes('public health') || text.includes('household') || text.includes('house hold') || text.includes('rodenticide')) return 364;
+    if (text.includes('biostimulant')) return 366;
     if (text.includes('major use of insecticides')) return 370;
     if (text.includes('major use of fungicides')) return 372;
     if (text.includes('major use of herbicides')) return 374;
@@ -610,26 +619,29 @@ export function PublicOfficerTools() {
         <div className="mx-auto w-full max-w-6xl space-y-4">
           {showToolPage ? (
             <div className="mb-4">
-              <div className="rounded-2xl bg-gradient-to-r from-emerald-700 via-green-700 to-teal-700 p-4 shadow-lg border border-emerald-800/60">
-                <div className="flex items-start gap-3">
-                  <BackButton onClick={closeToolPage} tone="solid" label={t('Back', 'వెనుకకు')} className="mt-0.5" />
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white/15 dark:bg-slate-900/15 shadow-sm ring-1 ring-white/25">
-                      <FileText className="h-6 w-6 text-white" aria-label={samplingHubOpen ? 'Smart Sampling' : 'Forms & Library'} />
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-green-700 to-teal-700 p-4 shadow-lg border border-emerald-800/60">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
+                <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
+                  <BackButton onClick={closeToolPage} tone="solid" label={t('Back', 'వెనుకకు')} className="mt-1 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2.5 sm:gap-3">
+                      <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                        <FileText className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-white" aria-label={samplingHubOpen ? 'Smart Sampling' : 'Forms & Library'} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
+                          {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+                        </p>
+                        <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                          {samplingHubOpen ? t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్') : t('Forms & Library', 'ఫారాలు & లైబ్రరీ')}
+                        </h1>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100">
-                        {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
-                      </p>
-                      <h1 className="text-xl font-black text-white">
-                        {samplingHubOpen ? t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్') : t('Forms & Library', 'ఫారాలు & లైబ్రరీ')}
-                      </h1>
-                      <p className="text-sm font-semibold text-emerald-50">
-                        {samplingHubOpen
-                          ? t('Create sample drawal forms for seed, fertilizer & pesticide', 'విత్తనం, ఎరువు & పురుగుమందు నమూనా డ్రాయింగ్ ఫారాలను సృష్టించండి')
-                          : t('Download statutory forms, proformas and official documents', 'చట్టబద్ధ ఫారాలు, ప్రొఫార్మాలు మరియు అధికారిక పత్రాలను డౌన్‌లోడ్ చేయండి')}
-                      </p>
-                    </div>
+                    <p className="mt-2 text-xs sm:text-sm font-medium text-emerald-50 leading-relaxed max-w-3xl">
+                      {samplingHubOpen
+                        ? t('Create sample drawal forms for seed, fertilizer & pesticide', 'విత్తనం, ఎరువు & పురుగుమందు నమూనా డ్రాయింగ్ ఫారాలను సృష్టించండి')
+                        : t('Download statutory forms, proformas and official documents', 'చట్టబద్ధ ఫారాలు, ప్రొఫార్మాలు మరియు అధికారిక పత్రాలను డౌన్‌లోడ్ చేయండి')}
+                    </p>
                   </div>
                 </div>
               </div>

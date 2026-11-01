@@ -99,7 +99,7 @@ const PAGE_SEO: Record<string, { title: string; description: string }> = {
   },
   '/officer-toolkit': {
     title: 'Officer Toolkit | AGRONIX',
-    description: 'Tools for agriculture officers including calculators, statutory forms, and legal ready reckoner.',
+    description: 'Tools for agriculture officers including calculators, statutory forms, and acts & orders.',
   },
   '/officer-toolkit/farm-calculators': {
     title: 'Farm Calculators | AGRONIX',

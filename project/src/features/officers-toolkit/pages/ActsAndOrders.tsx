@@ -41,12 +41,10 @@ import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizu
 import { enforcementDeadlines, enforcementMindMap, type EnforcementDeadline, type MindMapNode } from '../data/fcoEnforcementMindMap';
 import { insecticideDeadlines, insecticideMindMap, insecticideOffenceEntries } from '../data/insecticideEnforcement';
 import { BackButton } from '../../../shared/components/ui/BackButton';
-import { CompactToolkitHeader, type ToolkitHeaderTone } from '../../../shared/components/ui/ToolkitPageHeader';
 import { FertilizerFormPdfGenerator } from '../../sampling-hub/components/FertilizerFormPdfGenerator';
 import { FcoExplorer, type FcoExplorerSection } from '../components/FcoExplorer';
 import { InsecticideExplorer, type InsecticideExplorerSection } from '../components/InsecticideExplorer';
 import { FcoImplementationModal } from '../../../shared/components/ui/FcoImplementationModal';
-import { useAuth } from '../../../shared/context/AuthContext';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 type ReckonerView = 'powers' | 'notice';
@@ -360,11 +358,24 @@ function readBookmarks() {
   }
 }
 
+function renderHeadingTitle(title: string) {
+  const match = title.match(/^(.*?)\s*(\([^)]*\))\s*$/);
+  if (match) {
+    return (
+      <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <span>{match[1]}</span>
+        <span className="text-sm sm:text-base md:text-lg font-bold text-white/90 whitespace-nowrap">
+          {match[2]}
+        </span>
+      </span>
+    );
+  }
+  return title;
+}
+
 export function ActsAndOrders() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdminUser, isTestUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
   const [view, setView] = useState<ReckonerView>('powers');
   const [selectedLegalArea, setSelectedLegalArea] = useState<MainLegalArea | null>(null);
   const [query, setQuery] = useState('');
@@ -501,13 +512,12 @@ export function ActsAndOrders() {
   };
 
   const activeAreaCard = selectedLegalArea ? legalAreaCards.find((item) => item.id === selectedLegalArea) : null;
-  const currentTone: ToolkitHeaderTone = selectedLegalArea === 'fertilizer' ? 'indigo' : selectedLegalArea === 'insecticide' ? 'amber' : 'emerald';
 
   const currentMeta = useMemo(() => {
     if (!selectedLegalArea) {
       return {
-        eyebrow: 'Officer Toolkit • Legal Ready Reckoner',
-        title: 'Acts & Orders (Legal Ready Reckoner)',
+        eyebrow: 'Officer Toolkit • Acts & Orders',
+        title: 'Acts & Orders',
         subtitle: 'Agriculture laws, rules, and official procedures for Fertilizer, Seed, and Insecticide.',
         icon: Scale,
       };
@@ -548,7 +558,7 @@ export function ActsAndOrders() {
       }
       return {
         eyebrow: 'Acts & Orders • FCO 1985',
-        title: 'Fertilizer Control Order (FCO 1985)',
+        title: 'Fertilizer Control Order',
         subtitle: activeAreaCard?.description || 'Clauses, schedules, forms, sampling procedures, dealer requirements, and non-standard prosecution paths under FCO 1985 and ECA 1955.',
         icon: activeAreaCard?.icon || PackageCheck,
       };
@@ -607,44 +617,41 @@ export function ActsAndOrders() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-4 px-4 pb-6 pt-4 sm:px-6 sm:pb-8 lg:px-8">
-      {!selectedFcoCardId && showCompactHeader && (
-        <CompactToolkitHeader
-          className="mb-1"
-          eyebrow={currentMeta.eyebrow}
-          title={currentMeta.title}
-          subtitle={currentMeta.subtitle}
-          icon={currentMeta.icon}
-          tone={currentTone}
-          onBack={handleBack}
-          actions={selectedLegalArea ? (
-            <button
-              type="button"
-              onClick={closeLegalArea}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-black text-slate-700 shadow-xs transition hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-            >
-              <Scale className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>All Categories</span>
-            </button>
-          ) : undefined}
-        />
-      )}
-      {!selectedFcoCardId && !showCompactHeader && (
+      {!selectedFcoCardId && (
         <section className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 text-white shadow-lg ${
           activeAreaCard
             ? `border-white/20 bg-gradient-to-br ${activeAreaCard.color}`
-            : 'border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 dark:border-emerald-700/60'
+            : selectedLegalArea === 'fertilizer'
+            ? 'border-indigo-400/40 bg-gradient-to-br from-indigo-700 via-indigo-800 to-violet-950'
+            : selectedLegalArea === 'insecticide'
+            ? 'border-amber-400/40 bg-gradient-to-br from-amber-600 via-orange-700 to-red-800'
+            : 'border-emerald-300/60 bg-gradient-to-br from-emerald-700 via-teal-700 to-emerald-900'
         }`}>
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3.5 min-w-0">
-              <BackButton onClick={handleBack} tone="solid" className="mt-0.5 shrink-0" />
-              <div className="min-w-0">
-                <h1 className="flex items-center gap-2 text-lg font-black text-white sm:text-xl">
-                  <CurrentIcon className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" aria-hidden="true" />
-                  <span>{currentMeta.title}</span>
-                </h1>
-                <p className="mt-1 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-2xl">
-                  {currentMeta.subtitle}
-                </p>
+            <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
+              <BackButton onClick={handleBack} tone="solid" className="mt-1 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                    <CurrentIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    {currentMeta.eyebrow && (
+                      <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-white/80 mb-0.5">
+                        {currentMeta.eyebrow}
+                      </p>
+                    )}
+                    <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                      {renderHeadingTitle(currentMeta.title)}
+                    </h1>
+                  </div>
+                </div>
+                {currentMeta.subtitle && (
+                  <p className="mt-2 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
+                    {currentMeta.subtitle}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -690,7 +697,7 @@ export function ActsAndOrders() {
           activeCard={activeFcoCard}
           activeCardId={selectedFcoCardId}
           activeTab={fcoActiveTab}
-          bare simpleHeader={showCompactHeader}
+          bare
           bookmarks={bookmarks}
           onTabChange={setFcoActiveTab}
           onSearchChange={(value) => {
@@ -749,7 +756,7 @@ export function ActsAndOrders() {
           activeCard={activeInsecticideCard}
           activeCardId={selectedFcoCardId}
           activeTab={fcoActiveTab}
-          bare simpleHeader={showCompactHeader}
+          bare
           bookmarks={bookmarks}
           badgeLabel="Act Sections"
           accent="amber"
@@ -775,7 +782,7 @@ export function ActsAndOrders() {
           activeCard={activeInsecticideCard}
           activeCardId={selectedFcoCardId}
           activeTab={fcoActiveTab}
-          bare simpleHeader={showCompactHeader}
+          bare
           bookmarks={bookmarks}
           badgeLabel="Rules"
           accent="amber"
@@ -1173,7 +1180,7 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
           <div>
             <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-emerald-600" />
-              <span>Statutory Acts, Rules & Legal Ready Reckoner</span>
+              <span>Statutory Acts, Rules & Orders</span>
             </h2>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
               Select an agricultural domain to access legal clauses, statutory forms, inspection powers, stop-sale procedures, and penal provisions.
@@ -1360,17 +1367,26 @@ function FcoCardDetailPage({
           ? 'border-amber-300/60 bg-gradient-to-br from-amber-600 via-orange-600 to-red-700 dark:border-amber-700/60'
           : 'border-indigo-300/60 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 dark:border-indigo-700/60'
       }`}>
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3.5 min-w-0">
-            <BackButton onClick={onBack} tone="solid" label="Back to cards" className="mt-0.5 shrink-0" />
-            <div className="min-w-0">
-              <h1 className="flex items-center gap-2 text-lg font-black text-white sm:text-xl">
-                <Icon className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" aria-hidden="true" />
-                <span>{card.cardTitle}</span>
-              </h1>
-              <p className="mt-1 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
-                {card.summary}
-              </p>
+          <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
+            <BackButton onClick={onBack} tone="solid" label="Back to cards" className="mt-1 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                  <Icon className="h-6 w-6 text-white" aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                    {card.cardTitle}
+                  </h1>
+                </div>
+              </div>
+              {card.summary && (
+                <p className="mt-2 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
+                  {card.summary}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2 self-end sm:self-center pt-1 sm:pt-0">

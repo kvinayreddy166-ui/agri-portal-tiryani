@@ -568,9 +568,10 @@ export function ProfitabilityCalculator() {
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
       {/* Header */}
-      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8 print:hidden">
+      <div className="mx-auto max-w-7xl px-4 pt-3 pb-1 sm:px-6 lg:px-8 print:hidden">
         {showCompactHeader ? (
           <CompactToolkitHeader
+            icon={CircleDollarSign}
             eyebrow={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
             title={t('Profitability Calculator', 'లాభదాయకత కాలిక్యులేటర్')}
             subtitle={t(
@@ -578,32 +579,42 @@ export function ProfitabilityCalculator() {
               'సమగ్ర సాగు ఖర్చు, దిగుబడి ఆదాయం మరియు నికర లాభాల విశ్లేషణ.'
             )}
             onBack={() => navigate('/officer-toolkit/farm-calculators')}
-            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
+            className="mb-1"
           />
         ) : (
-          <section className="relative overflow-hidden rounded-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 p-4 shadow-lg dark:border-emerald-700/60 sm:p-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3.5 min-w-0">
-                <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" className="mt-0.5 shrink-0" />
-                <div className="min-w-0">
-                  <h1 className="flex items-center gap-2 text-lg font-black text-white sm:text-xl">
-                    <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" aria-hidden="true" />
-                    <span>{t('Profitability Calculator', 'లాభదాయకత కాలిక్యులేటర్')}</span>
-                  </h1>
-                  <p className="mt-1 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-2xl">
-                    {t(
-                      'Cost of cultivation, operational expenses, yield & net profit per acre.',
-                      'సాగు ఖర్చు, దిగుబడి, విక్రయ ధర మరియు నికర లాభాల సమగ్ర గణన.'
-                    )}
-                  </p>
+          <section className="relative overflow-hidden rounded-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 p-3.5 sm:p-4 text-white shadow-md dark:border-emerald-700/60">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
+            <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
+              <BackButton onClick={() => navigate('/officer-toolkit/farm-calculators')} tone="solid" className="mt-1 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                    <CircleDollarSign className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
+                      {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
+                    </p>
+                    <h1 className="text-base sm:text-lg md:text-xl font-black text-white leading-snug tracking-tight">
+                      {t('Profitability Calculator', 'లాభదాయకత కాలిక్యులేటర్')}
+                    </h1>
+                  </div>
                 </div>
-              </div>
-              <div className="flex shrink-0 items-center justify-end self-end sm:self-center pt-1 sm:pt-0">
-                <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
+                <p className="mt-2 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
+                  {t(
+                    'Cost of cultivation, operational expenses, yield & net profit per acre.',
+                    'సాగు ఖర్చు, దిగుబడి, విక్రయ ధర మరియు నికర లాభాల సమగ్ర గణన.'
+                  )}
+                </p>
               </div>
             </div>
           </section>
         )}
+
+        {/* Separate Compact Language Toggle below title card */}
+        <div className="mt-2 flex items-center justify-end">
+          <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
+        </div>
       </div>
 
       {/* Printable Heading (Only visible in Print) */}
@@ -621,9 +632,6 @@ export function ProfitabilityCalculator() {
                 <Sparkles className="h-4 w-4 text-amber-500" />
                 {t('Select Crop or Preset', 'పంట లేదా ప్రిసెట్ ఎంచుకోండి')}
               </h2>
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {t('Tap a regional crop to auto-fill typical costs & official 2026-27 MSP rates (PIB PRID 2260618).', 'ప్రాంతీయ సగటు ఖర్చులు మరియు అధికారిక 2026-27 మద్దతు ధరలతో (MSP) ప్రారంభించడానికి ఒక పంటను ఎంచుకోండి.')}
-              </p>
             </div>
             <div className="flex items-center gap-2">
               <button

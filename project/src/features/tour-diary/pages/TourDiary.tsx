@@ -1812,22 +1812,31 @@ export function TourDiary() {
             <div className="flex-1">
               {showCompactHeader ? (
                 <CompactToolkitHeader
+                  icon={NotebookPen}
                   title="Tour Diary"
                   subtitle="Manage your monthly tour diaries"
                   className="mb-0"
                 />
               ) : (
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-emerald-700 to-teal-800 p-4 shadow-lg">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
-                <div className="flex items-center gap-4">
-                  <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" />
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100">Officer Toolkit</p>
-                    <h1 className="flex items-center gap-2 text-xl font-black text-white">
-                      <NotebookPen className="h-6 w-6" aria-label="Tour Diary" />
-                      Tour Diary
-                    </h1>
-                    <p className="text-sm font-semibold text-white/90">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
+                <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
+                  <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" className="mt-1 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                        <NotebookPen className="h-6 w-6 text-white" aria-label="Tour Diary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
+                          Officer Toolkit
+                        </p>
+                        <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                          Tour Diary
+                        </h1>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
                       Manage your monthly tour diaries
                     </p>
                   </div>
@@ -2207,6 +2216,7 @@ export function TourDiary() {
           <div className="flex-1">
             {showCompactHeader ? (
               <CompactToolkitHeader
+                icon={NotebookPen}
                 title="Tour Diary"
                 subtitle="Monthly Tour Diary with Journey Tracking"
                 className="mb-0"
@@ -2214,15 +2224,23 @@ export function TourDiary() {
             ) : (
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-emerald-700 to-teal-800 p-4 shadow-lg">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
-              <div className="flex items-center gap-4">
-                <BackButton onClick={() => setShowLandingPage(true)} tone="solid" />
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-100">Officer Toolkit</p>
-                  <h1 className="flex items-center gap-2 text-xl font-black text-white">
-                    <NotebookPen className="h-6 w-6" aria-label="Tour Diary" />
-                    Tour Diary
-                  </h1>
-                  <p className="text-sm font-semibold text-white/90">
+              <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
+                <BackButton onClick={() => setShowLandingPage(true)} tone="solid" className="mt-1 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white">
+                      <NotebookPen className="h-6 w-6 text-white" aria-label="Tour Diary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
+                        Officer Toolkit
+                      </p>
+                      <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                        Tour Diary
+                      </h1>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs sm:text-sm font-medium text-white/90 leading-relaxed max-w-3xl">
                     Monthly Tour Diary with Journey Tracking
                   </p>
                 </div>

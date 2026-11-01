@@ -3,7 +3,6 @@ import { Bug, FlaskConical, PackageCheck, Ruler, Sprout, TrendingUp, Wheat } fro
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
-import { useAuth } from '../../../shared/context/AuthContext';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 
 
@@ -85,28 +84,23 @@ const calculatorItems = [
 export function FarmCalculators() {
   const navigate = useNavigate();
   const { t, language, toggleLanguage } = useLanguage();
-  const { user } = useAuth();
 
   return (
     <div className="space-y-4">
-      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-        <div className="relative">
-          <ToolkitPageHeader
-            icon={FlaskConical}
-            tone="emerald"
-            variant="solid"
-            eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
-            title={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
-            subtitle={t('Area, Plant, Seed and Fertilizer Calculations', 'విస్తీరణ, మొక్కలు, విత్తనం మరియు ఎరువుల లెక్కలు')}
-            fallbackPath="/officer-toolkit"
-            onBack={() => navigate('/officer-toolkit')}
-            className="mb-0"
-          />
-          {!user && (
-            <div className="absolute bottom-4 right-4">
-              <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
-            </div>
-          )}
+      <div className="mx-auto max-w-7xl px-4 pt-3 pb-1 sm:px-6 lg:px-8">
+        <ToolkitPageHeader
+          icon={FlaskConical}
+          tone="emerald"
+          variant="solid"
+          eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+          title={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
+          subtitle={t('Area, Plant, Seed and Fertilizer Calculations', 'విస్తీరణ, మొక్కలు, విత్తనం మరియు ఎరువుల లెక్కలు')}
+          fallbackPath="/officer-toolkit"
+          onBack={() => navigate('/officer-toolkit')}
+          className="mb-0"
+        />
+        <div className="mt-2 flex items-center justify-end">
+          <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
         </div>
       </div>
 

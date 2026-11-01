@@ -436,6 +436,7 @@ export function LicenseServices() {
         <div className="mb-6">
           <ToolkitPageHeader
             icon={ReceiptText}
+            iconSize="sm"
             tone="blue"
             variant="solid"
             eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}

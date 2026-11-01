@@ -11,6 +11,7 @@ interface ToolkitPageHeaderProps {
   eyebrow?: string | ReactNode;
   subtitle?: string | ReactNode;
   icon?: LucideIcon;
+  iconSize?: 'sm' | 'md' | 'lg';
   tone?: ToolkitHeaderTone;
   variant?: 'tinted' | 'solid';
   fallbackPath?: string;
@@ -176,34 +177,54 @@ export function CompactToolkitHeader({
   eyebrow = 'Officer Toolkit',
   subtitle,
   icon: Icon,
+  iconSize = 'md',
   tone = 'emerald',
   actions,
   onBack,
   className = '',
-}: Pick<ToolkitPageHeaderProps, 'title' | 'eyebrow' | 'subtitle' | 'icon' | 'tone' | 'actions' | 'onBack' | 'className'>) {
+}: Pick<ToolkitPageHeaderProps, 'title' | 'eyebrow' | 'subtitle' | 'icon' | 'iconSize' | 'tone' | 'actions' | 'onBack' | 'className'>) {
+  const iconBoxClass = iconSize === 'sm'
+    ? 'h-8 w-8 sm:h-9 sm:w-9 rounded-lg'
+    : iconSize === 'lg'
+    ? 'h-11 w-11 sm:h-12 sm:w-12 rounded-xl'
+    : 'h-9 w-9 sm:h-10 sm:w-10 rounded-xl';
+  const iconSvgClass = iconSize === 'sm'
+    ? 'h-4 w-4 sm:h-4.5 sm:w-4.5'
+    : iconSize === 'lg'
+    ? 'h-5.5 w-5.5 sm:h-6 sm:w-6'
+    : 'h-4.5 w-4.5 sm:h-5 sm:w-5';
+
   return (
     <header className={`mb-4 ${className}`}>
-      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 sm:items-center">
-        <div className="flex min-w-0 items-start gap-1">
-          {onBack && <BackButton onClick={onBack} className="mt-0.5" />}
-          <div className="min-w-0">
-            {eyebrow && (
-              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">
-                {eyebrow}
-              </p>
-            )}
-            <h1 className="flex items-center gap-2 text-xl font-black leading-tight text-slate-950 dark:text-white sm:text-2xl">
-              {Icon && <Icon className={`h-6 w-6 ${COMPACT_ICON_STYLES[tone] || COMPACT_ICON_STYLES.emerald}`} />}
-              {title}
-            </h1>
+      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+        <div className="flex min-w-0 flex-1 items-start gap-2.5 sm:gap-3.5">
+          {onBack && <BackButton onClick={onBack} className="mt-1 shrink-0" />}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              {Icon && (
+                <div className={`flex ${iconBoxClass} shrink-0 items-center justify-center bg-slate-100 dark:bg-slate-800/80 ring-1 ring-slate-200/80 dark:ring-slate-700/80 shadow-xs ${COMPACT_ICON_STYLES[tone] || COMPACT_ICON_STYLES.emerald}`}>
+                  <Icon className={iconSvgClass} />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                {eyebrow && (
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300 mb-0.5">
+                    {eyebrow}
+                  </p>
+                )}
+                <h1 className="text-lg sm:text-xl font-black leading-tight text-slate-950 dark:text-white sm:text-2xl">
+                  {title}
+                </h1>
+              </div>
+            </div>
             {subtitle && (
-              <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+              <p className="mt-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl">
                 {subtitle}
               </p>
             )}
           </div>
         </div>
-        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+        {actions && <div className="flex shrink-0 items-center gap-2 self-start pt-1">{actions}</div>}
       </div>
     </header>
   );
@@ -214,6 +235,7 @@ export function ToolkitPageHeader({
   eyebrow = 'Officer Toolkit',
   subtitle,
   icon: Icon,
+  iconSize = 'md',
   tone = 'emerald',
   variant = 'tinted',
   fallbackPath = '/officer-toolkit',
@@ -232,6 +254,7 @@ export function ToolkitPageHeader({
         eyebrow={eyebrow}
         subtitle={subtitle}
         icon={Icon}
+        iconSize={iconSize}
         tone={tone}
         actions={actions}
         onBack={onBack}
@@ -253,34 +276,49 @@ export function ToolkitPageHeader({
     }
   };
 
+  const iconBoxClass = iconSize === 'sm'
+    ? 'h-8 w-8 sm:h-9 sm:w-9 rounded-lg'
+    : iconSize === 'lg'
+    ? 'h-11 w-11 sm:h-12 sm:w-12 rounded-xl'
+    : 'h-9 w-9 sm:h-10 sm:w-10 rounded-xl';
+  const iconSvgClass = iconSize === 'sm'
+    ? 'h-4 w-4 sm:h-4.5 sm:w-4.5'
+    : iconSize === 'lg'
+    ? 'h-5.5 w-5.5 sm:h-6 sm:w-6'
+    : 'h-4.5 w-4.5 sm:h-5 sm:w-5';
+
   return (
     <div className={`relative mb-5 overflow-hidden rounded-2xl border p-4 ${theme.container} ${className}`}>
       <div className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${variant === 'solid' ? 'from-white/70 via-white/50 to-white/70' : BAR_STYLES[tone]}`} />
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <BackButton onClick={handleBack} colors={theme.backBtn} className="self-center" />
-          {Icon && (
-            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg shadow-sm ring-1 ring-white/20 ${theme.iconBg}`}>
-              <Icon className="h-6 w-6 text-white" />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-3.5">
+          <BackButton onClick={handleBack} colors={theme.backBtn} className="mt-1 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              {Icon && (
+                <div className={`flex ${iconBoxClass} shrink-0 items-center justify-center shadow-sm ring-1 ring-white/25 backdrop-blur-xs ${theme.iconBg}`}>
+                  <Icon className={iconSvgClass} />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                {eyebrow && (
+                  <p className={`text-[10px] sm:text-xs font-black uppercase tracking-wider mb-0.5 ${theme.eyebrow}`}>
+                    {eyebrow}
+                  </p>
+                )}
+                <h1 className={`text-lg sm:text-xl md:text-2xl font-black leading-snug tracking-tight ${theme.title}`}>
+                  {title}
+                </h1>
+              </div>
             </div>
-          )}
-          <div className="min-w-0">
-            {eyebrow && (
-              <p className={`text-[10px] font-black uppercase tracking-widest ${theme.eyebrow}`}>
-                {eyebrow}
-              </p>
-            )}
-            <h1 className={`text-lg font-black leading-tight sm:text-xl ${theme.title}`}>
-              {title}
-            </h1>
             {subtitle && (
-              <p className={`text-sm font-semibold ${variant === 'solid' ? 'text-white/90' : 'text-slate-600 dark:text-slate-300'}`}>
+              <p className={`mt-2 text-xs sm:text-sm font-medium leading-relaxed max-w-3xl ${variant === 'solid' ? 'text-white/90' : 'text-slate-600 dark:text-slate-300'}`}>
                 {subtitle}
               </p>
             )}
           </div>
         </div>
-        {actions && <div className="flex shrink-0 items-center gap-2 self-end">{actions}</div>}
+        {actions && <div className="flex shrink-0 items-center gap-2 self-end sm:self-start pt-1">{actions}</div>}
       </div>
     </div>
   );

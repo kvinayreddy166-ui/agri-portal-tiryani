@@ -433,29 +433,41 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         {/* Header Section - Only shown for public access */}
         {!shouldHideHeader && (
           <div className={`mb-5 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="relative overflow-hidden rounded-2xl border border-emerald-800/60 bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-900 px-4 py-3.5 shadow-lg shadow-emerald-900/25 backdrop-blur-sm">
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-800/60 bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-900 p-4 shadow-lg shadow-emerald-900/25 backdrop-blur-sm">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 via-gold-400 to-emerald-700" />
-              <div className="relative flex min-w-0 items-center gap-3">
-                <BackButton
-                  onClick={() => navigate('/login')}
-                  colors="text-emerald-100 hover:text-white"
-                />
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 text-gold-300 shadow-sm ring-1 ring-white/25">
-                  <ShieldCheck className="h-5 w-5" />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-3.5">
+                  <BackButton
+                    onClick={() => navigate('/login')}
+                    colors="text-emerald-100 hover:text-white"
+                    className="mt-1 shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2.5 sm:gap-3">
+                      <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-gold-300 shadow-sm ring-1 ring-white/25 backdrop-blur-xs">
+                        <ShieldCheck className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-gold-300" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-200/80 mb-0.5">
+                          {t('Official Portal', 'అధికారిక పోర్టల్')}
+                        </p>
+                        <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                          {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+                        </h1>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-xs sm:text-sm font-semibold text-gold-200 leading-relaxed max-w-3xl">
+                      {t('Field Tools & Government Portals', 'క్షేత్ర సాధనాలు & ప్రభుత్వ పోర్టళ్లు')}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="truncate text-lg font-black tracking-tight text-white sm:text-xl">
-                    {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
-                  </h1>
-                  <p className="truncate text-xs font-semibold text-gold-200">
-                    {t('Field Tools & Government Portals', 'క్షేత్ర సాధనాలు & ప్రభుత్వ పోర్టళ్లు')}
-                  </p>
+                <div className="flex shrink-0 items-center gap-2 self-end sm:self-start pt-1">
+                  <LanguageToggle
+                    language={language}
+                    onClick={toggleLanguage}
+                    className="h-9 shrink-0 rounded-xl !border-white/25 !bg-white/10 !text-white shadow-sm backdrop-blur px-3 hover:!bg-white/20"
+                  />
                 </div>
-                <LanguageToggle
-                  language={language}
-                  onClick={toggleLanguage}
-                  className="h-9 shrink-0 rounded-xl !border-white/25 !bg-white/10 !text-white shadow-sm backdrop-blur px-3 hover:!bg-white/20"
-                />
               </div>
             </div>
           </div>
