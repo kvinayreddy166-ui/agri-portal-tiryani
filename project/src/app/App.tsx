@@ -28,6 +28,7 @@ import {
 import { GlobalAppLoader, PageLoader, SafeSuspense } from './router/loading';
 import { PageSwitch, PublicPageSwitch } from './router/PageSwitch';
 import { Layout, Login } from './router/lazyPages';
+import { AppIntroSplash } from '../shared/components/ui/AppIntroSplash';
 
 import { safeStorage } from '../shared/lib/safeStorage';
 function AppContent() {
@@ -243,6 +244,7 @@ function App() {
                 <UpdateBanner />
               </Suspense>
               <GlobalMobileDatePickerProvider />
+              <AppIntroSplash />
               <AppContent />
             </LanguageScope>
           </BrowserRouter>

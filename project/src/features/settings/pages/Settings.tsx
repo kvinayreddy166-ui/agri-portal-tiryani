@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Settings as SettingsIcon, Save, User, Database } from 'lucide-react';
+import { Settings as SettingsIcon, Save, User, Database, Film, Play } from 'lucide-react';
+import { AGRONIX_INTRO_DISABLED_KEY, playIntroVideo } from '../../../shared/components/ui/appIntroState';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { Settings as SettingsType } from '../../../shared/types/database';
@@ -9,6 +10,26 @@ export function Settings() {
   const [settings, setSettings] = useState<SettingsType[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [introEnabled, setIntroEnabled] = useState(() => {
+    try {
+      return localStorage.getItem(AGRONIX_INTRO_DISABLED_KEY) !== 'true';
+    } catch {
+      return true;
+    }
+  });
+
+  const handleIntroToggle = (enabled: boolean) => {
+    setIntroEnabled(enabled);
+    try {
+      if (enabled) {
+        localStorage.removeItem(AGRONIX_INTRO_DISABLED_KEY);
+      } else {
+        localStorage.setItem(AGRONIX_INTRO_DISABLED_KEY, 'true');
+      }
+    } catch {
+      // Storage unavailable fallback
+    }
+  };
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -184,6 +205,39 @@ export function Settings() {
           </p>
         </div>
       )}
+
+      {/* App Intro Video Settings */}
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Film className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">App Opening Intro Video</h2>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-slate-300 mb-4">
+          Control the startup video that plays when AGRONIX is opened as an app or PWA.
+        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-slate-800/60 rounded-xl border border-gray-100 dark:border-slate-700/60">
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="intro-video-toggle"
+              checked={introEnabled}
+              onChange={(e) => handleIntroToggle(e.target.checked)}
+              className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 cursor-pointer"
+            />
+            <label htmlFor="intro-video-toggle" className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer select-none">
+              Play intro video when launching AGRONIX
+            </label>
+          </div>
+          <button
+            type="button"
+            onClick={() => playIntroVideo()}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer shadow-sm active:scale-95"
+          >
+            <Play className="w-4 h-4 fill-current" />
+            Watch Intro Video
+          </button>
+        </div>
+      </div>
 
       {/* Database Info */}
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
