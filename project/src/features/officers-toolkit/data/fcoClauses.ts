@@ -267,7 +267,7 @@ function enrichFcoCurrentReference() {
     clause2.explanations = Array.from(new Set([
       ...clause2.explanations,
       'The fertiliser definition now also covers bio-stimulants and nano fertilisers - check the product category before choosing the sampling workflow.',
-      'Current structure recognises 7 schedules including Schedule VI Biostimulants and Schedule VII Nano Fertilisers.',
+      'Current structure recognises VIII schedules including Schedule VI Biostimulants, Schedule VII Nano Fertilisers and Schedule VIII Organic Carbon Enhancers.',
     ]));
   }
 
@@ -464,4 +464,4 @@ export function validateFcoClauseCoverage(cards = fcoClauseCards) {
   return { expected: expectedFcoClauseNumbers.length, present: present.size, missing };
 }
 
-export const fcoDashboardStats = ['9 Cards', 'Clauses 1-39', '7 Schedules', '28 Forms', 'Offline Ready'];
+export const fcoDashboardStats = ['9 Cards', 'Clauses 1-39', 'VIII Schedules', '28 Forms', 'Offline Ready'];

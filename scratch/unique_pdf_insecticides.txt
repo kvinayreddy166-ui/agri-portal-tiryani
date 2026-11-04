@@ -1,0 +1,147 @@
+Acephate 75 SP
+Acephate 95 SG
+Acetamiprid 20 SP
+Alphacypermethrin 10 EC
+Alphacypermethrin 10 SC
+Azadirachtin 0.03
+Azadirachtin 0.03 (300 PPM)
+Azadirachtin 0.03 MIN.
+Azadirachtin 0.15 W/W
+Azadirachtin 0.3 (3000 PPM)
+Azadirachtin 1 (10000 PPM)
+Azadirachtin 1 MIN. E.C.
+Azadirachtin 5 W/W
+Bacillus thuringiensis Var. Galleriae
+Bacillus thuringiensis Var. Kurstaki 5 WP
+Beauveria bassiana 1 WP
+Beauveria bassiana 1.15 W.P.
+Beauveria bassiana 10 SC
+Benfuracarb 3 GR
+Beta Cyfluthrin 2.45 SC
+Bifenazate 22.6 SC
+Bifenazate 50 WP
+Bifenthrin 10 EC
+Bifenthrin 8 SC
+Buprofezin 25 SC
+Buprofezin 70 DF
+Carbaryl 10 D.P.
+Carbaryl 4 G.R.
+Carbaryl 5 D.P.
+Carbaryl 50 WP
+Carbaryl 85 W.P.
+Carbofuran 3 CG
+Carbosulfan 25 DS
+Carbosulfan 25 EC
+Carbosulfan 6 G
+Cartap Hydrochloride 4 G
+Cartap Hydrochloride 50 SP
+Cartap Hydrochloride 75 SG
+Chlorantraniliprole 0.4 GR
+Chlorantraniliprole 18.5 SC
+Chlorfenapyr 10 SC
+Chlorfluazuron 5.4 EC
+Chlorpyrifos 1.5 DP
+Chlorpyrifos 10 G
+Chlorpyrifos 20 EC
+Chlorpyrifos 50 EC
+Chromafenozide 80 WP
+Clothianidin 50 WDG
+Cyantraniliprole 10.26 OD
+Cypermethrin 0.25 DP
+Cypermethrin 10 EC
+Cypermethrin 25 EC
+Deltamethrin 1.8 EC
+Deltamethrin 11 W/W EC
+Deltamethrin 2.5 WP
+Deltamethrin 2.8 EC
+Deltamethrin 25 Tablet
+Diafenthiuron 50WP
+Dichlorvos 76 EC
+Dicofol 18.5 EC
+Diflubenzuron 25 WP
+Dimethoate 30 EC
+Dinotefuran 20 SG
+Emamectin Benzoate 1.9 EC
+Emamectin Benzoate 5 SG
+Ethion 50 EC
+Ethofenoprox 10EC
+Etoxazole 10 SC
+Fenazaquin 10 EC
+Fenobucarb (BPMC) 50 EC
+Fenpropathrin 10 EC
+Fenpropathrin 30 EC
+Fenpyroximate 5 EC
+Fenvalerate 0.4 DP
+Fenvalerate 2 CONC.
+Fenvalerate 20 EC
+Fipronil 0.3 GR
+Fipronil 5 SC
+Fipronil 80WG
+Flonicamid 50 WG
+Flubendiamide 20 WG
+Flubendiamide 39.35 M/M SC
+Flufenoxuron 10 DC
+Flumite 20 SC / Flufenzine 20SC
+Fluvalinate 25 EC
+Hexythiazox 5.45 W/W EC
+Imidacloprid 0.3 GR
+Imidacloprid 17.8 SL
+Imidacloprid 30.5 M/M SC
+Imidacloprid 48 FS per 100 kg seed
+Imidacloprid 70 WS per 100 kg seed
+Imidaclopride 70 WG
+Indoxacarb 14.5 SC
+Indoxacarb 15.8 EC
+Lambda - Cyhalothrin 4.9 CS
+Lambda-Cyhalothrin 2.5 EC
+Lambda-Cyhalothrin 4.9 CS
+Lambda-Cyhalothrin 5 EC
+Lufenuron 5.4 EC
+Malathion 5 DP
+Malathion 50 EC
+Metaflumizone 22 SC
+Methomyl 40 SP
+Methyl Parathion 2 DP
+Methyl Parathion 50 EC
+Methyl parathion 2 DP
+Milbemectin 1 EC
+Monocrotophos 15 SG
+Monocrotophos 36 SL
+NPV of Helicoverpa armigera 0.43 AS
+NPV of Helicoverpa armigera 0.5 AS
+NPV of Helicoverpa armigera 2.0 AS
+NPV of Spodoptera litura 0.5 AS
+Novaluron 10 EC
+Novaluron 8.8 SC
+Oxydemeton – Methyl 25 EC
+Permethrin 25 EC
+Phenthoate 2 DP
+Phenthoate 50 EC
+Phorate 10 CG
+Phosalone 35 EC
+Phosalone 4 DP
+Phosphamidon 40 SL
+Profenofos 50 EC
+Propargite 57 EC
+Pymetrozine 50 WG
+Pyridalyl 10 EC
+Pyriproxyfen 10 EC
+Quinalphos 1.5 DP
+Quinalphos 20 AF
+Quinalphos 25 EC
+Quinalphos 25 GEL
+Quinalphos 5 G
+Spinosad 2.5 SC
+Spinosad 45.0 SC
+Spiromesifen 22.9 SC
+Thiacloprid 21.7 SC
+Thiamethoxam 25 WG
+Thiamethoxam 30 FS
+Thiamethoxam 70 WS
+Thiodicarb 75 WP
+Thiometon 25EC
+Tolfenpyrad 15 EC
+Triazophos 20 EC
+Triazophos 40 EC
+Verticillium lecanii 1.15 WP
+Verticillium lecanii 1.15WP

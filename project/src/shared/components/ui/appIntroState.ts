@@ -3,7 +3,7 @@ export const AGRONIX_INTRO_PLAYED_SESSION_KEY = 'agronix_intro_session_played';
 export const AGRONIX_PLAY_INTRO_EVENT = 'agronix:play-intro';
 
 /**
- * Triggers replaying the intro video from anywhere in the app.
+ * Triggers replaying the intro video from anywhere in the app (e.g. Settings).
  */
 export function playIntroVideo() {
   window.dispatchEvent(new CustomEvent(AGRONIX_PLAY_INTRO_EVENT));
@@ -27,36 +27,8 @@ export function isPageReload(): boolean {
 
 /**
  * Determines whether the intro video should play on this launch.
- * Plays only on initial opening, never on page refresh / reload.
+ * Disabled by default - video does NOT play automatically at starting of website.
  */
 export function shouldPlayOnInitialOpen(): boolean {
-  try {
-    if (typeof window === 'undefined') return false;
-
-    // Force play if requested via query parameter
-    if (window.location.search.includes('intro')) {
-      return true;
-    }
-
-    // Respect user setting if disabled
-    if (localStorage.getItem(AGRONIX_INTRO_DISABLED_KEY) === 'true') {
-      return false;
-    }
-
-    // Do NOT play if this is a page refresh/reload
-    if (isPageReload()) {
-      return false;
-    }
-
-    // Do NOT play if already played in this app session
-    if (sessionStorage.getItem(AGRONIX_INTRO_PLAYED_SESSION_KEY) === 'true') {
-      return false;
-    }
-
-    // Mark as played for this session so subsequent refreshes won't replay
-    sessionStorage.setItem(AGRONIX_INTRO_PLAYED_SESSION_KEY, 'true');
-    return true;
-  } catch {
-    return false;
-  }
+  return false;
 }

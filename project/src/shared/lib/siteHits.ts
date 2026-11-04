@@ -61,9 +61,14 @@ export async function fetchSiteHitSummary(): Promise<SiteHitSummary> {
       .maybeSingle(),
   ]);
 
-  if (totalResult.error) throw totalResult.error;
-  if (todayResult.error) throw todayResult.error;
-  if (lastViewResult.error) throw lastViewResult.error;
+  if (totalResult.error || todayResult.error) {
+    return {
+      totalViews: PREVIOUS_SITE_VISIT_BASELINE,
+      uniqueVisitors: 0,
+      todayViews: 0,
+      lastViewedAt: null,
+    };
+  }
 
   const totalCount = totalResult.count || 0;
   const lastViewedAt = lastViewResult.data?.viewed_at || null;

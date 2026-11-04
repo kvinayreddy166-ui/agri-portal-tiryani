@@ -179,14 +179,14 @@ const legalAreaCards: Array<{
     category: 'Fertiliser',
     statute: 'Fertiliser (Inorganic, Organic or Mixed) (Control) Order, 1985 & ECA, 1955',
     statuteShort: 'FCO 1985 & ECA',
-    tags: ['38 Clauses', 'Forms A to P', 'Schedules I–IV', 'Seizure & Stop Sale'],
-    stats: '38 Clauses • 18 Forms',
-    color: 'from-indigo-600 via-indigo-700 to-violet-800',
-    panel: 'from-indigo-50/90 via-white to-violet-50/80 dark:from-indigo-950/30 dark:via-slate-900 dark:to-violet-950/30',
-    border: 'border-indigo-200/90 dark:border-indigo-800/60',
-    accent: 'text-indigo-700 dark:text-indigo-300',
-    chip: 'bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-700 ring-indigo-200 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-300 dark:ring-indigo-800/60',
-    hover: 'hover:border-indigo-400 hover:bg-indigo-50/60 dark:hover:bg-indigo-950/30',
+    tags: ['38 Clauses', '28 Forms', 'Schedules I–VIII', 'Seizure & Stop Sale'],
+    stats: '38 Clauses • 28 Forms • VIII Schedules',
+    color: 'bg-indigo-700 text-white',
+    panel: 'bg-white dark:bg-slate-900',
+    border: 'border-slate-200 dark:border-slate-800',
+    accent: 'text-indigo-600 dark:text-indigo-400',
+    chip: 'bg-slate-100 text-slate-700 border border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+    hover: 'hover:border-slate-300 dark:hover:border-slate-700',
   },
   {
     id: 'seed',
@@ -198,12 +198,12 @@ const legalAreaCards: Array<{
     statuteShort: 'Seeds Act 1966 & Rules',
     tags: ['Stop Sale & Seizure', 'Sampling Protocols', 'Inspector Duties', 'Penalties'],
     stats: '25 Sections • Inspection Protocols',
-    color: 'from-emerald-600 via-teal-700 to-emerald-800',
-    panel: 'from-emerald-50/90 via-white to-teal-50/80 dark:from-emerald-950/30 dark:via-slate-900 dark:to-teal-950/30',
-    border: 'border-emerald-200/90 dark:border-emerald-800/60',
-    accent: 'text-emerald-700 dark:text-emerald-300',
-    chip: 'bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-700 ring-emerald-200 dark:from-emerald-950/40 dark:to-teal-950/30 dark:text-emerald-300 dark:ring-emerald-800/60',
-    hover: 'hover:border-emerald-400 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30',
+    color: 'bg-emerald-700 text-white',
+    panel: 'bg-white dark:bg-slate-900',
+    border: 'border-slate-200 dark:border-slate-800',
+    accent: 'text-emerald-600 dark:text-emerald-400',
+    chip: 'bg-slate-100 text-slate-700 border border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+    hover: 'hover:border-slate-300 dark:hover:border-slate-700',
   },
   {
     id: 'insecticide',
@@ -213,14 +213,14 @@ const legalAreaCards: Array<{
     category: 'Insecticides',
     statute: 'The Insecticides Act, 1968 & The Insecticides Rules, 1971',
     statuteShort: 'Insecticides Act 1968',
-    tags: ['Sections 1–38', 'Rules 1–46', 'Forms I to XXI', 'Analyst & Enforcement'],
-    stats: '38 Sections • 46 Rules • 21 Forms',
-    color: 'from-amber-600 via-orange-600 to-red-700',
-    panel: 'from-amber-50/90 via-white to-orange-50/80 dark:from-amber-950/30 dark:via-slate-900 dark:to-orange-950/30',
-    border: 'border-amber-200/90 dark:border-amber-800/60',
-    accent: 'text-amber-700 dark:text-amber-300',
-    chip: 'bg-gradient-to-br from-amber-50 to-orange-50 text-amber-800 ring-orange-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-orange-200 dark:ring-orange-800/60',
-    hover: 'hover:border-amber-400 hover:bg-orange-50/60 dark:hover:bg-amber-950/30',
+    tags: ['Sections 1–38', 'Rules 1–46', 'Forms I to XVIII', 'Analyst & Enforcement'],
+    stats: '38 Sections • 46 Rules • 18 Forms',
+    color: 'bg-amber-700 text-white',
+    panel: 'bg-white dark:bg-slate-900',
+    border: 'border-slate-200 dark:border-slate-800',
+    accent: 'text-amber-600 dark:text-amber-400',
+    chip: 'bg-slate-100 text-slate-700 border border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+    hover: 'hover:border-slate-300 dark:hover:border-slate-700',
   },
 ];
 
@@ -653,11 +653,11 @@ export function ActsAndOrders() {
                     </div>
                     <div className="min-w-0 flex-1">
                       {currentMeta.eyebrow && (
-                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-white/80 mb-0.5">
+                        <p className="text-[10px] sm:text-xs font-medium tracking-normal text-white/80 mb-0.5">
                           {currentMeta.eyebrow}
                         </p>
                       )}
-                      <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                      <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-white leading-snug tracking-tight">
                         {renderHeadingTitle(currentMeta.title)}
                       </h1>
                       {currentMeta.subtitle && (
@@ -873,7 +873,7 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
       <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
               <FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
               <span>Insecticide Regulatory Forms</span>
             </h2>
@@ -881,7 +881,7 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
               Statutory forms under Insecticides Rules (First Schedule) for licensing, inspection, sampling, and reports.
             </p>
           </div>
-          <span className="self-start sm:self-auto rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-black text-orange-800 ring-1 ring-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:ring-orange-800">
+          <span className="self-start sm:self-auto rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-semibold text-orange-800 ring-1 ring-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:ring-orange-800">
             {visibleForms.length} Forms
           </span>
         </div>
@@ -904,21 +904,21 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <p className={`text-[10px] font-black uppercase tracking-wide ${t.labelText}`}>{form.formNo}</p>
-                  <span className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ring-1`}>{insecticideFormUserLabels[form.usedBy]}</span>
+                  <p className={`text-[10px] font-medium uppercase tracking-wide ${t.labelText}`}>{form.formNo}</p>
+                  <span className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide ring-1`}>{insecticideFormUserLabels[form.usedBy]}</span>
                 </div>
-                <h3 className="mt-0.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{form.title}</h3>
+                <h3 className="mt-0.5 text-[13px] font-medium leading-4 text-slate-950 dark:text-white">{form.title}</h3>
                 <p className="mt-0.5 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.purpose}</p>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  <span className="rounded-full bg-gradient-to-br from-amber-50 to-orange-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-800 ring-1 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60">{form.rule}</span>
+                  <span className="rounded-full bg-gradient-to-br from-amber-50 to-orange-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-800 ring-1 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60">{form.rule}</span>
                 </div>
               </div>
             </div>
             <div className="mt-2.5 flex items-center justify-end gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-900/50">
-              <button type="button" onClick={() => onViewForm(form)} aria-label="View" title="View" className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-orange-500 via-amber-500 to-amber-600 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
+              <button type="button" onClick={() => onViewForm(form)} aria-label="View" title="View" className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-orange-500 via-amber-500 to-amber-600 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm transition hover:shadow-md hover:brightness-105">
                 <Eye className="h-3.5 w-3.5" />
               </button>
-              <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-slate-200 bg-gradient-to-br from-white to-slate-50 px-2.5 py-1 text-[10px] font-black text-slate-800 transition hover:to-slate-100 dark:border-slate-800/50 dark:from-slate-900 dark:to-slate-900 dark:text-slate-200 dark:hover:to-orange-950/30">
+              <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-slate-200 bg-gradient-to-br from-white to-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-800 transition hover:to-slate-100 dark:border-slate-800/50 dark:from-slate-900 dark:to-slate-900 dark:text-slate-200 dark:hover:to-orange-950/30">
                 <FileText className="h-3 w-3" /> PDF
               </a>
             </div>
@@ -996,7 +996,7 @@ function FertilizerClausesPanel({
       <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
               <BookOpen className={`h-4 w-4 ${accent === 'amber' ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
               <span>{badgeLabel} Directory</span>
             </h2>
@@ -1004,7 +1004,7 @@ function FertilizerClausesPanel({
               Search by clause number, keyword, schedule reference, or officer powers.
             </p>
           </div>
-          <span className={`self-start sm:self-auto rounded-full px-2.5 py-1 text-[11px] font-black ${
+          <span className={`self-start sm:self-auto rounded-full px-2.5 py-1 text-[11px] font-medium ${
             accent === 'amber'
               ? 'bg-amber-50 text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800'
               : 'bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800'
@@ -1051,7 +1051,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
       <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
               <ClipboardList className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
               <span>Fertilizer Specifications &amp; Schedules</span>
             </h2>
@@ -1059,7 +1059,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
               Chemical specifications, tolerance limits, and official sampling methods under FCO 1985.
             </p>
           </div>
-          <span className="self-start sm:self-auto rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800">
+          <span className="self-start sm:self-auto rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800">
             {visibleSchedules.length} Schedules
           </span>
         </div>
@@ -1077,12 +1077,12 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
         {visibleSchedules.map((schedule) => (
           <details key={schedule.id} className="group overflow-hidden rounded-lg border border-indigo-200/70 bg-gradient-to-br from-indigo-50/90 via-white to-violet-50/60 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-indigo-400 hover:shadow-md dark:border-indigo-800/50 dark:from-indigo-950/25 dark:via-slate-950 dark:to-violet-950/20">
             <summary className="flex cursor-pointer list-none items-start gap-2.5 p-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-700 ring-1 ring-indigo-200/70 transition group-hover:scale-105 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-300 dark:ring-indigo-800/50">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-700 ring-1 ring-indigo-200/70 transition  dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-300 dark:ring-indigo-800/50">
                 <ClipboardList className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">{schedule.scheduleNo}</p>
-                <h3 className="mt-0.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{schedule.title}</h3>
+                <p className="text-[10px] font-medium uppercase tracking-wide text-slate-700 dark:text-slate-300">{schedule.scheduleNo}</p>
+                <h3 className="mt-0.5 text-[13px] font-medium leading-4 text-slate-950 dark:text-white">{schedule.title}</h3>
                 <p className="mt-0.5 line-clamp-2 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{schedule.subtitle}</p>
               </div>
               <ChevronDown className="mt-1 h-4 w-4 shrink-0 text-slate-700 transition-transform group-open:rotate-180 dark:text-slate-300" />
@@ -1182,7 +1182,7 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
       <section className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 print:hidden">
         <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-emerald-600" />
               <span>Statutory Acts, Rules & Orders</span>
             </h2>
@@ -1205,26 +1205,26 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
             <div
               key={card.id}
               onClick={() => onOpen(card.id)}
-              className={`group relative flex flex-col justify-between rounded-2xl border ${card.border} bg-gradient-to-br ${card.panel} p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg cursor-pointer`}
+              className={`group relative flex flex-col justify-between rounded-xl border ${card.border} ${card.panel} p-5 shadow-xs transition-colors duration-150 ${card.hover} cursor-pointer`}
             >
               <div>
                 <div className="flex items-start justify-between gap-3">
-                  <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${card.color} text-white shadow-md transition-transform duration-300 group-hover:scale-105`}>
-                    <Icon className="h-6 w-6" />
+                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${card.color} shadow-xs`}>
+                    <Icon className="h-5 w-5" />
                   </span>
-                  <span className={`rounded-full ${card.chip} px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ring-1`}>
+                  <span className={`rounded-md ${card.chip} px-2.5 py-0.5 text-xs font-medium`}>
                     {card.statuteShort}
                   </span>
                 </div>
 
                 <div className="mt-4">
-                  <h3 className="text-base font-black text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-white transition-colors">
                     {card.title}
                   </h3>
-                  <p className="mt-0.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  <p className="mt-0.5 text-xs font-normal text-slate-500 dark:text-slate-400">
                     {card.statute}
                   </p>
-                  <p className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <p className="mt-2 text-xs font-normal text-slate-600 dark:text-slate-300 leading-relaxed">
                     {card.description}
                   </p>
                 </div>
@@ -1234,7 +1234,7 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
                   {card.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-lg bg-white/80 px-2 py-0.5 text-[10px] font-bold text-slate-700 shadow-2xs border border-slate-200/80 dark:bg-slate-800/90 dark:border-slate-700 dark:text-slate-300"
+                      className="rounded-md bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 border border-slate-200/70 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300"
                     >
                       {tag}
                     </span>
@@ -1244,10 +1244,10 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
 
               {/* Bottom Action Bar */}
               <div className="mt-5 flex items-center justify-between border-t border-slate-200/70 pt-3 dark:border-slate-800">
-                <span className="text-[11px] font-black text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
                   {card.stats}
                 </span>
-                <span className={`inline-flex items-center gap-1 text-xs font-black ${card.accent} group-hover:translate-x-0.5 transition-transform`}>
+                <span className={`inline-flex items-center gap-1 text-xs font-medium ${card.accent}`}>
                   <span>Explore</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </span>
@@ -1279,7 +1279,7 @@ function LegalTopicScreen({
             <AreaIcon className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-base font-black text-slate-950 dark:text-white sm:text-lg">{areaCard.title} Legal Topics</h2>
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white sm:text-lg">{areaCard.title} Legal Topics</h2>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Select a topic below to review powers, notices, and procedural guidelines.</p>
           </div>
         </div>
@@ -1294,11 +1294,11 @@ function LegalTopicScreen({
               onClick={() => onOpenTopic(topic)}
               className={`group flex items-center gap-3.5 rounded-2xl border ${areaCard.border} bg-gradient-to-br ${areaCard.panel} p-4 text-left shadow-sm transition duration-300 ${areaCard.hover} hover:shadow-md active:scale-[0.99]`}
             >
-              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${areaCard.color} text-white shadow-sm transition group-hover:scale-105`}>
+              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${areaCard.color} text-white shadow-sm transition `}>
                 <Icon className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-black text-slate-950 dark:text-white">{topic.title}</span>
+                <span className="block text-sm font-semibold text-slate-900 dark:text-white">{topic.title}</span>
                 <span className="mt-0.5 block text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-300">{topic.description}</span>
               </span>
               <ChevronRight className={`h-4 w-4 shrink-0 ${areaCard.accent} group-hover:translate-x-0.5 transition-transform`} />
@@ -1316,13 +1316,13 @@ function ViewButton({ active, icon: Icon, label, onClick, area }: { active: bool
     <button
       type="button"
       onClick={onClick}
-      className={`agri-input-topic-card group flex min-h-[4.25rem] items-center gap-2.5 rounded-xl border p-2.5 text-left text-sm font-black shadow-sm transition duration-300 hover:-translate-y-0.5 hover:scale-[1.01] active:scale-[0.98] ${
+      className={`agri-input-topic-card group flex min-h-[4.25rem] items-center gap-2.5 rounded-xl border p-2.5 text-left text-sm font-medium shadow-sm transition duration-300 hover:-translate-y-0.5  active:scale-[0.98] ${
         active
           ? `border-transparent bg-gradient-to-br ${theme.color} text-white shadow-lg`
           : `${theme.border} bg-gradient-to-br ${theme.panel} text-slate-800 ${theme.hover} hover:shadow-md dark:text-slate-200`
       }`}
     >
-      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm ring-1 transition group-hover:scale-105 ${
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm ring-1 transition  ${
         active
           ? 'bg-white/20 text-white ring-white/30'
           : theme.chip
@@ -1399,7 +1399,7 @@ function FcoCardDetailPage({
                     <Icon className="h-6 w-6 text-white" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                    <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-white leading-snug tracking-tight">
                       {card.cardTitle}
                     </h1>
                     {card.summary && (
@@ -1412,7 +1412,7 @@ function FcoCardDetailPage({
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2 self-end sm:self-center pt-1 sm:pt-0">
-              <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white ring-1 ring-white/30 backdrop-blur-xs">
+              <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-medium tracking-normal text-white ring-1 ring-white/30 backdrop-blur-xs">
                 {badgeLabel} {card.cardNo} ({card.clauseRange})
               </span>
             </div>
@@ -1430,7 +1430,7 @@ function FcoCardDetailPage({
               key={tab.id}
               type="button"
               onClick={() => onTabChange(tab.id)}
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-black transition ${
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-medium transition ${
                 selected
                   ? `bg-gradient-to-br ${t.gradient} text-white shadow-md ${t.shadow}`
                   : `border ${t.tabOff}`
@@ -1476,7 +1476,7 @@ const fcoGlanceChipTones: Record<FcoAccent, Record<'slate' | 'amber' | 'blue' | 
 
 function FcoGlanceChip({ icon: Icon, label, tone = 'slate', accent = 'sky' }: { icon: typeof Clock; label: string; tone?: 'slate' | 'amber' | 'blue' | 'emerald'; accent?: FcoAccent }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ring-1 ${fcoGlanceChipTones[accent][tone]}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ${fcoGlanceChipTones[accent][tone]}`}>
       <Icon className="h-3 w-3" />
       {label}
     </span>
@@ -1502,8 +1502,8 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onT
     <details id={`fco-clause-${clause.id}`} className={`group overflow-hidden rounded-lg border ${t.border} bg-white shadow-sm transition duration-300 ${t.hoverBorder} hover:shadow-md dark:bg-slate-900`} open>
       <summary className={`flex cursor-pointer list-none flex-col gap-2 border-b ${t.borderSoft} bg-gradient-to-br ${t.tint} p-2.5 sm:flex-row sm:items-start sm:justify-between`}>
         <div>
-          <p className={`text-[10px] font-black uppercase tracking-wide ${t.labelText}`}>{clause.clauseLabel ?? 'Clause'} {clause.clauseNo} - {clause.category}</p>
-          <h3 className="mt-0.5 text-sm font-black text-slate-950 dark:text-white">{clause.title}</h3>
+          <p className={`text-[10px] font-medium uppercase tracking-wide ${t.labelText}`}>{clause.clauseLabel ?? 'Clause'} {clause.clauseNo} - {clause.category}</p>
+          <h3 className="mt-0.5 text-sm font-semibold text-slate-900 dark:text-white">{clause.title}</h3>
           <p className="mt-0.5 text-xs font-bold text-slate-600 dark:text-slate-300">{clause.summary}</p>
         </div>
         <div className="flex gap-1.5">
@@ -1534,7 +1534,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onT
               <div key={proviso.title} className={`flex gap-2 rounded-lg border ${t.provisoBox} p-2.5`}>
                 <AlertTriangle className={`mt-0.5 h-4 w-4 shrink-0 ${t.iconText}`} />
                 <div className="min-w-0">
-                  <p className={`text-[11px] font-black uppercase tracking-wide ${t.provisoTitle}`}>{proviso.title}</p>
+                  <p className={`text-[11px] font-medium uppercase tracking-wide ${t.provisoTitle}`}>{proviso.title}</p>
                   <p className={`mt-0.5 text-[12px] font-semibold leading-5 ${t.provisoBody}`}>{proviso.plainEnglish}</p>
                   <p className={`mt-0.5 text-[11px] font-medium leading-4 ${t.provisoSub}`}>{proviso.legalText}</p>
                 </div>
@@ -1547,14 +1547,14 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onT
             {subClauses.map((subClause) => (
               <details key={subClause.no} className={`overflow-hidden rounded-lg border ${t.borderSoft} bg-white dark:bg-slate-900`}>
                 <summary className="flex cursor-pointer list-none items-center gap-2 p-2">
-                  <span className={`flex h-7 min-w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${t.gradient} px-1.5 text-[10px] font-black text-white shadow-sm`}>{subClause.no}</span>
+                  <span className={`flex h-7 min-w-10 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${t.gradient} px-1.5 text-[10px] font-semibold text-white shadow-sm`}>{subClause.no}</span>
                   <span className="text-[12px] font-bold leading-4 text-slate-800 dark:text-slate-100">{subClause.plainEnglish}</span>
                 </summary>
                 <div className={`space-y-1.5 border-t ${t.borderSoft} px-2.5 py-2 text-[12px] font-semibold text-slate-700 dark:text-slate-200`}>
                   <p className="text-slate-500 dark:text-slate-400">{subClause.legalText}</p>
-                  {subClause.officerAction && <p><span className={`font-black ${t.labelText}`}>Officer:</span> {subClause.officerAction.join('; ')}</p>}
-                  {subClause.dealerObligation && <p><span className={`font-black ${t.altText}`}>Dealer:</span> {subClause.dealerObligation.join('; ')}</p>}
-                  <button type="button" onClick={() => navigator.clipboard?.writeText(`${subClause.no}: ${subClause.legalText}\n${subClause.plainEnglish}`)} className={`inline-flex items-center gap-1.5 rounded-md border ${t.border} bg-white px-2 py-1 text-[11px] font-black ${t.boldText} hover:opacity-80 dark:bg-slate-900`}>
+                  {subClause.officerAction && <p><span className={`font-medium ${t.labelText}`}>Officer:</span> {subClause.officerAction.join('; ')}</p>}
+                  {subClause.dealerObligation && <p><span className={`font-medium ${t.altText}`}>Dealer:</span> {subClause.dealerObligation.join('; ')}</p>}
+                  <button type="button" onClick={() => navigator.clipboard?.writeText(`${subClause.no}: ${subClause.legalText}\n${subClause.plainEnglish}`)} className={`inline-flex items-center gap-1.5 rounded-md border ${t.border} bg-white px-2 py-1 text-[11px] font-medium ${t.boldText} hover:opacity-80 dark:bg-slate-900`}>
                     <Copy className="h-3 w-3" /> Copy sub-clause
                   </button>
                 </div>
@@ -1564,7 +1564,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onT
         )}
         {clause.related.length > 0 && (
           <div className={`flex flex-wrap items-center gap-1.5 border-t ${t.borderSoft} pt-2`}>
-            <span className={`text-[10px] font-black uppercase tracking-wide ${t.labelText}`}>Related</span>
+            <span className={`text-[10px] font-medium uppercase tracking-wide ${t.labelText}`}>Related</span>
             {clause.related.map((item) => {
               const match = /^(clause|section|rule)\s+(.+)$/i.exec(item.trim());
               const target = match ? fcoClauseLocationByNo.get(`${match[1]} ${match[2]}`.toLowerCase()) : undefined;
@@ -1574,7 +1574,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onT
                 );
               }
               return (
-                <button key={item} type="button" onClick={() => onOpenRelated(target)} className={`inline-flex items-center gap-1 rounded-full ${t.related} px-2 py-0.5 text-[10px] font-black ring-1 transition`}>
+                <button key={item} type="button" onClick={() => onOpenRelated(target)} className={`inline-flex items-center gap-1 rounded-full ${t.related} px-2 py-0.5 text-[10px] font-medium ring-1 transition`}>
                   {item} <ArrowRight className="h-3 w-3" />
                 </button>
               );
@@ -1610,7 +1610,7 @@ function FcoTimelineStepper({ timelines, accent = 'sky' }: { timelines: string[]
   const t = fcoAccentThemes[accent];
   return (
     <div className={`rounded-lg border ${t.panelBox} p-2.5`}>
-      <p className={`text-[10px] font-black uppercase tracking-wide ${t.panelTitle}`}>Deadline track</p>
+      <p className={`text-[10px] font-medium uppercase tracking-wide ${t.panelTitle}`}>Deadline track</p>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {timelines.map((timeline, index) => {
           const parsed = parseTimelineDuration(timeline);
@@ -1620,8 +1620,8 @@ function FcoTimelineStepper({ timelines, accent = 'sky' }: { timelines: string[]
               <div className={`flex items-center gap-2 rounded-lg border ${t.stepperBox} bg-white px-2 py-1.5 shadow-sm dark:bg-slate-900`}>
                 {parsed ? (
                   <span className={`flex h-8 min-w-8 shrink-0 flex-col items-center justify-center rounded-md bg-gradient-to-br ${t.stepperBadge} px-1 leading-none text-white`}>
-                    <span className="text-[13px] font-black">{parsed.value}</span>
-                    <span className="text-[7px] font-black uppercase">{parsed.unit.replace('working ', 'work ')}</span>
+                    <span className="text-[13px] font-medium">{parsed.value}</span>
+                    <span className="text-[7px] font-medium uppercase">{parsed.unit.replace('working ', 'work ')}</span>
                   </span>
                 ) : (
                   <Clock className={`h-4 w-4 shrink-0 ${t.stepperClock}`} />
@@ -1646,10 +1646,10 @@ function FcoFormsTimelines({ clause, accent = 'sky' }: { clause: FcoClause; acce
       {clause.timelines.length > 0 && <FcoTimelineStepper timelines={clause.timelines} accent={accent} />}
       {clause.forms.length > 0 && (
         <div className={`rounded-lg border ${t.panelBox} p-2.5`}>
-          <p className={`text-[10px] font-black uppercase tracking-wide ${t.panelTitle}`}>Forms</p>
+          <p className={`text-[10px] font-medium uppercase tracking-wide ${t.panelTitle}`}>Forms</p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {clause.forms.map((form) => (
-              <span key={form} className={`inline-flex items-center gap-1 rounded-full ${t.panelChip} px-2 py-1 text-[11px] font-black ring-1`}>
+              <span key={form} className={`inline-flex items-center gap-1 rounded-full ${t.panelChip} px-2 py-1 text-[11px] font-medium ring-1`}>
                 <FileText className="h-3 w-3" /> {form}
               </span>
             ))}
@@ -1705,16 +1705,16 @@ function FcoDashboardCards({
           className={`group relative flex flex-col overflow-hidden rounded-lg border ${t.border} bg-gradient-to-br ${t.tintTile} p-3 text-left shadow-sm transition duration-300 hover:-translate-y-0.5 ${t.hoverBorder} hover:shadow-md`}
         >
           <div className="flex items-start justify-between gap-2">
-            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.iconTile} transition group-hover:scale-105`}>
+            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.iconTile} transition `}>
               <FileText className="h-4 w-4" />
             </span>
-            <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>27 statutory forms</span>
+            <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-medium ring-1`}>27 statutory forms</span>
           </div>
-          <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">Forms</h3>
+          <h3 className="mt-2.5 text-[13px] font-medium leading-4 text-slate-950 dark:text-white">Forms</h3>
           <p className="mt-0.5 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">FCO statutory forms grouped for registration, manufacturing, sampling and records.</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {['Search', 'Preview', 'Download'].map((item) => (
-              <span key={item} className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[10px] font-black ring-1`}>
+              <span key={item} className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[10px] font-medium ring-1`}>
                 {item}
               </span>
             ))}
@@ -1736,16 +1736,16 @@ function FcoDashboardCards({
             }`}
           >
             <div className="flex items-start justify-between gap-2">
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.iconTile} transition group-hover:scale-105`}>
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.iconTile} transition `}>
                 <Icon className="h-4 w-4" />
               </span>
-              <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>{card.clauseRange}</span>
+              <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-medium ring-1`}>{card.clauseRange}</span>
             </div>
-            <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{card.cardTitle}</h3>
+            <h3 className="mt-2.5 text-[13px] font-medium leading-4 text-slate-950 dark:text-white">{card.cardTitle}</h3>
             <p className="mt-0.5 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.summary}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {card.contains.slice(0, 5).map((item) => (
-                <span key={item} className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[10px] font-black ring-1`}>
+                <span key={item} className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[10px] font-medium ring-1`}>
                   {item}
                 </span>
               ))}
@@ -1786,7 +1786,7 @@ function FertilizerFormsPanel({
       <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
               <FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
               <span>FCO Statutory Forms</span>
             </h2>
@@ -1794,7 +1794,7 @@ function FertilizerFormsPanel({
               Inspection forms, dealer applications, compliance certificates &amp; notices.
             </p>
           </div>
-          <span className="self-start sm:self-auto rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800">
+          <span className="self-start sm:self-auto rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800">
             {visibleForms.length} Forms
           </span>
         </div>
@@ -1813,7 +1813,7 @@ function FertilizerFormsPanel({
               key={item}
               type="button"
               onClick={() => onCategoryChange(item)}
-              className={`rounded-full px-3 py-1.5 text-[11px] font-black transition sm:text-xs ${
+              className={`rounded-full px-3 py-1.5 text-[11px] font-medium transition sm:text-xs ${
                 category === item
                   ? 'bg-gradient-to-br from-indigo-400 via-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-400/20'
                   : 'border border-slate-200 bg-slate-50/60 text-slate-900 hover:border-indigo-300 hover:bg-slate-100 dark:border-slate-800/50 dark:bg-slate-900/30 dark:text-slate-200 dark:hover:bg-slate-900/50'
@@ -1822,7 +1822,7 @@ function FertilizerFormsPanel({
               {item}
             </button>
           ))}
-          <span className="ml-auto rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 px-3 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200/80 dark:from-indigo-950/30 dark:to-violet-950/20 dark:text-indigo-200 dark:ring-indigo-900">
+          <span className="ml-auto rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 px-3 py-1 text-[11px] font-semibold text-indigo-800 ring-1 ring-indigo-200/80 dark:from-indigo-950/30 dark:to-violet-950/20 dark:text-indigo-200 dark:ring-indigo-900">
             {visibleForms.length} forms
           </span>
         </div>
@@ -1832,30 +1832,30 @@ function FertilizerFormsPanel({
         {visibleForms.map((form) => (
           <article key={form.id} className="group relative flex flex-col overflow-hidden rounded-lg border border-indigo-200/70 bg-gradient-to-br from-indigo-50/90 via-white to-violet-50/60 p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-indigo-400 hover:shadow-md dark:border-indigo-800/50 dark:from-indigo-950/25 dark:via-slate-950 dark:to-violet-950/20">
             <div className="flex items-start gap-2.5">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-700 ring-1 ring-indigo-200/70 transition group-hover:scale-105 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-300 dark:ring-indigo-800/50">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-50 to-violet-50 text-indigo-700 ring-1 ring-indigo-200/70 transition  dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-300 dark:ring-indigo-800/50">
                 <FileText className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-black uppercase tracking-wide text-slate-700 dark:text-slate-300">{form.formNo}</p>
-                <h3 className="mt-0.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{form.title}</h3>
+                <p className="text-[10px] font-medium uppercase tracking-wide text-slate-700 dark:text-slate-300">{form.formNo}</p>
+                <h3 className="mt-0.5 text-[13px] font-medium leading-4 text-slate-950 dark:text-white">{form.title}</h3>
               </div>
             </div>
             <p className="mt-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.description}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <span className="rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 px-2 py-0.5 text-[10px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:from-violet-950/40 dark:to-indigo-950/30 dark:text-indigo-200 dark:ring-indigo-800/60">
+              <span className="rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-800 ring-1 ring-indigo-200 dark:from-violet-950/40 dark:to-indigo-950/30 dark:text-indigo-200 dark:ring-indigo-800/60">
                 {form.category}
               </span>
               {form.clause && (
-                <span className="rounded-full bg-gradient-to-br from-violet-50 to-indigo-50 px-2 py-0.5 text-[10px] font-black text-violet-800 ring-1 ring-violet-200 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-200 dark:ring-indigo-800/60">
+                <span className="rounded-full bg-gradient-to-br from-violet-50 to-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-violet-800 ring-1 ring-violet-200 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-200 dark:ring-indigo-800/60">
                   {form.clause}
                 </span>
               )}
             </div>
             <div className="mt-2.5 flex items-center justify-end gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-900/50">
-              <button type="button" onClick={() => onViewForm(form)} aria-label="View" title="View" className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-indigo-400 via-indigo-500 to-violet-500 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
+              <button type="button" onClick={() => onViewForm(form)} aria-label="View" title="View" className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-indigo-400 via-indigo-500 to-violet-500 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm transition hover:shadow-md hover:brightness-105">
                 <Eye className="h-3.5 w-3.5" />
               </button>
-              <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-slate-200 bg-gradient-to-br from-white to-slate-50 px-2.5 py-1 text-[10px] font-black text-slate-800 transition hover:to-slate-100 dark:border-slate-800/50 dark:from-slate-900 dark:to-slate-900 dark:text-slate-200 dark:hover:to-indigo-950/30">
+              <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-slate-200 bg-gradient-to-br from-white to-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-800 transition hover:to-slate-100 dark:border-slate-800/50 dark:from-slate-900 dark:to-slate-900 dark:text-slate-200 dark:hover:to-indigo-950/30">
                 <FileText className="h-3 w-3" /> PDF
               </a>
             </div>
@@ -1885,7 +1885,7 @@ function FcoOffencesSection({ entries, accent = 'sky', emptyText = 'No FCO offen
           <button
             type="button"
             onClick={() => setExportOpen((open) => !open)}
-            className={`inline-flex items-center gap-2 rounded-lg bg-gradient-to-br ${t.gradient} px-3 py-2 text-sm font-black text-white shadow-sm transition hover:brightness-105`}
+            className={`inline-flex items-center gap-2 rounded-lg bg-gradient-to-br ${t.gradient} px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-105`}
           >
             <Download className="h-4 w-4" />
             Export
@@ -1895,17 +1895,17 @@ function FcoOffencesSection({ entries, accent = 'sky', emptyText = 'No FCO offen
             <>
               <button type="button" aria-label="Close export menu" onClick={() => setExportOpen(false)} className="fixed inset-0 z-10 cursor-default" />
               <div className={`absolute left-0 z-20 mt-1 w-44 overflow-hidden rounded-lg border ${t.border} bg-white shadow-lg dark:bg-slate-900`}>
-                <button type="button" onClick={() => handleExport('excel')} className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-black ${t.boldText} transition ${t.hoverTint}`}>
+                <button type="button" onClick={() => handleExport('excel')} className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium ${t.boldText} transition ${t.hoverTint}`}>
                   <FileText className="h-3.5 w-3.5" /> Excel (.xlsx)
                 </button>
-                <button type="button" onClick={() => handleExport('pdf')} className={`flex w-full items-center gap-2 border-t ${t.borderSoft} px-3 py-2 text-left text-xs font-black ${t.boldText} transition ${t.hoverTint}`}>
+                <button type="button" onClick={() => handleExport('pdf')} className={`flex w-full items-center gap-2 border-t ${t.borderSoft} px-3 py-2 text-left text-xs font-medium ${t.boldText} transition ${t.hoverTint}`}>
                   <FileText className="h-3.5 w-3.5" /> PDF
                 </button>
               </div>
             </>
           )}
         </div>
-        <span className={`rounded-full ${t.chipCount} px-3 py-1 text-xs font-black ring-1`}>
+        <span className={`rounded-full ${t.chipCount} px-3 py-1 text-xs font-medium ring-1`}>
           {entries.length} offences
         </span>
       </div>
@@ -1913,16 +1913,16 @@ function FcoOffencesSection({ entries, accent = 'sky', emptyText = 'No FCO offen
         {entries.map((entry) => (
           <article key={entry.serialNumber} className={`flex flex-col rounded-lg border ${t.borderSoft} bg-gradient-to-br ${t.tintTile} p-2.5 shadow-sm transition hover:-translate-y-0.5 ${t.hoverBorder} hover:shadow-md`}>
             <div className="flex items-start gap-2">
-              <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${t.iconTile} text-[11px] font-black`}>
+              <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${t.iconTile} text-[11px] font-medium`}>
                 {entry.serialNumber}
               </span>
-              <p className="min-w-0 flex-1 text-xs font-black leading-4 text-slate-900 dark:text-white">{entry.offenceType}</p>
+              <p className="min-w-0 flex-1 text-xs font-medium leading-4 text-slate-900 dark:text-white">{entry.offenceType}</p>
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>
+              <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-medium ring-1`}>
                 {entry.contraventionProvision}
               </span>
-              <span className="rounded-full bg-gradient-to-br from-red-50 to-slate-50 px-2 py-0.5 text-[10px] font-black text-red-700 ring-1 ring-red-200 dark:from-red-950/40 dark:to-amber-950/30 dark:text-red-300 dark:ring-red-800/60">
+              <span className="rounded-full bg-gradient-to-br from-red-50 to-slate-50 px-2 py-0.5 text-[10px] font-semibold text-red-700 ring-1 ring-red-200 dark:from-red-950/40 dark:to-amber-950/30 dark:text-red-300 dark:ring-red-800/60">
                 {entry.punishmentProvision}
               </span>
             </div>
@@ -1954,10 +1954,10 @@ function PowersSection({ area }: { area: MainLegalArea }) {
     <div className="space-y-4">
       {groups.map((group) => (
         <section key={group} className={`rounded-lg border ${theme.border} bg-white p-4 shadow-sm dark:bg-slate-900`}>
-          <h2 className={`text-lg font-black ${theme.accent}`}>{group}</h2>
+          <h2 className={`text-lg font-medium ${theme.accent}`}>{group}</h2>
           <div className={`mt-3 overflow-x-auto rounded-lg border ${theme.border}`}>
             <table className="w-full min-w-[980px] text-left text-sm">
-              <thead className={`bg-gradient-to-br ${theme.panel} text-xs font-black uppercase ${theme.accent}`}>
+              <thead className={`bg-gradient-to-br ${theme.panel} text-xs font-medium uppercase ${theme.accent}`}>
                 <tr>
                   <th className="px-3 py-2">Situation / violation</th>
                   <th className="px-3 py-2">Act / Order</th>
@@ -1990,7 +1990,7 @@ function PowersSection({ area }: { area: MainLegalArea }) {
       <section className="grid gap-3 md:grid-cols-3">
         {officerWorkflows.map((workflow) => (
           <div key={workflow.id} className={`rounded-lg border ${theme.border} bg-gradient-to-br ${theme.panel} p-4 shadow-sm`}>
-            <h3 className={`font-black ${theme.accent}`}>{workflow.title}</h3>
+            <h3 className={`font-medium ${theme.accent}`}>{workflow.title}</h3>
             <ol className="mt-3 space-y-2">
               {workflow.steps.map((step, index) => <li key={step} className="text-sm font-semibold text-slate-600 dark:text-slate-300">{index + 1}. {step}</li>)}
             </ol>
@@ -2083,7 +2083,7 @@ function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig })
       <section className="rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
               <Network className={`h-4 w-4 ${config.accent === 'amber' ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
               <span>{config.badgeLabel}</span>
             </h2>
@@ -2094,7 +2094,7 @@ function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig })
           <button
             type="button"
             onClick={() => setCollapsed(allExpanded ? new Set(allNodeIds) : new Set())}
-            className={`self-start sm:self-auto rounded-full border ${t.tabOff} px-3 py-1 text-[11px] font-black transition`}
+            className={`self-start sm:self-auto rounded-full border ${t.tabOff} px-3 py-1 text-[11px] font-medium transition`}
           >
             {allExpanded ? 'Collapse all' : 'Expand all'}
           </button>
@@ -2104,7 +2104,7 @@ function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig })
             <div key={item.action} className={`flex items-start gap-2 rounded-xl border ${t.borderSoft} bg-gradient-to-br ${t.panelBox} px-2.5 py-2`}>
               <Clock className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${t.iconText}`} />
               <div>
-                <p className="text-[11px] font-black leading-4 text-slate-800 dark:text-slate-100">{item.limit}</p>
+                <p className="text-[11px] font-medium leading-4 text-slate-800 dark:text-slate-100">{item.limit}</p>
                 <p className="text-[10px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{item.action}</p>
               </div>
             </div>
@@ -2127,7 +2127,7 @@ function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig })
               <Scale className="h-3.5 w-3.5" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-black text-slate-950 dark:text-white">{config.offencesTitle}</span>
+              <span className="block text-sm font-semibold text-slate-900 dark:text-white">{config.offencesTitle}</span>
               <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{config.offencesSubtitle}</span>
             </span>
             <ChevronDown className={`mt-1 h-4 w-4 shrink-0 ${t.labelText} transition-transform duration-200 ${offencesOpen ? '' : '-rotate-90'}`} />
@@ -2182,7 +2182,7 @@ function MindMapBranchCard({ node, collapsed, accent = 'sky', onToggle }: { node
           <Network className="h-3.5 w-3.5" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-black text-slate-950 dark:text-white">{node.label}</span>
+          <span className="block text-sm font-semibold text-slate-900 dark:text-white">{node.label}</span>
           {node.detail && <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{node.detail}</span>}
         </span>
         {hasChildren && (
@@ -2225,7 +2225,7 @@ function MindMapNodeRow({ node, depth, collapsed, accent = 'sky', onToggle }: { 
           onClick={() => hasChildren && onToggle(node.id)}
           className="min-w-0 flex-1 text-left"
         >
-          <span className={`block leading-5 ${depth === 0 ? 'text-[13px] font-black text-slate-900 dark:text-white' : 'text-xs font-bold text-slate-800 dark:text-slate-100'}`}>
+          <span className={`block leading-5 ${depth === 0 ? 'text-[13px] font-semibold text-slate-900 dark:text-white' : 'text-xs font-bold text-slate-800 dark:text-slate-100'}`}>
             {node.label}
           </span>
           {node.detail && (

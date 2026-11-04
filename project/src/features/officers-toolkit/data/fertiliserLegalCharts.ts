@@ -33,7 +33,7 @@ export const fertiliserLegalCharts: FertiliserLegalChart[] = [
           'C&DA / State Licensing Officer',
           'Manufacturing Licence in Form F',
           'Marketing Licence in Form A2',
-          'Current structure: 7 schedules and 27 forms',
+          'Current structure: VIII schedules and 28 forms',
         ],
       },
       {

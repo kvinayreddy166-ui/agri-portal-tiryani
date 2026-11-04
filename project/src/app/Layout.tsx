@@ -135,8 +135,8 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
 
   return (
     <div className="min-h-screen bg-[#f2f7f3] dark:bg-slate-950">
-      <header className="sticky top-[calc(0.25rem_+_env(safe-area-inset-top))] z-50 mx-1.5 rounded-2xl border border-emerald-900/30 bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-800 text-white shadow-lg sm:mx-2">
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] rounded-b-2xl bg-gradient-to-r from-transparent via-gold-400/80 to-transparent" />
+      <header className="sticky top-[calc(0.25rem_+_env(safe-area-inset-top))] z-50 mx-1.5 rounded-2xl border-b border-emerald-950/40 bg-emerald-900 text-white shadow-xs sm:mx-2">
+        
         <div className="relative flex min-w-0 items-center justify-between gap-2 px-4 py-2.5 sm:px-5 lg:px-6">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <button
@@ -157,7 +157,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
             <div className="flex min-w-0 items-center gap-2">
               {!hidePortalLogo && <PortalLogo size="xs" />}
               <div className="min-w-0">
-                <h1 className="truncate text-sm font-black tracking-tight sm:text-base text-gold-300 font-[var(--font-stylish)]">
+                <h1 className="truncate text-sm font-semibold tracking-tight sm:text-base text-white">
                   {t('Agronix', 'తిర్యాని వ్యవసాయ పోర్టల్')}
                 </h1>
                 <p className="truncate text-[10px] font-semibold text-gold-300">
@@ -235,11 +235,11 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                   role="menu"
                 >
                   <div className="flex items-center gap-2.5 border-b border-slate-100 px-3.5 py-3 dark:border-slate-800">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-emerald-800 text-sm font-black text-white">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-sm font-medium text-white">
                       {user?.email?.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-black">{profileName}</p>
+                      <p className="truncate text-sm font-medium">{profileName}</p>
                       <p className="truncate text-[11px] font-semibold text-slate-500 dark:text-slate-400">{profileRole}</p>
                     </div>
                   </div>
@@ -285,7 +285,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
         }`}
       >
         <div className="relative border-b border-slate-200 bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950 px-3.5 pb-3 pt-[calc(1rem_+_env(safe-area-inset-top))] text-white dark:border-slate-800">
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400/70 to-transparent" />
+          
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
               <PortalLogo size="sm" />

@@ -97,7 +97,7 @@ function shouldAttemptRecovery() {
  */
 async function syncServiceWorker() {
   try {
-    const registrations = await navigator.serviceWorker.getRegistrations();
+    const registrations = await navigator.serviceWorker.getRegistrations().catch(() => []);
     const appRegistrations = registrations.filter(
       (registration) => new URL(registration.scope).origin === window.location.origin
     );
@@ -146,9 +146,11 @@ export function initServiceWorkerLifecycle() {
     window.addEventListener('load', () => {
       // In dev, the SW's fetch interception breaks Vite module loading and lazy
       // imports (jspdf/docx/xlsx). Unregister any existing SW and skip registering.
-      void navigator.serviceWorker.getRegistrations().then((registrations) => {
-        registrations.forEach((registration) => void registration.unregister());
-      });
+      void navigator.serviceWorker.getRegistrations()
+        .then((registrations) => {
+          registrations.forEach((registration) => void registration.unregister());
+        })
+        .catch(() => {});
     });
     return;
   }

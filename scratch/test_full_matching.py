@@ -1,98 +1,132 @@
 import json
 import re
-import sys
 
-sys.stdout.reconfigure(encoding='utf-8')
+with open('project/src/features/agrochemicals/data/cropPestData.json', 'r', encoding='utf-8') as f:
+    cp = json.load(f)
 
-# Load CIB-RC Gold Standard
-with open('scratch/cibrc_gold_standard.json', 'r', encoding='utf-8') as f:
-    gold_standard = json.load(f)
+meta = cp['metadata']
 
-print(f"Loaded Gold Standard: {len(gold_standard)} formulations.")
+with open('project/src/features/agrochemicals/data/agrochemicalsData.ts', 'r', encoding='utf-8') as f:
+    agro_ts = f.read()
 
-# Let's inspect how many keys match directly or through normalization
-def norm_key(s):
-    s = s.lower().strip()
-    s = s.replace('spinoteram', 'spinetoram')
-    s = s.replace('buprofenzin', 'buprofezin')
-    s = s.replace('spiropidion', 'spiropidon')
-    s = s.replace('pyrifluquinazon', 'pyrifluinazon')
-    s = s.replace('allerthrin', 'allethrin')
+# Parse items from agrochemicalsData.ts
+agro_dict = {}
+item_pattern = re.compile(r'\{\s*"id":\s*"([^"]+)",\s*"name":\s*"([^"]+)"[^{}]*?"popularBrands":\s*\[([^\]]*)\]', re.DOTALL)
+for m in item_pattern.finditer(agro_ts):
+    brands_str = m.group(3)
+    brands = [b.strip().strip('"').strip("'") for b in brands_str.split(',') if b.strip().strip('"').strip("'")]
+    agro_dict[m.group(1)] = {
+        'id': m.group(1),
+        'name': m.group(2),
+        'popularBrands': brands
+    }
+
+from parse_pdf_insecticides import pdf_raw_data
+
+lines = [l.strip() for l in pdf_raw_data.strip().split('\n') if l.strip()]
+
+pdf_items = []
+for line in lines:
+    m = re.match(r'^(\d+)\.\s*(.*?)\s*\|\s*(.*)$', line)
+    if m:
+        num = int(m.group(1))
+        tech = m.group(2).strip()
+        brands_raw = m.group(3).strip()
+        parts = [p.strip() for p in brands_raw.split(',') if p.strip()]
+        pdf_items.append({
+            'num': num,
+            'technical': tech,
+            'brands': parts
+        })
+
+print(f"Total parsed PDF items: {len(pdf_items)}")
+
+# Normalizing function
+def clean(s):
+    s = s.lower()
+    s = s.replace('%', ' ')
+    s = s.replace('+', ' ')
+    s = s.replace('/', ' ')
+    s = s.replace('-', ' ')
+    s = s.replace('w/w', ' ')
+    s = s.replace('w/v', ' ')
+    s = s.replace('m/m', ' ')
+    s = s.replace('(', ' ')
+    s = s.replace(')', ' ')
+    s = s.replace('seed treatment', ' ')
+    s = s.replace('alphamethrin', 'alphacypermethrin')
+    s = s.replace('alpha cypermethrin', 'alphacypermethrin')
     s = s.replace('chlorpyriphos', 'chlorpyrifos')
-    s = s.replace('aluminum', 'aluminium')
-    s = s.replace('tablets', 'tab').replace('tablet', 'tab')
-    s = s.replace('%w/w', '%').replace('%w/v', '%').replace('%m/m', '%')
-    s = s.replace('w/w', '').replace('w/v', '').replace('m/m', '')
-    s = re.sub(r'\(.*?\)', '', s)
-    
-    def norm_num(m):
-        val = float(m.group(1))
-        if val == int(val):
-            return str(int(val))
-        return f"{val:g}"
-    
-    s = re.sub(r'(\d+(?:\.\d+)?)', norm_num, s)
-    s = re.sub(r'[^a-z0-9]', '', s)
+    s = s.replace('profenophos', 'profenofos')
+    s = s.replace('propergite', 'propargite')
+    s = s.replace('dichlorovos', 'dichlorvos')
+    s = s.replace('ddvp', 'dichlorvos')
+    s = s.replace('thiachloprid', 'thiacloprid')
+    s = s.replace('methomil', 'methomyl')
+    s = s.replace('ethofenoprox', 'etofenprox')
+    s = s.replace('ethofenprox', 'etofenprox')
+    s = s.replace('imidachloprid', 'imidacloprid')
+    s = s.replace('granules', 'gr')
+    s = s.replace('cg', 'gr')
+    s = s.replace('g', 'gr')
+    s = re.sub(r'\s+', ' ', s).strip()
     return s
 
-# Read agrochemicalsData.ts
-with open('project/src/features/agrochemicals/data/agrochemicalsData.ts', 'r', encoding='utf-8') as f:
-    content = f.read()
+def tokens(s):
+    return set(clean(s).split())
 
-pattern = re.compile(r'\{\s*["\']?id["\']?\s*:\s*[\'"]([^\'"]+)[\'"](.*?)\n\s*\},', re.DOTALL)
-matches = list(pattern.finditer(content))
+# Try matching each PDF item to cropPestData metadata and agrochemicalsData
+matches_summary = []
 
-print(f"Total items parsed from TS: {len(matches)}")
-insecticides = []
-non_insecticides = []
-
-for m in matches:
-    block = m.group(0)
-    name_m = re.search(r'["\']?name["\']?\s*:\s*[\'"]([^\'"]+)[\'"]', block)
-    id_m = re.search(r'["\']?id["\']?\s*:\s*[\'"]([^\'"]+)[\'"]', block)
-    cat_m = re.search(r'["\']?category["\']?\s*:\s*[\'"]([^\'"]+)[\'"]', block)
+for p in pdf_items:
+    p_tech = p['technical']
+    p_tokens = tokens(p_tech)
     
-    item = {
-        'id': id_m.group(1) if id_m else '',
-        'name': name_m.group(1) if name_m else '',
-        'category': cat_m.group(1) if cat_m else '',
-        'raw_block': block
-    }
-    if item['category'] == 'insecticide':
-        insecticides.append(item)
-    else:
-        non_insecticides.append(item)
-
-print(f"Insecticides: {len(insecticides)}, Non-insecticides: {len(non_insecticides)}")
-
-matched_count = 0
-unmatched_items = []
-
-for it in insecticides:
-    k = norm_key(it['name'])
-    claims = []
-    pages = []
+    # 1. Match in cropPestData metadata
+    best_meta_key = None
+    best_meta_score = 0
+    for mk, mv in meta.items():
+        m_tokens = tokens(mv['insecticide'])
+        if p_tokens == m_tokens:
+            best_meta_key = mk
+            best_meta_score = 100
+            break
+        common = p_tokens.intersection(m_tokens)
+        if len(common) >= len(p_tokens) * 0.8 and len(common) >= len(m_tokens) * 0.8:
+            score = len(common)
+            if score > best_meta_score:
+                best_meta_score = score
+                best_meta_key = mk
     
-    # Check direct
-    if k in gold_standard:
-        claims = gold_standard[k]['claims']
-        pages = gold_standard[k]['pages']
-    else:
-        # Check sub-parts if '/' in name
-        if '/' in it['name']:
-            parts = [p.strip() for p in it['name'].split('/')]
-            base_name = re.sub(r'[\d\.%]+\s*[a-zA-Z]+.*', '', it['name']).strip()
-            for p in parts:
-                cand = p if base_name.lower() in p.lower() else f"{base_name} {p}"
-                pk = norm_key(cand)
-                if pk in gold_standard:
-                    claims.extend(gold_standard[pk]['claims'])
-                    pages.extend(gold_standard[pk]['pages'])
-    
-    if claims:
-        matched_count += 1
-    else:
-        unmatched_items.append(it)
+    # 2. Match in agrochemicalsData.ts
+    best_agro_id = None
+    best_agro_score = 0
+    for aid, av in agro_dict.items():
+        a_tokens = tokens(av['name'])
+        if p_tokens == a_tokens:
+            best_agro_id = aid
+            best_agro_score = 100
+            break
+        common = p_tokens.intersection(a_tokens)
+        if len(common) >= len(p_tokens) * 0.8 and len(common) >= len(a_tokens) * 0.8:
+            score = len(common)
+            if score > best_agro_score:
+                best_agro_score = score
+                best_agro_id = aid
 
-print(f"Direct/Composite CIB-RC claims matched: {matched_count} / {len(insecticides)}")
-print(f"Remaining without major agricultural use claims in Doc 1: {len(unmatched_items)}")
+    matches_summary.append({
+        'num': p['num'],
+        'technical': p_tech,
+        'brands_count': len(p['brands']),
+        'meta_key': best_meta_key,
+        'meta_name': meta[best_meta_key]['insecticide'] if best_meta_key else None,
+        'agro_id': best_agro_id,
+        'agro_name': agro_dict[best_agro_id]['name'] if best_agro_id else None,
+    })
+
+print(f"{'#':<4} {'PDF Technical':<35} {'Meta Key':<30} {'Agro ID':<30}")
+print("-" * 105)
+for m in matches_summary:
+    mk_str = m['meta_key'] or '---'
+    ag_str = m['agro_id'] or '---'
+    print(f"{m['num']:<4} {m['technical']:<35} {mk_str:<30} {ag_str:<30}")

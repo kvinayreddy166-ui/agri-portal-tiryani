@@ -16,8 +16,11 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Vertimec (Syngenta India)",
-      "Abacin (Crystal Crop Protection)"
+          "Abacin (Crystal)",
+          "Miticide (katra)",
+          "Vertimec (Syngenta)",
+          "Tagmec 1.9 EC (Tropical)",
+          "ABC 1.85% EC (KR)"
     ],
     "chemicalFamily": "Avermectin",
     "chemicalFamilyTe": "ఎవర్మెక్టిన్",
@@ -141,7 +144,8 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Lancer Gold (UPL Limited)"
+          "Sorter (UPL)",
+          "Panther (Aegis)"
     ],
     "chemicalFamily": "Organophosphate + Synthetic Pyrethroid",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్ + సింథటిక్ పైరెథ్రాయిడ్",
@@ -303,7 +307,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఎసిఫేట్ 50% + ఇమిడాక్లోప్రిడ్ 1.8% SP",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Lancer Gold (Upl)",
+          "Starthene Power (Swal)"
+    ],
     "chemicalFamily": "Organophosphate + Neonicotinoid",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్ + నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 1B + 4A",
@@ -426,9 +433,42 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Asataf (Tata Rallis)",
-      "Starthene (UPL Limited)",
-      "Tremor (ADAMA India)"
+          "Asataf (Tata)",
+          "Acemain (adama)",
+          "Starthene (Swal)",
+          "Orthene (Arysta)",
+          "Missile (Devidayal)",
+          "Megastar (MIL)",
+          "Lancer (UPL)",
+          "Oval (PI Ind.)",
+          "Rasayan Phate (KR)",
+          "Acefex (Excel)",
+          "Kingmax (Vimax)",
+          "Accent 787 (Sumil)",
+          "Miltaf (IIL)",
+          "Bheem (Kilpest)",
+          "Tagace (Tropical)",
+          "Lucid (Cheminova)",
+          "Lion (SuperCSL)",
+          "Sritaf (Crystal)",
+          "Ortain (Coromandel)",
+          "Hilphate (HIL)",
+          "Ample (Advance)",
+          "Rythane (Ramcides)",
+          "Corohamp (CAPL)",
+          "Topsis (Atul)",
+          "Molphate (GP)",
+          "Top‘O’Top (CGI)",
+          "King Phate (KCS)",
+          "Acesul (Sulphur Mills)",
+          "Vega (PCCPL)",
+          "Pace (Nagarjuna)",
+          "Tremor (BioStadt)",
+          "Ace (Canary)",
+          "Willace (Willowood)",
+          "Chettak (GSP)",
+          "Archa (Amber)",
+          "Bhoochal 75 (AOL)"
     ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
@@ -552,8 +592,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Starthene SG (UPL Limited)",
-      "Asataf Super (Tata Rallis)"
+          "Hunk (Tata)"
     ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
@@ -676,7 +715,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఎసిక్వినోసిల్ 15% w/v SC",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Mahindra summit"
+    ],
     "chemicalFamily": "Naphthoquinone derivative",
     "chemicalFamilyTe": "నాఫ్తోక్వినోన్ ఉత్పన్నం",
     "moaGroup": "IRAC Group 20B",
@@ -836,9 +877,43 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Pride (ADAMA India)",
-      "Manik (UPL Limited)",
-      "Star 20 (Crystal Crop Protection)"
+          "Manik (Tata)",
+          "Dhanpreet (dhanuka)",
+          "Sharp (IIL)",
+          "Tagride (tropical agro)",
+          "Ennova (NACL)",
+          "Ekka (KR)",
+          "Rapid (Crystal)",
+          "Rekord (DuPont)",
+          "Active (Devidayal)",
+          "Award (MIL)",
+          "King Prid (KCS)",
+          "Acetacel (Excel)",
+          "Aceta (UPL)",
+          "Echo 797 (Sumil)",
+          "Stona (Vimax)",
+          "Lift (Indofil)",
+          "Crop Pride (NACL)",
+          "Proud (Kilpest)",
+          "Tagride (Tropical)",
+          "Su- Pride (SuperCSL)",
+          "Scuba (Coromandel)",
+          "Hilprid (HIL)",
+          "Armour (Advance)",
+          "Acelon (CAPL)",
+          "Albis (Atul)",
+          "Quick (CLSL)",
+          "Pounce (FMC)",
+          "Molprid (GP)",
+          "Tada (CGI)",
+          "Glide (Safex)",
+          "Prima (Sulphur Mills)",
+          "Patron (PCCPL)",
+          "Ennova (Nagarjuna)",
+          "Wapkil & Rider (BioStadt)",
+          "Antenna (Willowood)",
+          "Nize (GSP)",
+          "Shourya (Amber)"
     ],
     "chemicalFamily": "Neonicotinoid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్",
@@ -1008,7 +1083,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఎసిటామిప్రిడ్ 25% + బైఫెంథ్రిన్ 25% WG",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Sperto (SWAL)",
+          "Argyle (UPL)"
+    ],
     "chemicalFamily": "Neonicotinoid + Synthetic Pyrethroid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్ + సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 4A + 3A",
@@ -1273,8 +1351,22 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Fastac (BASF India)",
-      "Alpha-Kem (Kem Agro)"
+          "Stop (Biostadt)",
+          "Alphaguard (Gharda)",
+          "Mig10 (Devidayal)",
+          "Legend (MIL)",
+          "Grand 301 (Sumil)",
+          "Tata Alpha (TATA)",
+          "Gem (Indofil)",
+          "Nayak (IIL)",
+          "Thrill (Tropical)",
+          "Numethrin (Cheminova)",
+          "Alpha (KR)",
+          "Vasuki (CGI)",
+          "Sixer (Sulphur Mills)",
+          "Stop 10 EC (BioStadt)",
+          "Alpha (Canary)",
+          "Alfagold (CCIL)"
     ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
@@ -1348,7 +1440,22 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Fastac SC (BASF India)"
+          "Stop (Biostadt)",
+          "Alphaguard (Gharda)",
+          "Mig10 (Devidayal)",
+          "Legend (MIL)",
+          "Grand 301 (Sumil)",
+          "Tata Alpha (TATA)",
+          "Gem (Indofil)",
+          "Nayak (IIL)",
+          "Thrill (Tropical)",
+          "Numethrin (Cheminova)",
+          "Alpha (KR)",
+          "Vasuki (CGI)",
+          "Sixer (Sulphur Mills)",
+          "Stop 10 EC (BioStadt)",
+          "Alpha (Canary)",
+          "Alfagold (CCIL)"
     ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
@@ -2119,7 +2226,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Solomon (Bayer CropScience)"
+          "Soloman (bayer)"
     ],
     "chemicalFamily": "Pyrethroid + Neonicotinoid",
     "chemicalFamilyTe": "పైరెథ్రాయిడ్ + నియోనికోటినాయిడ్",
@@ -2488,8 +2595,19 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Talstar (FMC India)",
-      "Markar (Dhanuka Agritech)"
+          "Talstar (FMC)",
+          "Hectastar (Swal)",
+          "Rock (KR)",
+          "Metastar (Sumil)",
+          "Markar (Dhanuka)",
+          "Super Star (IIL)",
+          "Barnerr (Tropical)",
+          "Conister (Coromandel)",
+          "Centrix (Sulphur Mills)",
+          "Rockstar (Shivalik)",
+          "Klintop (BioStadt)",
+          "Wilthrin (Willowood)",
+          "Viklap (Amber)"
     ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
@@ -2597,7 +2715,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "బైఫెన్థ్రిన్ 2.5% ఈసీ",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు (భవన నిర్మాణ చెద నివారణ)",
-    "popularBrands": [],
+    "popularBrands": [
+          "Swal Home (Swal)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 3A",
@@ -2960,7 +3080,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "బ్రోఫ్లానిలైడ్ 20% ఎస్సీ",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Brofreya (PI)",
+          "Alecto (indofil)"
+    ],
     "chemicalFamily": "Meta-diamide / Isoxazoline",
     "chemicalFamilyTe": "మెటా-డయామైడ్",
     "moaGroup": "IRAC Group 30",
@@ -3353,7 +3476,8 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Applaud Plus (Tata Rallis)"
+          "Tapuz (adama)",
+          "piranha (Coromandal)"
     ],
     "chemicalFamily": "Thiapyrazine + Organophosphate",
     "chemicalFamilyTe": "థియాపైరజిన్ + ఆర్గానోఫాస్ఫేట్",
@@ -3460,8 +3584,29 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Applaud (Tata Rallis)",
-      "Phelan (Dhanuka Agritech)"
+          "Applaud (tata)",
+          "Jawaa (DuPont)",
+          "Flotis (Bayer)",
+          "Trust (Swal)",
+          "Irvy (Dow)",
+          "Devifezin (Devidayal)",
+          "Buprostar (MIL)",
+          "Hillblaze (HIL)",
+          "PI Bupro (PI Ind.)",
+          "Braun 111 (Sumil)",
+          "Apple (Dhanuka)",
+          "Phentom (IIL)",
+          "Tagvoltage (Tropical)",
+          "Tribune (Crystal)",
+          "Ninja (Coromandel)",
+          "KriMarch (KR)",
+          "Cordon (Advance)",
+          "Bravo (Sulphur Mills)",
+          "Benj (Nagarjuna)",
+          "Banzo (BioStadt)",
+          "Jantar (Canary)",
+          "Deligent (Willowood)",
+          "Awaksh (Amber)"
     ],
     "chemicalFamily": "Thiadiazine",
     "chemicalFamilyTe": "థయాడయాజిన్",
@@ -3707,7 +3852,13 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "కార్బోఫ్యూరాన్ 03% CG",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Fury (NACL)",
+          "Carbomain (adama)",
+          "Furadan (FMC)",
+          "Starfuron (Swal)",
+          "Sumo"
+    ],
     "chemicalFamily": "Carbamate",
     "chemicalFamilyTe": "కార్బమేట్",
     "moaGroup": "IRAC Group 1A",
@@ -4316,7 +4467,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "కార్బోసల్ఫాన్ 25% డీఎస్ (విత్తన శుద్ధి పొడి)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు (విత్తన శుద్ధి)",
-    "popularBrands": [],
+    "popularBrands": [
+          "Advantage (FMC)"
+    ],
     "chemicalFamily": "Carbamate",
     "chemicalFamilyTe": "కార్బమేట్",
     "moaGroup": "IRAC Group 1A",
@@ -4387,7 +4540,11 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "కార్బోసల్ఫాన్ 25% EC",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Marshal (FMC)",
+          "Aaatank (Dhanuka)",
+          "Aayudh (Coromandel)"
+    ],
     "chemicalFamily": "Carbamate",
     "chemicalFamilyTe": "కార్బమేట్",
     "moaGroup": "IRAC Group 1A",
@@ -4598,8 +4755,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Caldan 4G (Dhanuka Agritech)",
-      "Padan 4G (Sumitomo Chemical)"
+          "Kitap"
     ],
     "chemicalFamily": "Neristoxin analogue",
     "chemicalFamilyTe": "నెరిస్టాక్సిన్ అనలాగ్",
@@ -4687,8 +4843,30 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Caldan 50 SP (Dhanuka Agritech)",
-      "Padan 50 SP (Sumitomo Chemical)"
+          "Caldan (dhanuka)",
+          "Kitap 50SP (KR)",
+          "Startop-50 (Swal)",
+          "King Dan (KCS)",
+          "Kaardon 50SP (UPL)",
+          "Karvan Plus (Devidayal)",
+          "Caldan 50SP (Dhanuka)",
+          "Corona 50 (Sumil)",
+          "Beacon SP (Indofil)",
+          "Indian 50SP (IIL)",
+          "Kildon (Kilpest)",
+          "Fast 50 (Tropical)",
+          "Sudan 50 (SuperCSL)",
+          "Nidan 50SP (Crystal)",
+          "Josh SP (Coromandel)",
+          "Hilcartap 50SP (HIL)",
+          "Grip 50 (SulphurMills)",
+          "Captor 50SP (PCCPL)",
+          "Capsi SP (Atul)",
+          "Dartriz 50SP & Woktap 50SP (BioStadt)",
+          "Mantar 50SP (Canary)",
+          "Wiltap 50SP (Willowood)",
+          "Prithvi 50SP (Amber)",
+          "Eldan"
     ],
     "chemicalFamily": "Nereistoxin analogue",
     "chemicalFamilyTe": "నెరీస్టాక్సిన్ ఎనలాగ్",
@@ -4762,7 +4940,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "కార్టాప్ 7.5% + ఎమామెక్టిన్ బెంజోయేట్ 0.25% గుళికలు",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Barroz (adama)"
+    ],
     "chemicalFamily": "Neristoxin analogue + Avermectin",
     "chemicalFamilyTe": "నెరిస్టాక్సిన్ అనలాగ్ + అవర్‌మెక్టిన్",
     "moaGroup": "IRAC Group 14 + 6",
@@ -4905,8 +5085,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Ferterra (FMC India)",
-      "Mortar GR (Dhanuka Agritech)"
+          "Fertera (FMC)",
+          "Mission (IIL)",
+          "tag agent (tropical)",
+          "Ferterra (DuPont)"
     ],
     "chemicalFamily": "Anthranilic diamide",
     "chemicalFamilyTe": "ఆంథ్రానిలిక్ డయామైడ్",
@@ -5013,7 +5195,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Virtako (Syngenta India)"
+          "Virtako (Syngenta)"
     ],
     "chemicalFamily": "Anthranilic Diamide + Neonicotinoid",
     "chemicalFamilyTe": "డయామైడ్ + నియోనికోటినాయిడ్",
@@ -5157,9 +5339,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Coragen (FMC India)",
-      "Cosko (UPL Limited)",
-      "Cover (Dhanuka Agritech)"
+          "Coragen (FMC)",
+          "tag zen (tropical)",
+          "Coragen (DuPont)"
     ],
     "chemicalFamily": "Anthranilic diamide",
     "chemicalFamilyTe": "ఆంథ్రానిలిక్ డయామైడ్",
@@ -6014,7 +6196,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Ampligo (Syngenta India)"
+          "Ampligo (syngenta)"
     ],
     "chemicalFamily": "Diamide + Synthetic Pyrethroid",
     "chemicalFamilyTe": "డయామైడ్ + పైరెథ్రాయిడ్",
@@ -6301,7 +6483,11 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "క్లోర్‌ఫెనాపిర్ 10% SC",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Intreprid (BASF)",
+          "Lepido (PI Ind.)",
+          "Record (Crystal)"
+    ],
     "chemicalFamily": "Halogenated Pyrrole",
     "chemicalFamilyTe": "పైరోల్",
     "moaGroup": "IRAC Group 13",
@@ -6525,7 +6711,12 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "క్లోర్‌పైరిఫాస్ 1.5% డస్ట్ (పొడి)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు (పొడి మందు)",
-    "popularBrands": [],
+    "popularBrands": [
+          "(HPM)",
+          "HINDOL",
+          "Deviban 1.5 DP (Devidayal)",
+          "Kilzex D & Kilzex 0.25% DP (Kilpest)"
+    ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
     "moaGroup": "IRAC Group 1B",
@@ -6613,7 +6804,18 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "క్లోర్‌పైరిఫాస్ 16% + ఆల్ఫాసైపర్‌మెథ్రిన్ 1% ఈసీ",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Anth Super (KR)",
+          "Legend Plus (MIL)",
+          "Chlorthrin (Devidayal)",
+          "Pincer 115 (Sumil)",
+          "Aflatoon (IIL)",
+          "Alert (Tropical)",
+          "Logan (SuperCSL)",
+          "Zoro (Crystal)",
+          "Twins (Sulphur Mills)",
+          "Aaghaat (Bharat)"
+    ],
     "chemicalFamily": "Organophosphate + Synthetic Pyrethroid",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్ + సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 1B + 3A",
@@ -6685,9 +6887,44 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Dursban (Corteva Agriscience)",
-      "Tafaban (Tata Rallis)",
-      "Classic (Dhanuka Agritech)"
+          "Lethal (IIL)",
+          "Krishan 20 (KR)",
+          "Starban (Swal)",
+          "Dursban (Dow)",
+          "Megaban (MIL)",
+          "Deviban 20 (Devidayal)",
+          "Chloroban (UPL)",
+          "ChloroKing (KCS)",
+          "Banest 20 (Arysta)",
+          "Tricel 20 (Excel)",
+          "Uno 501 (Sumil)",
+          "Lethal 20 EC (IIL)",
+          "Sacban (Shivalik)",
+          "Veermet (Vimax)",
+          "Tafaban (TATA)",
+          "Pyrifex (Safex)",
+          "Gilphos (GIL)",
+          "Crop Chlor (NACL)",
+          "Mig-20 (Kilpest)",
+          "Tagban (Tropical)",
+          "Shreeban TC (SKSCC)",
+          "Classic-20 (Cheminova)",
+          "Suldrin (SuperCSL)",
+          "Kaman / Eldrin TC (Crystal)",
+          "Trishul (Coromandel)",
+          "Hilban 20 (HIL)",
+          "Pyriban (Aimco)",
+          "Kattar 20 (GKR)",
+          "Hyban (HCL)",
+          "All-Drin (Ambuja)",
+          "Sulban (SulphurMills)",
+          "Lynch (PCCPL)",
+          "Strike 20EC (BioStadt)",
+          "Dangal (Canary)",
+          "Chlorocil (GSP)",
+          "Kartoos (Amber)",
+          "Gold Ban (CCIL)",
+          "Potta (AOL)"
     ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
@@ -7058,9 +7295,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Hamla 550 (Gharda Chemicals)",
-      "Cannon (UPL Limited)",
-      "Super D-505 (Dhanuka)"
+      "Cannon (NACL)",
+      "Koranda 505 (Rallis)",
+      "Hamla 550 (Gharda)"
     ],
     "chemicalFamily": "Organophosphate + Pyrethroid",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్ + పైరెథ్రాయిడ్",
@@ -7200,7 +7437,27 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "క్లోర్‌పైరిఫాస్ 50% ఈసీ",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Lethal Super 505 (IIL)",
+          "Predator (crystal)",
+          "Action-500 (tropical agro)",
+          "Krishan 50 (KR)",
+          "Predator (Dow)",
+          "Tricel 48 EC (Excel)",
+          "Megaban Super (MIL)",
+          "Deviban TC (Devidayal)",
+          "Sacban (Shivalik)",
+          "Chowkidar (GIL)",
+          "Lethal 50 (IIL)",
+          "Tagban-TC (Tropical)",
+          "Integer (Coromandel)",
+          "Hilban 50 (HIL)",
+          "Leafan-50 (Advance)",
+          "Oshchlor (Oshnic)",
+          "Kartoos 50 (Amber)",
+          "Gold Ban TC (CCIL)",
+          "Hitlor (AOL)"
+    ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
     "moaGroup": "IRAC Group 1B",
@@ -7348,7 +7605,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "క్రోమఫెనోజైడ్ 80% WP",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Dodger (PI Ind.)"
+    ],
     "chemicalFamily": "Diacylhydrazine",
     "chemicalFamilyTe": "డయాసిల్ హైడ్రాజైన్",
     "moaGroup": "IRAC Group 18",
@@ -7420,7 +7679,8 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Dantop (Sumitomo Chemical India)"
+          "Dantotsu (sumitomo)",
+          "Dentotsu (Sumitomo)"
     ],
     "chemicalFamily": "Neonicotinoid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్",
@@ -7718,7 +7978,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Benevia (FMC India)"
+          "Benevia (FMC)"
     ],
     "chemicalFamily": "Anthranilic diamide",
     "chemicalFamilyTe": "ఆంథ్రానిలిక్ డయామైడ్",
@@ -8488,7 +8748,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "సైయనోపైరాఫెన్ 30% SC",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Kunoichi (IIL)"
+    ],
     "chemicalFamily": "Beta-ketonitrile derivative",
     "chemicalFamilyTe": "బీటా-కీటోనైట్రైల్ ఉత్పన్నం",
     "moaGroup": "IRAC Group 25A",
@@ -8873,8 +9135,21 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Ripcord (BASF India)",
-      "Bilcyp (UPL Limited)"
+          "Kricyp-10 (KR)",
+          "Starcip-10 (Swal)",
+          "Megatrin (MIL)",
+          "Cyper King (KCS)",
+          "Ustaad (UPL)",
+          "Devicyper 10 (Devidayal)",
+          "SuperKiller 10 (Dhanuka)",
+          "Cypermil (IIL)",
+          "Cypercot 10 E (Kilpest)",
+          "Challenger 10 (Tropical)",
+          "Shakti-10 (Cheminova)",
+          "Super Jet (SuperCSL)",
+          "Cypercil (GSP)",
+          "Action-10 (CCIL)",
+          "Shera 10 (AOL)"
     ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
@@ -9032,8 +9307,28 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Ustaad (UPL Limited)",
-      "Cymbush (Syngenta India)"
+          "Cymbush (Syngenta)",
+          "COLT (PI)",
+          "Superkiller-25 (dhanuka)",
+          "Kricyp-25 (KR)",
+          "Starcip-25 (Swal)",
+          "Megacyper (MIL)",
+          "Cyrux (UPL)",
+          "Colt (PI Ind.)",
+          "Devicyprin 25 (Devidayal)",
+          "MaxKill (Vimax)",
+          "Pyro 401 (Sumil)",
+          "Super Killer 25 (Dhanuka)",
+          "Crop Cyper (NACL)",
+          "Super Fighter (IIL)",
+          "Cypercot 25E (Kilpest)",
+          "Chellenger 25 (Tropical)",
+          "Shakti-25 (Cheminova)",
+          "Super Jet+ (SuperCSL)",
+          "Jackpot-25 (Crystal)",
+          "Cyperkill (Coromandel)",
+          "Hirange 25EC (Yesell)",
+          "Cypersul 25 (Sulphur Mills)"
     ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
@@ -9274,7 +9569,13 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డెల్టామెథ్రిన్ 2.5% డబ్ల్యూపీ",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు (ప్రజా ఆరోగ్యం / పంట సంరక్షణ)",
-    "popularBrands": [],
+    "popularBrands": [
+          "Decis (Bayer)",
+          "Decis 2.8 (Bayer)",
+          "Shastra (Devidayal)",
+          "Tagcis 100 – 11% EC (Tropical)",
+          "Tagcis & Tagcis Flow 2.5% SC (Tropical)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 3A",
@@ -9465,7 +9766,11 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Decis 2.8 EC (Bayer CropScience)"
+          "Decis (Bayer)",
+          "Decis 2.8 (Bayer)",
+          "Shastra (Devidayal)",
+          "Tagcis 100 – 11% EC (Tropical)",
+          "Tagcis & Tagcis Flow 2.5% SC (Tropical)"
     ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
@@ -10015,9 +10320,14 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Pegasus (Syngenta India)",
-      "Polo (UPL Limited)",
-      "Dhanupreg (Dhanuka Agritech)"
+          "Pegasus (Syngenta)",
+          "Polo/Pegasus (Syngenta)",
+          "Krijet/Krijet Super (KR)",
+          "Alero (Sumil)",
+          "Logo/Gama (IIL)",
+          "Ferotia (Coromandel)",
+          "Derby (BioStadt)",
+          "Ruby/Declare (GSP)"
     ],
     "chemicalFamily": "Thiourea",
     "chemicalFamilyTe": "థయోయూరియా",
@@ -10375,8 +10685,18 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Rogor (FMC India)",
-      "Tafgor (Tata Rallis)"
+          "Rogor ( FMC)",
+          "Rogor (Cheminova)",
+          "Tara-909 (Swal)",
+          "Nugor (UPL)",
+          "Progor (Pioneer)",
+          "Devigon 30 (Devidayal)",
+          "Tafgor (TATA)",
+          "Crop Diamond (NACL)",
+          "Rogorin (IIL)",
+          "Kilgore 30 E (Kilpest)",
+          "Tagore (Tropical)",
+          "Kigor (SKACC)"
     ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
@@ -10890,8 +11210,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Oshin (PI Industries)",
-      "Token (Sumitomo Chemical)"
+          "Osheen (PI Ind.)",
+          "Token (Indofil)",
+          "Oshin 20SG (BioStadt)"
     ],
     "chemicalFamily": "Furanicotinyl (3rd Gen Neonicotinoid)",
     "chemicalFamilyTe": "ఫ్యూరానికోటినైల్",
@@ -10981,7 +11302,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డైనోటెఫ్యూరాన్ 70% డబ్ల్యూజీ",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Osheen Ultra (PI)"
+    ],
     "chemicalFamily": "Neonicotinoid (3rd Gen Furanicotinyl)",
     "chemicalFamilyTe": "మూడవ తరం నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 4A",
@@ -11087,10 +11410,25 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Proclaim (Syngenta India)",
-      "EM-1 (Dhanuka Agritech)",
-      "Safari (UPL Limited)",
-      "Kingstar (ADAMA India)"
+          "Proclaim (Crystal Crop)",
+          "EM-1 (dhanuka)",
+          "Xplode (IIL)",
+          "Proclaim (Syngenta)",
+          "Missile (Crystal)",
+          "Emstar 5 (KR)",
+          "Starclaim (Swal)",
+          "Robot (Excel)",
+          "Spolit (UPL)",
+          "Empower (Sumil)",
+          "Tatkal (Gharda)",
+          "Wegon (Vimax)",
+          "Benzer (Coromandel)",
+          "Emzet (Sulphur Mills)",
+          "Trust (Nagarjuna)",
+          "Bioclaim & Inclaim (BioStadt)",
+          "Claim (Canary)",
+          "Emacto (Willowood)",
+          "Proceed (Amber)"
     ],
     "chemicalFamily": "Avermectin",
     "chemicalFamilyTe": "ఎవర్మెక్టిన్",
@@ -11298,7 +11636,8 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Double Pro (Gharda Chemicals)"
+          "Apex",
+          "Empala"
     ],
     "chemicalFamily": "Avermectin + Phenylpyrazole",
     "chemicalFamilyTe": "అవర్‌మెక్టిన్ + ఫినైల్ పైరజోల్",
@@ -11528,7 +11867,21 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఇథియాన్ 50% EC",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Fosmite (PI Industries)",
+          "Tafethion (TATA)",
+          "Krithion (KR)",
+          "Mit-505 (Swal)",
+          "Mitkill (UPL)",
+          "King Mite (KCS)",
+          "Fosmite (PI Ind.)",
+          "Deviastra (Devidayal)",
+          "Vithion (Vimax)",
+          "Fighter (Kilpest)",
+          "Sumite (SuperCSL)",
+          "Hilmite (HIL)",
+          "Shakti (IPL)"
+    ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
     "moaGroup": "IRAC Group 1B",
@@ -11697,7 +12050,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఎథిప్రోల్ 40% + ఇమిడాక్లోప్రిడ్ 40% WG",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Glamore (Bayer)"
+    ],
     "chemicalFamily": "Phenylpyrazole + Neonicotinoid",
     "chemicalFamilyTe": "ఫినైల్ పైరజోల్ + నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 2B + 4A",
@@ -11783,7 +12138,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఎథోఫెన్‌ప్రాక్స్ 10% EC",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Trebon Excel 10EC (BioStadt)"
+    ],
     "chemicalFamily": "Pseudo-pyrethroid / Ether",
     "chemicalFamilyTe": "నాన్-ఎస్టర్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 3A",
@@ -12422,7 +12779,16 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఫెనోబుకార్బ్ (BPMC) 50% EC",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Feno-50 (EBS)",
+          "Blast (Tropical Agro)",
+          "Knock (KR)",
+          "Hulchul (Devidayal)",
+          "Blast (Tropical)",
+          "Hopcide 50EC (BioStadt)",
+          "Break (Willowood)",
+          "Aandhi (Bharat)"
+    ],
     "chemicalFamily": "Carbamate",
     "chemicalFamilyTe": "కార్బమేట్",
     "moaGroup": "IRAC Group 1A",
@@ -12493,7 +12859,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఫెన్‌ప్రోపాథ్రిన్ 30% EC",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Meothrin ( Sumitomo)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 3A",
@@ -12650,8 +13018,11 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Sedna (PI Industries)",
-      "Mitigate (ADAMA India)"
+          "Sedna (TATA)",
+          "K-Mit (KR)",
+          "Pyromite (Excel)",
+          "Dynamite Plus (IIL)",
+          "Wilgate (Willowood)"
     ],
     "chemicalFamily": "Phenoxypyrazole",
     "chemicalFamilyTe": "ఫినాక్సీపైరజోల్",
@@ -12789,8 +13160,15 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Tatafen (Tata Rallis)",
-      "Fenval (UPL Limited)"
+          "Fenval (Jivagro)",
+          "Krifen (KR)",
+          "Fenkill (UPL)",
+          "King Pen (KCS)",
+          "Fenval 20 EC (Isagro Asia)",
+          "Devifen 20 (Devidayal)",
+          "Tatafen (Tata Rallis)",
+          "Fencot 20 E (Kilpest)",
+          "Final 20 (AOL)"
     ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
@@ -12930,8 +13308,24 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Regent Ultra (BASF India)",
-      "Mortar (Dhanuka Agritech)"
+          "Regent Ultra (bayer)",
+          "Regent GR (Bayer)",
+          "Ruler 0.3GR (KR)",
+          "Stargazette GR (Swal)",
+          "Devigent 0.3GR (Devidayal)",
+          "Sonic (TATA)",
+          "Florina GR (Sumil)",
+          "Fax GR (Dhanuka)",
+          "Sargent GR (IIL)",
+          "Tagagent GR (Tropical)",
+          "Su-Nil GR (SuperCSL)",
+          "Salvo GR (Coromandel)",
+          "Fiprox G (Sulphur Mills)",
+          "Avtar (PCCPL)",
+          "Monil (Atul)",
+          "Janbaaz GR (BioStadt)",
+          "Fipro 0.3 (Canary)",
+          "Vycm (Amber)"
     ],
     "chemicalFamily": "Phenylpyrazole",
     "chemicalFamilyTe": "ఫినైల్ పైరజోల్",
@@ -13038,9 +13432,31 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Regent 5 SC (BASF India)",
-      "Mahaveer (Dhanuka Agritech)",
-      "Prince (Crystal Crop Protection)"
+          "Sonic (tata)",
+          "Agadi SC (adama)",
+          "Regent SC (Bayer)",
+          "Ruler (KR)",
+          "Stargazette (Swal)",
+          "Sonic Flo (TATA)",
+          "Devigent Plus (Devidayal)",
+          "Fipro King (KCS)",
+          "Vizent (Vimax)",
+          "Rabid (CLSL)",
+          "Florina 444 (Sumil)",
+          "Mahaveer (Gharda)",
+          "Fax SC (Dhanuka)",
+          "Sargent SC (IIL)",
+          "Tagagent SC (Tropical)",
+          "Su-Nil (SuperCSL)",
+          "Crigent SC (Crystal)",
+          "Salvo SC (Coromandel)",
+          "Frazer (Advance)",
+          "Fiprosh EC (Oshnic)",
+          "Fiprox (Sulphur Mills)",
+          "Monil SC (Atul)",
+          "Janbaaz SC (BioStadt)",
+          "Getter (Canary)",
+          "Refree (GSP)"
     ],
     "chemicalFamily": "Phenylpyrazole",
     "chemicalFamilyTe": "ఫినైల్ పైరజోల్",
@@ -13270,8 +13686,8 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Police (Gharda Chemicals)",
-      "Lesenta (Bayer CropScience)"
+          "lesenta (Bayer)",
+          "Velma 80 (tata)"
     ],
     "chemicalFamily": "Phenylpyrazole + Neonicotinoid",
     "chemicalFamilyTe": "ఫినైల్ పైరజోల్ + నియోనికోటినాయిడ్",
@@ -13412,7 +13828,8 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Jump (Bayer CropScience)"
+          "Jump (bayer)",
+          "Ruler 80 (KR)"
     ],
     "chemicalFamily": "Phenylpyrazole",
     "chemicalFamilyTe": "ఫినైల్ పైరజోల్",
@@ -13652,7 +14069,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Ulala (UPL Limited)"
+          "Ulala (UPL)"
     ],
     "chemicalFamily": "Pyridinecarboxamide",
     "chemicalFamilyTe": "పిరిడిన్‌కార్బాక్సమైడ్",
@@ -13850,7 +14267,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఫ్లూబెండియమైడ్ 19.92% + థయాక్లోప్రిడ్ 19.92% SC",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Belt Expert (Bayer)"
+    ],
     "chemicalFamily": "Diamide + Neonicotinoid",
     "chemicalFamilyTe": "డయామైడ్ + నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 28 + 4A",
@@ -13973,8 +14392,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Fame (Bayer CropScience)",
-      "Fluben (Tata Rallis)"
+          "FAME (bayer)"
     ],
     "chemicalFamily": "Phthalic acid diamide",
     "chemicalFamilyTe": "థాలిక్ యాసిడ్ డయామైడ్",
@@ -14362,7 +14780,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఫ్లూపైరాడిఫ్యూరోన్ 17.09% SL",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Sivanto Prime (bayer)"
+    ],
     "chemicalFamily": "Butenolide",
     "chemicalFamilyTe": "బ్యూటెనోలైడ్",
     "moaGroup": "IRAC Group 4D",
@@ -14680,7 +15100,8 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Gracia (Godrej Agrovet / Nissan Chemical)"
+          "Shinwa (IIL)",
+          "Gracia (godrej)"
     ],
     "chemicalFamily": "Isoxazoline",
     "chemicalFamilyTe": "ఐసోక్సాజోలిన్",
@@ -14986,8 +15407,11 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Maiden (Biostadt India)",
-      "Sanmite (Nissan Chemical)"
+          "Maiden (biostadt)",
+          "k-mite (Katyayani)",
+          "Endurer (Coromandel)",
+          "Dimite (Nagarjuna)",
+          "Xmite & Maiden (BioStadt)"
     ],
     "chemicalFamily": "Thiazolidine",
     "chemicalFamilyTe": "థయాజోలిడిన్",
@@ -15156,9 +15580,42 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Confidor (Bayer CropScience)",
-      "Tatamida (Tata Rallis)",
-      "Victor (UPL Limited)"
+          "Confidor (bayer)",
+          "hotshot (sml)",
+          "Seamer (DuPont)",
+          "Josh (KR)",
+          "Imidastar (Swal)",
+          "Imiden (Dow)",
+          "Courage (MIL)",
+          "Midas 2000 (Devidayal)",
+          "King Dor (KCS)",
+          "Jumbo (PI Ind.)",
+          "Imidacel 17.8 & 20 (Excel)",
+          "Imida Gold (UPL)",
+          "Expert 100 (Sumil)",
+          "Sacdor (Shivalik)",
+          "V-Mida (Vimax)",
+          "Tatamida (TATA)",
+          "Imigrow (CLSL)",
+          "Atom (Indofil)",
+          "Media (Dhanuka)",
+          "Crop Mida (NACL)",
+          "Victor (IIL)",
+          "Kildor (Kilpest)",
+          "Tropical Magic (Tropical)",
+          "Chemida (Cheminova)",
+          "Sumida (SuperCSL)",
+          "Parrymida (Coromandel)",
+          "Hilmida (HIL)",
+          "Hotshot (Sulphur Mills)",
+          "Radiant (PCCPL)",
+          "Mida (Nagarjuna)",
+          "Ribo (Atul)",
+          "Ultimo 200SL (BioStadt)",
+          "Farrata (Canary)",
+          "Leopard 17.8 SL (Willowood)",
+          "Imidore (CCIL)",
+          "Midas (AOL)"
     ],
     "chemicalFamily": "Neonicotinoid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్",
@@ -15488,7 +15945,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఇమిడాక్లోప్రిడ్ 48% ఎఫ్ఎస్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు (విత్తన శుద్ధి)",
-    "popularBrands": [],
+    "popularBrands": [
+          "Gaucho (bayer)"
+    ],
     "chemicalFamily": "Neonicotinoid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 4A",
@@ -15807,8 +16266,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Admire (Bayer CropScience)",
-      "Confidor Super (Bayer)"
+          "Admire (bayer)"
     ],
     "chemicalFamily": "Neonicotinoid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్",
@@ -15964,7 +16422,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Avaunt (FMC India)"
+          "King Doxa (gharda)"
     ],
     "chemicalFamily": "Oxadiazine",
     "chemicalFamilyTe": "ఆక్సాడయాజిన్",
@@ -16155,7 +16613,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Simodis (Syngenta India)"
+          "Incipio ( Syngenta)"
     ],
     "chemicalFamily": "Isoxazoline (PLINAZOLIN technology)",
     "chemicalFamilyTe": "ఐసోక్సజోలిన్ (ప్లినాజోలిన్ టెక్నాలజీ)",
@@ -16330,7 +16788,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Karate with Zeon Technology (Syngenta India)"
+          "Vadh CS (HPM)"
     ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
@@ -16784,8 +17242,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Cythion (FMC India)",
-      "Mala-50 (HIL India)"
+          "CYthion (coromandal)"
     ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
@@ -16876,7 +17333,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "మెటాఫ్లూమిజోన్ 22% SC",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Tagline (Tropical)"
+    ],
     "chemicalFamily": "Semicarbazone",
     "chemicalFamilyTe": "సెమికార్బజోన్",
     "moaGroup": "IRAC Group 22B",
@@ -16947,7 +17406,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "మెటాల్డిహైడ్ 2.5% DP / గుళికలు",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Snailkill (PI)"
+    ],
     "chemicalFamily": "Cyclic tetramer of acetaldehyde (Molluscicide)",
     "chemicalFamilyTe": "నత్తల నాశిని (మొలస్కిసైడ్)",
     "moaGroup": "IRAC Group (Molluscicide - Mucus cell destruction)",
@@ -17219,7 +17680,30 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "మోనోక్రోటోఫాస్ 15% SG / 36% SL",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Phoskill (UPL)",
+          "Rasayanphos (KR)",
+          "Monostar (Swal)",
+          "Megamono (MIL)",
+          "King Phos (KCS)",
+          "Crotocel (Excel)",
+          "Devimono (Devidayal)",
+          "Monocip (Vimax)",
+          "Monogil (GIL)",
+          "Kevin 360 (Sumil)",
+          "Crop Mono (NACL)",
+          "Monocil (IIL)",
+          "Kilphex 36% WSC (Kilpest)",
+          "Macrophos (Tropical)",
+          "Sumo (SuperCSL)",
+          "Luphos (Crystal)",
+          "Parryfos/Monophos (Coromandel)",
+          "Hilcron (HIL)",
+          "Admono (Advance)",
+          "Monofos 36 (Safex)",
+          "Monosul (Sulphur Mills)",
+          "Shura (PCCPL)"
+    ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
     "moaGroup": "IRAC Group 1B",
@@ -17572,7 +18056,11 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Rimon (ADAMA India)"
+          "Rimon (Indofil)",
+          "Noval (KR)",
+          "Remostar (Swal)",
+          "Novamax (Vimax)",
+          "DNA (Willowood)"
     ],
     "chemicalFamily": "Benzoylurea",
     "chemicalFamilyTe": "బెంజాయిల్‌యూరియా",
@@ -18344,7 +18832,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఫెంథోయేట్ 50% EC / 2% DP",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Phendal (coromandal)"
+    ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
     "moaGroup": "IRAC Group 1B",
@@ -18814,8 +19304,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Profex Super (UPL Limited)",
-      "Rocket (PI Industries)"
+          "Roket (PI)"
     ],
     "chemicalFamily": "Organophosphate + Pyrethroid",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్ + పైరెథ్రాయిడ్",
@@ -18905,9 +19394,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Curacron (Syngenta India)",
-      "Prahar (Crystal Crop Protection)",
-      "Profex (UPL Limited)"
+          "Curacron (syngenta)"
     ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
@@ -19046,8 +19533,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Omite (Dhanuka Agritech / Chemtura)",
-      "Simbaa (Tata Rallis)"
+          "Omite (dhanuka)"
     ],
     "chemicalFamily": "Sulfite ester",
     "chemicalFamilyTe": "సల్ఫైట్ ఈస్టర్",
@@ -19170,7 +19656,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "పైమెట్రోజైన్ 50% WG",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "across x (GSP)",
+          "Chess (syngenta)"
+    ],
     "chemicalFamily": "Pyridine azomethine",
     "chemicalFamilyTe": "పిరిడిన్ అజోమెథైన్",
     "moaGroup": "IRAC Group 9B",
@@ -19258,7 +19747,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "పైరిడాబెన్ 20% w/w WP",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Hanabi (Godrej)"
+    ],
     "chemicalFamily": "Pyridazinone",
     "chemicalFamilyTe": "పైరిడాజినోన్",
     "moaGroup": "IRAC Group 21A",
@@ -19397,7 +19888,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "పైరిడాలిల్ 10% EC",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Sumipleo (sumitomo)"
+    ],
     "chemicalFamily": "Unclassified Phenoxy-pyridyloxy derivative",
     "chemicalFamilyTe": "ఫినాక్సీ-పైరిడిలాక్సీ ఉత్పన్నం",
     "moaGroup": "IRAC Group Unclassified (Cellular protein synthesis inhibitor)",
@@ -19520,7 +20013,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Colt (Nissan Chemical / Dhanuka Agritech)"
+          "Clasto (tata)"
     ],
     "chemicalFamily": "Quinazoline",
     "chemicalFamilyTe": "క్వినాజోలిన్",
@@ -19664,7 +20157,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Lano-Bifen (Sumitomo Chemical India)"
+          "Leonis (parijat)"
     ],
     "chemicalFamily": "Juvenile Hormone Mimic + Synthetic Pyrethroid",
     "chemicalFamilyTe": "జువెనైల్ హార్మోన్ మిమిక్ + సింథటిక్ పైరెథ్రాయిడ్",
@@ -19801,7 +20294,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Lano (Sumitomo Chemical India)"
+          "Lano (sumitomo)"
     ],
     "chemicalFamily": "Pyridine",
     "chemicalFamilyTe": "పిరిడిన్",
@@ -19938,8 +20431,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Ekalux (Syngenta India)",
-      "Flash (Tata Rallis)"
+          "Kemlox 725 (sumitomo)"
     ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
@@ -20411,8 +20903,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Delegate (Corteva Agriscience)",
-      "Sumipresto (Sumitomo Chemical)"
+          "Summit (tata)"
     ],
     "chemicalFamily": "Spinosyn (Semi-synthetic)",
     "chemicalFamilyTe": "స్పినోసిన్",
@@ -20711,7 +21202,11 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Tracer (Corteva Agriscience)"
+          "Spintor (Bayer)",
+          "Tracer (Dow)",
+          "One-Up (Dhanuka)",
+          "Taffin (TATA)",
+          "Conserve (Nagarjuna)"
     ],
     "chemicalFamily": "Spinosyn (Natural fermentation of Saccharopolyspora spinosa)",
     "chemicalFamilyTe": "స్పినోసిన్",
@@ -20868,8 +21363,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Oberon (Bayer CropScience)",
-      "Volt (Crystal Crop Protection)"
+          "Oberon (bayer)"
     ],
     "chemicalFamily": "Tetronic acid",
     "chemicalFamilyTe": "టెట్రోనిక్ యాసిడ్",
@@ -21128,7 +21622,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Movento Energy (Bayer CropScience)"
+          "Movento Energy (bayer)"
     ],
     "chemicalFamily": "Tetramic acid + Neonicotinoid",
     "chemicalFamilyTe": "టెట్రామిక్ యాసిడ్ + నియోనికోటినాయిడ్",
@@ -21267,7 +21761,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Movento (Bayer CropScience)"
+          "Movento OD (bayer)"
     ],
     "chemicalFamily": "Tetramic acid",
     "chemicalFamilyTe": "టెట్రామిక్ యాసిడ్",
@@ -21921,7 +22415,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "థయాక్లోప్రిడ్ 21.7% SC",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Alanto (bayer)"
+    ],
     "chemicalFamily": "Neonicotinoid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 4A",
@@ -22179,7 +22675,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Alika (Syngenta India)"
+          "Alika (syngenta)"
     ],
     "chemicalFamily": "Neonicotinoid + Pyrethroid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్ + పైరెథ్రాయిడ్",
@@ -22371,9 +22867,8 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Actara (Syngenta India)",
-      "Areva (Dhanuka Agritech)",
-      "Renova (Crystal Crop Protection)"
+          "Actara (syngenta)",
+          "Areva (dhanuka)"
     ],
     "chemicalFamily": "Neonicotinoid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్",
@@ -22708,7 +23203,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "థయామెథాక్సమ్ 30% ఎఫ్ఎస్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు (విత్తన శుద్ధి)",
-    "popularBrands": [],
+    "popularBrands": [
+          "Slayer PRO (GSP)",
+          "Bheema Plus (IIL)"
+    ],
     "chemicalFamily": "Neonicotinoid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 4A",
@@ -23005,7 +23503,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "థయోసైక్లామ్ 3% + క్లోథియానిడిన్ 1.2% గుళికలు",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Aurthor (GSP)"
+    ],
     "chemicalFamily": "Nereistoxin analogue + Neonicotinoid",
     "chemicalFamilyTe": "నెరిస్టాక్సిన్ అనలాగ్ + నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 14 + 4A",
@@ -23148,7 +23648,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "థయోడికార్బ్ 75% WP",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Larvin (Bayer)"
+    ],
     "chemicalFamily": "Carbamate / Oxime carbamate",
     "chemicalFamilyTe": "కార్బమేట్",
     "moaGroup": "IRAC Group 1A",
@@ -23305,8 +23807,11 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Keap (PI Industries)",
-      "Torac (Nihon Nohyaku)"
+          "Keefun (PI Industries)",
+          "Brahamos (IIL)",
+          "Tychi (Nichino)",
+          "Patang (Tata Rallis)",
+          "Keechak (Katyayani)"
     ],
     "chemicalFamily": "Pyrazole",
     "chemicalFamilyTe": "పైరజోల్",
@@ -23493,7 +23998,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "టోల్ఫెన్‌పైరాడ్ 18.75% + ఎమామెక్టిన్ బెంజోయేట్ 0.94% ఎస్సీ",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Marito (Nichino India)",
+          "Tajima Super (IFFCO)"
+    ],
     "chemicalFamily": "Pyrazole + Avermectin",
     "chemicalFamilyTe": "పైరజోల్ + అవర్‌మెక్టిన్",
     "moaGroup": "IRAC Group 21A + 6",
@@ -23582,7 +24090,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Pexalon (Corteva Agriscience)"
+          "SPARCLE (IIL)"
     ],
     "chemicalFamily": "Mesoionic (Pyrimidin-4-one)",
     "chemicalFamilyTe": "మెసోయోనిక్",
@@ -23815,8 +24323,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు (ఎలుకల నివారణ)",
     "popularBrands": [
-      "Ratol (UPL Limited)",
-      "Commando (Excel Crop Care / Sumitomo)"
+          "COMMANDO (Sumitomo)"
     ],
     "chemicalFamily": "Inorganic Phosphide Rodenticide",
     "chemicalFamilyTe": "అకర్బన ఫాస్ఫైడ్ ఎలుకల మందు",
@@ -25647,7 +26154,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "క్లోర్‌పైరిఫాస్ (10% Granules)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Deviban"
+    ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
     "moaGroup": "IRAC Group 1B",
@@ -26098,7 +26607,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "సైక్లానిలిప్రోల్ (Standard formulation)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "(PI)",
+          "Pressedo"
+    ],
     "chemicalFamily": "Anthranilic Diamide",
     "chemicalFamilyTe": "ఆంత్రానిలిక్ డయామైడ్",
     "moaGroup": "IRAC Group 28",
@@ -26328,7 +26840,30 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "సైపర్‌మెత్రిన్ + పెర్మెత్రిన్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Cymbush (Syngenta)",
+          "COLT (PI)",
+          "Superkiller-25 (dhanuka)",
+          "Kricyp-25 (KR)",
+          "Starcip-25 (Swal)",
+          "Megacyper (MIL)",
+          "Cyrux (UPL)",
+          "Colt (PI Ind.)",
+          "Devicyprin 25 (Devidayal)",
+          "MaxKill (Vimax)",
+          "Pyro 401 (Sumil)",
+          "Super Killer 25 (Dhanuka)",
+          "Crop Cyper (NACL)",
+          "Super Fighter (IIL)",
+          "Cypercot 25E (Kilpest)",
+          "Chellenger 25 (Tropical)",
+          "Shakti-25 (Cheminova)",
+          "Super Jet+ (SuperCSL)",
+          "Jackpot-25 (Crystal)",
+          "Cyperkill (Coromandel)",
+          "Hirange 25EC (Yesell)",
+          "Cypersul 25 (Sulphur Mills)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid + Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్ + సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 3A + 3A",
@@ -27099,7 +27634,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డెల్టామెత్రిన్ (1.25% ULV)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "DEL (katyayani )"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 3A",
@@ -27153,7 +27690,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Decis 100 (Bayer CropScience)"
+          "Decis100 (bayer)"
     ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
@@ -27681,7 +28218,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డైఫ్లూబెంజురాన్ (02% GR)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Barcelo GR (Bayer)"
+    ],
     "chemicalFamily": "Benzoylurea",
     "chemicalFamilyTe": "బెంజాయిల్యురియా",
     "moaGroup": "IRAC Group 15",
@@ -27769,7 +28308,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డైఫ్లూబెంజురాన్ (02% Tablets)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Barcelo TB (Bayer)"
+    ],
     "chemicalFamily": "Benzoylurea",
     "chemicalFamilyTe": "బెంజాయిల్యురియా",
     "moaGroup": "IRAC Group 15",
@@ -28083,7 +28624,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఎమామెక్టిన్ బెంజోయేట్ (01.90% EC)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Emazek (Agribegri)"
+    ],
     "chemicalFamily": "Avermectin",
     "chemicalFamilyTe": "అవర్మెక్టిన్",
     "moaGroup": "IRAC Group 6",
@@ -28648,7 +29191,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఫెన్‌ప్రోపాథ్రిన్ (10% EC)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Danitol ( Sumitomo)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 3A",
@@ -28791,7 +29336,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Mitigate SC (ADAMA India)"
+          "Sedna (Tata Rallis)"
     ],
     "chemicalFamily": "Pyrazole acaricide",
     "chemicalFamilyTe": "పైరజోల్ మైటిసైడ్",
@@ -28880,7 +29425,11 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఫెన్‌వాలరేట్ (00.40% DP)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Nagfen-D (Multiplex)",
+          "Devifen 0.4 DP (Devidayal)",
+          "Fencot 0.4 D (Kilpest)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 3A",
@@ -28951,7 +29500,17 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఫెన్‌వాలరేట్ (02% Conc)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Fenval (Jivagro)",
+          "Krifen (KR)",
+          "Fenkill (UPL)",
+          "King Pen (KCS)",
+          "Fenval 20 EC (Isagro Asia)",
+          "Devifen 20 (Devidayal)",
+          "Tatafen (Tata Rallis)",
+          "Fencot 20 E (Kilpest)",
+          "Final 20 (AOL)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 3A",
@@ -29273,7 +29832,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఫిప్రోనిల్ (2.92% EC)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Agenda 25 EC (Bayer)"
+    ],
     "chemicalFamily": "Phenylpyrazole",
     "chemicalFamilyTe": "ఫినైల్ పైరజోల్",
     "moaGroup": "IRAC Group 2B",
@@ -29748,7 +30309,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Takumi (Tata Rallis / Nihon Nohyaku)"
+          "Takumi (tata)",
+          "Fluton (PI Ind.)",
+          "Suraksha (Nagarjuna)"
     ],
     "chemicalFamily": "Phthalamic acid Diamide",
     "chemicalFamilyTe": "ఫ్తాలిక్ యాసిడ్ డయామైడ్",
@@ -30383,7 +30946,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఇమిడాక్లోప్రిడ్ (0.30% GR)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Rudra (coromandal)",
+          "sena (Hpm)"
+    ],
     "chemicalFamily": "Neonicotinoid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 4A",
@@ -30598,7 +31164,22 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Premise (Bayer Environmental Science - Termiticide)"
+          "Confidor super (bayer)",
+          "Josh Plus (KR)",
+          "Protect (MIL)",
+          "Super King (KCS)",
+          "Jumbo (PI Ind.)",
+          "MaxMida (Vimax)",
+          "Termax (TATA)",
+          "Expert Super (Sumil)",
+          "Victor Super (IIL)",
+          "Tropical Magic Super (Tropical)",
+          "Sumida 30.5 (SuperCSL)",
+          "Confidence Super (Crystal)",
+          "Total Control (Oshnic)",
+          "Hotshot Plus (Sulphur Mills)",
+          "Leopard 30.5 SC (Willowood)",
+          "Punj Super (Amber)"
     ],
     "chemicalFamily": "Neonicotinoid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్",
@@ -30704,7 +31285,27 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఇమిడాక్లోప్రిడ్ (70% WS)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Admire (Bayer)",
+          "Tatamida 70WS (TATA)",
+          "Josh 70 (KR)",
+          "Dzire (Excel)",
+          "Global 777 (Sumil)",
+          "Ad-Fyre (Dhanuka)",
+          "Victor Plus (IIL)",
+          "Tagmyre & Tropical Magic 70WS (Tropical)",
+          "Pactus (Cheminova)",
+          "Sumida 70 WG (SuperCSL)",
+          "Looper & Confidence 555 WS (Crystal)",
+          "Hilmida WS (HIL)",
+          "Pronto (Sulphur Mills)",
+          "Eka (PCCPL)",
+          "Mida-G (Nagarjuna)",
+          "Edan (BioStadt)",
+          "Hamster (Canary)",
+          "Leopard 70WG (Willowood)",
+          "Jatan (Amber)"
+    ],
     "chemicalFamily": "Neonicotinoid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 4A",
@@ -31051,7 +31652,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Incipio (Syngenta India)"
+          "Simodis (syngenta)"
     ],
     "chemicalFamily": "Isoxazoline",
     "chemicalFamilyTe": "ఐసోక్సాజోలిన్",
@@ -31574,8 +32175,8 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Karate (Syngenta India)",
-      "Reva 5 (Crystal Crop Protection)"
+          "Karate (Syngenta)",
+          "tag command (tropical)"
     ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
@@ -31817,7 +32418,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ల్యామ్డా-సైహలోథ్రిన్ (10% WP)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "SENTRY (TATA Rallis)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 3A",
@@ -32110,7 +32713,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "మలాథియాన్ (05%DP)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Devimalt 5 DP (Devidayal)",
+          "Kropmal D (Kilpest)"
+    ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
     "moaGroup": "IRAC Group 1B",
@@ -34144,7 +34750,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "క్వినాల్‌ఫాస్ (01.50% DP)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Deviquin 1.5 DP (Devidayal)",
+          "Keterphos 1.5 D (Kilpest)"
+    ],
     "chemicalFamily": "Organophosphate",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్",
     "moaGroup": "IRAC Group 1B",
@@ -35003,7 +35612,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Success (Corteva Agriscience)"
+          "Spino25 ( Katyayani)"
     ],
     "chemicalFamily": "Spinosyn",
     "chemicalFamilyTe": "స్పైనోసిన్",
@@ -35427,7 +36036,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "టెమిఫాస్ (50 % EC)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Terminate (Devidayal)"
+    ],
     "chemicalFamily": "Organophosphate Larvicide",
     "chemicalFamilyTe": "ఆర్గానోఫాస్ఫేట్ లార్విసైడ్",
     "moaGroup": "IRAC Group 1B",
@@ -35691,7 +36302,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "థయామిథాక్సామ్ (70% WS)",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Cruiser (syngenta)"
+    ],
     "chemicalFamily": "Neonicotinoid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 4A",
@@ -36771,7 +37384,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఫెన్‌వాలరేట్ + ఎసిఫేట్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+      "Contra (Sai Ram)",
+      "Finance (Senso Agrotech)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid + Organophosphate",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్ + ఆర్గానోఫాస్ఫేట్",
     "moaGroup": "IRAC Group 3A + 1B",
@@ -37622,7 +38238,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "క్లోథియానిడిన్ + బైఫెంథ్రిన్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Talstar Plus (FMC)"
+    ],
     "chemicalFamily": "Neonicotinoid + Synthetic Pyrethroid",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్ + సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 4A + 3A",
@@ -38824,7 +39442,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Voliam Flexi (Syngenta India)"
+          "Voliam Flexi (Syngenta)"
     ],
     "chemicalFamily": "Anthranilic Diamide + Neonicotinoid",
     "chemicalFamilyTe": "ఆంత్రానిలిక్ డయామైడ్ + నియోనికోటినాయిడ్",
@@ -40027,7 +40645,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "సైపర్‌మెత్రిన్ + పెర్మెత్రిన్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Viraat (UPL)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid + Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్ + సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 3A + 3A",
@@ -40369,7 +40989,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డెల్టామెత్రిన్ + బుప్రోఫెజిన్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Devikey (Devidayal)",
+          "Tusker (Crystal)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid + Thiジアzine",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్ + థయాడయాజిన్",
     "moaGroup": "IRAC Group 3A + 16",
@@ -40493,7 +41116,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డయాఫెంథియురాన్ + పైరిప్రాక్సిఫెన్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Boris Super (tata)"
+    ],
     "chemicalFamily": "Thiourea + Juvenile Hormone Mimic",
     "chemicalFamilyTe": "థయోయూరియా + జువెనైల్ హార్మోన్ మిమిక్",
     "moaGroup": "IRAC Group 12A + 7C",
@@ -40546,7 +41171,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డయాఫెంథియురాన్ + స్పైనెటోరామ్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "(Adama)",
+          "Trassid"
+    ],
     "chemicalFamily": "Thiourea + Spinosyn",
     "chemicalFamilyTe": "థయోయూరియా + స్పైనోసిన్",
     "moaGroup": "IRAC Group 12A + 5",
@@ -40756,7 +41384,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డయాఫెంథియురాన్ + టోల్ఫెన్‌పైరాడ్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "TAG XL-825 (Tropical Agro)"
+    ],
     "chemicalFamily": "Thiourea + Pyrazole carboxamide",
     "chemicalFamilyTe": "థయోయూరియా + పైరజోల్ కార్బాక్సమైడ్",
     "moaGroup": "IRAC Group 12A + 21A",
@@ -41039,7 +41669,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డైనోటెఫ్యూరాన్ + పైమెట్రోజైన్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "(Best Agrolife)",
+          "AXEMAN"
+    ],
     "chemicalFamily": "Neonicotinoid (Furanicotinyl) + Pyridine Azomethine",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్ (ఫ్యూరానికోటినైల్) + పైరిడిన్ అజోమెథైన్",
     "moaGroup": "IRAC Group 4A + 9B",
@@ -41471,7 +42104,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఎమామెక్టిన్ బెంజోయేట్ + ప్రొఫెనోఫాస్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "VELEKTIN (Parijat)"
+    ],
     "chemicalFamily": "Avermectin + Organophosphate",
     "chemicalFamilyTe": "అవర్మెక్టిన్ + ఆర్గానోఫాస్ఫేట్",
     "moaGroup": "IRAC Group 6 + 1B",
@@ -41966,7 +42601,17 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "సైపర్‌మెత్రిన్ + పెర్మెత్రిన్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Nagata (TATA)",
+          "Colfos (PI Ind.)",
+          "Jashn (KR)",
+          "Mitplus (Swal)",
+          "Mit Plus (Swal)",
+          "Cyperton (MIL)",
+          "Eagle 405 (Devidayal)",
+          "Rim Jhim (IIL)",
+          "Sumite-405 (SuperCSL)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid + Synthetic Pyrethroid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్ + సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 3A + 3A",
@@ -42054,7 +42699,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "పైమెట్రోజైన్ + ఇథిప్రోల్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Curbix Pro (bayer)"
+    ],
     "chemicalFamily": "Pyridine Azomethine + Phenylpyrazole",
     "chemicalFamilyTe": "పైరిడిన్ అజోమెథైన్ + ఫినైల్ పైరజోల్",
     "moaGroup": "IRAC Group 9B + 2B",
@@ -42125,7 +42772,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డయాఫెంథియురాన్ + ఇటోఫెన్‌ప్రాక్స్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Decide (dhanuka)"
+    ],
     "chemicalFamily": "Thiourea + Non-ester Pyrethroid / Ether",
     "chemicalFamilyTe": "థయోయూరియా + నాన్-ఎస్టర్ పైరెథ్రాయిడ్ ఈథర్",
     "moaGroup": "IRAC Group 12A + 3A",
@@ -42408,7 +43057,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డయాఫెంథియురాన్ + ఫిప్రోనిల్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Guru (garada)"
+    ],
     "chemicalFamily": "Thiourea + Phenylpyrazole",
     "chemicalFamilyTe": "థయోయూరియా + ఫినైల్ పైరజోల్",
     "moaGroup": "IRAC Group 12A + 2B",
@@ -42902,7 +43553,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఇమిడాక్లోప్రిడ్ + ఫిప్రోనిల్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Bakeel (garada)"
+    ],
     "chemicalFamily": "Neonicotinoid + Phenylpyrazole",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్ + ఫినైల్ పైరజోల్",
     "moaGroup": "IRAC Group 4A + 2B",
@@ -43804,7 +44457,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Belt Expert (Bayer CropScience)"
+          "Fenos Quick (bayer)"
     ],
     "chemicalFamily": "Phthalamic acid Diamide + Synthetic Pyrethroid",
     "chemicalFamilyTe": "ఫ్తాలిక్ యాసిడ్ డయామైడ్ + సింథటిక్ పైరెథ్రాయిడ్",
@@ -44244,7 +44897,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ల్యామ్డా-సైహలోథ్రిన్ + ఇమిడాక్లోప్రిడ్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "INOVEXIA (willowood)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid + Neonicotinoid",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్ + నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 3A + 4A",
@@ -44478,7 +45133,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "థయామిథాక్సామ్ + ఇండోక్సాకార్బ్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Firrangi (gharda)"
+    ],
     "chemicalFamily": "Neonicotinoid + Oxadiazine",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్ + ఆక్సాడయాజిన్",
     "moaGroup": "IRAC Group 4A + 22A",
@@ -44566,7 +45223,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఎసిటామిప్రిడ్ + ఇండోక్సాకార్బ్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Kite (gharda)"
+    ],
     "chemicalFamily": "Neonicotinoid + Oxadiazine",
     "chemicalFamilyTe": "నియోనికోటినాయిడ్ + ఆక్సాడయాజిన్",
     "moaGroup": "IRAC Group 4A + 22A",
@@ -44655,9 +45314,7 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
     "popularBrands": [
-      "Regent 5 SC (BASF India)",
-      "Mahaveer (Dhanuka Agritech)",
-      "Prince (Crystal Crop Protection)"
+          "Black (Gharda)"
     ],
     "chemicalFamily": "Oxadiazine + Phenylpyrazole",
     "chemicalFamilyTe": "ఆక్సాడయాజిన్ + ఫినైల్ పైరజోల్",
@@ -45241,7 +45898,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "క్లోరాంట్రానిలిప్రోల్ + మిథాక్సీఫెనోజైడ్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Liger (GSP)"
+    ],
     "chemicalFamily": "Anthranilic Diamide + Diacylhydrazine",
     "chemicalFamilyTe": "ఆంత్రానిలిక్ డయామైడ్ + డయాసిల్ హైడ్రాజిన్",
     "moaGroup": "IRAC Group 28 + 18",
@@ -45966,7 +46625,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఫెన్‌పైరాక్సిమేట్ + ప్రొఫెనోఫాస్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Excel ETNA (SUMOTOMO)"
+    ],
     "chemicalFamily": "Pyrazole acaricide + Organophosphate",
     "chemicalFamilyTe": "పైరజోల్ మైటిసైడ్ + ఆర్గానోఫాస్ఫేట్",
     "moaGroup": "IRAC Group 21A + 1B",
@@ -46125,7 +46786,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "హెక్సీథియాజాక్స్ + ప్రొపర్గైట్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Ceasemite (indofil)"
+    ],
     "chemicalFamily": "Thiazolidine acaricide + Sulfite Ester Acaricide",
     "chemicalFamilyTe": "థయాజోలిడిన్ మైటిసైడ్ + సల్ఫైట్ ఎస్టర్ మైటిసైడ్",
     "moaGroup": "IRAC Group 10A + 12C",
@@ -46247,7 +46910,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "బైఫెంథ్రిన్ + ప్రొపర్గైట్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Brigade Power (fmc)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid + Sulfite Ester Acaricide",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్ + సల్ఫైట్ ఎస్టర్ మైటిసైడ్",
     "moaGroup": "IRAC Group 3A + 12C",
@@ -46506,7 +47171,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "ఫెన్‌ప్రోపాథ్రిన్ + పైరిప్రాక్సిఫెన్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Sumiprempt (sumitomo)"
+    ],
     "chemicalFamily": "Synthetic Pyrethroid + Juvenile Hormone Mimic",
     "chemicalFamilyTe": "సింథటిక్ పైరెథ్రాయిడ్ + జువెనైల్ హార్మోన్ మిమిక్",
     "moaGroup": "IRAC Group 3A + 7C",
@@ -46641,7 +47308,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డయాఫెంథియురాన్ + పైరిప్రాక్సిఫెన్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "SLR 525 (GSP)"
+    ],
     "chemicalFamily": "Thiourea + Juvenile Hormone Mimic",
     "chemicalFamilyTe": "థయోయూరియా + జువెనైల్ హార్మోన్ మిమిక్",
     "moaGroup": "IRAC Group 12A + 7C",
@@ -46729,7 +47398,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "డయాఫెంథియురాన్ + పైరిప్రాక్సిఫెన్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "RONFEN ( Best Agrolife)"
+    ],
     "chemicalFamily": "Thiourea + Juvenile Hormone Mimic",
     "chemicalFamilyTe": "థయోయూరియా + జువెనైల్ హార్మోన్ మిమిక్",
     "moaGroup": "IRAC Group 12A + 7C",
@@ -47889,7 +48560,9 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "క్లోరాంట్రానిలిప్రోల్ + థయామిథాక్సామ్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Virtako (Syngenta)"
+    ],
     "chemicalFamily": "Anthranilic Diamide + Neonicotinoid",
     "chemicalFamilyTe": "ఆంత్రానిలిక్ డయామైడ్ + నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 28 + 4A",
@@ -48084,7 +48757,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "టోల్ఫెన్‌పైరాడ్ + బైఫెంథ్రిన్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Raavan (GSP)",
+          "Treza (AgroStar)"
+    ],
     "chemicalFamily": "Pyrazole carboxamide + Synthetic Pyrethroid",
     "chemicalFamilyTe": "పైరజోల్ కార్బాక్సమైడ్ + సింథటిక్ పైరెథ్రాయిడ్",
     "moaGroup": "IRAC Group 21A + 3A",
@@ -48172,7 +48848,10 @@ export const AGROCHEMICALS_DATA: AgrochemicalItem[] = [
     "nameTe": "పైరిప్రాక్సిఫెన్ + ఎసిటామిప్రిడ్",
     "category": "insecticide",
     "categoryTe": "పురుగుమందు",
-    "popularBrands": [],
+    "popularBrands": [
+          "Tolpy (SWAL)",
+          "Trishanku (Best Agrolife)"
+    ],
     "chemicalFamily": "Juvenile Hormone Mimic + Neonicotinoid",
     "chemicalFamilyTe": "జువెనైల్ హార్మోన్ మిమిక్ + నియోనికోటినాయిడ్",
     "moaGroup": "IRAC Group 7C + 4A",

@@ -1,0 +1,6590 @@
+[
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Bifenthrin 8 SC",
+    "pest": "Mites",
+    "aiDose": "60",
+    "formulationDose": "7.5ml/lit",
+    "sprayFluid": "10 lit/tree"
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Woolly aphid",
+    "aiDose": "5/tree",
+    "formulationDose": "166/tree",
+    "sprayFluid": ""
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Aphid",
+    "aiDose": "0.0005",
+    "formulationDose": "3750-5000",
+    "sprayFluid": "_ 1500-2000"
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Stem borer",
+    "aiDose": "0.0003",
+    "formulationDose": "1485-1980",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Fenazaquin 10 EC",
+    "pest": "Red spider mite and two spotted mite",
+    "aiDose": "40",
+    "formulationDose": "400",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Hexythiazox 5.45 W/W EC",
+    "pest": "European Red Mite",
+    "aiDose": "0.00002",
+    "formulationDose": "0.0004",
+    "sprayFluid": "10ltr./tree"
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Sanjose scale, Wooly aphid",
+    "aiDose": "0.0005",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Sanjose scale",
+    "aiDose": "0.0007",
+    "formulationDose": "4200-5600",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Wooly Aphid",
+    "aiDose": "0.00025",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Woolly aphid",
+    "aiDose": "10- 15/ plant",
+    "formulationDose": "100-150gm/ plant",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Propargite 57 EC",
+    "pest": "European red Mite, Two spotted mite",
+    "aiDose": "2.85-5.7 /tree",
+    "formulationDose": "5-10 ml/tree",
+    "sprayFluid": "10 lit/tree"
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Wooly Aphid",
+    "aiDose": "0.0005",
+    "formulationDose": "3000-4000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Spiromesifen 22.9 SC",
+    "pest": "European Red Mite & Red Spider mite",
+    "aiDose": "72(0.03)",
+    "formulationDose": "300",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 1,
+    "crop": "Apple",
+    "insecticide": "Thiacloprid 21.7 SC",
+    "pest": "Thrips",
+    "aiDose": "0.01- 0.012",
+    "formulationDose": "0.04-0.05",
+    "sprayFluid": "As per size of tree"
+  },
+  {
+    "page": 1,
+    "crop": "Apricot",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Aphid",
+    "aiDose": "0.0003",
+    "formulationDose": "1485-1980",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 1,
+    "crop": "Bajra",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Shoot fly",
+    "aiDose": "1500",
+    "formulationDose": "50000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 1,
+    "crop": "Bajra",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Milky weed bug",
+    "aiDose": "180-200",
+    "formulationDose": "594-660",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 1,
+    "crop": "Bajra",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Shoot fly",
+    "aiDose": "3000",
+    "formulationDose": "30000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 1,
+    "crop": "Bajra",
+    "insecticide": "Phorate 10 CG",
+    "pest": "White grub",
+    "aiDose": "2500",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 1,
+    "crop": "Banana",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Rhizome weevil",
+    "aiDose": "1 g/ suckers",
+    "formulationDose": "33g/sucker",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 1,
+    "crop": "Banana",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Aphid",
+    "aiDose": "50g/suckers",
+    "formulationDose": "166g/sucker",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 2,
+    "crop": "Banana",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Nematode",
+    "aiDose": "1.5g/suckers",
+    "formulationDose": "50g/suckers",
+    "sprayFluid": ""
+  },
+  {
+    "page": 2,
+    "crop": "Banana",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Aphid, Lace wing bug",
+    "aiDose": "0.0003",
+    "formulationDose": "1485-1980",
+    "sprayFluid": "_ 1500-2000"
+  },
+  {
+    "page": 2,
+    "crop": "Banana",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Tingyi bug",
+    "aiDose": "0.00025",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 2,
+    "crop": "Banana",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Aphids",
+    "aiDose": "0.0005",
+    "formulationDose": "3000-4000",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 2,
+    "crop": "Banana",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Aphid",
+    "aiDose": "2.5 -1.25/ plant",
+    "formulationDose": "25 -12.5/ plant",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 2,
+    "crop": "Banana",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Tingid bug",
+    "aiDose": "0.0005",
+    "formulationDose": "3000-4000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 2,
+    "crop": "Barely",
+    "insecticide": "Phosalone 35 EC",
+    "pest": "Aphid",
+    "aiDose": "500",
+    "formulationDose": "1428",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 2,
+    "crop": "Barely",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Aphid",
+    "aiDose": "1000",
+    "formulationDose": "33300",
+    "sprayFluid": ""
+  },
+  {
+    "page": 2,
+    "crop": "Barely",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Jassid",
+    "aiDose": "1250",
+    "formulationDose": "41600",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 2,
+    "crop": "Barely",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Cyst nematode",
+    "aiDose": "1000",
+    "formulationDose": "33300",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 2,
+    "crop": "Barely",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Aphid",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 2,
+    "crop": "Beans",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Pod borer , Black bug",
+    "aiDose": "600",
+    "formulationDose": "3000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Pod borers",
+    "aiDose": "25",
+    "formulationDose": "125",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "Chlorpyrifos 1.5 DP",
+    "pest": "Helicoverpa armigera",
+    "aiDose": "375",
+    "formulationDose": "25000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "Azadirachtin 0.03 (300 PPM)",
+    "pest": "Pod Borer",
+    "aiDose": "",
+    "formulationDose": "",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "Heliothis",
+    "aiDose": "_",
+    "formulationDose": "_ 0.75 kg.",
+    "sprayFluid": "_ 500-750"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "Beauveria bassiana 1 WP",
+    "pest": "Pod borer",
+    "aiDose": "_",
+    "formulationDose": "3 kg/ha",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Cut worm",
+    "aiDose": "_ 500",
+    "formulationDose": "2500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "Emamectin Benzoate 5 SG",
+    "pest": "Pod borer",
+    "aiDose": "11",
+    "formulationDose": "220",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "Ethion 50 EC",
+    "pest": "Pod borer",
+    "aiDose": "500-750",
+    "formulationDose": "1000-1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "Lambda-Cyhalothrin 5 EC",
+    "pest": "Pod borer",
+    "aiDose": "25",
+    "formulationDose": "500",
+    "sprayFluid": "300-400"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "Novaluron 10 EC",
+    "pest": "Pod borer",
+    "aiDose": "75",
+    "formulationDose": "750",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "NPV of Helicoverpa armigera 0.5 AS",
+    "pest": "Pod borer",
+    "aiDose": "",
+    "formulationDose": "250",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "NPV of Helicoverpa armigera 2.0 AS",
+    "pest": "Pod borer (Helicoverpa armigera)",
+    "aiDose": "_",
+    "formulationDose": "250-500 ml",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "NPV of Helicoverpa armigera 2.0 AS",
+    "pest": "Pod borer",
+    "aiDose": "_",
+    "formulationDose": "250-500",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Pod borer",
+    "aiDose": "_ 350",
+    "formulationDose": "23300",
+    "sprayFluid": "At pod formation"
+  },
+  {
+    "page": 2,
+    "crop": "Bengal gram",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Pod borer",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 2,
+    "crop": "Ber",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Leaf hopper",
+    "aiDose": "0.0003",
+    "formulationDose": "2250-3000",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 2,
+    "crop": "Bhendi",
+    "insecticide": "Azadirachtin 5 W/W",
+    "pest": "Leafhopper, whitefly, Aphid, Pod borer",
+    "aiDose": "",
+    "formulationDose": "200",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Carbaryl 5 D.P.",
+    "pest": "Jassid",
+    "aiDose": "1000",
+    "formulationDose": "20000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Carbaryl 10 D.P.",
+    "pest": "Fruit borer, Jassids",
+    "aiDose": "2500",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Fruit Borer",
+    "aiDose": "1000",
+    "formulationDose": "2000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Jassids",
+    "aiDose": "1000",
+    "formulationDose": "33300",
+    "sprayFluid": ""
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Cypermethrin 25 EC",
+    "pest": "Shoot & fruit borer, Jassids",
+    "aiDose": "37-50",
+    "formulationDose": "150-200",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Deltamethrin 2.8 EC",
+    "pest": "Shoot & fruit borer",
+    "aiDose": "10-15",
+    "formulationDose": "400-600",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Deltamethrin 2.8 EC",
+    "pest": "Jassid",
+    "aiDose": "10",
+    "formulationDose": "400",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Aphid",
+    "aiDose": "700",
+    "formulationDose": "2310",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Leaf hopper, Jassid",
+    "aiDose": "600",
+    "formulationDose": "1980",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Lambda-Cyhalothrin 5 EC",
+    "pest": "Jassids, shoot borer",
+    "aiDose": "15",
+    "formulationDose": "300",
+    "sprayFluid": "300-400"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Aphid",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Jassids",
+    "aiDose": "625",
+    "formulationDose": "1250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Spotted Bollworm",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "White fly",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Jassid / Leaf beetle",
+    "aiDose": "400",
+    "formulationDose": "1600",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Fruit borer",
+    "aiDose": "200",
+    "formulationDose": "800",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Leaf hopper, Mite",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Bhendi",
+    "insecticide": "Bacillus thuringiensis Var. Galleriae",
+    "pest": "Fruit borer (Earias spp.)",
+    "aiDose": "",
+    "formulationDose": "1.0-1.5",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 3,
+    "crop": "Bitter gourd",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Fruit borers & Caterpillars",
+    "aiDose": "_ 20-25",
+    "formulationDose": "100-125",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 3,
+    "crop": "Black gram",
+    "insecticide": "Thiodicarb 75 WP",
+    "pest": "Pod borer",
+    "aiDose": "468-562",
+    "formulationDose": "625-750",
+    "sprayFluid": "375-500"
+  },
+  {
+    "page": 3,
+    "crop": "Black gram",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Pod borers",
+    "aiDose": "20",
+    "formulationDose": "100",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 3,
+    "crop": "Black gram",
+    "insecticide": "Flubendiamide 39.35 M/M SC",
+    "pest": "Fruit borer",
+    "aiDose": "48",
+    "formulationDose": "100",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 3,
+    "crop": "Black gram",
+    "insecticide": "Lufenuron 5.4 EC",
+    "pest": "Pod borer",
+    "aiDose": "30",
+    "formulationDose": "600",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 3,
+    "crop": "Black gram",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Pod borer",
+    "aiDose": "250",
+    "formulationDose": "625",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Black gram",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Stem fly, White fly",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 3,
+    "crop": "Black gram",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Bihar hairy Caterpillar",
+    "aiDose": "375",
+    "formulationDose": "1500",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Black gram",
+    "insecticide": "Methyl parathion 2 DP",
+    "pest": "Pod borer",
+    "aiDose": "500",
+    "formulationDose": "25000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 3,
+    "crop": "Bottle & bitter gourd",
+    "insecticide": "Dicofol 18.5 EC",
+    "pest": "Red Spider mite",
+    "aiDose": "250-500",
+    "formulationDose": "1350-2700",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 3,
+    "crop": "Brinjal",
+    "insecticide": "Azadirachtin 1 (10000 PPM)",
+    "pest": "Fruit and Shoot borer",
+    "aiDose": "",
+    "formulationDose": "1000-1500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Azadirachtin 0.03 (300 PPM)",
+    "pest": "Shoot & Fruit borer, beetles",
+    "aiDose": "",
+    "formulationDose": "2500-5000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Fruit Borer, Jassids",
+    "aiDose": "_ 1000",
+    "formulationDose": "2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Root knot nematode",
+    "aiDose": "2000",
+    "formulationDose": "66600",
+    "sprayFluid": ""
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Reniform nematode",
+    "aiDose": "2000",
+    "formulationDose": "66600",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Shoot & Fruit borer",
+    "aiDose": "40",
+    "formulationDose": "200",
+    "sprayFluid": "_ 500-750"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Cypermethrin 0.25 DP",
+    "pest": "Fruit & shoot borer",
+    "aiDose": "50-60",
+    "formulationDose": "20000-24000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Cypermethrin 10 EC",
+    "pest": "Fruit & shoot borer",
+    "aiDose": "50-70",
+    "formulationDose": "550-760",
+    "sprayFluid": "_ 150-400"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Cypermethrin 25 EC",
+    "pest": "Shoot & fruit borer, Jassids, Epilachna grub",
+    "aiDose": "37-50",
+    "formulationDose": "150-200",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Deltamethrin 2.8 EC",
+    "pest": "Shoot & Fruit Borer",
+    "aiDose": "10-12.5",
+    "formulationDose": "400-500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Dicofol 18.5 EC",
+    "pest": "Yellow mite",
+    "aiDose": "500-1000",
+    "formulationDose": "2700-5400",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Diafenthiuron 50WP",
+    "pest": "Whitefly",
+    "aiDose": "300",
+    "formulationDose": "600",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Shoot borer",
+    "aiDose": "200",
+    "formulationDose": "660",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Emamectin Benzoate 5 SG",
+    "pest": "Fruit and Shoot borer",
+    "aiDose": "10",
+    "formulationDose": "200",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Etoxazole 10 SC",
+    "pest": "Red Spider Mite",
+    "aiDose": "40",
+    "formulationDose": "400",
+    "sprayFluid": "400-500"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Fenazaquin 10 EC",
+    "pest": "Red spider mite",
+    "aiDose": "125",
+    "formulationDose": "1250",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Fenpropathrin 30 EC",
+    "pest": "Whitefly, Shoot and Fruit borer, Mites",
+    "aiDose": "75-100",
+    "formulationDose": "250-340",
+    "sprayFluid": "750-1000"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Fenvalerate 20 EC",
+    "pest": "Shoot & fruit borer, Aphids",
+    "aiDose": "75-100",
+    "formulationDose": "375-500",
+    "sprayFluid": "600-800"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Flumite 20 SC / Flufenzine 20SC",
+    "pest": "Mite",
+    "aiDose": "80-100",
+    "formulationDose": "400-500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Lambda-Cyhalothrin 4.9 CS",
+    "pest": "Shoot & fruit borer",
+    "aiDose": "15",
+    "formulationDose": "300",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Lambda-Cyhalothrin 5 EC",
+    "pest": "Shoot & fruit borer",
+    "aiDose": "15",
+    "formulationDose": "300",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Mites",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Aphid, Jassids, Lace wing bug, Red spider mite",
+    "aiDose": "1500",
+    "formulationDose": "15000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Thrips",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Phosalone 35 EC",
+    "pest": "Fruit borer",
+    "aiDose": "500",
+    "formulationDose": "1428",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Phosphamidon 40 SL",
+    "pest": "Jassid, Aphid, White fly",
+    "aiDose": "250-300",
+    "formulationDose": "625-750",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Propargite 57 EC",
+    "pest": "Two spotted spider mite",
+    "aiDose": "570",
+    "formulationDose": "1000",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 4,
+    "crop": "Brinjal",
+    "insecticide": "Spiromesifen 22.9 SC",
+    "pest": "Red spider mite",
+    "aiDose": "96",
+    "formulationDose": "400",
+    "sprayFluid": ""
+  },
+  {
+    "page": 5,
+    "crop": "Brinjal",
+    "insecticide": "Thiacloprid 21.7 SC",
+    "pest": "Shoot & fruit borer",
+    "aiDose": "180",
+    "formulationDose": "750",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 5,
+    "crop": "Brinjal",
+    "insecticide": "Thiodicarb 75 WP",
+    "pest": "Shoot & Fruit borer",
+    "aiDose": "470 to 750",
+    "formulationDose": "625 to 1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 5,
+    "crop": "Brinjal",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "White flies",
+    "aiDose": "50",
+    "formulationDose": "200",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 5,
+    "crop": "Brinjal",
+    "insecticide": "Thiometon 25EC",
+    "pest": "Aphid & Jassid, Fruit and Shoot borer",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "750-1000"
+  },
+  {
+    "page": 5,
+    "crop": "Brinjal",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Shoot & fruit borer",
+    "aiDose": "200",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Acetamiprid 20 SP",
+    "pest": "Aphids",
+    "aiDose": "15",
+    "formulationDose": "75",
+    "sprayFluid": "500-600"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Azadirachtin 0.03 (300 PPM)",
+    "pest": "Aphids, DBM, Cabbage worm, Cabbage looper",
+    "aiDose": "_",
+    "formulationDose": "2500-5000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Beauveria bassiana 10 SC",
+    "pest": "DBM",
+    "aiDose": "1-1.5",
+    "formulationDose": "",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Carbaryl 5 D.P.",
+    "pest": "Cabbage borer",
+    "aiDose": "600",
+    "formulationDose": "_ 20000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Carbaryl 10 D.P.",
+    "pest": "Diamond back moth, Army worm",
+    "aiDose": "2500",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Cabbage Borer",
+    "aiDose": "800",
+    "formulationDose": "1600",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Nematode",
+    "aiDose": "1000",
+    "formulationDose": "50000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Diamond back moth",
+    "aiDose": "10",
+    "formulationDose": "50",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Chlorfenapyr 10 SC",
+    "pest": "Diamond back moth",
+    "aiDose": "75-100",
+    "formulationDose": "750-1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Chlorfluazuron 5.4 EC",
+    "pest": "Diamond back moth, Tobacco leaf eating caterpillar",
+    "aiDose": "75",
+    "formulationDose": "1500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Diamond back moth",
+    "aiDose": "400",
+    "formulationDose": "2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Cyantraniliprole 10.26 OD",
+    "pest": "Cabbage Aphid- Brevicoryne brassicae, Mustard Aphid- Lipaphis erysimi, Diamond back moth- Plutella xylostella, Tobacco caterpillar- Spodoptera litura",
+    "aiDose": "60",
+    "formulationDose": "600",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Cypermethrin 10 EC",
+    "pest": "Diamond backmoth",
+    "aiDose": "60-70",
+    "formulationDose": "650-760",
+    "sprayFluid": "100-400"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Diafenthiuron 50WP",
+    "pest": "Diamond Back Moth",
+    "aiDose": "300",
+    "formulationDose": "600",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Emamectin Benzoate 5 SG",
+    "pest": "DBM",
+    "aiDose": "7.5-10",
+    "formulationDose": "150-200",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Fipronil 5 SC",
+    "pest": "Diamond back moth",
+    "aiDose": "40-50",
+    "formulationDose": "800-1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Flubendiamide 20 WG",
+    "pest": "Diamond back moth",
+    "aiDose": "18.24",
+    "formulationDose": "37.5-50",
+    "sprayFluid": "375-500"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Flubendiamide 39.35 M/M SC",
+    "pest": "Diamond moth back",
+    "aiDose": "18.24",
+    "formulationDose": "37.5-50",
+    "sprayFluid": "375-500"
+  },
+  {
+    "page": 5,
+    "crop": "Cabbage",
+    "insecticide": "Indoxacarb 14.5 SC",
+    "pest": "Diamond back moth",
+    "aiDose": "30-40",
+    "formulationDose": "200-266",
+    "sprayFluid": "400-750"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage",
+    "insecticide": "Indoxacarb 15.8 EC",
+    "pest": "Diamond back moth",
+    "aiDose": "40",
+    "formulationDose": "266",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage",
+    "insecticide": "Lufenuron 5.4 EC",
+    "pest": "Diamond back moth",
+    "aiDose": "30",
+    "formulationDose": "600",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Mustard aphid",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage",
+    "insecticide": "Metaflumizone 22 SC",
+    "pest": "Diamond back moth",
+    "aiDose": "165-220",
+    "formulationDose": "750-1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage",
+    "insecticide": "Novaluron 10 EC",
+    "pest": "Diamond back moth",
+    "aiDose": "75",
+    "formulationDose": "750",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage",
+    "insecticide": "Phosalone 35 EC",
+    "pest": "Aphid",
+    "aiDose": "500",
+    "formulationDose": "1428",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage",
+    "insecticide": "Pyridalyl 10 EC",
+    "pest": "Diamond back moth",
+    "aiDose": "50-75",
+    "formulationDose": "500-750",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage",
+    "insecticide": "Thiodicarb 75 WP",
+    "pest": "Diamond back moth",
+    "aiDose": "750 to 1000",
+    "formulationDose": "1000 to 1330",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage",
+    "insecticide": "Tolfenpyrad 15 EC",
+    "pest": "Diamond Back moth, Aphids",
+    "aiDose": "150",
+    "formulationDose": "1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "Diamond back moth",
+    "aiDose": "25.00-50.00",
+    "formulationDose": "500-1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage & Cauliflower",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Aphid , Painted bug, Mustard aphid",
+    "aiDose": "200",
+    "formulationDose": "660",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage & Cauliflower",
+    "insecticide": "Spinosad 2.5 SC",
+    "pest": "Diamond back moth",
+    "aiDose": "15.0-17.5",
+    "formulationDose": "600-700",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 6,
+    "crop": "Cabbage & Cauliflower",
+    "insecticide": "Bacillus thuringiensis Var. Galleriae",
+    "pest": "Diamond back moth (Plutella xylostella)",
+    "aiDose": "_",
+    "formulationDose": "0.6-1.0",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 6,
+    "crop": "Cardamom",
+    "insecticide": "Diafenthiuron 50WP",
+    "pest": "Thrips, Capsule borer",
+    "aiDose": "400",
+    "formulationDose": "800",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 6,
+    "crop": "Cardamom",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Thrips",
+    "aiDose": "375",
+    "formulationDose": "937",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Cardamom",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Thrips",
+    "aiDose": "0.0003",
+    "formulationDose": "600-1200",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Cashew",
+    "insecticide": "Dichlorvos 76 EC",
+    "pest": "Apple borer",
+    "aiDose": "0.0005",
+    "formulationDose": "940-1253",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 6,
+    "crop": "Castor",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Jassids, Mites",
+    "aiDose": "250",
+    "formulationDose": "825",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Castor",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Semi looper",
+    "aiDose": "350",
+    "formulationDose": "1155",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Castor",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Jassids",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Castor",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Semi looper",
+    "aiDose": "1000",
+    "formulationDose": "2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Castor",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "Hairy caterpillar, Ahea janata",
+    "aiDose": "",
+    "formulationDose": "1.00 kg.",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 6,
+    "crop": "Castor",
+    "insecticide": "Dichlorvos 76 EC",
+    "pest": "Hairy caterpillar",
+    "aiDose": "_ 625",
+    "formulationDose": "783",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Cauliflower",
+    "insecticide": "Azadirachtin 5 W/W",
+    "pest": "Spodoptera, Diamond back moth, Aphids",
+    "aiDose": "_",
+    "formulationDose": "200",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 6,
+    "crop": "Cauliflower",
+    "insecticide": "Carbaryl 5 D.P.",
+    "pest": "Cabbage borer",
+    "aiDose": "600",
+    "formulationDose": "12000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 6,
+    "crop": "Cauliflower",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Cabbage borer",
+    "aiDose": "800",
+    "formulationDose": "1600",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 6,
+    "crop": "Cauliflower",
+    "insecticide": "Fenvalerate 20 EC",
+    "pest": "Diamond back moth , American boll worm, Aphids, Jassids",
+    "aiDose": "60-75",
+    "formulationDose": "300-375",
+    "sprayFluid": "600-750"
+  },
+  {
+    "page": 6,
+    "crop": "Cauliflower",
+    "insecticide": "Lufenuron 5.4 EC",
+    "pest": "Diamond backmoth",
+    "aiDose": "30",
+    "formulationDose": "600",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 7,
+    "crop": "Cauliflower",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Head borer",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 7,
+    "crop": "Cauliflower",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Aphid",
+    "aiDose": "2000",
+    "formulationDose": "20000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 7,
+    "crop": "Cauliflower",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Stem borer",
+    "aiDose": "500",
+    "formulationDose": "2000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Acetamiprid 20 SP",
+    "pest": "Thrips",
+    "aiDose": "10 to 20",
+    "formulationDose": "50-100",
+    "sprayFluid": "500-600"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Carbosulfan 25 EC",
+    "pest": "Leaf folder",
+    "aiDose": "200-250",
+    "formulationDose": "800-1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Carbosulfan 25 EC",
+    "pest": "White aphid",
+    "aiDose": "200-250",
+    "formulationDose": "800-1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Fruit borer",
+    "aiDose": "30",
+    "formulationDose": "150",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Chlorfenapyr 10 SC",
+    "pest": "Mites",
+    "aiDose": "75-100",
+    "formulationDose": "750-1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Cyantraniliprole 10.26 OD",
+    "pest": "Thrips- Scirtothrips dorsalis, Fruit borer- Helicovepra armigera, Tobacco caterpillar- Spodoptera litura",
+    "aiDose": "60",
+    "formulationDose": "600",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Deltamethrin 2.8 EC",
+    "pest": "Fruit borer",
+    "aiDose": "10-12.5",
+    "formulationDose": "400-500",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Diafenthiuron 50WP",
+    "pest": "Mites",
+    "aiDose": "300",
+    "formulationDose": "600",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Emamectin Benzoate 5 SG",
+    "pest": "Fruit borer, Thrips & Mites",
+    "aiDose": "10",
+    "formulationDose": "200",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Ethion 50 EC",
+    "pest": "Mites & thrips",
+    "aiDose": "750-1000",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Fenazaquin 10 EC",
+    "pest": "Yellow mite",
+    "aiDose": "125",
+    "formulationDose": "1250",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Fenpropathrin 30 EC",
+    "pest": "Thrips, Whitefly, Mites",
+    "aiDose": "75-100",
+    "formulationDose": "250-340",
+    "sprayFluid": "750-1000"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Fenpyroximate 5 EC",
+    "pest": "Yellow mite",
+    "aiDose": "15-30",
+    "formulationDose": "300-600",
+    "sprayFluid": "300-500"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Flubendiamide 39.35 M/M SC",
+    "pest": "Fruit borer",
+    "aiDose": "48-60",
+    "formulationDose": "100-125",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Hexythiazox 5.45 W/W EC",
+    "pest": "Yellow mites",
+    "aiDose": "15-25",
+    "formulationDose": "300-500",
+    "sprayFluid": "625/ha"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Lambda-Cyhalothrin 4.9 CS",
+    "pest": "Thrips & pod borer",
+    "aiDose": "25",
+    "formulationDose": "500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Lambda-Cyhalothrin 5 EC",
+    "pest": "Thrips , mite, pod borer",
+    "aiDose": "15",
+    "formulationDose": "300",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Lufenuron 5.4 EC",
+    "pest": "Fruit borer",
+    "aiDose": "30",
+    "formulationDose": "600",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Methomyl 40 SP",
+    "pest": "Pod borers & Thrips",
+    "aiDose": "300-400",
+    "formulationDose": "750-1125",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Milbemectin 1 EC",
+    "pest": "Yellow /white mite",
+    "aiDose": "3.25",
+    "formulationDose": "325",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Novaluron 10 EC",
+    "pest": "Fruit borer, Tobacco, Caterpillar",
+    "aiDose": "33.5",
+    "formulationDose": "375",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Aphid",
+    "aiDose": "400",
+    "formulationDose": "1600",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Mites",
+    "aiDose": "500",
+    "formulationDose": "2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Thrips",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 7,
+    "crop": "Chilli",
+    "insecticide": "Spiromesifen 22.9 SC",
+    "pest": "Chilli Yellow Mite",
+    "aiDose": "96",
+    "formulationDose": "400",
+    "sprayFluid": "500 -750"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Thiacloprid 21.7 SC",
+    "pest": "Thrips",
+    "aiDose": "54-72",
+    "formulationDose": "225-300",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Thiodicarb 75 WP",
+    "pest": "Fruit borer",
+    "aiDose": "470 to 750",
+    "formulationDose": "626 to 1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Thiamethoxam 30 FS",
+    "pest": "Thrips",
+    "aiDose": "2.1",
+    "formulationDose": "7",
+    "sprayFluid": ""
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Buprofezin 25 SC",
+    "pest": "Yellow Mite",
+    "aiDose": "75-150",
+    "formulationDose": "300-600",
+    "sprayFluid": "_ 500-750"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Thrips",
+    "aiDose": "1000",
+    "formulationDose": "2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Aphid , Thrips",
+    "aiDose": "1000",
+    "formulationDose": "33300",
+    "sprayFluid": ""
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Mite",
+    "aiDose": "300",
+    "formulationDose": "990",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Fipronil 5 SC",
+    "pest": "Thrips, Aphids, Fruit borers",
+    "aiDose": "40-50",
+    "formulationDose": "800-1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Imidacloprid 70 WS per 100 kg seed",
+    "pest": "Jassid, Aphid, Thrips",
+    "aiDose": "700 – 1050",
+    "formulationDose": "1000 – 1500",
+    "sprayFluid": ""
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Indoxacarb 14.5 SC",
+    "pest": "Fruit borer",
+    "aiDose": "50-60",
+    "formulationDose": "333-400",
+    "sprayFluid": "_ 300-600"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Aphid , Mite, Thrips",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Propargite 57 EC",
+    "pest": "Mite",
+    "aiDose": "850",
+    "formulationDose": "1500",
+    "sprayFluid": "_ 500-625"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Quinalphos 25 GEL",
+    "pest": "Aphid,",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Aphid",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Mite",
+    "aiDose": "375",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Aphid",
+    "aiDose": "300",
+    "formulationDose": "20000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Spinosad 45.0 SC",
+    "pest": "Fruit borer, Thrips",
+    "aiDose": "73",
+    "formulationDose": "160",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Bacillus thuringiensis Var. Galleriae",
+    "pest": "Fruit borer (Spodoptera litura)",
+    "aiDose": "",
+    "formulationDose": "1.5-2.0",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 8,
+    "crop": "Chilli",
+    "insecticide": "Imidacloprid 17.8 SL",
+    "pest": "Jassid, Aphid, Thrips",
+    "aiDose": "_ 25 – 50",
+    "formulationDose": "125-250",
+    "sprayFluid": "500-700"
+  },
+  {
+    "page": 8,
+    "crop": "Citrus",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Nematode",
+    "aiDose": "360",
+    "formulationDose": "12000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 8,
+    "crop": "Citrus",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Leaf miner",
+    "aiDose": "1500",
+    "formulationDose": "50000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 8,
+    "crop": "Citrus",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Black citrus aphid",
+    "aiDose": "0.0003",
+    "formulationDose": "1485-1980",
+    "sprayFluid": "_ 1500-2000"
+  },
+  {
+    "page": 8,
+    "crop": "Citrus",
+    "insecticide": "Imidacloprid 17.8 SL",
+    "pest": "Leaf miner, psylla",
+    "aiDose": "10",
+    "formulationDose": "50",
+    "sprayFluid": "Depending on size of tree & Protection equipment used"
+  },
+  {
+    "page": 8,
+    "crop": "Citrus",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Black aphids",
+    "aiDose": "0.0004",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "500-2000"
+  },
+  {
+    "page": 8,
+    "crop": "Citrus",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Mite",
+    "aiDose": "0.00025",
+    "formulationDose": "937-1250",
+    "sprayFluid": "500-2000"
+  },
+  {
+    "page": 8,
+    "crop": "Citrus",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Leaf miner",
+    "aiDose": "1500",
+    "formulationDose": "15000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 8,
+    "crop": "Citrus",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Scale",
+    "aiDose": "0.0007",
+    "formulationDose": "4200-5600",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 9,
+    "crop": "Citrus",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Citrus butterfly",
+    "aiDose": "0.00025",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 9,
+    "crop": "Citrus",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "Psylla",
+    "aiDose": "25",
+    "formulationDose": "100",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 9,
+    "crop": "Citrus",
+    "insecticide": "Verticillium lecanii 1.15 WP",
+    "pest": "Mealy bug",
+    "aiDose": "",
+    "formulationDose": "2.5kg",
+    "sprayFluid": "500-550 L"
+  },
+  {
+    "page": 9,
+    "crop": "Citrus",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Black citrus, Aphid",
+    "aiDose": "_ 0.0002",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 9,
+    "crop": "Citrus",
+    "insecticide": "Dicofol 18.5 EC",
+    "pest": "Red Spider mite",
+    "aiDose": "0.0005",
+    "formulationDose": "2700-4050",
+    "sprayFluid": "1000-5000"
+  },
+  {
+    "page": 9,
+    "crop": "Coconut",
+    "insecticide": "Fenpyroximate 5 EC",
+    "pest": "Eriophyde mite",
+    "aiDose": "0.5gm/tree (Root feeding) 0.056 – 0.075gm/tree",
+    "formulationDose": "10ml/lit 0.75 – 1ml/ lit.",
+    "sprayFluid": "As required"
+  },
+  {
+    "page": 9,
+    "crop": "Coconut",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Black headed Caterpillar",
+    "aiDose": "3.5 -7gm per tree",
+    "formulationDose": "8.75-17.5ml per tree",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 9,
+    "crop": "Coffee",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Green bug",
+    "aiDose": "625",
+    "formulationDose": "1562",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 9,
+    "crop": "Coffee",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Green bug",
+    "aiDose": "625",
+    "formulationDose": "2500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 9,
+    "crop": "Coffee",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Leaf miner",
+    "aiDose": "1000",
+    "formulationDose": "4000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Acephate 75 SP",
+    "pest": "Jassids",
+    "aiDose": "292",
+    "formulationDose": "390",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Acephate 75 SP",
+    "pest": "Boll Worms",
+    "aiDose": "584",
+    "formulationDose": "780",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Acetamiprid 20 SP",
+    "pest": "Aphids, Jassids",
+    "aiDose": "10",
+    "formulationDose": "50",
+    "sprayFluid": "500-600"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Acetamiprid 20 SP",
+    "pest": "Whiteflies",
+    "aiDose": "20",
+    "formulationDose": "100",
+    "sprayFluid": "500-600"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Alphacypermethrin 10 EC",
+    "pest": "Boll Worms",
+    "aiDose": "15-25",
+    "formulationDose": "165-280",
+    "sprayFluid": "600-1000"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Azadirachtin 0.15 W/W",
+    "pest": "White fly, Bollworm",
+    "aiDose": "",
+    "formulationDose": "2500 - 5000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Azadirachtin 0.3 (3000 PPM)",
+    "pest": "American bollworm",
+    "aiDose": "_",
+    "formulationDose": "4000",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Azadirachtin 0.03",
+    "pest": "Bollworm, Aphids",
+    "aiDose": "_",
+    "formulationDose": "2500-5000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Azadirachtin 0.03 (300 PPM)",
+    "pest": "Aphids, Jassids, White Flies, Bollworms",
+    "aiDose": "_ _",
+    "formulationDose": "2500-5000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Azadirachtin 5 W/W",
+    "pest": "White Fly, Leaf hoppers, H.armigera, Aphids",
+    "aiDose": "_",
+    "formulationDose": "375",
+    "sprayFluid": "750"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Beta Cyfluthrin 2.45 SC",
+    "pest": "Bollworm",
+    "aiDose": "12.5-18.75",
+    "formulationDose": "",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Beauveria bassiana 1.15 W.P.",
+    "pest": "Bollworm",
+    "aiDose": "",
+    "formulationDose": "_ 2000",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Bifenthrin 10 EC",
+    "pest": "Bollworm, White Fly",
+    "aiDose": "_ 80",
+    "formulationDose": "800",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Buprofezin 25 SC",
+    "pest": "White Fly Aphids, Jassids, Thrips",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 9,
+    "crop": "Cotton",
+    "insecticide": "Carbaryl 5 D.P.",
+    "pest": "Spotted bollworm, American bollworm, Pink Bollworm",
+    "aiDose": "1000",
+    "formulationDose": "20000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Carbaryl 10 D.P.",
+    "pest": "Aphid, American bollworm, Stem weevil Thrips",
+    "aiDose": "2500",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Aphids, Jassids, Thrips, Leaf Roller, Spotted Bollworm, Pink Bollworm, American Bollworm",
+    "aiDose": "1000",
+    "formulationDose": "2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Carbaryl 85 W.P.",
+    "pest": "Pink bollworm, Spotted bollworm, Thrips, White fly",
+    "aiDose": "1200",
+    "formulationDose": "1411",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Carbosulfan 25 DS",
+    "pest": "Jassid, Aphids and Thrips",
+    "aiDose": "15 gm/kg seed",
+    "formulationDose": "60gm/kg seed",
+    "sprayFluid": "Not required"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "American bollworm, Tobacco caterpillar, Spotted bollworm",
+    "aiDose": "30",
+    "formulationDose": "150",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Chlorfluazuron 5.4 EC",
+    "pest": "American bollworm, Tobacco leaf eating caterpillar",
+    "aiDose": "75-100",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Aphid, Bollworm , White fly",
+    "aiDose": "250",
+    "formulationDose": "1250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Cut worm",
+    "aiDose": "750",
+    "formulationDose": "3750",
+    "sprayFluid": ""
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Chlorpyrifos 50 EC",
+    "pest": "Bollworms",
+    "aiDose": "500-600",
+    "formulationDose": "1000-1200",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Clothianidin 50 WDG",
+    "pest": "Jassids",
+    "aiDose": "15-20",
+    "formulationDose": "30-40",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Clothianidin 50 WDG",
+    "pest": "White fly",
+    "aiDose": "20-25",
+    "formulationDose": "40-50",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Cypermethrin 10 EC",
+    "pest": "Spotted bollworm, American bollworm, Pink bollworm",
+    "aiDose": "50-70",
+    "formulationDose": "550-760",
+    "sprayFluid": "150-1000"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Cypermethrin 25 EC",
+    "pest": "Bollworms",
+    "aiDose": "40-70",
+    "formulationDose": "160-280",
+    "sprayFluid": "400-800"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Cypermethrin 25 EC",
+    "pest": "Jassids, Thrips",
+    "aiDose": "20-30",
+    "formulationDose": "80-120",
+    "sprayFluid": "200-300"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Deltamethrin 11 W/W EC",
+    "pest": "Bollworms",
+    "aiDose": "12.5",
+    "formulationDose": "125",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Deltamethrin 25 Tablet",
+    "pest": "Bollworms",
+    "aiDose": "12.5",
+    "formulationDose": "50",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Deltamethrin 1.8 EC",
+    "pest": "Bollworms",
+    "aiDose": "12.5",
+    "formulationDose": "781",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Deltamethrin 1.8 EC",
+    "pest": "sucking insects",
+    "aiDose": "10",
+    "formulationDose": "625",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Deltamethrin 2.8 EC",
+    "pest": "Bollworm,",
+    "aiDose": "12.5",
+    "formulationDose": "500",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Deltamethrin 2.8 EC",
+    "pest": "Sucking Insects",
+    "aiDose": "10",
+    "formulationDose": "400",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Dicofol 18.5 EC",
+    "pest": "Red Spider mite",
+    "aiDose": "500-1000",
+    "formulationDose": "2700-5400",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Diafenthiuron 50WP",
+    "pest": "Whiteflies, Aphids, Thrips, Jassids",
+    "aiDose": "300",
+    "formulationDose": "600",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Diflubenzuron 25 WP",
+    "pest": "Tobacco Caterpillar",
+    "aiDose": "75-87.5",
+    "formulationDose": "300-350",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 10,
+    "crop": "Cotton",
+    "insecticide": "Diflubenzuron 25 WP",
+    "pest": "Bollworms",
+    "aiDose": "75",
+    "formulationDose": "300",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Dinotefuran 20 SG",
+    "pest": "White Fly, Jassids, Aphids & Thrips",
+    "aiDose": "25-30",
+    "formulationDose": "125-150",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Emamectin Benzoate 5 SG",
+    "pest": "Boll worms",
+    "aiDose": "9.5-11.0",
+    "formulationDose": "190-220",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Emamectin Benzoate 1.9 EC",
+    "pest": "Boll worms",
+    "aiDose": "11",
+    "formulationDose": "580",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Ethion 50 EC",
+    "pest": "White fly,",
+    "aiDose": "750-1000",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Ethion 50 EC",
+    "pest": "Bollworms",
+    "aiDose": "1000",
+    "formulationDose": "2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Fenpropathrin 10 EC",
+    "pest": "Pink boll worm, Spotted boll worm , American boll worm",
+    "aiDose": "75-100",
+    "formulationDose": "750-1000",
+    "sprayFluid": "750-1000"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Fenpropathrin 30 EC",
+    "pest": "Pink boll worm, Spotted boll worm , American boll worm, whitefly",
+    "aiDose": "75-100",
+    "formulationDose": "250-340",
+    "sprayFluid": "750-1000"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Fenvalerate 20 EC",
+    "pest": "Boll worm",
+    "aiDose": "75-100",
+    "formulationDose": "375-500",
+    "sprayFluid": "700-900"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Fenvalerate 20 EC",
+    "pest": "Aphids, Jassids, Thrips",
+    "aiDose": "25-40",
+    "formulationDose": "125-200",
+    "sprayFluid": "250-400"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Fenvalerate 2 CONC.",
+    "pest": "Spotted & Spiny, Pink American/Egyptian boll worm",
+    "aiDose": "80-100",
+    "formulationDose": "4000-5000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Fenvalerate 0.4 DP",
+    "pest": "Spotted bollworm ,Pink bollworm",
+    "aiDose": "80-100",
+    "formulationDose": "20000-25000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Fipronil 5 SC",
+    "pest": "Aphid, Jassid, Thrips, White fly",
+    "aiDose": "75-100",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Fipronil 5 SC",
+    "pest": "Boll worms",
+    "aiDose": "100",
+    "formulationDose": "2000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Flonicamid 50 WG",
+    "pest": "Aphids, Jassids, Thrips & Whiteflies",
+    "aiDose": "75",
+    "formulationDose": "150",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Flubendiamide 20 WG",
+    "pest": "American bollworm",
+    "aiDose": "50",
+    "formulationDose": "250",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Flubendiamide 39.35 M/M SC",
+    "pest": "Bollworms (American & Spotted bollworm)",
+    "aiDose": "48-60",
+    "formulationDose": "100-125",
+    "sprayFluid": "375-500"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Fluvalinate 25 EC",
+    "pest": "Aphids, Jassids, Red cotton bug, Bollworm",
+    "aiDose": "50-100",
+    "formulationDose": "200-400",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Imidaclopride 70 WG",
+    "pest": "Jassids, Aphids, Thrips",
+    "aiDose": "21 – 24.5",
+    "formulationDose": "30 – 35",
+    "sprayFluid": "375 – 500"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Imidacloprid 48 FS per 100 kg seed",
+    "pest": "Aphids,Whitefly, Jassids, Thrips",
+    "aiDose": "300 – 540",
+    "formulationDose": "500 – 900",
+    "sprayFluid": ""
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Imidacloprid 70 WS per 100 kg seed",
+    "pest": "Aphids, Whitefly, Jassids, Thrips",
+    "aiDose": "350 – 700",
+    "formulationDose": "500 – 1000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Imidacloprid 30.5 M/M SC",
+    "pest": "Aphid, Jassids, Thrips",
+    "aiDose": "21-26.25",
+    "formulationDose": "60-75",
+    "sprayFluid": "_ 500 – 750"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Imidacloprid 17.8 SL",
+    "pest": "Aphid, Whitefly, Jassid Thrips",
+    "aiDose": "20 – 25",
+    "formulationDose": "100 – 125",
+    "sprayFluid": "500 – 700"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Indoxacarb 14.5 SC",
+    "pest": "Bollworm",
+    "aiDose": "75",
+    "formulationDose": "500",
+    "sprayFluid": "600-1000"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Indoxacarb 15.8 EC",
+    "pest": "Bollworm",
+    "aiDose": "75",
+    "formulationDose": "500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Lambda-Cyhalothrin 4.9 CS",
+    "pest": "Bollworms",
+    "aiDose": "25",
+    "formulationDose": "500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 11,
+    "crop": "Cotton",
+    "insecticide": "Lambda-Cyhalothrin 2.5 EC",
+    "pest": "Bollworms, Jassids, Thrips",
+    "aiDose": "15-25",
+    "formulationDose": "600-1000",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Lambda-Cyhalothrin 5 EC",
+    "pest": "Bollworms, Jassids, Thrips",
+    "aiDose": "15-25",
+    "formulationDose": "300-500",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Lufenuron 5.4 EC",
+    "pest": "American bollworm",
+    "aiDose": "30",
+    "formulationDose": "600",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Methomyl 40 SP",
+    "pest": "Bollworm",
+    "aiDose": "300-450",
+    "formulationDose": "750-1125",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Methyl Parathion 2 DP",
+    "pest": "Aphid",
+    "aiDose": "300",
+    "formulationDose": "15000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Methyl Parathion 2 DP",
+    "pest": "Leaf hopper, Thrips",
+    "aiDose": "500",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Methyl Parathion 50 EC",
+    "pest": "Aphid",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Methyl Parathion 50 EC",
+    "pest": "Leaf hopper",
+    "aiDose": "250",
+    "formulationDose": "500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Methyl Parathion 50 EC",
+    "pest": "Thrips",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Bollworms",
+    "aiDose": "450-800",
+    "formulationDose": "1125-2250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Aphid, Leaf Hopper, Thrips",
+    "aiDose": "175",
+    "formulationDose": "437",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Grey weevil,",
+    "aiDose": "500",
+    "formulationDose": "1250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "White fly",
+    "aiDose": "150",
+    "formulationDose": "375",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Novaluron 10 EC",
+    "pest": "American Bollworm",
+    "aiDose": "100",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Novaluron 8.8 SC",
+    "pest": "American boll worm, Tobacco caterpillar",
+    "aiDose": "100",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Aphid, Jassid/ leaf hopper",
+    "aiDose": "300",
+    "formulationDose": "1200",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Permethrin 25 EC",
+    "pest": "Bollworms,",
+    "aiDose": "100-125",
+    "formulationDose": "400-500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Aphid, Jassids, Thrips, White fly",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Profenofos 50 EC",
+    "pest": "Bollworm,",
+    "aiDose": "750-1000",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Profenofos 50 EC",
+    "pest": "Jassids, Aphids, Thrips, Whiteflies",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Pyriproxyfen 10 EC",
+    "pest": "Whitefly",
+    "aiDose": "100",
+    "formulationDose": "1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Pyridalyl 10 EC",
+    "pest": "Bollworms",
+    "aiDose": "75-100",
+    "formulationDose": "750-1000",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Quinalphos 20 AF",
+    "pest": "Bollworms, American bollworm, Pink Bollworm, Spotted bollworm",
+    "aiDose": "350-500",
+    "formulationDose": "1750-2500",
+    "sprayFluid": "750-1000"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Aphid, Jassids, Thrips,",
+    "aiDose": "300",
+    "formulationDose": "20000",
+    "sprayFluid": "From square formation onwards"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Bollworm",
+    "aiDose": "450",
+    "formulationDose": "30000",
+    "sprayFluid": "From square formation onwards"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Spinosad 45.0 SC",
+    "pest": "American bollworm",
+    "aiDose": "75-100",
+    "formulationDose": "165-220",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 12,
+    "crop": "Cotton",
+    "insecticide": "Spiromesifen 22.9 SC",
+    "pest": "White fly & mite",
+    "aiDose": "144",
+    "formulationDose": "600",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Spiromesifen 22.9 SC",
+    "pest": "White fly & mite",
+    "aiDose": "144",
+    "formulationDose": "600",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Thiacloprid 21.7 SC",
+    "pest": "Aphid, Thrips, Jassid",
+    "aiDose": "24 – 30",
+    "formulationDose": "100 – 125",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Thiacloprid 21.7 SC",
+    "pest": "Whitefly",
+    "aiDose": "120 – 144",
+    "formulationDose": "500 – 600",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Thiodicarb 75 WP",
+    "pest": "Bollworms",
+    "aiDose": "750",
+    "formulationDose": "1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Thiamethoxam 30 FS",
+    "pest": "Aphid, whiteflies, Jassids",
+    "aiDose": "3",
+    "formulationDose": "10",
+    "sprayFluid": ""
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Thiamethoxam 70 WS",
+    "pest": "Aphid, Thrips, whiteflies, Jassids",
+    "aiDose": "300",
+    "formulationDose": "430",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "Jassid, Aphid, Thrips",
+    "aiDose": "25",
+    "formulationDose": "100",
+    "sprayFluid": "_ 500-750"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "White flies",
+    "aiDose": "50",
+    "formulationDose": "200",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Triazophos 40 EC",
+    "pest": "Bollworms (Pink and spotted), whitefly",
+    "aiDose": "600-800",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Verticillium lecanii 1.15WP",
+    "pest": "White flies",
+    "aiDose": "_",
+    "formulationDose": "2500",
+    "sprayFluid": "500 litres of water"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Bacillus thuringiensis Var. Galleriae",
+    "pest": "Bollworm (Heliothis armigera)",
+    "aiDose": "",
+    "formulationDose": "2.0-2.5",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "Bollworm",
+    "aiDose": "_",
+    "formulationDose": "750-1000",
+    "sprayFluid": "750-1000"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "American Bollworm",
+    "aiDose": "_ 25.00-50.00",
+    "formulationDose": "500-1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "Spotted Bollworm",
+    "aiDose": "37.50-50.00",
+    "formulationDose": "750-100",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "Bollworms, Spodoptera",
+    "aiDose": "",
+    "formulationDose": "0.75-1.0 kg.",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "NPV of Helicoverpa armigera 0.43 AS",
+    "pest": "Helicoverpa armigera",
+    "aiDose": "_",
+    "formulationDose": "2700",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Alphacypermethrin 10 SC",
+    "pest": "Boll Worms",
+    "aiDose": "_ 25-30",
+    "formulationDose": "250-300",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton",
+    "insecticide": "Monocrotophos 15 SG",
+    "pest": "Aphids, Jassids, Thrips & Whiteflies",
+    "aiDose": "200",
+    "formulationDose": "1333",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 13,
+    "crop": "Cotton (Soil drench)",
+    "insecticide": "Clothianidin 50 WDG",
+    "pest": "Jassids, Aphids, Thrips & White Fly",
+    "aiDose": "100-125",
+    "formulationDose": "200-250",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 13,
+    "crop": "Cucumber",
+    "insecticide": "Imidaclopride 70 WG",
+    "pest": "Aphids & Jassids",
+    "aiDose": "24.5",
+    "formulationDose": "35",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 13,
+    "crop": "Cucurbit",
+    "insecticide": "Dichlorvos 76 EC",
+    "pest": "Red pumpkin beetle",
+    "aiDose": "500",
+    "formulationDose": "627",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 13,
+    "crop": "Fig",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Fig jassid",
+    "aiDose": "0.0003",
+    "formulationDose": "1485-1980",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 13,
+    "crop": "Fig",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Mealy bug",
+    "aiDose": "0.0003",
+    "formulationDose": "2475-3300",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 13,
+    "crop": "French bean",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "White grub",
+    "aiDose": "700",
+    "formulationDose": "23300",
+    "sprayFluid": ""
+  },
+  {
+    "page": 13,
+    "crop": "French bean",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "White grubs",
+    "aiDose": "750",
+    "formulationDose": "23300",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 13,
+    "crop": "French bean",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Grey & Stem weevil",
+    "aiDose": "1000",
+    "formulationDose": "33300",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 13,
+    "crop": "French bean",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Stem fly",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 14,
+    "crop": "French bean",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Stem fly",
+    "aiDose": "300",
+    "formulationDose": "20000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 14,
+    "crop": "Gherkins",
+    "insecticide": "Cyantraniliprole 10.26 OD",
+    "pest": "Leaf miner – Liriomyza trifolii, Red pumpkin beetle Aulacophora foveicollis, Aphids- Aphis gossypii, Thrips- Thrips palmi, White fly Bemesia tabaci, Pumpkin caterpillar – Diaphania indica, Fruit fly- Bactrocera cucurbitae",
+    "aiDose": "90",
+    "formulationDose": "900",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 14,
+    "crop": "Grape",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Beetle",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 14,
+    "crop": "Grape",
+    "insecticide": "Buprofezin 25 SC",
+    "pest": "Mealy bugs",
+    "aiDose": "250-375",
+    "formulationDose": "1000-1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 14,
+    "crop": "Grape",
+    "insecticide": "Cyantraniliprole 10.26 OD",
+    "pest": "Thrips- Scirtothrips dorsalis, Flea beetle - Scelodonta strigicollis",
+    "aiDose": "70",
+    "formulationDose": "700",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 14,
+    "crop": "Grape",
+    "insecticide": "Emamectin Benzoate 5 SG",
+    "pest": "Thrips",
+    "aiDose": "11",
+    "formulationDose": "220",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 14,
+    "crop": "Grape",
+    "insecticide": "Fipronil 80WG",
+    "pest": "Thrips",
+    "aiDose": "40-50",
+    "formulationDose": "50-62.5",
+    "sprayFluid": "750-1000"
+  },
+  {
+    "page": 14,
+    "crop": "Grape",
+    "insecticide": "Lambda-Cyhalothrin 4.9 CS",
+    "pest": "Thrips & Flea beetle",
+    "aiDose": "12.5",
+    "formulationDose": "250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 14,
+    "crop": "Grape",
+    "insecticide": "Methomyl 40 SP",
+    "pest": "Mealy bug",
+    "aiDose": "500",
+    "formulationDose": "1250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 14,
+    "crop": "Grape",
+    "insecticide": "Imidacloprid 17.8 SL",
+    "pest": "Flea bettle",
+    "aiDose": "0.06-0.08",
+    "formulationDose": "300-400",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 14,
+    "crop": "Green gram",
+    "insecticide": "Methyl Parathion 2 DP",
+    "pest": "Pod borer",
+    "aiDose": "500",
+    "formulationDose": "25000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 14,
+    "crop": "Green gram",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Pod borer",
+    "aiDose": "175",
+    "formulationDose": "437",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 14,
+    "crop": "Green gram",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Stem fly",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 14,
+    "crop": "Green gram",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Jassids",
+    "aiDose": "1500",
+    "formulationDose": "15000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 14,
+    "crop": "Ground nut",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Aphid",
+    "aiDose": "200",
+    "formulationDose": "1000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 14,
+    "crop": "Ground nut",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Root grub",
+    "aiDose": "225",
+    "formulationDose": "1125",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 14,
+    "crop": "Ground nut",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Aphid/ Leaf minor",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 14,
+    "crop": "Ground nut",
+    "insecticide": "Phenthoate 50 EC",
+    "pest": "Leaf Webber",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 14,
+    "crop": "Ground nut",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Thrips, Jassids",
+    "aiDose": "350",
+    "formulationDose": "23300",
+    "sprayFluid": ""
+  },
+  {
+    "page": 14,
+    "crop": "Ground nut",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Red hairy Caterpillar",
+    "aiDose": "375",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 14,
+    "crop": "Ground nut",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Pod borer",
+    "aiDose": "1500",
+    "formulationDose": "50000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 14,
+    "crop": "Ground nut",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "White grub",
+    "aiDose": "1000",
+    "formulationDose": "33300",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 14,
+    "crop": "Ground nut",
+    "insecticide": "Deltamethrin 2.8 EC",
+    "pest": "Leaf miner",
+    "aiDose": "12.5",
+    "formulationDose": "500",
+    "sprayFluid": "_ 400-600"
+  },
+  {
+    "page": 14,
+    "crop": "Ground nut",
+    "insecticide": "Dichlorvos 76 EC",
+    "pest": "Red hairy caterpillar",
+    "aiDose": "375-750",
+    "formulationDose": "470-940",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 14,
+    "crop": "Ground nut",
+    "insecticide": "Imidacloprid 17.8 SL",
+    "pest": "Aphid, Jassid",
+    "aiDose": "20-25",
+    "formulationDose": "100-125",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 15,
+    "crop": "Ground nut",
+    "insecticide": "Lambda-Cyhalothrin 5 EC",
+    "pest": "Thrips, leaf Hopper, leaf miner",
+    "aiDose": "10 to 15",
+    "formulationDose": "200-300",
+    "sprayFluid": "400-500"
+  },
+  {
+    "page": 15,
+    "crop": "Ground nut",
+    "insecticide": "Methomyl 40 SP",
+    "pest": "Spodoptera litura",
+    "aiDose": "300-350",
+    "formulationDose": "750-850",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 15,
+    "crop": "Ground nut",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Aphid, Leaf minor",
+    "aiDose": "1500",
+    "formulationDose": "15000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 15,
+    "crop": "Ground nut",
+    "insecticide": "Phorate 10 CG",
+    "pest": "White grub",
+    "aiDose": "2500",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 15,
+    "crop": "Ground nut",
+    "insecticide": "Quinalphos 20 AF",
+    "pest": "Spodoptera litura",
+    "aiDose": "250-375",
+    "formulationDose": "1250-1775",
+    "sprayFluid": "_ 750-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Ground nut",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Leaf Hopper, Thrips",
+    "aiDose": "350",
+    "formulationDose": "1400",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Ground nut",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Leaf miner",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Jute",
+    "insecticide": "Azadirachtin 0.03 (300 PPM)",
+    "pest": "Semi looper, Hairy caterpillar",
+    "aiDose": "",
+    "formulationDose": "2500-5000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Jute",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Semi Looper",
+    "aiDose": "_ 1000",
+    "formulationDose": "2000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 15,
+    "crop": "Jute",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Nematodes",
+    "aiDose": "1000",
+    "formulationDose": "33300",
+    "sprayFluid": ""
+  },
+  {
+    "page": 15,
+    "crop": "Jute",
+    "insecticide": "Phosalone 35 EC",
+    "pest": "Red spider mite",
+    "aiDose": "350",
+    "formulationDose": "1000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Jute",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Leaf roller, Semi looper, Yellow mite",
+    "aiDose": "375",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Litchi",
+    "insecticide": "Dicofol 18.5 EC",
+    "pest": "Red Spider mite",
+    "aiDose": "0.0005",
+    "formulationDose": "2700-4050",
+    "sprayFluid": "1000-5000"
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Carbaryl 4 G.R.",
+    "pest": "Stem borer",
+    "aiDose": "250",
+    "formulationDose": "6250",
+    "sprayFluid": ""
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Shoot fly",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Stem Borer",
+    "aiDose": "700",
+    "formulationDose": "1400",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Carbaryl 85 W.P.",
+    "pest": "Stem borer",
+    "aiDose": "1500",
+    "formulationDose": "1764",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Stem borer",
+    "aiDose": "1000",
+    "formulationDose": "33000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Shoot fly",
+    "aiDose": "1000",
+    "formulationDose": "33000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Thrips",
+    "aiDose": "1000",
+    "formulationDose": "33000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Stem borer",
+    "aiDose": "200",
+    "formulationDose": "660",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Shoot fly",
+    "aiDose": "350",
+    "formulationDose": "1155",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Shoot fly",
+    "aiDose": "250",
+    "formulationDose": "625",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Shoot fly",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Shoot fly",
+    "aiDose": "3000",
+    "formulationDose": "30000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Stem borer",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 15,
+    "crop": "Maize",
+    "insecticide": "Thiamethoxam 30 FS",
+    "pest": "Stem Fly",
+    "aiDose": "2.4",
+    "formulationDose": "8",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 15,
+    "crop": "Mandarins",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Soft greens scale",
+    "aiDose": "0.4g/plant",
+    "formulationDose": "13.3g/plant",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 15,
+    "crop": "Mango",
+    "insecticide": "Buprofezin 25 SC",
+    "pest": "Hoppers",
+    "aiDose": "-",
+    "formulationDose": "1-2 ml/liter of water",
+    "sprayFluid": "_ 5-15 liter per tree"
+  },
+  {
+    "page": 15,
+    "crop": "Mango",
+    "insecticide": "Deltamethrin 2.8 EC",
+    "pest": "Hoppers",
+    "aiDose": "0.03-0.05",
+    "formulationDose": "0.33 to 0.5ml/lit",
+    "sprayFluid": "As per spray field requirement"
+  },
+  {
+    "page": 16,
+    "crop": "Mango",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Hopper",
+    "aiDose": "0.0005",
+    "formulationDose": "2475-3300",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 16,
+    "crop": "Mango",
+    "insecticide": "Imidacloprid 17.8 SL",
+    "pest": "Hopper",
+    "aiDose": "0.4 – 0.8 g/tree",
+    "formulationDose": "2-4 ml/tree",
+    "sprayFluid": "10 litre"
+  },
+  {
+    "page": 16,
+    "crop": "Mango",
+    "insecticide": "Lambda-Cyhalothrin 5 EC",
+    "pest": "Hoppers",
+    "aiDose": "0.0025- 0.005",
+    "formulationDose": "0.5-1.0 ml/l of water",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 16,
+    "crop": "Mango",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Mealy scale, Mango hopper",
+    "aiDose": "0.00075",
+    "formulationDose": "2250-3000",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 16,
+    "crop": "Mango",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Bug mite",
+    "aiDose": "0.0004",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "500-2000"
+  },
+  {
+    "page": 16,
+    "crop": "Mango",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Gall maker Hopper, Mealy bug , Shoot borer",
+    "aiDose": "0.0004",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "500-2000"
+  },
+  {
+    "page": 16,
+    "crop": "Mango",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Hoppers",
+    "aiDose": "0.00025",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "1500-2000"
+  },
+  {
+    "page": 16,
+    "crop": "Mango",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "Hoppers",
+    "aiDose": "25",
+    "formulationDose": "100",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 16,
+    "crop": "Mustard",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Mustard leaf miner",
+    "aiDose": "2000",
+    "formulationDose": "66600",
+    "sprayFluid": ""
+  },
+  {
+    "page": 16,
+    "crop": "Mustard",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "White fly",
+    "aiDose": "1000",
+    "formulationDose": "33300",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 16,
+    "crop": "Mustard",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Aphid",
+    "aiDose": "100",
+    "formulationDose": "500",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 16,
+    "crop": "Mustard",
+    "insecticide": "Dichlorvos 76 EC",
+    "pest": "Painted bug",
+    "aiDose": "500",
+    "formulationDose": "627",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 16,
+    "crop": "Mustard",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Leaf minor, Aphid, Sawfly",
+    "aiDose": "200",
+    "formulationDose": "660",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 16,
+    "crop": "Mustard",
+    "insecticide": "Imidacloprid 70 WS per 100 kg seed",
+    "pest": "Mustard sawfly & painted bug",
+    "aiDose": "490",
+    "formulationDose": "700",
+    "sprayFluid": ""
+  },
+  {
+    "page": 16,
+    "crop": "Mustard",
+    "insecticide": "Methyl Parathion 2 DP",
+    "pest": "Sawfly, Aphids",
+    "aiDose": "300",
+    "formulationDose": "15000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 16,
+    "crop": "Mustard",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Aphid",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 16,
+    "crop": "Mustard",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Mustard aphid,",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 16,
+    "crop": "Mustard",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Painted bug",
+    "aiDose": "1500",
+    "formulationDose": "15000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 16,
+    "crop": "Mustard",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Sawfly",
+    "aiDose": "300",
+    "formulationDose": "1200",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 16,
+    "crop": "Mustard",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "Aphid",
+    "aiDose": "12.5-25.0",
+    "formulationDose": "50-100",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 16,
+    "crop": "Okra",
+    "insecticide": "Acetamiprid 20 SP",
+    "pest": "Aphids",
+    "aiDose": "15",
+    "formulationDose": "75",
+    "sprayFluid": "500-600"
+  },
+  {
+    "page": 16,
+    "crop": "Okra",
+    "insecticide": "Azadirachtin 0.03 (300 PPM)",
+    "pest": "Fruit borer, White flies, Leaf Hopper",
+    "aiDose": "",
+    "formulationDose": "2500-5000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 16,
+    "crop": "Okra",
+    "insecticide": "Buprofezin 70 DF",
+    "pest": "Jassids",
+    "aiDose": "_ 200",
+    "formulationDose": "286",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 16,
+    "crop": "Okra",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Fruit Borer",
+    "aiDose": "25",
+    "formulationDose": "125",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 16,
+    "crop": "Okra",
+    "insecticide": "Cypermethrin 10 EC",
+    "pest": "Fruit borer",
+    "aiDose": "50-70",
+    "formulationDose": "550-760",
+    "sprayFluid": "150-400"
+  },
+  {
+    "page": 16,
+    "crop": "Okra",
+    "insecticide": "Emamectin Benzoate 5 SG",
+    "pest": "Fruit & Shoot Borer",
+    "aiDose": "6.75-8.5",
+    "formulationDose": "135-170",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 16,
+    "crop": "Okra",
+    "insecticide": "Fenazaquin 10 EC",
+    "pest": "Red spider mite",
+    "aiDose": "125",
+    "formulationDose": "1250",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Fenpropathrin 30 EC",
+    "pest": "Whitefly, Shoot and Fruit borer, Mites",
+    "aiDose": "75-100",
+    "formulationDose": "250-340",
+    "sprayFluid": "750-1000"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Fenvalerate 20 EC",
+    "pest": "Shoot & fruit borer, Jassids",
+    "aiDose": "60-75",
+    "formulationDose": "300-375",
+    "sprayFluid": "600-750"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Imidaclopride 70 WG",
+    "pest": "Jassids, Aphids, Thrips",
+    "aiDose": "21 – 24.5",
+    "formulationDose": "30 – 35",
+    "sprayFluid": "375 – 500"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Imidacloprid 48 FS per 100 kg seed",
+    "pest": "Jassid, Aphid",
+    "aiDose": "300 – 540",
+    "formulationDose": "500– 900",
+    "sprayFluid": ""
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Imidacloprid 70 WS per 100 kg seed",
+    "pest": "Jassid, Aphid",
+    "aiDose": "350 – 700",
+    "formulationDose": "500 – 1000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Imidacloprid 17.8 SL",
+    "pest": "Aphid, Jassid, Thrips",
+    "aiDose": "20",
+    "formulationDose": "100",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Lambda - Cyhalothrin 4.9 CS",
+    "pest": "Fruit borer",
+    "aiDose": "15",
+    "formulationDose": "300",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Pyridalyl 10 EC",
+    "pest": "Fruit & shoot borer",
+    "aiDose": "50-75",
+    "formulationDose": "500-750",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Quinalphos 20 AF",
+    "pest": "Shoot/Fruit borer",
+    "aiDose": "250-300",
+    "formulationDose": "1250-1500",
+    "sprayFluid": "750-1000"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Spiromesifen 22.9 SC",
+    "pest": "Red spider mite",
+    "aiDose": "96-120",
+    "formulationDose": "400-500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Thiamethoxam 30 FS",
+    "pest": "Jassids",
+    "aiDose": "1.7",
+    "formulationDose": "5.7",
+    "sprayFluid": ""
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Thiamethoxam 70 WS",
+    "pest": "Aphids, Jassids",
+    "aiDose": "200",
+    "formulationDose": "286",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "Jassid, Aphid, White flies",
+    "aiDose": "25",
+    "formulationDose": "100",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Tolfenpyrad 15 EC",
+    "pest": "Aphids, Jassids, Thrips and white fly",
+    "aiDose": "150",
+    "formulationDose": "1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 17,
+    "crop": "Okra",
+    "insecticide": "Dicofol 18.5 EC",
+    "pest": "Red Spider mite",
+    "aiDose": "250-500",
+    "formulationDose": "1350-2700",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 17,
+    "crop": "Onion",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Root grub",
+    "aiDose": "1000",
+    "formulationDose": "5000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 17,
+    "crop": "Onion",
+    "insecticide": "Lambda-Cyhalothrin 5 EC",
+    "pest": "Thrips",
+    "aiDose": "15",
+    "formulationDose": "300",
+    "sprayFluid": "300-400"
+  },
+  {
+    "page": 17,
+    "crop": "Onion",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Thrips",
+    "aiDose": "300",
+    "formulationDose": "1200",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 17,
+    "crop": "Onion",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Thrips",
+    "aiDose": "200",
+    "formulationDose": "660",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 17,
+    "crop": "Paddy",
+    "insecticide": "Acephate 75 SP",
+    "pest": "Stem Borer, Leaf Folder, Plant Hoppers, Green Leaf Hopper",
+    "aiDose": "500-750",
+    "formulationDose": "666-1000",
+    "sprayFluid": "300-500"
+  },
+  {
+    "page": 17,
+    "crop": "Paddy",
+    "insecticide": "Acephate 95 SG",
+    "pest": "Yellow stem borer, Leaf Folder, Brown Plant Hopper",
+    "aiDose": "562.5",
+    "formulationDose": "592",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 17,
+    "crop": "Paddy",
+    "insecticide": "Acetamiprid 20 SP",
+    "pest": "BPH",
+    "aiDose": "10 to 20",
+    "formulationDose": "50-100",
+    "sprayFluid": "500-600"
+  },
+  {
+    "page": 17,
+    "crop": "Paddy",
+    "insecticide": "Azadirachtin 0.03 MIN.",
+    "pest": "Leaf roller, Stem borer, BPH",
+    "aiDose": "",
+    "formulationDose": "2000",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 17,
+    "crop": "Paddy",
+    "insecticide": "Azadirachtin 0.15 W/W",
+    "pest": "Thrips, Stem borer, Brown Plant hopper, Leaf folder",
+    "aiDose": "_ _",
+    "formulationDose": "1500 - 2500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 17,
+    "crop": "Paddy",
+    "insecticide": "Azadirachtin 5 W/W",
+    "pest": "Brown Plant Hopper, Leaf Folder, Stem Borer",
+    "aiDose": "_",
+    "formulationDose": "200",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 17,
+    "crop": "Paddy",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "Stem borer & Leaf folder",
+    "aiDose": "",
+    "formulationDose": "1.50 kg.",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Bacillus thuringiensis Var. Galleriae",
+    "pest": "Leaf folder (Cnaphalocrocis medinalis)",
+    "aiDose": "_",
+    "formulationDose": "1.0-3.0",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Beauveria bassiana 1.15 W.P.",
+    "pest": "Leaf folder",
+    "aiDose": "",
+    "formulationDose": "2.5kg/ha",
+    "sprayFluid": "750-850"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Benfuracarb 3 GR",
+    "pest": "Stem borer, Leaf folder, BPH",
+    "aiDose": "_ 1000",
+    "formulationDose": "33000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Bifenthrin 10 EC",
+    "pest": "Stem borer, leaf folder & Green leaf hopper",
+    "aiDose": "50",
+    "formulationDose": "500",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Buprofezin 25 SC",
+    "pest": "BPH, GLH, WBPH",
+    "aiDose": "200",
+    "formulationDose": "800",
+    "sprayFluid": "400-500"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Carbaryl 5 D.P.",
+    "pest": "Leaf roller/folder",
+    "aiDose": "1250",
+    "formulationDose": "25000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Carbaryl 5 D.P.",
+    "pest": "Brown plant hopper",
+    "aiDose": "1000",
+    "formulationDose": "20000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Brown Plant Hopper, Stem Borer",
+    "aiDose": "1000",
+    "formulationDose": "2000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Green Leaf Hopper",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Carbaryl 10 D.P.",
+    "pest": "Blue Jassid, Case worm",
+    "aiDose": "2500",
+    "formulationDose": "25000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Carbaryl 85 W.P.",
+    "pest": "Green leaf hopper, Jassid",
+    "aiDose": "500",
+    "formulationDose": "588",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Brown plant hopper Gall midge, Stem borer, GLH, Hispa",
+    "aiDose": "750",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Nematodes",
+    "aiDose": "1500",
+    "formulationDose": "50000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Carbosulfan 25 EC",
+    "pest": "Green leaf hopper, White plant hopper, Brown plant hopper, Gall midge, Stem borer",
+    "aiDose": "200-250",
+    "formulationDose": "800-1000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Carbosulfan 6 G",
+    "pest": "Stem borer, Gall midge, Green leaf hopper, Leaf folder",
+    "aiDose": "1000",
+    "formulationDose": "16700",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Cartap Hydrochloride 4 G",
+    "pest": "Stem borer,",
+    "aiDose": "750",
+    "formulationDose": "18750",
+    "sprayFluid": ""
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Cartap Hydrochloride 4 G",
+    "pest": "Leaf folder,",
+    "aiDose": "750-1000",
+    "formulationDose": "18750-25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Cartap Hydrochloride 4 G",
+    "pest": "Whorl Maggot",
+    "aiDose": "750-1000",
+    "formulationDose": "18750-25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Cartap Hydrochloride 50 SP",
+    "pest": "Stem borer, Leaf folder",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "_ 500 – 1000"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Cartap Hydrochloride 75 SG",
+    "pest": "Yellow Stem borer, Leaf folder",
+    "aiDose": "318.75-375",
+    "formulationDose": "425-500",
+    "sprayFluid": "250-500"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Chlorantraniliprole 0.4 GR",
+    "pest": "Yellow Stem borer, Leaf folder",
+    "aiDose": "40",
+    "formulationDose": "10 000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Stem borer and leaf folder",
+    "aiDose": "30",
+    "formulationDose": "150",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Chlorpyrifos 1.5 DP",
+    "pest": "Stem borer, Green leaf hopper, Brown plant hopper, Leaf folder, Gall midge, Grass hopper",
+    "aiDose": "375",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 18,
+    "crop": "Paddy",
+    "insecticide": "Chlorpyrifos 10 G",
+    "pest": "Stem borer, Leaf Roller, Gall midge",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Hispa",
+    "aiDose": "250",
+    "formulationDose": "1250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Leaf roller",
+    "aiDose": "375",
+    "formulationDose": "1875",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Gall midge, Stem borer",
+    "aiDose": "250",
+    "formulationDose": "1250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Whorl maggot",
+    "aiDose": "250",
+    "formulationDose": "1250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Chlorpyrifos 50 EC",
+    "pest": "Stem borer, Leaf roller",
+    "aiDose": "375-400",
+    "formulationDose": "750-800",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Chromafenozide 80 WP",
+    "pest": "Leaf folder, Stem borer",
+    "aiDose": "75-100",
+    "formulationDose": "94-125",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Clothianidin 50 WDG",
+    "pest": "Brown plant hopper",
+    "aiDose": "10 to 12",
+    "formulationDose": "20-24",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Deltamethrin 1.8 EC",
+    "pest": "Stem borer, Leaf folder",
+    "aiDose": "10 – 12.5",
+    "formulationDose": "625 -780",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Deltamethrin 11 W/W EC",
+    "pest": "Stem borer, Leaf folder, Green leaf hopper, Whorl maggot",
+    "aiDose": "15",
+    "formulationDose": "150",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Dichlorvos 76 EC",
+    "pest": "BPH",
+    "aiDose": "375",
+    "formulationDose": "470",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Dichlorvos 76 EC",
+    "pest": "Cut worm/ Army worm, Leaf roller/ folder",
+    "aiDose": "500",
+    "formulationDose": "627",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Dinotefuran 20 SG",
+    "pest": "Brown plant hopper",
+    "aiDose": "30-40",
+    "formulationDose": "150-200",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Ethofenoprox 10EC",
+    "pest": "BPH, Stem borer, Leaf folder, Gall midge, Whorl maggot, GLH, WBPH",
+    "aiDose": "50-75",
+    "formulationDose": "500-750",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Fenobucarb (BPMC) 50 EC",
+    "pest": "Brown Plant Hopper, Green Leaf Hopper",
+    "aiDose": "250-750",
+    "formulationDose": "500-1500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Fenpropathrin 30 EC",
+    "pest": "Yellow Stem borer, Leaf folder",
+    "aiDose": "100",
+    "formulationDose": "333",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Fipronil 0.3 GR",
+    "pest": "Stem borer, Brown plant hopper, Green leaf hopper Rice leaf hopper, Rice gall midge, Whorl maggot, White backed plant hopper",
+    "aiDose": "50-75",
+    "formulationDose": "16670- 25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Fipronil 5 SC",
+    "pest": "Stem borer, Brown plant hopper, Green leaf hopper, Rice leaf hopper, Rice gall midge, Whorl maggot, White backed plant hopper",
+    "aiDose": "50-75",
+    "formulationDose": "1000-1500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Fipronil 80WG",
+    "pest": "Stem borer, Leaf folder",
+    "aiDose": "40-50",
+    "formulationDose": "50 – 62.5",
+    "sprayFluid": "375 -500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Flonicamid 50 WG",
+    "pest": "Brown plant hopper, white backed plant hopper, Green leaf hopper",
+    "aiDose": "75",
+    "formulationDose": "150",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Flubendiamide 20 WG",
+    "pest": "Stem borer, Leaf borer",
+    "aiDose": "25",
+    "formulationDose": "125",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Flubendiamide 39.35 M/M SC",
+    "pest": "Stem borer, Leaf folder",
+    "aiDose": "24",
+    "formulationDose": "50",
+    "sprayFluid": "375-500"
+  },
+  {
+    "page": 19,
+    "crop": "Paddy",
+    "insecticide": "Imidacloprid 0.3 GR",
+    "pest": "Stem borer",
+    "aiDose": "0.045",
+    "formulationDose": "15.0 kg",
+    "sprayFluid": ""
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Imidacloprid 17.8 SL",
+    "pest": "BPH, WBPH, GLH",
+    "aiDose": "20 – 25",
+    "formulationDose": "100 – 125",
+    "sprayFluid": "500 – 700"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Imidacloprid 30.5 M/M SC",
+    "pest": "Brown plant hopper,White backed plant hopper",
+    "aiDose": "21-26.25",
+    "formulationDose": "60-75",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Imidaclopride 70 WG",
+    "pest": "Brown Plant Hoppers, White Backed Plant , Hoppers",
+    "aiDose": "21 – 24.5",
+    "formulationDose": "30 – 35",
+    "sprayFluid": "300 – 375"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Indoxacarb 15.8 EC",
+    "pest": "Leaf folder, Piller, Green semi looper, stem fly",
+    "aiDose": "30",
+    "formulationDose": "200",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Lambda-Cyhalothrin 2.5 EC",
+    "pest": "Leaf folder, Stem borer, GLH, Gall midge, Hispa, Thrips",
+    "aiDose": "12.5",
+    "formulationDose": "500",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Lambda-Cyhalothrin 4.9 CS",
+    "pest": "Stem borer, Leaf folder",
+    "aiDose": "12.5",
+    "formulationDose": "250",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Lambda-Cyhalothrin 5 EC",
+    "pest": "Leaf folder, stem Borer, GLH, Gall Midge, Hispa, Thrips",
+    "aiDose": "12.5",
+    "formulationDose": "250",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Malathion 5 DP",
+    "pest": "Rice Hispa",
+    "aiDose": "1250",
+    "formulationDose": "25000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Rice Hispa",
+    "aiDose": "575",
+    "formulationDose": "1150",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Methyl Parathion 2 DP",
+    "pest": "Earhead Caterpillar, Leaf roller, Ear head bug",
+    "aiDose": "500",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Methyl Parathion 50 EC",
+    "pest": "Gall midge",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Methyl Parathion 50 EC",
+    "pest": "Green leaf hopper",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Methyl Parathion 50 EC",
+    "pest": "Hispa, Leaf roller",
+    "aiDose": "250",
+    "formulationDose": "500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Methyl Parathion 50 EC",
+    "pest": "Stem borer",
+    "aiDose": "400",
+    "formulationDose": "800",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Methyl Parathion 50 EC",
+    "pest": "Whorl maggot",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "BPH, Yellow stem borer",
+    "aiDose": "500",
+    "formulationDose": "1250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "GLH, Leaf roller/folder",
+    "aiDose": "250",
+    "formulationDose": "625",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Blue leaf hopper",
+    "aiDose": "125",
+    "formulationDose": "500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "White leaf hopper",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Phenthoate 50 EC",
+    "pest": "Rice case worm",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Gall fly, Hispa, Leaf hopper , Plant hopper, Stem borer",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Root weevil",
+    "aiDose": "750",
+    "formulationDose": "7500",
+    "sprayFluid": ""
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Phosphamidon 40 SL",
+    "pest": "Stem borer, Leaf borer,",
+    "aiDose": "500",
+    "formulationDose": "1250",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 20,
+    "crop": "Paddy",
+    "insecticide": "Phosphamidon 40 SL",
+    "pest": "Green leaf hopper, Brown plant hopper, White backed plant hopper",
+    "aiDose": "350",
+    "formulationDose": "875",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Pymetrozine 50 WG",
+    "pest": "Brown Plant Hopper",
+    "aiDose": "150",
+    "formulationDose": "300",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Brown plant hopper",
+    "aiDose": "300",
+    "formulationDose": "20000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Quinalphos 20 AF",
+    "pest": "Brown plant hopper , Green leaf hopper, Leaf folder, Stem borer",
+    "aiDose": "250-300",
+    "formulationDose": "1250-1500",
+    "sprayFluid": "_ 750-1000"
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Brown plant hopper,",
+    "aiDose": "375",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Hispa/bune beetle,",
+    "aiDose": "500",
+    "formulationDose": "2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Leaf roller,",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Stem borer",
+    "aiDose": "325",
+    "formulationDose": "1300",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Quinalphos 25 GEL",
+    "pest": "Brown plant Hopper, Leaf roller, Stem borer, Hispa",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Quinalphos 5 G",
+    "pest": "Gall midge, Stem borer",
+    "aiDose": "250",
+    "formulationDose": "5000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Thiacloprid 21.7 SC",
+    "pest": "Stem borer",
+    "aiDose": "120",
+    "formulationDose": "500",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "Stem borer, Gall midge, Leaf folder, WBPH, BPH, GLH, Thrips",
+    "aiDose": "25",
+    "formulationDose": "100",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Triazophos 20 EC",
+    "pest": "Stem Borer, Leaf Folder, Hispa, Green leaf hopper, Brown plant hopper, White backed plant hopper",
+    "aiDose": "250-500",
+    "formulationDose": "1250-2500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 21,
+    "crop": "Paddy",
+    "insecticide": "Triazophos 40 EC",
+    "pest": "Stem Borer, Rice Hispa, Leaf Folder, Green leaf hopper, Brown plant hopper, White backed plant hopper.",
+    "aiDose": "250-500",
+    "formulationDose": "625-1250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 21,
+    "crop": "Pea",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Shoot fly & Aphid",
+    "aiDose": "1000",
+    "formulationDose": "-",
+    "sprayFluid": ""
+  },
+  {
+    "page": 21,
+    "crop": "Pea",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Pod borer",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 21,
+    "crop": "Pea",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Leaf minor",
+    "aiDose": "400",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 21,
+    "crop": "Peach",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Leaf curl aphid",
+    "aiDose": "1000",
+    "formulationDose": "33300",
+    "sprayFluid": ""
+  },
+  {
+    "page": 21,
+    "crop": "Peach",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Leaf curl aphids",
+    "aiDose": "0.00025",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "_ 1500-2000"
+  },
+  {
+    "page": 21,
+    "crop": "Pearl millet",
+    "insecticide": "Imidacloprid 48 FS per 100 kg seed",
+    "pest": "Shoot fly and termites",
+    "aiDose": "720",
+    "formulationDose": "1200",
+    "sprayFluid": ""
+  },
+  {
+    "page": 21,
+    "crop": "Pearl millet",
+    "insecticide": "Imidacloprid 70 WS per 100 kg seed",
+    "pest": "Termites and shoot fly",
+    "aiDose": "700",
+    "formulationDose": "1000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 21,
+    "crop": "Pigeon pea",
+    "insecticide": "Indoxacarb 15.8 EC",
+    "pest": "Pod borer complex",
+    "aiDose": "50",
+    "formulationDose": "333",
+    "sprayFluid": "_ 500-700"
+  },
+  {
+    "page": 21,
+    "crop": "Pigeon pea",
+    "insecticide": "Thiodicarb 75 WP",
+    "pest": "Pod Borer",
+    "aiDose": "470-750",
+    "formulationDose": "625-1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 21,
+    "crop": "Pigeon pea",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Pod borer",
+    "aiDose": "30",
+    "formulationDose": "150",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 21,
+    "crop": "Pigeon pea",
+    "insecticide": "Ethion 50 EC",
+    "pest": "Pod borer",
+    "aiDose": "500-750",
+    "formulationDose": "1000-1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 22,
+    "crop": "Pigeon pea",
+    "insecticide": "Flubendiamide 39.35 M/M SC",
+    "pest": "Pod borer",
+    "aiDose": "48",
+    "formulationDose": "100",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 22,
+    "crop": "Pigeon pea",
+    "insecticide": "Lambda-Cyhalothrin 5 EC",
+    "pest": "Pod borer, pod fly",
+    "aiDose": "20-25",
+    "formulationDose": "400-500",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 22,
+    "crop": "Pigeon pea",
+    "insecticide": "Lufenuron 5.4 EC",
+    "pest": "Pod borer, podfly",
+    "aiDose": "30",
+    "formulationDose": "600",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 22,
+    "crop": "Pigeon pea",
+    "insecticide": "Methomyl 40 SP",
+    "pest": "Pod borers",
+    "aiDose": "300-450",
+    "formulationDose": "750-1125",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 22,
+    "crop": "Pigeon pea",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Jassids",
+    "aiDose": "1500",
+    "formulationDose": "15000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 22,
+    "crop": "Pigeon pea",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Stem fly",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 22,
+    "crop": "Pigeon pea",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "Heliothis",
+    "aiDose": "",
+    "formulationDose": "0.75 kg.",
+    "sprayFluid": "_ 500-750"
+  },
+  {
+    "page": 22,
+    "crop": "Pigeon pea",
+    "insecticide": "NPV of Helicoverpa armigera 2.0 AS",
+    "pest": "Pod borer",
+    "aiDose": "_",
+    "formulationDose": "250-500",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 22,
+    "crop": "Pigeon pea",
+    "insecticide": "Indoxacarb 14.5 SC",
+    "pest": "Pod borer complex",
+    "aiDose": "_ 50-60",
+    "formulationDose": "353-400",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 22,
+    "crop": "Pomegranate",
+    "insecticide": "Cyantraniliprole 10.26 OD",
+    "pest": "Thrips – Scirtothrips dorsalis, Pomegranate butterfly- Deudorix isocrates",
+    "aiDose": "75 (0.0075)",
+    "formulationDose": "750 (0.075)",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 22,
+    "crop": "Pomegranate",
+    "insecticide": "Cyantraniliprole 10.26 OD",
+    "pest": "Whitefly- Siphoninus phillyreae, Aphids- Aphis punicae",
+    "aiDose": "90 (0.009)",
+    "formulationDose": "900 (0.09)",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 22,
+    "crop": "Pomegranate",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Scales",
+    "aiDose": "0.0008",
+    "formulationDose": "4800-6400",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 22,
+    "crop": "Potato",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Aphid",
+    "aiDose": "500",
+    "formulationDose": "16600",
+    "sprayFluid": ""
+  },
+  {
+    "page": 22,
+    "crop": "Potato",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Jassids",
+    "aiDose": "1000",
+    "formulationDose": "33300",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 22,
+    "crop": "Potato",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Aphids",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 22,
+    "crop": "Potato",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Aphid",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 22,
+    "crop": "Potato",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "Aphids",
+    "aiDose": "",
+    "formulationDose": "",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 22,
+    "crop": "Potato",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "-foliar application",
+    "aiDose": "_ 25",
+    "formulationDose": "_ 100",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 22,
+    "crop": "Potato",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "-Soil drench",
+    "aiDose": "50",
+    "formulationDose": "200",
+    "sprayFluid": "400-500"
+  },
+  {
+    "page": 22,
+    "crop": "Potato",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Thrips",
+    "aiDose": "200",
+    "formulationDose": "660",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 22,
+    "crop": "Public health",
+    "insecticide": "Deltamethrin 2.5 WP",
+    "pest": "Mosquito",
+    "aiDose": "625-1250",
+    "formulationDose": "25000- 50000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 22,
+    "crop": "Radish",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Stem borer",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 22,
+    "crop": "Red Gram",
+    "insecticide": "Azadirachtin 0.03 (300 PPM)",
+    "pest": "Pod Borer",
+    "aiDose": "",
+    "formulationDose": "2500-5000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 22,
+    "crop": "Red Gram",
+    "insecticide": "Deltamethrin 2.8 EC",
+    "pest": "Pod Borer & Pod Fly",
+    "aiDose": "_ 12.5",
+    "formulationDose": "500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 22,
+    "crop": "Red Gram",
+    "insecticide": "Emamectin Benzoate 5 SG",
+    "pest": "Pod borer",
+    "aiDose": "11",
+    "formulationDose": "220",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 22,
+    "crop": "Red Gram",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Plume mouth, Pod fly",
+    "aiDose": "250",
+    "formulationDose": "625",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 22,
+    "crop": "Red Gram",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Pod borer",
+    "aiDose": "500",
+    "formulationDose": "1250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Red Gram",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Pod borer, Pod fly",
+    "aiDose": "350",
+    "formulationDose": "1400",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Red Gram",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Pod borer",
+    "aiDose": "350",
+    "formulationDose": "23300",
+    "sprayFluid": ""
+  },
+  {
+    "page": 23,
+    "crop": "Red Gram",
+    "insecticide": "Spinosad 45.0 SC",
+    "pest": "Pod borer",
+    "aiDose": "56-73",
+    "formulationDose": "125-162",
+    "sprayFluid": "_ 800-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Red Gram",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "Pod Borer",
+    "aiDose": "50.00-62.50",
+    "formulationDose": "1000-1250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Rose",
+    "insecticide": "Bifenazate 50 WP",
+    "pest": "Two Spotted Mite",
+    "aiDose": "375",
+    "formulationDose": "750",
+    "sprayFluid": "3000"
+  },
+  {
+    "page": 23,
+    "crop": "Rose",
+    "insecticide": "Bifenazate 22.6 SC",
+    "pest": "Two Spotted Mite",
+    "aiDose": "120",
+    "formulationDose": "500",
+    "sprayFluid": "2000"
+  },
+  {
+    "page": 23,
+    "crop": "Rose",
+    "insecticide": "Flufenoxuron 10 DC",
+    "pest": "Mites",
+    "aiDose": "50",
+    "formulationDose": "500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Rose",
+    "insecticide": "Milbemectin 1 EC",
+    "pest": "Two spotted spider mite",
+    "aiDose": "4.5",
+    "formulationDose": "450",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 23,
+    "crop": "Safflower",
+    "insecticide": "Acephate 75 SP",
+    "pest": "Aphids",
+    "aiDose": "584",
+    "formulationDose": "780",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Safflower",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Aphid",
+    "aiDose": "200",
+    "formulationDose": "660",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Safflower",
+    "insecticide": "Phenthoate 2 DP",
+    "pest": "Aphid",
+    "aiDose": "400",
+    "formulationDose": "20000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 23,
+    "crop": "Safflower",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Aphid",
+    "aiDose": "300",
+    "formulationDose": "20000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 23,
+    "crop": "Sesamum",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Jassids, White fly",
+    "aiDose": "1000",
+    "formulationDose": "10000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 23,
+    "crop": "Sesamum",
+    "insecticide": "Carbaryl 10 D.P.",
+    "pest": "Til leaf roller",
+    "aiDose": "2500",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 23,
+    "crop": "Sesamum",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Leaf hopper",
+    "aiDose": "300",
+    "formulationDose": "1200",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Sesamum",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Leaf webber, Jassids",
+    "aiDose": "500",
+    "formulationDose": "2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Carbaryl 5 D.P.",
+    "pest": "Earhead midge",
+    "aiDose": "1000",
+    "formulationDose": "20000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Carbaryl 10 D.P.",
+    "pest": "Aphids",
+    "aiDose": "2500",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Carbaryl 10 D.P.",
+    "pest": "Earhead caterpillar",
+    "aiDose": "2000",
+    "formulationDose": "20000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Hoppers, Aphids, Stem Borer",
+    "aiDose": "1000",
+    "formulationDose": "2000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Shoot fly",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Shoot fly",
+    "aiDose": "1000",
+    "formulationDose": "33300",
+    "sprayFluid": ""
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Stem borer",
+    "aiDose": "250",
+    "formulationDose": "8300",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Midge",
+    "aiDose": "500",
+    "formulationDose": "1650",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Imidacloprid 48 FS per 100 kg seed",
+    "pest": "Shoot fly",
+    "aiDose": "720",
+    "formulationDose": "1200",
+    "sprayFluid": ""
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Imidacloprid 70 WS per 100 kg seed",
+    "pest": "Shoot fly",
+    "aiDose": "700",
+    "formulationDose": "1000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Malathion 5 DP",
+    "pest": "Earhead midge",
+    "aiDose": "1000",
+    "formulationDose": "20000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Earhead midge",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "Shoot fly",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 23,
+    "crop": "Sorghum",
+    "insecticide": "Phenthoate 2 DP",
+    "pest": "Red spider mite, Pink mite, Purple mite, Scarlet mite",
+    "aiDose": "400",
+    "formulationDose": "20000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 24,
+    "crop": "Sorghum",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Shoot fly, Aphids",
+    "aiDose": "1875",
+    "formulationDose": "18750",
+    "sprayFluid": ""
+  },
+  {
+    "page": 24,
+    "crop": "Sorghum",
+    "insecticide": "Phorate 10 CG",
+    "pest": "White grub",
+    "aiDose": "2500",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 24,
+    "crop": "Sorghum",
+    "insecticide": "Phosalone 35 EC",
+    "pest": "Ear head midge",
+    "aiDose": "400",
+    "formulationDose": "1143",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 24,
+    "crop": "Sorghum",
+    "insecticide": "Phosalone 4 DP",
+    "pest": "Earhead midge,",
+    "aiDose": "1000",
+    "formulationDose": "25000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 24,
+    "crop": "Sorghum",
+    "insecticide": "Quinalphos 5 G",
+    "pest": "Stem borer",
+    "aiDose": "750",
+    "formulationDose": "15000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 24,
+    "crop": "Sorghum",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Mite, Shoot fly",
+    "aiDose": "375",
+    "formulationDose": "1500",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 24,
+    "crop": "Sorghum",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Earhead bug,",
+    "aiDose": "375",
+    "formulationDose": "25000",
+    "sprayFluid": "At milk stage"
+  },
+  {
+    "page": 24,
+    "crop": "Sorghum",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Earhead midge",
+    "aiDose": "400",
+    "formulationDose": "26600",
+    "sprayFluid": "At milk stage"
+  },
+  {
+    "page": 24,
+    "crop": "Sorghum",
+    "insecticide": "Thiamethoxam 30 FS",
+    "pest": "Shoot fly",
+    "aiDose": "3",
+    "formulationDose": "10",
+    "sprayFluid": ""
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Root knot nematode",
+    "aiDose": "1500",
+    "formulationDose": "50000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Green Semi looper, Stem fly, Girdle beetle",
+    "aiDose": "30",
+    "formulationDose": "150",
+    "sprayFluid": "_ 500-750"
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Dichlorvos 76 EC",
+    "pest": "Leaf eating caterpillar",
+    "aiDose": "225-300",
+    "formulationDose": "282-376",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Ethion 50 EC",
+    "pest": "Girdle beetle & stem fly",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Imidacloprid 48 FS per 100 kg seed",
+    "pest": "Jassids",
+    "aiDose": "75",
+    "formulationDose": "125",
+    "sprayFluid": ""
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Indoxacarb 15.8 EC",
+    "pest": "Tobacco caterpillar, Green semilooper, stem fly",
+    "aiDose": "30",
+    "formulationDose": "333",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Lambda-Cyhalothrin 4.9 CS",
+    "pest": "Stemfly & Semilooper",
+    "aiDose": "15",
+    "formulationDose": "300",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Leaf weevil",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Stem fly",
+    "aiDose": "1500",
+    "formulationDose": "15000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Profenofos 50 EC",
+    "pest": "Semi looper & Girdle beetle",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Leaf weevil",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Quinalphos 1.5 DP",
+    "pest": "Leaf weevil",
+    "aiDose": "250",
+    "formulationDose": "16600",
+    "sprayFluid": ""
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Thiacloprid 21.7 SC",
+    "pest": "Girdle beetle",
+    "aiDose": "180",
+    "formulationDose": "750",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Thiamethoxam 30 FS",
+    "pest": "Shoot fly",
+    "aiDose": "3",
+    "formulationDose": "10",
+    "sprayFluid": ""
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Triazophos 40 EC",
+    "pest": "Stem borer, Girdle beetle, Leaf miners",
+    "aiDose": "250",
+    "formulationDose": "625",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 24,
+    "crop": "Soybean",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "Spodoptera, Heliothis, Spilosoma, Semilooper, Leaf miner",
+    "aiDose": "_",
+    "formulationDose": "0.75 kg.",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 24,
+    "crop": "Stored Grain",
+    "insecticide": "Azadirachtin 0.15 W/W",
+    "pest": "Red rust Flour beetle, Lesser grain borer, Rice Weevil, Khapra beetle",
+    "aiDose": "3.35 gm",
+    "formulationDose": "_",
+    "sprayFluid": ""
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Bifenthrin 10 EC",
+    "pest": "Termites",
+    "aiDose": "100",
+    "formulationDose": "1000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Top borer",
+    "aiDose": "2000",
+    "formulationDose": "66600",
+    "sprayFluid": ""
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Termite",
+    "aiDose": "100-125",
+    "formulationDose": "500-625",
+    "sprayFluid": "_ 1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Early shoot borer",
+    "aiDose": "75",
+    "formulationDose": "375",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Top borer",
+    "aiDose": "75",
+    "formulationDose": "375",
+    "sprayFluid": "1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Black bug",
+    "aiDose": "150",
+    "formulationDose": "750",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Early shoot & stalk borer",
+    "aiDose": "250-300",
+    "formulationDose": "1250-1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Pyrilla",
+    "aiDose": "300",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Fipronil 5 SC",
+    "pest": "Early shoot borer & root borer",
+    "aiDose": "75-100",
+    "formulationDose": "1500-2000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Fipronil 0.3 GR",
+    "pest": "Early shoot borer, Root borer",
+    "aiDose": "75-100",
+    "formulationDose": "25000- 33300",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Imidacloprid 70 WS per 100 kg seed",
+    "pest": "Termite",
+    "aiDose": "70 – 105",
+    "formulationDose": "100 – 150",
+    "sprayFluid": ""
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Imidacloprid 17.8 SL",
+    "pest": "Termite",
+    "aiDose": "70",
+    "formulationDose": "350",
+    "sprayFluid": "_ 1875"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Shoot borer",
+    "aiDose": "600-800",
+    "formulationDose": "1500-2250",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Mealy bug, Scale Insect",
+    "aiDose": "600",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Pyrilla",
+    "aiDose": "200",
+    "formulationDose": "500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Monocrotophos 36 SL",
+    "pest": "Stalk borer",
+    "aiDose": "750",
+    "formulationDose": "1875",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Top borer",
+    "aiDose": "3000",
+    "formulationDose": "30000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Phorate 10 CG",
+    "pest": "White grub",
+    "aiDose": "2500",
+    "formulationDose": "25000",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane",
+    "insecticide": "Chlorantraniliprole 0.4 GR",
+    "pest": "Early shoot borer, top borer",
+    "aiDose": "75",
+    "formulationDose": "18.75",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 25,
+    "crop": "Sugarcane (Soil drench)",
+    "insecticide": "Clothianidin 50 WDG",
+    "pest": "Termite",
+    "aiDose": "125",
+    "formulationDose": "250",
+    "sprayFluid": "_ 1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sunflower",
+    "insecticide": "Cypermethrin 10 EC",
+    "pest": "Bihar hairy caterpillar",
+    "aiDose": "60-70",
+    "formulationDose": "650-760",
+    "sprayFluid": "500-700"
+  },
+  {
+    "page": 25,
+    "crop": "Sunflower",
+    "insecticide": "Dichlorvos 76 EC",
+    "pest": "Caterpillar",
+    "aiDose": "500",
+    "formulationDose": "627",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sunflower",
+    "insecticide": "Dichlorvos 76 EC",
+    "pest": "Cabbage looper",
+    "aiDose": "500",
+    "formulationDose": "627",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sunflower",
+    "insecticide": "Dichlorvos 76 EC",
+    "pest": "Semi looper",
+    "aiDose": "500",
+    "formulationDose": "627",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sunflower",
+    "insecticide": "Imidacloprid 48 FS per 100 kg seed",
+    "pest": "Jassid,Whitefly",
+    "aiDose": "300 – 540",
+    "formulationDose": "500 – 900",
+    "sprayFluid": ""
+  },
+  {
+    "page": 25,
+    "crop": "Sunflower",
+    "insecticide": "Imidacloprid 70 WS per 100 kg seed",
+    "pest": "Jassid, Whitefly",
+    "aiDose": "490",
+    "formulationDose": "700",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 25,
+    "crop": "Sunflower",
+    "insecticide": "Imidacloprid 17.8 SL",
+    "pest": "Jassid, Thrips, Whitefly",
+    "aiDose": "20",
+    "formulationDose": "100",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 25,
+    "crop": "Sunflower",
+    "insecticide": "Malathion 50 EC",
+    "pest": "White fly",
+    "aiDose": "500",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 25,
+    "crop": "Sunflower",
+    "insecticide": "Thiamethoxam 30 FS",
+    "pest": "Jassids, Thrips",
+    "aiDose": "3",
+    "formulationDose": "10",
+    "sprayFluid": ""
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Azadirachtin 1 MIN. E.C.",
+    "pest": "Thrips",
+    "aiDose": "",
+    "formulationDose": "4000-5000",
+    "sprayFluid": "450"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Azadirachtin 1 MIN. E.C.",
+    "pest": "Red Spider mites",
+    "aiDose": "_",
+    "formulationDose": "4000-5000",
+    "sprayFluid": "600"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Azadirachtin 5 W/W",
+    "pest": "Caterpillar, Pink mite Red Spider mites,Thrips",
+    "aiDose": "_ _",
+    "formulationDose": "200",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Bifenthrin 8 SC",
+    "pest": "Red Spider mite, Tea mosquito bug",
+    "aiDose": "40",
+    "formulationDose": "500",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Cock chafer grub",
+    "aiDose": "0.3g/plant",
+    "formulationDose": "33.10g/plant",
+    "sprayFluid": ""
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Clothianidin 50 WDG",
+    "pest": "Mosquito Bug",
+    "aiDose": "60",
+    "formulationDose": "120",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Deltamethrin 2.8 EC",
+    "pest": "Thrips, Caterpillar",
+    "aiDose": "3 to 4",
+    "formulationDose": "120-150",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Deltamethrin 2.8 EC",
+    "pest": "Leaf roller",
+    "aiDose": "10",
+    "formulationDose": "400",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Deltamethrin 2.8 EC",
+    "pest": "Lopper",
+    "aiDose": "2.5-3.75",
+    "formulationDose": "100-150",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Dicofol 18.5 EC",
+    "pest": "Red spider mite, Scarlet mite , Pink mite, Purple mite, Yellow mite",
+    "aiDose": "230",
+    "formulationDose": "1250",
+    "sprayFluid": "250"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Ethion 50 EC",
+    "pest": "Red spider mites, purple mites & yellow mite, thrips & scale",
+    "aiDose": "250",
+    "formulationDose": "500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Etoxazole 10 SC",
+    "pest": "Red Spider Mite",
+    "aiDose": "40",
+    "formulationDose": "400",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Fenazaquin 10 EC",
+    "pest": "Red spider mite, Pink Mite, Purple mite",
+    "aiDose": "100",
+    "formulationDose": "1000",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Fenazaquin 10 EC",
+    "pest": "Scarlet mite",
+    "aiDose": "125",
+    "formulationDose": "1250",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Fenpropathrin 30 EC",
+    "pest": "Mites",
+    "aiDose": "50-60",
+    "formulationDose": "165-200",
+    "sprayFluid": "400-500"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Fenpyroximate 5 EC",
+    "pest": "Red spider mite, Pink Mite, Purple mite",
+    "aiDose": "15-30",
+    "formulationDose": "300-600",
+    "sprayFluid": "400-500"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Flumite 20 SC / Flufenzine 20SC",
+    "pest": "Pink mite, Purple mite",
+    "aiDose": "80-100",
+    "formulationDose": "400-500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Flumite 20 SC / Flufenzine 20SC",
+    "pest": "Red spider",
+    "aiDose": "100-120",
+    "formulationDose": "500-600",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Hexythiazox 5.45 W/W EC",
+    "pest": "Scarlet mite, Red spider mite",
+    "aiDose": "15-25",
+    "formulationDose": "300-500",
+    "sprayFluid": "400/ha"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Phosalone 35 EC",
+    "pest": "Aphid, Pink mite, Purple mite",
+    "aiDose": "360",
+    "formulationDose": "1028",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Propargite 57 EC",
+    "pest": "Red spider mite, Pink mite, Purple mite, Scarlet mite",
+    "aiDose": "430-612",
+    "formulationDose": "750-1250",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Quinalphos 20 AF",
+    "pest": "Hopper caterpillar",
+    "aiDose": "0.0005",
+    "formulationDose": "1000",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Thrips",
+    "aiDose": "190",
+    "formulationDose": "760",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Spiromesifen 22.9 SC",
+    "pest": "Red Spider mite",
+    "aiDose": "96",
+    "formulationDose": "400",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Thiacloprid 21.7 SC",
+    "pest": "Mosquito bug",
+    "aiDose": "90",
+    "formulationDose": "375",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 26,
+    "crop": "Tea",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "Mosquito bug",
+    "aiDose": "25",
+    "formulationDose": "100",
+    "sprayFluid": "400-500"
+  },
+  {
+    "page": 27,
+    "crop": "Teak",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "Defoliator (Hyblaea pured), Skeletonizer (Eutectona machaeralis)",
+    "aiDose": "_",
+    "formulationDose": "0.25-0.50 Sol.",
+    "sprayFluid": "As required."
+  },
+  {
+    "page": 27,
+    "crop": "Tobacco",
+    "insecticide": "Azadirachtin 5 W/W",
+    "pest": "Tobacco caterpillar, Aphids",
+    "aiDose": "",
+    "formulationDose": "200",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 27,
+    "crop": "Tobacco",
+    "insecticide": "Chlorpyrifos 20 EC",
+    "pest": "Ground beetle",
+    "aiDose": "_ 350",
+    "formulationDose": "1750",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 27,
+    "crop": "Tobacco",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "White fly/Aphids",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 27,
+    "crop": "Tobacco",
+    "insecticide": "Bacillus thuringiensis Var. Kurstaki 5 WP",
+    "pest": "Spodoptera, Heliothis",
+    "aiDose": "",
+    "formulationDose": "1.50-2.00 kg.",
+    "sprayFluid": "500-750"
+  },
+  {
+    "page": 27,
+    "crop": "Tobacco",
+    "insecticide": "NPV of Spodoptera litura 0.5 AS",
+    "pest": "Spodoptera litura",
+    "aiDose": "_",
+    "formulationDose": "1500",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Azadirachtin 1 (10000 PPM)",
+    "pest": "Fruit borer",
+    "aiDose": "_",
+    "formulationDose": "1000-1500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Azadirachtin 5 W/W",
+    "pest": "Aphids, Whitefly, Fruit borer",
+    "aiDose": "_",
+    "formulationDose": "200",
+    "sprayFluid": "400"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Fruit Borer",
+    "aiDose": "_ 1000",
+    "formulationDose": "2000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "White fly",
+    "aiDose": "1200",
+    "formulationDose": "40000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Chlorantraniliprole 18.5 SC",
+    "pest": "Fruit borer",
+    "aiDose": "30",
+    "formulationDose": "150",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Cyantraniliprole 10.26 OD",
+    "pest": "Leaf miner – Liriomyza trifolii, Aphids – Aphis gossypii, Thrips- Thrips tabaci, White fly – Bemesia tabaci, Fruit borer – Helicovepra armigera",
+    "aiDose": "90",
+    "formulationDose": "900",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Flubendiamide 20 WG",
+    "pest": "Fruit borer",
+    "aiDose": "48",
+    "formulationDose": "100",
+    "sprayFluid": "375-500"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Flubendiamide 39.35 M/M SC",
+    "pest": "Fruit borer",
+    "aiDose": "48",
+    "formulationDose": "100",
+    "sprayFluid": "375-500"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Imidacloprid 17.8 SL",
+    "pest": "Whitefly",
+    "aiDose": "30-35",
+    "formulationDose": "150-175",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Indoxacarb 14.5 SC",
+    "pest": "Fruit borer",
+    "aiDose": "60-75",
+    "formulationDose": "400-500",
+    "sprayFluid": "300-600"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Lambda-Cyhalothrin 4.9 CS",
+    "pest": "Furit borer",
+    "aiDose": "15",
+    "formulationDose": "300",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Lambda-Cyhalothrin 5 EC",
+    "pest": "Fruit borer",
+    "aiDose": "15",
+    "formulationDose": "300",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Malathion 50 EC",
+    "pest": "White fly",
+    "aiDose": "750",
+    "formulationDose": "1500",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Methomyl 40 SP",
+    "pest": "Pod borers",
+    "aiDose": "300-450",
+    "formulationDose": "750-1125",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Novaluron 10 EC",
+    "pest": "Fruit borer",
+    "aiDose": "75",
+    "formulationDose": "750",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Oxydemeton – Methyl 25 EC",
+    "pest": "White fly",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Phorate 10 CG",
+    "pest": "White fly",
+    "aiDose": "1500",
+    "formulationDose": "15000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Phosalone 35 EC",
+    "pest": "Fruit borer",
+    "aiDose": "450",
+    "formulationDose": "1285",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Quinalphos 20 AF",
+    "pest": "Fruit borer",
+    "aiDose": "300-350",
+    "formulationDose": "1500-1750",
+    "sprayFluid": "750-1000"
+  },
+  {
+    "page": 27,
+    "crop": "Tomato",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Fruit borer",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 28,
+    "crop": "Tomato",
+    "insecticide": "Spiromesifen 22.9 SC",
+    "pest": "Whiteflies & Mites",
+    "aiDose": "150",
+    "formulationDose": "625",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 28,
+    "crop": "Tomato",
+    "insecticide": "Thiamethoxam 70 WS",
+    "pest": "Aphids & Thrips",
+    "aiDose": "420",
+    "formulationDose": "600",
+    "sprayFluid": ""
+  },
+  {
+    "page": 28,
+    "crop": "Tomato",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "White flies",
+    "aiDose": "50",
+    "formulationDose": "200",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 28,
+    "crop": "Tomato",
+    "insecticide": "Bacillus thuringiensis Var. Galleriae",
+    "pest": "Fruit borer (H. armigera)",
+    "aiDose": "",
+    "formulationDose": "1.0-1.5",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 28,
+    "crop": "Tomato",
+    "insecticide": "NPV of Helicoverpa armigera 0.43 AS",
+    "pest": "Helicoverpa armigera",
+    "aiDose": "_",
+    "formulationDose": "1500",
+    "sprayFluid": "400-600"
+  },
+  {
+    "page": 28,
+    "crop": "Tomato",
+    "insecticide": "NPV of Helicoverpa armigera 2.0 AS",
+    "pest": "Fruit borer",
+    "aiDose": "_",
+    "formulationDose": "250-500",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 28,
+    "crop": "Tomato",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "Aphids",
+    "aiDose": "_ 200",
+    "formulationDose": "660",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 28,
+    "crop": "Tomato",
+    "insecticide": "Dimethoate 30 EC",
+    "pest": "White fly",
+    "aiDose": "300",
+    "formulationDose": "990",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 28,
+    "crop": "Tomato",
+    "insecticide": "Fenazaquin 10 EC",
+    "pest": "Two spotted spider mite",
+    "aiDose": "125",
+    "formulationDose": "1250",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 28,
+    "crop": "Turnip",
+    "insecticide": "Carbaryl 10 D.P.",
+    "pest": "Plume moth, Pod fly",
+    "aiDose": "2000",
+    "formulationDose": "20000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 28,
+    "crop": "Turnip",
+    "insecticide": "Quinalphos 20 AF",
+    "pest": "Pod borer",
+    "aiDose": "500",
+    "formulationDose": "2500",
+    "sprayFluid": "_ 750-1000"
+  },
+  {
+    "page": 28,
+    "crop": "Turnip",
+    "insecticide": "Malathion 50 EC",
+    "pest": "Tobacco caterpillar",
+    "aiDose": "600",
+    "formulationDose": "1200",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 28,
+    "crop": "Walls, ceilings floors of godowns",
+    "insecticide": "Deltamethrin 2.5 WP",
+    "pest": "Rice weevil, Khapra beetle, Red flour beetle, Saw toothed grain beetle, Rice moth, Almond moth",
+    "aiDose": "30",
+    "formulationDose": "1200",
+    "sprayFluid": "1.5-2.5 litre / 50m2"
+  },
+  {
+    "page": 28,
+    "crop": "Wheat",
+    "insecticide": "Carbaryl 50 WP",
+    "pest": "Army worm",
+    "aiDose": "1000",
+    "formulationDose": "2000",
+    "sprayFluid": "500"
+  },
+  {
+    "page": 28,
+    "crop": "Wheat",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Ear cockle nematode",
+    "aiDose": "3000",
+    "formulationDose": "10000",
+    "sprayFluid": ""
+  },
+  {
+    "page": 28,
+    "crop": "Wheat",
+    "insecticide": "Carbofuran 3 CG",
+    "pest": "Cereal cyst nematode",
+    "aiDose": "2000",
+    "formulationDose": "66600",
+    "sprayFluid": "_"
+  },
+  {
+    "page": 28,
+    "crop": "Wheat",
+    "insecticide": "Cypermethrin 10 EC",
+    "pest": "Shoot fly",
+    "aiDose": "50",
+    "formulationDose": "550",
+    "sprayFluid": "_ 500-800"
+  },
+  {
+    "page": 28,
+    "crop": "Wheat",
+    "insecticide": "Dichlorvos 76 EC",
+    "pest": "Caterpillar",
+    "aiDose": "500",
+    "formulationDose": "627",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 28,
+    "crop": "Wheat",
+    "insecticide": "Methyl Parathion 50 EC",
+    "pest": "Cutworm",
+    "aiDose": "300",
+    "formulationDose": "600",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 28,
+    "crop": "Wheat",
+    "insecticide": "Phorate 10 CG",
+    "pest": "Shoot fly",
+    "aiDose": "1875",
+    "formulationDose": "18750",
+    "sprayFluid": ""
+  },
+  {
+    "page": 28,
+    "crop": "Wheat",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Aphid",
+    "aiDose": "250",
+    "formulationDose": "1000",
+    "sprayFluid": "_ 500-1000"
+  },
+  {
+    "page": 28,
+    "crop": "Wheat",
+    "insecticide": "Quinalphos 25 EC",
+    "pest": "Ear head Caterpillar , Mite",
+    "aiDose": "400",
+    "formulationDose": "1600",
+    "sprayFluid": "500-1000"
+  },
+  {
+    "page": 28,
+    "crop": "Wheat",
+    "insecticide": "Thiamethoxam 30 FS",
+    "pest": "Termites",
+    "aiDose": "1",
+    "formulationDose": "3.3",
+    "sprayFluid": ""
+  },
+  {
+    "page": 28,
+    "crop": "Wheat",
+    "insecticide": "Thiamethoxam 25 WG",
+    "pest": "Aphid",
+    "aiDose": "12.5",
+    "formulationDose": "50",
+    "sprayFluid": "_ 500"
+  },
+  {
+    "page": 28,
+    "crop": "Wheat & Rice (Grain & seed in stacks)",
+    "insecticide": "Deltamethrin 2.5 WP",
+    "pest": "Rice weevil, Khapra beetle, Red flour beetle, Saw toothed grain beetle, Rice moth, Almond moth",
+    "aiDose": "30",
+    "formulationDose": "1200",
+    "sprayFluid": "1 litre / 30 m2"
+  }
+]

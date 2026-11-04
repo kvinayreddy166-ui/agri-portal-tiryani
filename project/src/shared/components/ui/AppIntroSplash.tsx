@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Volume2, VolumeX, ChevronRight } from 'lucide-react';
+import { Volume2, VolumeX, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 import {
   AGRONIX_PLAY_INTRO_EVENT,
   shouldPlayOnInitialOpen,
@@ -16,6 +16,8 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
   // Default sound is ON
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
+  // Default to edge-to-edge cover on mobile for true full-screen experience
+  const [mobileFitMode, setMobileFitMode] = useState<'cover' | 'contain'>('cover');
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const isDismissingRef = useRef(false);
@@ -39,6 +41,15 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
     isDismissingRef.current = true;
     clearAllTimers();
 
+    // Safely exit native fullscreen if the user entered it
+    try {
+      if (typeof document !== 'undefined' && document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    } catch {
+      // Safe fallback
+    }
+
     setIsFading(true);
 
     if (videoRef.current) {
@@ -58,6 +69,26 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
       }
     }, 450);
   }, [clearAllTimers, onFinish]);
+
+  // Toggle between edge-to-edge fill and letterboxed fit, plus browser fullscreen
+  const toggleMobileFullscreen = (e?: React.SyntheticEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setMobileFitMode((prev) => (prev === 'cover' ? 'contain' : 'cover'));
+    try {
+      if (typeof document !== 'undefined') {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else if (document.fullscreenElement && document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    } catch {
+      // Safe fallback
+    }
+  };
 
   // Listen for programmatic replay events (e.g. from Settings or About dialog)
   useEffect(() => {
@@ -212,6 +243,20 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
 
   // Tapping the screen/video while muted turns on audio and keeps playback active
   const handleBackdropTap = () => {
+    // Attempt native browser fullscreen on user tap on mobile
+    try {
+      if (
+        typeof document !== 'undefined' &&
+        !document.fullscreenElement &&
+        window.innerWidth < 768 &&
+        document.documentElement.requestFullscreen
+      ) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } catch {
+      // Safe fallback
+    }
+
     const video = videoRef.current;
     if (!video) return;
 
@@ -263,7 +308,7 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
       role="dialog"
       aria-label="AGRONIX Intro Video"
       aria-modal="true"
-      className={`fixed inset-0 z-[100000] flex items-center justify-center bg-black select-none overflow-hidden h-[100dvh] w-screen transition-opacity duration-500 ease-out ${
+      className={`fixed inset-0 z-[100000] flex items-center justify-center bg-black select-none overflow-hidden overscroll-none h-[100dvh] w-screen transition-opacity duration-500 ease-out ${
         isFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
@@ -275,7 +320,7 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
         }}
       />
 
-      {/* Main Video Element Container (tapping anywhere while muted un-mutes) */}
+      {/* Main Video Element Container (tapping anywhere while muted un-mutes and fullscreens) */}
       <div
         className="relative z-10 w-full h-full flex items-center justify-center p-0 md:p-6 cursor-pointer"
         onClick={handleBackdropTap}
@@ -294,7 +339,9 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
             console.warn('Intro video error event fired; dismissing.');
             handleDismiss();
           }}
-          className="max-h-full max-w-full w-auto h-auto object-contain rounded-none md:rounded-2xl shadow-2xl pointer-events-none"
+          className={`${
+            mobileFitMode === 'cover' ? 'w-full h-full object-cover' : 'w-full h-full object-contain'
+          } md:w-auto md:h-auto md:max-h-full md:max-w-full md:object-contain rounded-none md:rounded-2xl shadow-2xl pointer-events-none`}
           style={{ willChange: 'transform' }}
         />
 
@@ -346,6 +393,35 @@ export const AppIntroSplash: React.FC<AppIntroSplashProps> = ({ onFinish }) => {
               <>
                 <VolumeX className="w-4 h-4 text-white" />
                 <span>Tap for Sound</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Bottom-Right Control: Screen Mode (Fullscreen / Fit) Toggle */}
+        <div
+          className="absolute z-20 flex items-center gap-2"
+          style={{
+            bottom: 'max(1.25rem, env(safe-area-inset-bottom, 1.25rem))',
+            right: 'max(1rem, env(safe-area-inset-right, 1rem))',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={toggleMobileFullscreen}
+            aria-label={mobileFitMode === 'cover' ? 'Fit video to screen' : 'Fill video to screen'}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-black/70 hover:bg-black/90 text-white backdrop-blur-md border border-white/20 shadow-xl text-xs md:text-sm font-semibold tracking-wide transition-all active:scale-95 cursor-pointer"
+          >
+            {mobileFitMode === 'cover' ? (
+              <>
+                <Minimize2 className="w-4 h-4 text-emerald-400" />
+                <span className="hidden sm:inline">Fit</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-4 h-4 text-emerald-400" />
+                <span className="hidden sm:inline">Fill</span>
               </>
             )}
           </button>

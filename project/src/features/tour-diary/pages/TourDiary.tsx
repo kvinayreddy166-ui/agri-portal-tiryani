@@ -1828,10 +1828,10 @@ export function TourDiary() {
                         <NotebookPen className="h-6 w-6 text-white" aria-label="Tour Diary" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
+                        <p className="text-[10px] sm:text-xs font-semibold tracking-normal text-emerald-100 mb-0.5">
                           Officer Toolkit
                         </p>
-                        <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                        <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-white leading-snug tracking-tight">
                           Tour Diary
                         </h1>
                         <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
@@ -1862,14 +1862,14 @@ export function TourDiary() {
                     <Clock className="h-5 w-5" />
                   </div>
                   <div className="flex-1 text-left">
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                       Continue Draft
                     </h3>
                     <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                       {MONTHS[latestDraft.month - 1]} {latestDraft.year} • Last edited {new Date(latestDraft.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
-                  <span className="rounded-full bg-amber-200 px-3 py-1 text-xs font-black uppercase text-amber-800 shadow-sm dark:bg-amber-900 dark:text-amber-200">
+                  <span className="rounded-full bg-amber-200 px-3 py-1 text-xs font-semibold uppercase text-amber-800 shadow-sm dark:bg-amber-900 dark:text-amber-200">
                     Draft
                   </span>
                   <ArrowRight className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" />
@@ -1906,7 +1906,7 @@ export function TourDiary() {
                 <Plus className="h-5 w-5" />
               </div>
               <div className="flex-1 text-left">
-                <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                   New Tour Diary
                 </h3>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
@@ -1925,7 +1925,7 @@ export function TourDiary() {
                 <ClipboardList className="h-5 w-5" />
               </div>
               <div className="flex-1 text-left">
-                <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                   My Diaries
                 </h3>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
@@ -1981,7 +1981,7 @@ export function TourDiary() {
                     const [year, month] = key.split('-').map(Number);
                     return (
                       <div key={key}>
-                        <h3 className="mb-2 text-xs font-black uppercase text-slate-700 dark:text-slate-300">
+                        <h3 className="mb-2 text-xs font-semibold uppercase text-slate-700 dark:text-slate-300">
                           {MONTHS[month - 1]} {year}
                         </h3>
                         <div className="space-y-2">
@@ -2020,7 +2020,7 @@ export function TourDiary() {
                                     }
                                   </p>
                                 </div>
-                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
                                   item.type === 'draft'
                                     ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200'
                                     : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200'
@@ -2232,10 +2232,10 @@ export function TourDiary() {
                       <NotebookPen className="h-6 w-6 text-white" aria-label="Tour Diary" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
+                      <p className="text-[10px] sm:text-xs font-semibold tracking-normal text-emerald-100 mb-0.5">
                         Officer Toolkit
                       </p>
-                      <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
+                      <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-white leading-snug tracking-tight">
                         Tour Diary
                       </h1>
                       <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
@@ -2434,7 +2434,7 @@ export function TourDiary() {
               <button
                 onClick={saveDraftToLocal}
                 disabled={isSavingDraft}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm"
               >
                 {isSavingDraft ? (
                   <>
@@ -2450,7 +2450,7 @@ export function TourDiary() {
               </button>
               <button
                 onClick={openEditablePreview}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-purple-700 sm:text-sm"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-purple-700 sm:text-sm"
               >
                 <Eye className="h-4 w-4" />
                 Preview
@@ -2461,7 +2461,7 @@ export function TourDiary() {
                   disabled={isGeneratingPDF}
                   aria-haspopup="menu"
                   aria-expanded={exportMenuOpen}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm"
                 >
                   {isGeneratingPDF ? (
                     <>
@@ -2518,55 +2518,55 @@ export function TourDiary() {
           <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Working Days</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.workingDays}</p>
+              <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-400">{summary.workingDays}</p>
             </div>
             <div className="rounded-lg bg-orange-50 p-3 dark:bg-orange-950/30 col-span-2 sm:col-span-3 lg:col-span-2">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Holidays & Non-Working Days</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <span className="font-semibold text-slate-700 dark:text-slate-300">Sundays:</span>
-                  <span className="ml-1 font-black text-orange-700 dark:text-orange-400">{summary.sundays}</span>
+                  <span className="ml-1 font-semibold text-orange-700 dark:text-orange-400">{summary.sundays}</span>
                 </div>
                 <div>
                   <span className="font-semibold text-slate-700 dark:text-slate-300">Second Saturdays:</span>
-                  <span className="ml-1 font-black text-orange-700 dark:text-orange-400">{summary.secondSaturdays}</span>
+                  <span className="ml-1 font-semibold text-orange-700 dark:text-orange-400">{summary.secondSaturdays}</span>
                 </div>
                 <div>
                   <span className="font-semibold text-slate-700 dark:text-slate-300">Government Holidays:</span>
-                  <span className="ml-1 font-black text-orange-700 dark:text-orange-400">{summary.governmentHolidays}</span>
+                  <span className="ml-1 font-semibold text-orange-700 dark:text-orange-400">{summary.governmentHolidays}</span>
                 </div>
                 <div>
                   <span className="font-semibold text-slate-700 dark:text-slate-300">Optional Holidays:</span>
-                  <span className="ml-1 font-black text-orange-700 dark:text-orange-400">{summary.optionalHolidays}</span>
+                  <span className="ml-1 font-semibold text-orange-700 dark:text-orange-400">{summary.optionalHolidays}</span>
                 </div>
               </div>
             </div>
             <div className="rounded-lg bg-purple-50 p-3 dark:bg-purple-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">No. of Optional Holidays Availed</p>
-              <p className="text-lg font-black text-purple-700 dark:text-purple-400">{summary.optionalHolidaysAvailed}</p>
+              <p className="text-lg font-semibold text-purple-700 dark:text-purple-400">{summary.optionalHolidaysAvailed}</p>
             </div>
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Total Distance</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.totalDistance.toFixed(1)} km</p>
+              <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-400">{summary.totalDistance.toFixed(1)} km</p>
             </div>
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Closing Meter</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.closingMeter.toFixed(1)}</p>
+              <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-400">{summary.closingMeter.toFixed(1)}</p>
             </div>
             <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30 col-span-2 sm:col-span-3 lg:col-span-4">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Tour Summary</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>
                   <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Total No. of Days on Tour</p>
-                  <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.tourDays}</p>
+                  <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-400">{summary.tourDays}</p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Leaves Availed</p>
-                  <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.leavesAvailed}</p>
+                  <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-400">{summary.leavesAvailed}</p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">No. of Villages Visited</p>
-                  <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.villagesVisited}</p>
+                  <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-400">{summary.villagesVisited}</p>
                 </div>
               </div>
             </div>
@@ -2625,7 +2625,7 @@ export function TourDiary() {
           {/* Mini calendar */}
           <div className="grid grid-cols-7 gap-1" role="grid" aria-label={`${MONTHS[currentMonth - 1]} ${currentYear} overview`}>
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-              <div key={i} role="columnheader" className="pb-1 text-center text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">
+              <div key={i} role="columnheader" className="pb-1 text-center text-[10px] font-semibold uppercase text-slate-500 dark:text-slate-400">
                 {d}
               </div>
             ))}
@@ -2746,17 +2746,17 @@ export function TourDiary() {
                     </span>
                     <span className="mt-1.5 flex flex-wrap items-center gap-1">
                       {isSundayDay && (
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-[10px] font-black uppercase text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-[10px] font-semibold uppercase text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
                           Weekly Holiday
                         </span>
                       )}
                       {isSecondSaturdayDay && (
-                        <span className="inline-flex items-center rounded-full bg-orange-100 px-2 py-1 text-[10px] font-black uppercase text-orange-800 dark:bg-orange-900/40 dark:text-orange-200">
+                        <span className="inline-flex items-center rounded-full bg-orange-100 px-2 py-1 text-[10px] font-semibold uppercase text-orange-800 dark:bg-orange-900/40 dark:text-orange-200">
                           2nd Saturday
                         </span>
                       )}
                       {displayedHolidays.map((holiday) => (
-                        <span key={`${holiday.id}-${holiday.holiday_type}`} className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-black uppercase ${holiday.holiday_type === 'GENERAL' ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200' : 'border border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-200'}`}>
+                        <span key={`${holiday.id}-${holiday.holiday_type}`} className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold uppercase ${holiday.holiday_type === 'GENERAL' ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200' : 'border border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-200'}`}>
                           {holiday.holiday_name} - {getHolidayTypeLabel(holiday.holiday_type)}
                           {getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && holiday.holiday_type === 'OPTIONAL' && (
                             <span className="text-[9px]">(Availed)</span>
@@ -2764,16 +2764,16 @@ export function TourDiary() {
                         </span>
                       ))}
                       {(getDateLeaveType(date) === 'NORMAL_LEAVE' || getDateLeaveType(date) === 'OPTIONAL_HOLIDAY_LEAVE') && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] font-black uppercase text-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] font-semibold uppercase text-gray-800 dark:bg-gray-900/40 dark:text-gray-200">
                           Leave Availed
                         </span>
                       )}
                       {dayJourneys.length > 0 ? (
-                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black uppercase text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-semibold uppercase text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
                           {dayJourneys.length} {dayJourneys.length === 1 ? 'journey' : 'journeys'}
                         </span>
                       ) : !entryDisabled ? (
-                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                           No entry
                         </span>
                       ) : null}
@@ -2795,7 +2795,7 @@ export function TourDiary() {
                   <div id={`day-body-${date}`} className="mt-3">
                     {dateOverride && dateOverride.status !== 'WORKING' && (
                       <div className="mb-3 max-w-md">
-                        <label htmlFor={`holiday-name-${date}`} className="mb-1 block text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">Holiday Name</label>
+                        <label htmlFor={`holiday-name-${date}`} className="mb-1 block text-[10px] font-semibold uppercase text-slate-500 dark:text-slate-400">Holiday Name</label>
                         <input
                           id={`holiday-name-${date}`}
                           type="text"
@@ -2863,28 +2863,28 @@ export function TourDiary() {
 
                 <div className="mt-3 flex flex-wrap items-center justify-end gap-1.5 border-t border-emerald-100 pt-3 dark:border-emerald-900/60">
                   {dateOverride?.status === 'WORKING' && getDateLeaveType(date) !== 'NONE' && (
-                    <button type="button" onClick={() => cancelLeave(date)} className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Leave</button>
+                    <button type="button" onClick={() => cancelLeave(date)} className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-semibold uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Leave</button>
                   )}
                   {dateOverride?.status === 'WORKING' && getDateLeaveType(date) === 'NONE' && (
-                    <button type="button" onClick={() => restoreDefaultStatus(date)} className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">Restore Default</button>
+                    <button type="button" onClick={() => restoreDefaultStatus(date)} className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">Restore Default</button>
                   )}
                   {dateOverride?.status !== 'WORKING' && (isSundayDay || isSecondSaturdayDay || displayedHolidays.some(h => h.holiday_type === 'GENERAL')) && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
-                    <button type="button" onClick={() => markAsWorkingDay(date)} className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">Mark Working Day</button>
+                    <button type="button" onClick={() => markAsWorkingDay(date)} className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">Mark Working Day</button>
                   )}
                   {dateOverride?.status !== 'WORKING' && !isSundayDay && !isSecondSaturdayDay && !displayedHolidays.some(h => h.holiday_type === 'GENERAL') && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'NONE' && (
-                    <button type="button" onClick={() => availLeave(date)} className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-black uppercase text-rose-800 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-200">Avail Leave</button>
+                    <button type="button" onClick={() => availLeave(date)} className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-semibold uppercase text-rose-800 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-200">Avail Leave</button>
                   )}
                   {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'NONE' && (
                     <>
-                      <button type="button" onClick={() => availOptionalHoliday(date)} className="rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-[10px] font-black uppercase text-purple-800 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-200">Avail Optional Holiday</button>
-                      <button type="button" onClick={() => availLeaveOnOptionalHoliday(date)} className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-black uppercase text-rose-800 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-200">Avail Leave</button>
+                      <button type="button" onClick={() => availOptionalHoliday(date)} className="rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-[10px] font-semibold uppercase text-purple-800 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-200">Avail Optional Holiday</button>
+                      <button type="button" onClick={() => availLeaveOnOptionalHoliday(date)} className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-semibold uppercase text-rose-800 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-200">Avail Leave</button>
                     </>
                   )}
                   {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && (
-                    <button type="button" onClick={() => cancelOptionalHoliday(date)} className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Optional Holiday</button>
+                    <button type="button" onClick={() => cancelOptionalHoliday(date)} className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-semibold uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Optional Holiday</button>
                   )}
                   {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'OPTIONAL_HOLIDAY_LEAVE' && (
-                    <button type="button" onClick={() => cancelLeave(date)} className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Leave</button>
+                    <button type="button" onClick={() => cancelLeave(date)} className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-semibold uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Leave</button>
                   )}
                 </div>
               </div>

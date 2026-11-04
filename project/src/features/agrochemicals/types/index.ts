@@ -79,3 +79,43 @@ export interface AgrochemicalFilterOptions {
   moaGroup?: string;
   crop?: string;
 }
+
+export interface CropPestInsecticideEntry {
+  id: string;
+  crop: string;
+  cropTe: string;
+  pest: string;
+  pestTe: string;
+  insecticide: string;
+  insecticideTe: string;
+  aiDosePerHa: string;
+  formulationDosePerHa: string;
+  sprayFluidPerHa: string;
+  calculatedDosePerAcre: string;
+  calculatedDosePerPump: string;
+  cibrcPage: number;
+  chemicalId?: string | null;
+  chemicalFamily: string;
+  chemicalFamilyTe: string;
+  iracGroup: string;
+  moaGroupName: string;
+  moaDescription: string;
+  moaDescriptionTe: string;
+  popularBrands: string[];
+  toxicityBand: ToxicityBand;
+  toxicityLabel: string;
+  toxicityLabelTe: string;
+  waitingPeriodDays: string | number;
+  sprayPrecautions?: string;
+  sprayPrecautionsTe?: string;
+  antidoteInfo?: string;
+  antidoteInfoTe?: string;
+}
+
+export interface CropPestFilterOptions {
+  crop: string; // '' for all, or specific crop e.g. 'Paddy'
+  pest: string; // '' for all, or specific pest e.g. 'Stem borer'
+  query: string; // search in chemical, pest, brand, or IRAC
+  iracGroup?: string;
+  toxicityBand?: ToxicityBand | 'all';
+}

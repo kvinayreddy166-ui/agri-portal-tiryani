@@ -77,13 +77,13 @@ const cardThemes: Record<
 > = {
   teal: {
     bar: 'from-emerald-500 to-emerald-600',
-    gradientTop: 'from-emerald-500 via-teal-500 to-emerald-600',
-    iconBg: 'bg-gradient-to-br from-emerald-600 to-teal-700',
+    gradientTop: 'bg-slate-200 dark:bg-slate-700',
+    iconBg: 'bg-emerald-700 text-white',
     iconShadow: 'shadow-emerald-900/15',
     borderActive: 'border-emerald-500/60 ring-2 ring-emerald-500/10 dark:border-emerald-500',
     borderIdle: 'border-emerald-200/80 dark:border-emerald-900/50',
     borderHover: 'hover:border-emerald-300 dark:hover:border-emerald-700',
-    bgTint: 'from-white via-emerald-50/20 to-teal-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20',
+    bgTint: 'bg-white dark:bg-slate-900',
     badgeBg: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/60',
     badgeText: '3 Checklists',
     chevronOpen: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200',
@@ -92,13 +92,13 @@ const cardThemes: Record<
   },
   amber: {
     bar: 'from-amber-500 to-orange-500',
-    gradientTop: 'from-amber-400 via-orange-400 to-amber-500',
-    iconBg: 'bg-gradient-to-br from-amber-500 to-orange-600',
+    gradientTop: 'bg-slate-200 dark:bg-slate-700',
+    iconBg: 'bg-amber-700 text-white',
     iconShadow: 'shadow-amber-900/15',
     borderActive: 'border-amber-500/60 ring-2 ring-amber-500/10 dark:border-amber-500',
     borderIdle: 'border-amber-200/80 dark:border-amber-900/50',
     borderHover: 'hover:border-amber-300 dark:hover:border-amber-700',
-    bgTint: 'from-white via-amber-50/20 to-orange-50/25 dark:from-slate-900 dark:via-slate-900 dark:to-amber-950/20',
+    bgTint: 'bg-white dark:bg-slate-900',
     badgeBg: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/60',
     badgeText: '3 Notices',
     chevronOpen: 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200',
@@ -107,13 +107,13 @@ const cardThemes: Record<
   },
   rose: {
     bar: 'from-rose-500 to-red-600',
-    gradientTop: 'from-rose-500 via-red-500 to-rose-600',
-    iconBg: 'bg-gradient-to-br from-rose-500 to-red-600',
+    gradientTop: 'bg-slate-200 dark:bg-slate-700',
+    iconBg: 'bg-rose-700 text-white',
     iconShadow: 'shadow-rose-900/15',
     borderActive: 'border-rose-500/60 ring-2 ring-rose-500/10 dark:border-rose-500',
     borderIdle: 'border-rose-200/80 dark:border-rose-900/50',
     borderHover: 'hover:border-rose-300 dark:hover:border-rose-700',
-    bgTint: 'from-white via-rose-50/20 to-red-50/25 dark:from-slate-900 dark:via-slate-900 dark:to-rose-950/20',
+    bgTint: 'bg-white dark:bg-slate-900',
     badgeBg: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200/80 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-800/60',
     badgeText: '3 Orders',
     chevronOpen: 'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200',
@@ -122,13 +122,13 @@ const cardThemes: Record<
   },
   indigo: {
     bar: 'from-slate-700 to-blue-800',
-    gradientTop: 'from-slate-700 via-blue-800 to-slate-900',
+    gradientTop: 'bg-slate-200 dark:bg-slate-700',
     iconBg: 'bg-gradient-to-br from-slate-800 to-blue-900',
     iconShadow: 'shadow-slate-900/15',
     borderActive: 'border-blue-500/60 ring-2 ring-blue-500/10 dark:border-blue-500',
     borderIdle: 'border-slate-200/80 dark:border-slate-800',
     borderHover: 'hover:border-blue-400 dark:hover:border-blue-600',
-    bgTint: 'from-white via-slate-50/20 to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/40',
+    bgTint: 'bg-white dark:bg-slate-900',
     badgeBg: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
     badgeText: '3 Seizures',
     chevronOpen: 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200',
@@ -138,13 +138,13 @@ const cardThemes: Record<
   // Backward compatibility aliases
   cyan: {
     bar: 'from-amber-500 to-orange-500',
-    gradientTop: 'from-amber-400 via-orange-400 to-amber-500',
-    iconBg: 'bg-gradient-to-br from-amber-500 to-orange-600',
+    gradientTop: 'bg-slate-200 dark:bg-slate-700',
+    iconBg: 'bg-amber-700 text-white',
     iconShadow: 'shadow-amber-900/15',
     borderActive: 'border-amber-500/60 ring-2 ring-amber-500/10 dark:border-amber-500',
     borderIdle: 'border-amber-200/80 dark:border-amber-900/50',
     borderHover: 'hover:border-amber-300 dark:hover:border-amber-700',
-    bgTint: 'from-white via-amber-50/20 to-orange-50/25 dark:from-slate-900 dark:via-slate-900 dark:to-amber-950/20',
+    bgTint: 'bg-white dark:bg-slate-900',
     badgeBg: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/60',
     badgeText: '3 Notices',
     chevronOpen: 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200',
@@ -153,13 +153,13 @@ const cardThemes: Record<
   },
   sky: {
     bar: 'from-rose-500 to-red-600',
-    gradientTop: 'from-rose-500 via-red-500 to-rose-600',
-    iconBg: 'bg-gradient-to-br from-rose-500 to-red-600',
+    gradientTop: 'bg-slate-200 dark:bg-slate-700',
+    iconBg: 'bg-rose-700 text-white',
     iconShadow: 'shadow-rose-900/15',
     borderActive: 'border-rose-500/60 ring-2 ring-rose-500/10 dark:border-rose-500',
     borderIdle: 'border-rose-200/80 dark:border-rose-900/50',
     borderHover: 'hover:border-rose-300 dark:hover:border-rose-700',
-    bgTint: 'from-white via-rose-50/20 to-red-50/25 dark:from-slate-900 dark:via-slate-900 dark:to-rose-950/20',
+    bgTint: 'bg-white dark:bg-slate-900',
     badgeBg: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200/80 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-800/60',
     badgeText: '3 Orders',
     chevronOpen: 'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200',
@@ -310,8 +310,8 @@ export function InspectionEnforcementHub() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="text-[15px] font-black leading-tight text-slate-900 dark:text-white">{card.title}</p>
-                    <span className={`hidden sm:inline-flex rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${theme.badgeBg}`}>
+                    <p className="text-[15px] font-semibold leading-tight text-slate-900 dark:text-white">{card.title}</p>
+                    <span className={`hidden sm:inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-normal ${theme.badgeBg}`}>
                       {theme.badgeText}
                     </span>
                   </div>
@@ -342,7 +342,7 @@ export function InspectionEnforcementHub() {
                       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg shadow-xs transition-transform duration-200 group-hover/item:scale-105 ${chipClasses[item.tone]}`}>
                         <item.icon className="h-5 w-5" />
                       </span>
-                      <span className="flex-1 text-sm font-black text-slate-800 dark:text-slate-100">{item.label}</span>
+                      <span className="flex-1 text-sm font-semibold text-slate-800 dark:text-slate-100">{item.label}</span>
                       <ChevronRight className="h-4 w-4 text-slate-400 transition-transform duration-200 group-hover/item:translate-x-1 group-hover/item:text-slate-700 dark:text-slate-500 dark:group-hover/item:text-slate-200" strokeWidth={2.5} />
                     </button>
                   ))}
@@ -362,8 +362,8 @@ export function InspectionEnforcementHub() {
                   <FileText className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes[selectedNoticeCategory].eyebrow}`}>Notices &amp; memos</p>
-                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                  <p className={`text-[10px] font-semibold tracking-normal ${noticeModalThemes[selectedNoticeCategory].eyebrow}`}>Notices &amp; memos</p>
+                  <h2 className="max-w-full whitespace-normal text-base font-semibold leading-tight text-slate-900 dark:text-white sm:text-lg">
                     {NOTICE_TYPES.find((item) => item.category === selectedNoticeCategory)?.label} Show Cause Notice / Memo Entry
                   </h2>
                 </div>
@@ -371,7 +371,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setSelectedNoticeCategory(null)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>
@@ -394,10 +394,10 @@ export function InspectionEnforcementHub() {
                   <Ban className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.pesticide.eyebrow}`}>
+                  <p className={`text-[10px] font-semibold tracking-normal ${noticeModalThemes.pesticide.eyebrow}`}>
                     {pestStopSaleTab === 'issue' ? 'Stop Sale Order — Form V(A)' : 'Revocation of Stop Sale Order'}
                   </p>
-                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                  <h2 className="max-w-full whitespace-normal text-base font-semibold leading-tight text-slate-900 dark:text-white sm:text-lg">
                     {pestStopSaleTab === 'issue' ? 'Pesticide Stop Sale Order Entry' : 'Pesticide Stop Sale Revoke Entry'}
                   </h2>
                 </div>
@@ -405,7 +405,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setShowPesticideStopSale(false)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>
@@ -453,10 +453,10 @@ export function InspectionEnforcementHub() {
                   <Ban className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.fertiliser.eyebrow}`}>
+                  <p className={`text-[10px] font-semibold tracking-normal ${noticeModalThemes.fertiliser.eyebrow}`}>
                     {fertStopSaleTab === 'issue' ? 'Stop Sale Notice — Annexure-A' : 'Revoke of Stop Sale Order — Clause 28'}
                   </p>
-                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                  <h2 className="max-w-full whitespace-normal text-base font-semibold leading-tight text-slate-900 dark:text-white sm:text-lg">
                     {fertStopSaleTab === 'issue' ? 'Fertilizer Stop Sale Notice Entry' : 'Fertilizer Stop Sale Revoke Entry'}
                   </h2>
                 </div>
@@ -464,7 +464,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setShowFertilizerStopSale(false)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>
@@ -512,10 +512,10 @@ export function InspectionEnforcementHub() {
                   <Ban className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.seed.eyebrow}`}>
+                  <p className={`text-[10px] font-semibold tracking-normal ${noticeModalThemes.seed.eyebrow}`}>
                     {seedStopSaleTab === 'issue' ? 'Stop Sale Order — Form III' : 'Revocation of Stop Sale Order — Annexure-I'}
                   </p>
-                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                  <h2 className="max-w-full whitespace-normal text-base font-semibold leading-tight text-slate-900 dark:text-white sm:text-lg">
                     {seedStopSaleTab === 'issue' ? 'Seed Stop Sale Order Entry' : 'Seed Stop Sale Revoke Entry'}
                   </h2>
                 </div>
@@ -523,7 +523,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setShowSeedStopSale(false)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>
@@ -571,10 +571,10 @@ export function InspectionEnforcementHub() {
                   <PackageX className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.fertiliser.eyebrow}`}>
+                  <p className={`text-[10px] font-semibold tracking-normal ${noticeModalThemes.fertiliser.eyebrow}`}>
                     Seizure of Stock — Annexure 'AA', Clause 28(1)(d)
                   </p>
-                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                  <h2 className="max-w-full whitespace-normal text-base font-semibold leading-tight text-slate-900 dark:text-white sm:text-lg">
                     Fertilizer Seizure Order Entry
                   </h2>
                 </div>
@@ -582,7 +582,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setShowFertilizerSeizure(false)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>
@@ -605,10 +605,10 @@ export function InspectionEnforcementHub() {
                   <PackageX className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.seed.eyebrow}`}>
+                  <p className={`text-[10px] font-semibold tracking-normal ${noticeModalThemes.seed.eyebrow}`}>
                     Receipt of Records — Form IV, Sec. 14(1)(4), Seeds Act 1966
                   </p>
-                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                  <h2 className="max-w-full whitespace-normal text-base font-semibold leading-tight text-slate-900 dark:text-white sm:text-lg">
                     Seed Seizure — Form IV Entry
                   </h2>
                 </div>
@@ -616,7 +616,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setShowSeedSeizure(false)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>
@@ -639,10 +639,10 @@ export function InspectionEnforcementHub() {
                   <PackageX className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${noticeModalThemes.pesticide.eyebrow}`}>
+                  <p className={`text-[10px] font-semibold tracking-normal ${noticeModalThemes.pesticide.eyebrow}`}>
                     Receipt for Seized Insecticides — Form V(B), Rule 32, Sec. 21(1)(d)
                   </p>
-                  <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">
+                  <h2 className="max-w-full whitespace-normal text-base font-semibold leading-tight text-slate-900 dark:text-white sm:text-lg">
                     Pesticide Seizure — Form V(B) Entry
                   </h2>
                 </div>
@@ -650,7 +650,7 @@ export function InspectionEnforcementHub() {
               <button
                 type="button"
                 onClick={() => setShowPesticideSeizure(false)}
-                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
+                className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
               >
                 Close
               </button>

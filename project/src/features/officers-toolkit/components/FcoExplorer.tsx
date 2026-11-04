@@ -186,14 +186,14 @@ export function FcoExplorer({
               onClick={() => onOpenSection('forms')}
               className="rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-black text-violet-700 ring-1 ring-violet-200 transition hover:bg-violet-100 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-800"
             >
-              27 Forms
+              28 Forms
             </button>
             <button
               type="button"
               onClick={() => onOpenSection('schedules')}
               className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-black text-blue-700 ring-1 ring-blue-200 transition hover:bg-blue-100 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-800"
             >
-              8 Schedules
+              VIII Schedules
             </button>
           </div>
         </div>
