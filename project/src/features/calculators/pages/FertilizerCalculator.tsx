@@ -163,6 +163,8 @@ const UI_LABELS = {
     straightGrades: 'Straight',
     cropDoseTitle: 'PJTSAU Recommended Dose',
     totalFieldRequirement: 'Total Field Requirement for',
+    perAcreShort: 'Per Acre',
+    quickPresets: 'Quick N-P-K Presets',
   },
   te: {
     farmerDetails: 'రైతు వివరాలు (ఐచ్ఛికం)',
@@ -226,6 +228,8 @@ const UI_LABELS = {
     straightGrades: 'స్ట్రెయిట్',
     cropDoseTitle: 'PJTSAU సిఫారసు చేసిన మోతాదు',
     totalFieldRequirement: 'మొత్తం పొలం అవసరం',
+    perAcreShort: 'ఎకరానికి',
+    quickPresets: 'శీఘ్ర N-P-K ప్రీసెట్లు',
   },
 };
 
@@ -240,14 +244,6 @@ const PRESETS = [
 
 function gradeKey(grade: FertilizerGrade) {
   return grade.id || grade.name;
-}
-
-function getGradeLabel(grade: FertilizerGrade) {
-  const composition = gradeComposition(grade);
-  const entries = visibleNutrientKeys(composition)
-    .filter((nutrient) => numberValue(composition[nutrient]) > 0)
-    .map((nutrient) => `${nutrient.toUpperCase()} ${round(composition[nutrient])}`);
-  return entries.length ? `${grade.name} (${entries.join(', ')})` : grade.name;
 }
 
 function getAcres(areaValue: number, unit: string) {

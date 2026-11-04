@@ -5,7 +5,6 @@ import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '.
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { Crop, Scheme, SchemeBeneficiary, MandalOverview } from '../../../shared/types/database';
-import { GoogleMapWidget } from '../components/GoogleMapWidget';
 import { MandiPricesWidget } from '../components/MandiPricesWidget';
 import { WeatherWidget } from '../components/WeatherWidget';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
@@ -239,10 +238,7 @@ export const Dashboard = React.memo(function Dashboard() {
         </div>
       </div>
       <div className="dashboard-rise dashboard-delay-1 grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <GoogleMapWidget />
         <WeatherWidget />
-      </div>
-      <div className="dashboard-rise dashboard-delay-1">
         <MandiPricesWidget />
       </div>
 
