@@ -1914,10 +1914,10 @@ export function FertilizerCalculator() {
                     <FlaskConical className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] sm:text-xs font-semibold tracking-normal text-emerald-100 mb-0.5">
+                    <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
                       {language === 'te' ? 'వ్యవసాయ కాలిక్యులేటర్లు' : 'Farm Calculators'}
                     </p>
-                    <h1 className="text-base sm:text-lg md:text-xl font-semibold text-white leading-snug tracking-tight">
+                    <h1 className="text-base sm:text-lg md:text-xl font-black text-white leading-snug tracking-tight">
                       {language === 'te' ? 'ఎరువుల కాలిక్యులేటర్' : 'Fertilizer Calculator'}
                     </h1>
                     <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
@@ -1942,7 +1942,7 @@ export function FertilizerCalculator() {
         <section className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 print:hidden">
           <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-emerald-600" />
                 {language === 'te' ? 'ఎరువుల లెక్కింపు మార్గదర్శి' : 'Fertilizer Calculation Guide'}
               </h2>
@@ -1952,12 +1952,12 @@ export function FertilizerCalculator() {
                   : 'Calculate required fertilizer bags based on crop recommendations or manual N-P-K.'}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-start sm:self-auto w-fit">
               <button
                 type="button"
                 onClick={resetCalculator}
                 disabled={isResetting}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
               >
                 <RotateCcw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
                 {language === 'te' ? 'అన్నీ రీసెట్' : 'Reset All'}
@@ -1967,15 +1967,15 @@ export function FertilizerCalculator() {
 
           <div className="mt-3.5 grid gap-2 sm:grid-cols-3 border-t border-slate-100 pt-3 dark:border-slate-800">
             <div className="flex items-start gap-2.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-semibold text-white">1</span>
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-black text-white">1</span>
               <span>{language === 'te' ? 'పంట సిఫార్సును ఎంచుకోండి లేదా పోషకాలను మాన్యువల్‌గా నమోదు చేయండి.' : 'Select crop recommendation or enter nutrients manually.'}</span>
             </div>
             <div className="flex items-start gap-2.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-semibold text-white">2</span>
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-black text-white">2</span>
               <span>{language === 'te' ? 'విస్తీర్ణం నమోదు చేసి అందుబాటులో ఉన్న ఎరువులను ఎంచుకోండి.' : 'Enter area and choose available fertilizers.'}</span>
             </div>
             <div className="flex items-start gap-2.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-semibold text-white">3</span>
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-black text-white">3</span>
               <span>{language === 'te' ? 'ఎరువుల సంచులు మరియు విడత మోతాదులను వెంటనే చూడండి.' : 'See fertilizer bags and split doses instantly.'}</span>
             </div>
           </div>
@@ -1987,7 +1987,7 @@ export function FertilizerCalculator() {
             <button
               type="button"
               onClick={() => setShowFarmerDetails(!showFarmerDetails)}
-              className="flex flex-1 items-center justify-between rounded-xl bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="flex flex-1 items-center justify-between rounded-xl bg-slate-50 px-3.5 py-2.5 text-sm font-black text-slate-800 transition hover:bg-slate-100 dark:bg-slate-800/80 dark:text-slate-200 dark:hover:bg-slate-800"
             >
               <span className="flex items-center gap-2.5">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
@@ -2012,7 +2012,7 @@ export function FertilizerCalculator() {
           {showFarmerDetails && (
             <div className="mt-3.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
               <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-                <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{uiLabels.farmerName}</span>
+                <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.farmerName}</span>
                 <input
                   type="text"
                   value={farmerDetails.farmerName}
@@ -2022,7 +2022,7 @@ export function FertilizerCalculator() {
                 />
               </label>
               <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-                <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{uiLabels.village}</span>
+                <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.village}</span>
                 <input
                   type="text"
                   value={farmerDetails.village}
@@ -2032,7 +2032,7 @@ export function FertilizerCalculator() {
                 />
               </label>
               <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-                <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{uiLabels.ppbNumber}</span>
+                <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.ppbNumber}</span>
                 <input
                   type="text"
                   value={farmerDetails.ppbNumber}
@@ -2042,7 +2042,7 @@ export function FertilizerCalculator() {
                 />
               </label>
               <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-                <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{uiLabels.surveyNumber}</span>
+                <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.surveyNumber}</span>
                 <input
                   type="text"
                   value={farmerDetails.surveyNumber}
@@ -2052,7 +2052,7 @@ export function FertilizerCalculator() {
                 />
               </label>
               <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-                <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{uiLabels.mobileNumber}</span>
+                <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.mobileNumber}</span>
                 <input
                   type="tel"
                   value={farmerDetails.mobileNumber}
@@ -2062,7 +2062,7 @@ export function FertilizerCalculator() {
                 />
               </label>
               <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-                <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{uiLabels.acreage}</span>
+                <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.acreage}</span>
                 <input
                   type="number"
                   value={farmerDetails.acreage}
@@ -2083,7 +2083,7 @@ export function FertilizerCalculator() {
               <button
                 type="button"
                 onClick={() => setMode('simple')}
-                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition ${mode === 'simple' ? 'bg-white text-emerald-800 shadow-sm dark:bg-slate-900 dark:text-emerald-300' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-black transition ${mode === 'simple' ? 'bg-white text-emerald-800 shadow-sm dark:bg-slate-900 dark:text-emerald-300' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
               >
                 {mode === 'simple' && <Check className="h-3.5 w-3.5" />}
                 {language === 'te' ? repairTeluguText(uiLabels.mode1Simple) : 'Manual nutrients'}
@@ -2091,7 +2091,7 @@ export function FertilizerCalculator() {
               <button
                 type="button"
                 onClick={() => setMode('crop')}
-                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition ${mode === 'crop' ? 'bg-white text-emerald-800 shadow-sm dark:bg-slate-900 dark:text-emerald-300' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
+                className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-black transition ${mode === 'crop' ? 'bg-white text-emerald-800 shadow-sm dark:bg-slate-900 dark:text-emerald-300' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'}`}
               >
                 {mode === 'crop' && <Check className="h-3.5 w-3.5" />}
                 {language === 'te' ? repairTeluguText(uiLabels.mode2Crop) : 'Crop recommendation'}
@@ -2100,7 +2100,7 @@ export function FertilizerCalculator() {
 
             {mode === 'simple' ? (
               <div className="space-y-3">
-                <div className="grid grid-cols-2 rounded-xl bg-emerald-50/70 p-1 text-xs font-semibold dark:bg-emerald-950/40">
+                <div className="grid grid-cols-2 rounded-xl bg-emerald-50/70 p-1 text-xs font-black dark:bg-emerald-950/40">
                   <button
                     type="button"
                     onClick={() => setSimpleTab('forward')}
@@ -2124,12 +2124,12 @@ export function FertilizerCalculator() {
                     <div className="grid gap-2 sm:grid-cols-3">
                       {(['n', 'p', 'k'] as const).map((key) => (
                         <label key={key} className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40 sm:p-3">
-                          <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{key === 'n' ? uiLabels.nitrogen : key === 'p' ? uiLabels.phosphorus : uiLabels.potash}</span>
+                          <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{key === 'n' ? uiLabels.nitrogen : key === 'p' ? uiLabels.phosphorus : uiLabels.potash}</span>
                           <input
                             type="number"
                             value={required[key]}
                             onChange={(event) => setRequired((current) => ({ ...current, [key]: numberValue(event.target.value) }))}
-                            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white sm:text-lg"
+                            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-base font-black text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white sm:text-lg"
                           />
                         </label>
                       ))}
@@ -2155,7 +2155,7 @@ export function FertilizerCalculator() {
                     {grades.map((grade) => (
                       <label key={gradeKey(grade)} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
                         <span className="min-w-0">
-                          <span className="block text-xs font-semibold text-slate-900 dark:text-white">{grade.name}</span>
+                          <span className="block text-xs font-black text-slate-900 dark:text-white">{grade.name}</span>
                           <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{grade.bag_kg} {uiLabels.kgBag}</span>
                         </span>
                         <input
@@ -2164,7 +2164,7 @@ export function FertilizerCalculator() {
                           value={reverseBags[gradeKey(grade)] || ''}
                           onChange={(event) => setReverseBags((current) => ({ ...current, [gradeKey(grade)]: numberValue(event.target.value) }))}
                           placeholder={uiLabels.bags}
-                          className="w-24 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-right text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                          className="w-24 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-right text-sm font-black text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
                         />
                       </label>
                     ))}
@@ -2175,7 +2175,7 @@ export function FertilizerCalculator() {
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-                    <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{uiLabels.crop}</span>
+                    <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.crop}</span>
                     <select
                       value={selectedCrop}
                       onChange={(event) => setSelectedCrop(event.target.value)}
@@ -2185,7 +2185,7 @@ export function FertilizerCalculator() {
                     </select>
                   </label>
                   <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-                    <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{uiLabels.zone}</span>
+                    <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.zone}</span>
                     <select
                       value={selectedZone}
                       onChange={(event) => setSelectedZone(event.target.value)}
@@ -2195,7 +2195,7 @@ export function FertilizerCalculator() {
                     </select>
                   </label>
                   <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-                    <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{uiLabels.season}</span>
+                    <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.season}</span>
                     <select
                       value={selectedSeason}
                       onChange={(event) => setSelectedSeason(event.target.value)}
@@ -2205,7 +2205,7 @@ export function FertilizerCalculator() {
                     </select>
                   </label>
                   <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-                    <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{uiLabels.variety}</span>
+                    <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.variety}</span>
                     <select
                       value={selectedVariety}
                       onChange={(event) => setSelectedVariety(event.target.value)}
@@ -2215,7 +2215,7 @@ export function FertilizerCalculator() {
                     </select>
                   </label>
                   <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-                    <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{uiLabels.area}</span>
+                    <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.area}</span>
                     <input
                       type="number"
                       value={area.value}
@@ -2224,7 +2224,7 @@ export function FertilizerCalculator() {
                     />
                   </label>
                   <label className="block rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-                    <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{uiLabels.unit}</span>
+                    <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{uiLabels.unit}</span>
                     <select
                       value={area.unit}
                       onChange={(event) => setArea((current) => ({ ...current, unit: event.target.value }))}
@@ -2251,7 +2251,7 @@ export function FertilizerCalculator() {
                   <Leaf className="h-4 w-4" />
                 </span>
                 <div>
-                  <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{uiLabels.availableFertilizers}</h2>
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white">{uiLabels.availableFertilizers}</h2>
                   <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Select sources to fulfill requirements</p>
                 </div>
               </div>
@@ -2282,7 +2282,7 @@ export function FertilizerCalculator() {
                         <Check className="h-2.5 w-2.5" />
                       </span>
                     )}
-                    <span className="block text-xs font-semibold">{grade.name}</span>
+                    <span className="block text-xs font-black">{grade.name}</span>
                     <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{getGradeLabel(grade)} | {grade.bag_kg} {uiLabels.kgBag}</span>
                   </button>
                 );
@@ -2299,7 +2299,7 @@ export function FertilizerCalculator() {
                 <FileText className="h-4 w-4" />
               </span>
               <div>
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+                <h2 className="text-sm font-black text-slate-900 dark:text-white">
                   {simpleTab === 'reverse' && mode === 'simple' ? uiLabels.reverseCalculation : uiLabels.liveCalculation}
                 </h2>
                 <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Nutrient supply status</p>
@@ -2326,7 +2326,7 @@ export function FertilizerCalculator() {
                 <FileText className="h-4 w-4" />
               </span>
               <div>
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{uiLabels.fertilizerQuantityBreakdown}</h2>
+                <h2 className="text-sm font-black text-slate-900 dark:text-white">{uiLabels.fertilizerQuantityBreakdown}</h2>
                 <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Total bags & nutrients supplied</p>
               </div>
             </div>
@@ -2335,20 +2335,20 @@ export function FertilizerCalculator() {
                 <table className="w-full min-w-[580px] text-left text-xs">
                   <thead className="bg-slate-900 text-white dark:bg-slate-950">
                     <tr>
-                      <th className="px-3 py-2.5 font-semibold">{uiLabels.fertilizer}</th>
-                      <th className="px-3 py-2.5 text-right font-semibold">{uiLabels.kg}</th>
-                      <th className="px-3 py-2.5 text-right font-semibold">{uiLabels.bags}</th>
-                      <th className="px-3 py-2.5 text-right font-semibold">N</th>
-                      <th className="px-3 py-2.5 text-right font-semibold">P</th>
-                      <th className="px-3 py-2.5 text-right font-semibold">K</th>
+                      <th className="px-3 py-2.5 font-black">{uiLabels.fertilizer}</th>
+                      <th className="px-3 py-2.5 text-right font-black">{uiLabels.kg}</th>
+                      <th className="px-3 py-2.5 text-right font-black">{uiLabels.bags}</th>
+                      <th className="px-3 py-2.5 text-right font-black">N</th>
+                      <th className="px-3 py-2.5 text-right font-black">P</th>
+                      <th className="px-3 py-2.5 text-right font-black">K</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {activeCalculation.results.map((row) => (
                       <tr key={gradeKey(row.grade)} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 font-bold">
-                        <td className="px-3 py-2.5 font-semibold text-slate-900 dark:text-white">{row.grade.name}</td>
+                        <td className="px-3 py-2.5 font-black text-slate-900 dark:text-white">{row.grade.name}</td>
                         <td className="px-3 py-2.5 text-right">{round(row.kg)}</td>
-                        <td className="px-3 py-2.5 text-right font-semibold text-emerald-700 dark:text-emerald-400">{round(row.bags)}</td>
+                        <td className="px-3 py-2.5 text-right font-black text-emerald-700 dark:text-emerald-400">{round(row.bags)}</td>
                         <td className="px-3 py-2.5 text-right text-slate-600 dark:text-slate-300">{round(row.supplied.n)}</td>
                         <td className="px-3 py-2.5 text-right text-slate-600 dark:text-slate-300">{round(row.supplied.p)}</td>
                         <td className="px-3 py-2.5 text-right text-slate-600 dark:text-slate-300">{round(row.supplied.k)}</td>
@@ -2375,7 +2375,7 @@ export function FertilizerCalculator() {
                 type="button"
                 onClick={copyResult}
                 disabled={!activeCalculation?.results?.length}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-slate-800 active:scale-95 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white dark:disabled:bg-slate-700"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2.5 text-xs font-black text-white shadow-md transition hover:bg-slate-800 active:scale-95 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white dark:disabled:bg-slate-700"
               >
                 <Copy className="h-4 w-4" />
                 {copied ? (language === 'te' ? 'కాపీ అయింది' : 'Copied') : (language === 'te' ? 'ఫలితం కాపీ' : 'Copy Result')}
@@ -2385,7 +2385,7 @@ export function FertilizerCalculator() {
                 type="button"
                 onClick={shareWhatsApp}
                 disabled={!activeCalculation?.results?.length}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-emerald-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2.5 text-xs font-black text-white shadow-md transition hover:bg-emerald-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                 title="Share on WhatsApp"
               >
                 <WhatsAppIcon className="h-4 w-4" />
@@ -2396,7 +2396,7 @@ export function FertilizerCalculator() {
                 type="button"
                 onClick={exportPdf}
                 disabled={!activeCalculation?.results?.length}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 title="Export PDF"
               >
                 <FileText className="h-4 w-4 text-rose-500" />
@@ -2407,7 +2407,7 @@ export function FertilizerCalculator() {
                 type="button"
                 onClick={() => window.print()}
                 disabled={!activeCalculation?.results?.length}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 title="Print Report"
               >
                 <Printer className="h-4 w-4" />
@@ -2426,14 +2426,14 @@ export function FertilizerCalculator() {
                 <Leaf className="h-4 w-4" />
               </span>
               <div>
-                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{uiLabels.smartSplitDosePlanner}</h2>
+                <h2 className="text-sm font-black text-slate-900 dark:text-white">{uiLabels.smartSplitDosePlanner}</h2>
                 <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Application timings and stage-wise split</p>
               </div>
             </div>
             <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
               {splitFertilizerPlan.map(({ dose, nutrients, calculation: doseCalculation }) => (
                 <div key={dose.stage} className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-950/50">
-                  <p className="text-xs font-semibold text-slate-900 dark:text-white">{dose.stage}</p>
+                  <p className="text-xs font-black text-slate-900 dark:text-white">{dose.stage}</p>
                   <p className="mt-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
                     {uiLabels.target}: N {round(nutrients.n)} | P {round(nutrients.p)} | K {round(nutrients.k)}
                   </p>
@@ -2449,7 +2449,7 @@ export function FertilizerCalculator() {
                   <div className="mt-2.5 space-y-1.5">
                     {doseCalculation.results.filter((row) => row.kg > 0.01).length > 0 ? (
                       doseCalculation.results.filter((row) => row.kg > 0.01).map((row) => (
-                        <div key={gradeKey(row.grade)} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200/80 bg-white px-2.5 py-1.5 text-xs font-semibold shadow-2xs dark:border-slate-700 dark:bg-slate-900">
+                        <div key={gradeKey(row.grade)} className="flex items-center justify-between gap-2 rounded-lg border border-slate-200/80 bg-white px-2.5 py-1.5 text-xs font-black shadow-2xs dark:border-slate-700 dark:bg-slate-900">
                           <span className="truncate text-slate-800 dark:text-slate-200">{row.grade.name}</span>
                           <span className="shrink-0 text-emerald-700 dark:text-emerald-400">{round(row.kg)} {uiLabels.kg} / {round(row.bags)} {uiLabels.bags}</span>
                         </div>
@@ -2466,7 +2466,7 @@ export function FertilizerCalculator() {
 
         {/* Agronomic Notes */}
         <section className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-amber-950 shadow-sm dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100">
-          <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold"><Leaf className="h-4 w-4 text-amber-600 dark:text-amber-400" /> {uiLabels.importantAgronomicNote}</h2>
+          <h2 className="mb-2 flex items-center gap-2 text-sm font-black"><Leaf className="h-4 w-4 text-amber-600 dark:text-amber-400" /> {uiLabels.importantAgronomicNote}</h2>
           <ul className="space-y-1 text-xs font-bold">
             {visibleAgronomicNotes.map((note) => (
               <li key={note} className="flex items-start gap-1.5">
@@ -2480,10 +2480,10 @@ export function FertilizerCalculator() {
         {/* Admin Panel */}
         {isAdminUser && (
           <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
-            <h2 className="mb-3 text-base font-semibold text-slate-900 dark:text-white">{uiLabels.adminPanel}</h2>
+            <h2 className="mb-3 text-base font-black text-slate-900 dark:text-white">{uiLabels.adminPanel}</h2>
             {saveNotice && (
               <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50/80 p-3 text-emerald-950 shadow-2xs dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
-                <p className="text-xs font-semibold">{uiLabels.savedSuccessfully}</p>
+                <p className="text-xs font-black">{uiLabels.savedSuccessfully}</p>
                 <p className="mt-0.5 text-xs font-bold">{saveNotice.label}</p>
                 <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">{saveNotice.details}</p>
               </div>
@@ -2491,10 +2491,10 @@ export function FertilizerCalculator() {
             <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="text-xs font-semibold text-slate-900 dark:text-white">{uiLabels.saveCurrentCalculation}</p>
+                  <p className="text-xs font-black text-slate-900 dark:text-white">{uiLabels.saveCurrentCalculation}</p>
                   <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{uiLabels.storesCompleteInput}</p>
                 </div>
-                <button type="button" onClick={saveCalculation} className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-500">
+                <button type="button" onClick={saveCalculation} className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-500">
                   <Save className="h-3.5 w-3.5" /> {uiLabels.saveCalculation}
                 </button>
               </div>
@@ -2533,8 +2533,8 @@ function NutrientGauge({ label, value, max, color }: { label: string; value: num
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
       <div className="mb-1.5 flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold uppercase text-slate-500 dark:text-slate-400">{label}</span>
-        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${badgeColors}`}>{round(value)} kg</span>
+        <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">{label}</span>
+        <span className={`rounded-full px-2 py-0.5 text-xs font-black ${badgeColors}`}>{round(value)} kg</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
         <div className={`h-full rounded-full transition-all duration-300 ${barColors}`} style={{ width: `${width}%` }} />
@@ -2546,8 +2546,8 @@ function NutrientGauge({ label, value, max, color }: { label: string; value: num
 function SummaryTile({ title, values, tone }: { title: string; values: Nutrients; tone: string }) {
   return (
     <div className={`rounded-xl border p-2.5 ${tone}`}>
-      <p className="text-[11px] font-semibold uppercase">{title}</p>
-      <p className="mt-1 text-xs font-semibold">
+      <p className="text-[11px] font-black uppercase">{title}</p>
+      <p className="mt-1 text-xs font-black">
         {visibleNutrientKeys(values)
           .filter((nutrient) => numberValue(values[nutrient]) > 0 || ['n', 'p', 'k'].includes(nutrient))
           .map((nutrient) => `${nutrient.toUpperCase()} ${round(numberValue(values[nutrient]))}`)
@@ -2574,10 +2574,10 @@ function AdminGradeEditor({
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-      <h3 className="mb-2 text-xs font-semibold text-slate-900 dark:text-white">Fertilizer Grades</h3>
+      <h3 className="mb-2 text-xs font-black text-slate-900 dark:text-white">Fertilizer Grades</h3>
       <div className="grid gap-2">
         <EditorInputs value={draft} onChange={onDraftChange} />
-        <button type="button" onClick={() => onSave(draft)} disabled={loading} className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-500 disabled:opacity-50">
+        <button type="button" onClick={() => onSave(draft)} disabled={loading} className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-500 disabled:opacity-50">
           <Plus className="h-3.5 w-3.5" /> Add Fertilizer
         </button>
       </div>
@@ -2596,10 +2596,10 @@ function EditableGradeRow({ grade, onSave, onDelete }: { grade: FertilizerGrade;
     <div className="rounded-lg border border-slate-200 bg-white p-2 shadow-2xs dark:border-slate-700 dark:bg-slate-900">
       <EditorInputs value={value} onChange={setValue} />
       <div className="mt-2 flex flex-wrap gap-2">
-        <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-semibold text-white dark:bg-slate-800">
+        <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-black text-white dark:bg-slate-800">
           <Save className="h-3.5 w-3.5" /> Save
         </button>
-        <button type="button" onClick={() => onDelete(grade)} className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-rose-700">
+        <button type="button" onClick={() => onDelete(grade)} className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1 text-xs font-black text-white hover:bg-rose-700">
           <Trash2 className="h-3.5 w-3.5" /> Delete
         </button>
       </div>
@@ -2642,9 +2642,9 @@ function AdminCropEditor({
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-950/40">
-      <h3 className="mb-2 text-xs font-semibold text-slate-900 dark:text-white">Crop Recommendations</h3>
+      <h3 className="mb-2 text-xs font-black text-slate-900 dark:text-white">Crop Recommendations</h3>
       <CropInputs value={draft} onChange={onDraftChange} options={options} />
-      <button type="button" onClick={() => onSave(draft)} className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-500">
+      <button type="button" onClick={() => onSave(draft)} className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-emerald-500">
         <Plus className="h-3.5 w-3.5" /> Add Crop
       </button>
       <div className="mt-3 max-h-64 space-y-2 overflow-y-auto">
@@ -2662,10 +2662,10 @@ function EditableCropRow({ crop, onSave, onDelete, options }: { crop: CropRecomm
     <div className="rounded-lg border border-slate-200 bg-white p-2 shadow-2xs dark:border-slate-700 dark:bg-slate-900">
       <CropInputs value={value} onChange={setValue} options={options} />
       <div className="mt-2 flex flex-wrap gap-2">
-        <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-semibold text-white dark:bg-slate-800">
+        <button type="button" onClick={() => onSave(value)} className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-black text-white dark:bg-slate-800">
           <Save className="h-3.5 w-3.5" /> Save
         </button>
-        <button type="button" onClick={() => onDelete(crop)} className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-rose-700">
+        <button type="button" onClick={() => onDelete(crop)} className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1 text-xs font-black text-white hover:bg-rose-700">
           <Trash2 className="h-3.5 w-3.5" /> Delete
         </button>
       </div>

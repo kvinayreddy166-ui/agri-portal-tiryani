@@ -47,6 +47,7 @@ import {
   QualityControlHub,
   SeedDealerInspection,
   SeedRateCalculator,
+  SoilHealthMeter,
   Settings,
   StockAnalytics,
   StockReceiptsSales,
@@ -151,6 +152,8 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       return <IrrigationCalculator />;
     case 'profitability-calculator':
       return <ProfitabilityCalculator />;
+    case 'soil-health-meter':
+      return <SoilHealthMeter />;
     case 'acts-and-orders':
       return <ActsAndOrders />;
     case 'officer-contacts':
@@ -307,6 +310,8 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return <PublicToolkitPage><IrrigationCalculator /></PublicToolkitPage>;
     case 'profitability-calculator':
       return <PublicToolkitPage><ProfitabilityCalculator /></PublicToolkitPage>;
+    case 'soil-health-meter':
+      return <PublicToolkitPage><SoilHealthMeter /></PublicToolkitPage>;
     case 'acts-and-orders':
       return <PublicToolkitPage><ActsAndOrders /></PublicToolkitPage>;
     case 'officer-contacts':

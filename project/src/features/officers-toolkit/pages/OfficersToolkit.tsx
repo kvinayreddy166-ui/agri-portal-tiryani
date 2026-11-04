@@ -402,7 +402,7 @@ function ToolkitCard({ item, onClick }: { item: ToolkitItem; onClick: () => void
         </p>
       </div>
       {item.statusMessage && (
-        <span className="relative mt-2 inline-flex w-fit rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50 sm:text-[10px]">
+        <span className="relative mt-2 inline-flex w-fit rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50 sm:text-[10px]">
           {t(item.statusMessage, translateToolkit(item.statusMessage))}
         </span>
       )}
@@ -453,14 +453,14 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start gap-2.5 sm:gap-3">
-                      <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white shadow-sm ring-1 ring-white/25 backdrop-blur-xs mt-0.5">
-                        <ShieldCheck className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-white" />
+                      <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-gold-300 shadow-sm ring-1 ring-white/25 backdrop-blur-xs mt-0.5">
+                        <ShieldCheck className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-gold-300" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] sm:text-xs font-semibold tracking-normal text-emerald-200/80 mb-0.5">
+                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-200/80 mb-0.5">
                           {t('Official Portal', 'అధికారిక పోర్టల్')}
                         </p>
-                        <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-white leading-snug tracking-tight">
+                        <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
                           {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
                         </h1>
                         <p className="mt-0.5 text-xs sm:text-sm font-semibold text-gold-200 leading-snug max-w-3xl">
@@ -485,10 +485,10 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
 
         {shouldHideHeader && (
           <header className={`mb-4 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+            <p className="text-[11px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
               Officer Toolkit
             </p>
-            <h1 className="mt-0.5 text-2xl font-semibold leading-tight text-slate-900 dark:text-white sm:text-3xl">
+            <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-900 dark:text-white sm:text-3xl">
               {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
             </h1>
             <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
@@ -512,14 +512,14 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold transition duration-200 sm:text-sm ${
                   activeTab === tab.id
-                    ? 'bg-emerald-800 text-white shadow-xs'
+                    ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25'
                     : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-400 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300'
                 }`}
               >
-                <tab.icon className={`h-4 w-4 shrink-0 ${activeTab === tab.id ? 'text-white' : ''}`} />
+                <tab.icon className={`h-4 w-4 shrink-0 ${activeTab === tab.id ? 'text-gold-300' : ''}`} />
                 <span className="truncate">{t(tab.label, tab.te)}</span>
                 <span
-                  className={`hidden rounded-full px-1.5 py-0.5 text-xs font-medium leading-none sm:inline-block ${
+                  className={`hidden rounded-full px-1.5 py-0.5 text-[10px] font-black leading-none sm:inline-block ${
                     activeTab === tab.id
                       ? 'bg-white/15 text-emerald-50'
                       : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'

@@ -23,6 +23,16 @@ type SpacingUnit = 'cm' | 'm' | 'feet' | 'inches';
 export const SQ_METERS_PER_ACRE = 4046.86;
 const SQ_METERS_PER_HECTARE = 10000;
 
+const emptyForm = {
+  cropName: '',
+  areaValue: '',
+  areaUnit: 'acres' as AreaUnit,
+  rowSpacing: '',
+  rowSpacingUnit: 'cm' as SpacingUnit,
+  plantSpacing: '',
+  plantSpacingUnit: 'cm' as SpacingUnit,
+};
+
 const initialForm = {
   cropName: 'HDPS Cotton',
   areaValue: '1',
@@ -79,6 +89,7 @@ export function PlantPopulationCalculator() {
   const showCompactHeader = isAdminUser || isTestUser;
   const [form, setForm] = useState(initialForm);
   const [copied, setCopied] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const { toasts, removeToast, showWarning, showSuccess } = useToast();
   const calculation = useMemo(() => calculatePlantPopulation(form), [form]);
   const shareText = useMemo(() => buildShareText(form, calculation.result, t), [calculation.result, form, t]);
@@ -126,8 +137,11 @@ export function PlantPopulationCalculator() {
   };
 
   const reset = () => {
+    setIsResetting(true);
+    setTimeout(() => setIsResetting(false), 500);
     setCopied(false);
-    setForm(initialForm);
+    setForm(emptyForm);
+    showSuccess(t('Inputs Cleared', 'ఇన్‌పుట్‌లు తొలగించబడ్డాయి'), t('All input fields have been cleared.', 'అన్ని ఇన్‌పుట్ ఫీల్డ్‌లు ఖాళీ చేయబడ్డాయి.'));
   };
 
   const copyResult = async () => {
@@ -219,9 +233,9 @@ export function PlantPopulationCalculator() {
             <button
               type="button"
               onClick={reset}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 self-start sm:self-auto dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
             >
-              <RotateCcw className="h-3.5 w-3.5" />
+              <RotateCcw className={`h-3.5 w-3.5 transition-transform duration-500 ${isResetting ? 'animate-spin' : ''}`} />
               {t('Reset', 'రీసెట్')}
             </button>
           </div>

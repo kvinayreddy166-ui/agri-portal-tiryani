@@ -60,6 +60,7 @@ export function AcreageCalculator() {
   const [guntaInput, setGuntaInput] = useState(() => safeSessionStorage.getItem(GUNTAS_STORAGE_KEY) || '');
   const [hectareInput, setHectareInput] = useState(() => safeSessionStorage.getItem(HECTARES_STORAGE_KEY) || '');
   const [acresCentsPasteInput, setAcresCentsPasteInput] = useState(() => safeSessionStorage.getItem(ACRES_CENTS_PASTE_STORAGE_KEY) || '');
+  const [isResetting, setIsResetting] = useState(false);
 
   const result = useMemo(
     () => calculateAcreageResult({ mode, acreInput, centInput, guntaInput, hectareInput, acresCentsPasteInput, t }),
@@ -70,6 +71,8 @@ export function AcreageCalculator() {
   const hasInput = Boolean(acreInput || centInput || guntaInput || hectareInput || acresCentsPasteInput);
 
   const resetCalculator = () => {
+    setIsResetting(true);
+    setTimeout(() => setIsResetting(false), 500);
     setAcreInput('');
     setCentInput('');
     setGuntaInput('');
@@ -204,9 +207,9 @@ export function AcreageCalculator() {
               type="button"
               onClick={resetCalculator}
               disabled={!hasInput}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 self-start sm:self-auto dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
             >
-              <RotateCcw className="h-3.5 w-3.5" />
+              <RotateCcw className={`h-3.5 w-3.5 transition-transform duration-500 ${isResetting ? 'animate-spin' : ''}`} />
               {t('Clear Inputs', 'క్లియర్ చేయి')}
             </button>
           </div>

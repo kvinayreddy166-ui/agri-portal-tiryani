@@ -18,6 +18,7 @@ export const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/seed-rate-calculator',
   '/officer-toolkit/irrigation-calculator',
   '/officer-toolkit/profitability-calculator',
+  '/officer-toolkit/soil-health-meter',
   '/officer-toolkit/acts-and-orders',
   '/officer-toolkit/officer-contacts',
   '/officer-toolkit/tour-diary',
@@ -44,6 +45,7 @@ export const PUBLIC_PAGES = new Set([
   'seed-rate-calculator',
   'irrigation-calculator',
   'profitability-calculator',
+  'soil-health-meter',
   'acts-and-orders',
   'officer-contacts',
   'tour-diary',
@@ -87,6 +89,7 @@ export const PAGE_PATHS: Record<string, string> = {
   'seed-rate-calculator': '/officer-toolkit/seed-rate-calculator',
   'irrigation-calculator': '/officer-toolkit/irrigation-calculator',
   'profitability-calculator': '/officer-toolkit/profitability-calculator',
+  'soil-health-meter': '/officer-toolkit/soil-health-meter',
   'acts-and-orders': '/officer-toolkit/acts-and-orders',
   'officer-contacts': '/officer-toolkit/officer-contacts',
   'officer-contacts-admin': '/admin/officer-contacts',
@@ -132,7 +135,8 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
     pathname === '/officer-toolkit/plant-population-calculator' ||
     pathname === '/officer-toolkit/seed-rate-calculator' ||
     pathname === '/officer-toolkit/irrigation-calculator' ||
-    pathname === '/officer-toolkit/profitability-calculator'
+    pathname === '/officer-toolkit/profitability-calculator' ||
+    pathname === '/officer-toolkit/soil-health-meter'
   ) {
     return '/officer-toolkit/farm-calculators';
   }
@@ -166,7 +170,7 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
   if (page === 'license-services') return '/officer-toolkit';
   if (page === 'farm-calculators') return '/officer-toolkit';
   if (page === 'agrochemicals') return '/officer-toolkit';
-  if (page === 'fertilizer-calculator' || page === 'pesticide-calculator' || page === 'plant-population-calculator' || page === 'seed-rate-calculator' || page === 'irrigation-calculator' || page === 'profitability-calculator') return '/officer-toolkit/farm-calculators';
+  if (page === 'fertilizer-calculator' || page === 'pesticide-calculator' || page === 'plant-population-calculator' || page === 'seed-rate-calculator' || page === 'irrigation-calculator' || page === 'profitability-calculator' || page === 'soil-health-meter') return '/officer-toolkit/farm-calculators';
   if (page === 'acts-and-orders') return '/officer-toolkit';
   if (page.startsWith('knowledge-')) return '/knowledge';
   if (page === 'knowledge') return '/dashboard';
@@ -210,6 +214,7 @@ export const VALID_PAGES = new Set([
   'seed-rate-calculator',
   'irrigation-calculator',
   'profitability-calculator',
+  'soil-health-meter',
   'acts-and-orders',
   'officer-contacts',
   'officer-contacts-admin',
@@ -254,6 +259,7 @@ const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'seed-rate-calculator',
   'irrigation-calculator',
   'profitability-calculator',
+  'soil-health-meter',
   'acts-and-orders',
   'legal-ready-reckoner',
   'officer-contacts',

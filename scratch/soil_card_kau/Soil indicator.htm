@@ -1,0 +1,136 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>SUN</title>
+<script>
+function change(obj) {
+	Indicator=["","Good","Medium","Poor"];
+	Colour=["","Green","Yellow","Red"];
+	document.getElementById(obj.id+"Interpretation").style.backgroundColor=Colour[obj.value];
+	document.getElementById(obj.id+"Interpretation").innerHTML=Indicator[obj.value];
+}
+</script>
+</head>
+
+<body>
+
+<div align="center">
+	<table cellSpacing="1" cellPadding="5" width="80%">
+		<tr class="bg2">
+			<td class="brd1" align="left" colSpan="2" bgcolor="#008000">
+			<p align="right"><b><font face="Verdana" size="4" color="#FFFFFF">
+			Field Level Indicators </font></b></p>
+			<p align="right">&nbsp;</td>
+		</tr>
+		<tr class="bgGray">
+			<td class="brd1" width="80%" bgcolor="#DDDDDD">
+			<b><font size="2" face="Verdana">Soil health indicators</font></b></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%"><b>
+			<font size="2" face="Verdana">Interpretation</font></b></td>
+		</tr>
+		<tr class="bgGray">
+			<td class="brd1" width="80%" bgcolor="#DDDDDD">
+			<b>A. Physical Indicators</b></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			&nbsp;</td>
+		</tr>
+		<tr class="bgGray">
+			<td class="brd1" width="80%" bgcolor="#DDDDDD">
+			<b>1. Soil structure </b><br>
+				<input type="radio" value="1" name="ss" id="ss" onchange=change(this)> Soil breaks easily leaving no clods.Spongy when you walk on it.<br>
+				<input type="radio" value="2" name="ss" id="ss" onchange=change(this)> Soil breaks under pressure leaving a few clods<br>
+				<input type="radio" value="3" name="ss" id="ss" onchange=change(this)> Looks dead.Like brick or concrete, cloddy and hard to operate.<br>
+			</td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="ssInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" width="80%" bgcolor="#DDDDDD">
+			<b>2. Drainage, Infiltration</b><br>
+				<input type="radio" value="1" name="di" id="di" onchange=change(this)> No ponding,no runoff, water moves through soil steadily. Soil not too wet,not too dry.<br>
+				<input type="radio" value="2" name="di" id="di" onchange=change(this)> Water lays for short period of time, eventually drains.<br>
+				<input type="radio" value="3" name="di" id="di" onchange=change(this)> Water lays for a long time, evaporates more than drains, always very wet ground.<br>
+			</td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="diInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><b>3. Water holding </b><br>
+			<input type="radio" value="1" name="wh" id="wh" onchange=change(this)> Crops seldom suffer from moderate dry spells <br>
+			<input type="radio" value="2" name="wh" id="wh" onchange=change(this)> Water shortage after a week or so <br>
+			<input type="radio" value="3" name="wh" id="wh" onchange=change(this)> Plant stress two days after a good rain <br>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="whInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><b>4. Sub surface compaction </b><br>
+			<input type="radio" value="1" name="sc" id="sc" onchange=change(this)> Easy penetration of wire flag beyond tillage layer <br>
+			<input type="radio" value="2" name="sc" id="sc" onchange=change(this)> Some restrictions to penetrating flag and root growth <br>
+			<input type="radio" value="3" name="sc" id="sc" onchange=change(this)> Wire flag bends readily; obvious hard pan; turned roots<br>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="scInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><b>5. Soil erosion</b><br>
+			<input type="radio" value="1" name="se" id="se" onchange=change(this)> No gullies or rills, clear or no runoff. <br>
+			<input type="radio" value="2" name="se" id="se" onchange=change(this)> Few rills or gullies, gullies up to two inches deep. Some swift runoff, colored water<br>
+			<input type="radio" value="3" name="se" id="se" onchange=change(this)> Large gullies over 2 inches deep joined to others, thin or no topsoil, rapid run-off the color of soil.<br>
+			</td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="seInterpretation"></div></td>
+		</tr>
+		<tr class="bgGray">
+			<td class="brd1" width="80%" bgcolor="#DDDDDD">
+			<b>B. Biological Indicators</b></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			&nbsp;</td>
+		</tr>
+		<tr class="bgGray">
+			<td class="brd1" width="80%" bgcolor="#DDDDDD">
+			<b>1. Organic matter </b><br>
+			<input type="radio" value="1" name="om" id="om" onchange=change(this)> Topsoil clearly defined, darker than subsoil<br>
+			<input type="radio" value="2" name="om" id="om" onchange=change(this)> Surface color closer to subsoil color<br>
+			<input type="radio" value="3" name="om" id="om" onchange=change(this)> Topsoil color similar to subsoil color.</td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="omInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><b>2. </b>
+			<b>Earthworm </b><br>
+			<input type="radio" value="1" name="ew" id="ew" onchange=change(this)> Many earth worms, earthworm holes and casts. Birds behind tillage. <br>
+			<input type="radio" value="2" name="ew" id="ew" onchange=change(this)> Some earth worms with few holes and casts <br>
+			<input type="radio" value="3" name="ew" id="ew" onchange=change(this)> No visible signs of earth worm activity</td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="ewInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><b>3. Crop Condition </b><br>
+			<input type="radio" value="1" name="cc" id="cc" onchange=change(this)> Normal healthy dark green color, excellent growth all season,across field.<br>
+			<input type="radio" value="2" name="cc" id="cc" onchange=change(this)> Some uneven and stunted growth, slight discoloration. <br>
+			<input type="radio" value="3" name="cc" id="cc" onchange=change(this)> Problem growing throughout season, poor growth, discoloration,uneven stand</td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="ccInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><b>4. Microbial activity </b><br>
+			<input type="radio" value="1" name="ma" id="ma" onchange=change(this)> Residue in all stages of decomposition, earthy, sweet smell <br>
+			<input type="radio" value="2" name="ma" id="ma" onchange=change(this)> Some plant residues slowly decomposing <br>
+			<input type="radio" value="3" name="ma" id="ma" onchange=change(this)> No plant residue or residue not decomposing for longer periods</td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="maInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><b>5. Root growth </b><br>
+			<input type="radio" value="1" name="rg" id="rg" onchange=change(this)>Vigorous, healthy root system with desirable root colour <br>
+			<input type="radio" value="2" name="rg" id="rg" onchange=change(this)>Some fine roots: mostly healthy <br>
+			<input type="radio" value="3" name="rg" id="rg" onchange=change(this)>Poor root growth and structure: brown or mushy roots</td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="rgInterpretation"></div></td>
+		</tr>
+	</table>
+
+
+</body>
+
+</html>

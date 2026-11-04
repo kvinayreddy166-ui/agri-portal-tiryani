@@ -44,6 +44,33 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+const emptyDripForm: DripIrrigationInput = {
+  cropName: '',
+  area: 0,
+  areaUnit: 'acres',
+  rowSpacing: 0,
+  rowSpacingUnit: 'cm',
+  plantSpacing: 0,
+  plantSpacingUnit: 'cm',
+  emitterSpacing: 0,
+  emitterSpacingUnit: 'cm',
+  emitterDischarge: 0,
+  waterRequirementPerPlant: 0,
+  pumpHorsePower: 0,
+};
+
+const emptySprinklerForm: SprinklerIrrigationInput = {
+  cropName: '',
+  area: 0,
+  areaUnit: 'acres',
+  spacingX: 0,
+  spacingY: 0,
+  nozzleDischargeLph: 0,
+  operatingSprinklers: 0,
+  targetDepthMm: 0,
+  pumpHorsePower: 0,
+};
+
 const defaultDripForm: DripIrrigationInput = {
   cropName: 'Bt Cotton',
   area: 1,
@@ -95,6 +122,7 @@ export function IrrigationCalculator() {
   const [dripForm, setDripForm] = useState<DripIrrigationInput>(defaultDripForm);
   const [sprinklerForm, setSprinklerForm] = useState<SprinklerIrrigationInput>(defaultSprinklerForm);
   const [copied, setCopied] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   // Calculations
   const dripResult: DripIrrigationResult = useMemo(
@@ -146,13 +174,19 @@ export function IrrigationCalculator() {
   };
 
   const resetDrip = () => {
-    setDripForm(defaultDripForm);
+    setIsResetting(true);
+    setTimeout(() => setIsResetting(false), 500);
+    setDripForm(emptyDripForm);
     setCopied(false);
+    showSuccess(t('Inputs Cleared', 'ఇన్‌పుట్‌లు తొలగించబడ్డాయి'), t('All input fields have been cleared.', 'అన్ని ఇన్‌పుట్ ఫీల్డ్‌లు ఖాళీ చేయబడ్డాయి.'));
   };
 
   const resetSprinkler = () => {
-    setSprinklerForm(defaultSprinklerForm);
+    setIsResetting(true);
+    setTimeout(() => setIsResetting(false), 500);
+    setSprinklerForm(emptySprinklerForm);
     setCopied(false);
+    showSuccess(t('Inputs Cleared', 'ఇన్‌పుట్‌లు తొలగించబడ్డాయి'), t('All input fields have been cleared.', 'అన్ని ఇన్‌పుట్ ఫీల్డ్‌లు ఖాళీ చేయబడ్డాయి.'));
   };
 
   // Advisory Share text
@@ -288,9 +322,9 @@ export function IrrigationCalculator() {
             <button
               type="button"
               onClick={mode === 'drip' ? resetDrip : resetSprinkler}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 self-start sm:self-auto"
+              className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100 self-start sm:self-auto dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
             >
-              <RotateCcw className="h-3.5 w-3.5" />
+              <RotateCcw className={`h-3.5 w-3.5 transition-transform duration-500 ${isResetting ? 'animate-spin' : ''}`} />
               {t('Reset', 'రీసెట్')}
             </button>
           </div>

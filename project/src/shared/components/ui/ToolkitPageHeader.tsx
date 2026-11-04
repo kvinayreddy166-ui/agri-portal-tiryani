@@ -31,7 +31,7 @@ const TONE_STYLES: Record<
   }
 > = {
   emerald: {
-    container: 'border border-emerald-200/80 bg-white dark:bg-slate-900 shadow-xs dark:border-emerald-900/40',
+    container: 'border-emerald-200 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 shadow-md dark:border-emerald-800/50 dark:from-emerald-950/40 dark:via-slate-900 dark:to-emerald-900/30',
     iconBg: 'bg-emerald-600 text-white dark:bg-emerald-500',
     eyebrow: 'text-emerald-800 dark:text-emerald-300',
     title: 'text-emerald-950 dark:text-emerald-50',
@@ -73,7 +73,7 @@ const TONE_STYLES: Record<
     backBtn: 'text-amber-800 hover:text-amber-950 dark:text-amber-200 dark:hover:text-white',
   },
   'teal-indigo': {
-    container: 'border border-slate-200 bg-white dark:bg-slate-900 shadow-xs dark:border-slate-800',
+    container: 'border-indigo-300 bg-gradient-to-r from-emerald-200 via-cyan-200 to-indigo-200 shadow-md dark:border-indigo-800/50 dark:from-emerald-950/40 dark:via-slate-900 dark:to-indigo-950/40',
     iconBg: 'bg-gradient-to-br from-emerald-600 to-indigo-600 text-white',
     eyebrow: 'text-emerald-800 dark:text-emerald-300',
     title: 'text-indigo-950 dark:text-indigo-50',
@@ -151,11 +151,11 @@ const SOLID_STYLES: Record<
 };
 
 const BAR_STYLES: Record<ToolkitHeaderTone, string> = {
-  emerald: 'bg-emerald-600',
-  sky: 'bg-sky-600',
+  emerald: 'from-emerald-700 via-gold-400 to-emerald-600',
+  sky: 'from-sky-400 via-blue-500 to-cyan-400',
   rose: 'from-rose-500 via-pink-500 to-rose-400',
   lime: 'from-lime-500 via-green-500 to-emerald-400',
-  indigo: 'bg-indigo-600',
+  indigo: 'from-indigo-600 via-blue-600 to-teal-500',
   amber: 'from-amber-500 via-orange-500 to-amber-400',
   'teal-indigo': 'from-emerald-600 via-teal-600 to-cyan-600',
   blue: 'from-blue-500 via-blue-400 to-blue-600',
@@ -208,11 +208,11 @@ export function CompactToolkitHeader({
               )}
               <div className="min-w-0 flex-1">
                 {eyebrow && (
-                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300 mb-0.5">
                     {eyebrow}
                   </p>
                 )}
-                <h1 className="text-lg sm:text-xl font-semibold leading-tight text-slate-900 dark:text-white sm:text-2xl">
+                <h1 className="text-lg sm:text-xl font-black leading-tight text-slate-950 dark:text-white sm:text-2xl">
                   {title}
                 </h1>
                 {subtitle && (
@@ -302,11 +302,11 @@ export function ToolkitPageHeader({
               )}
               <div className="min-w-0 flex-1">
                 {eyebrow && (
-                  <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-0.5 ${theme.eyebrow}`}>
+                  <p className={`text-[10px] sm:text-xs font-black uppercase tracking-wider mb-0.5 ${theme.eyebrow}`}>
                     {eyebrow}
                   </p>
                 )}
-                <h1 className={`text-lg sm:text-xl md:text-2xl font-semibold leading-snug tracking-tight ${theme.title}`}>
+                <h1 className={`text-lg sm:text-xl md:text-2xl font-black leading-snug tracking-tight ${theme.title}`}>
                   {title}
                 </h1>
                 {subtitle && (

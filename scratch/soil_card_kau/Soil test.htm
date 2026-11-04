@@ -1,0 +1,310 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>SUN</title>
+<script>
+function phchange() {
+	phI=["","Strongly acidic","Moderately acidic","Slightly acidic","Neutral"];
+//	phD=["","Apply lime 80 kg","Apply lime 40 kg","Apply lime 20 kg",""];
+	phColour=["","#FF0000","#FFFF00","#00FFFF","#00FF00"];
+	ph=document.forms[0].D1.value;
+	document.getElementById("phInterpretation").style.backgroundColor=phColour[ph];
+	document.getElementById("phInterpretation").innerHTML=phI[ph];
+//	document.getElementById("phRecommendation").innerHTML=phD[ph];
+}
+function ecchange() {
+	ecI=["","Low","Medium","High"];
+	ecColour=["","#FF0000","#FFFF00","#00FF00"];
+	ec=document.forms[0].D2.value;
+	document.getElementById("ecInterpretation").style.backgroundColor=ecColour[ec];
+	document.getElementById("ecInterpretation").innerHTML=ecI[ec];
+}
+function occhange() {
+	ocI=["","Low","Medium","High"];
+	ocColour=["","#FF0000","#FFFF00","#00FF00"];
+	oc=document.forms[0].D3.value;
+	document.getElementById("ocInterpretation").style.backgroundColor=ocColour[oc];
+	document.getElementById("ocInterpretation").innerHTML=ocI[oc];
+}
+function apchange() {
+	apI=["","Low","Medium","High"];
+	apColour=["","#FF0000","#FFFF00","#00FF00"];
+	ap=document.forms[0].D4.value;
+	document.getElementById("apInterpretation").style.backgroundColor=apColour[ap];
+	document.getElementById("apInterpretation").innerHTML=apI[ap];
+}
+function akchange() {
+	akI=["","Low","Medium","High"];
+	akColour=["","#FF0000","#FFFF00","#00FF00"];
+	ak=document.forms[0].D5.value;
+	document.getElementById("akInterpretation").style.backgroundColor=akColour[ak];
+	document.getElementById("akInterpretation").innerHTML=akI[ak];
+}
+function acchange() {
+	acI=["","Low","Medium","High"];
+	acColour=["","#FF0000","#FFFF00","#00FF00"];
+	ac=document.forms[0].D6.value;
+	document.getElementById("acInterpretation").style.backgroundColor=acColour[ac];
+	document.getElementById("acInterpretation").innerHTML=acI[ac];
+}
+function amchange() {
+	amI=["","Low","Medium","High"];
+	amColour=["","#FF0000","#FFFF00","#00FF00"];
+	am=document.forms[0].D7.value;
+	document.getElementById("amInterpretation").style.backgroundColor=amColour[am];
+	document.getElementById("amInterpretation").innerHTML=amI[am];
+}
+function aschange() {
+	asI=["","Insufficient","Sufficient"];
+	asColour=["","#FF0000","#00FF00"];
+	as=document.forms[0].D8.value;
+	document.getElementById("asInterpretation").style.backgroundColor=asColour[as];
+	document.getElementById("asInterpretation").innerHTML=asI[as];
+}
+function zhchange() {
+	zhI=["","Low","Medium","High"];
+	zhColour=["","#FF0000","#FFFF00","#00FF00"];
+	zh=document.forms[0].D14.value;
+	document.getElementById("zhInterpretation").style.backgroundColor=zhColour[zh];
+	document.getElementById("zhInterpretation").innerHTML=zhI[zh];
+}
+function mhchange() {
+	mhI=["","Low","Medium","High"];
+	mhColour=["","#FF0000","#FFFF00","#00FF00"];
+	mh=document.forms[0].D10.value;
+	document.getElementById("mhInterpretation").style.backgroundColor=mhColour[mh];
+	document.getElementById("mhInterpretation").innerHTML=mhI[mh];
+}
+function ihchange() {
+	ihI=["","Insufficient","Sufficient"];
+	ihColour=["","#FF0000","#00FF00"];
+	ih=document.forms[0].D11.value;
+	document.getElementById("ihInterpretation").style.backgroundColor=ihColour[ih];
+	document.getElementById("ihInterpretation").innerHTML=ihI[ih];
+}
+function chchange() {
+	chI=["","Low","Medium","High"];
+	chColour=["","#FF0000","#FFFF00","#00FF00"];
+	ch=document.forms[0].D12.value;
+	document.getElementById("chInterpretation").style.backgroundColor=chColour[ch];
+	document.getElementById("chInterpretation").innerHTML=chI[ch];
+}
+function bochange() {
+	boI=["","Low","Medium","High"];
+	boColour=["","#FF0000","#FFFF00","#00FF00"];
+	bo=document.forms[0].D13.value;
+	document.getElementById("boInterpretation").style.backgroundColor=boColour[bo];
+	document.getElementById("boInterpretation").innerHTML=boI[bo];
+}
+</script>
+</head>
+
+<body>
+
+<div align="center">
+	<table cellSpacing="1" cellPadding="5" width="80%">
+		<tr class="bg2">
+			<td class="brd1" align="left" colSpan="3" bgcolor="#008000">
+			<p align="right"><b><font face="Verdana" size="4" color="#FFFFFF">
+			Soil Test Results</font></b></p>
+			<p align="right">&nbsp;</td>
+		</tr>
+		<tr class="bgGray">
+			<td class="brd1" width="60%" bgcolor="#DDDDDD">
+			<b><font size="2" face="Verdana">Soil test parameters</font></b></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%"><b>
+			<font size="2" face="Verdana">Data</font></b></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%"><b>
+			<font size="2" face="Verdana">Interpretation</font></b></td>
+		</tr>
+		<tr class="bgGray">
+			<td class="brd1" width="60%" bgcolor="#DDDDDD">
+			<font size="2" face="Verdana">Soil pH</font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<form method="POST" action="--WEBBOT-SELF--">
+				<!--webbot bot="SaveResults" U-File="fpweb:///_private/form_results.csv" S-Format="TEXT/CSV" S-Label-Fields="TRUE" -->
+				<p align="center"><font face="Verdana" >
+				<select size="1" name="D1" id="D1" onChange="phchange(); " style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>Below 5.5</option>
+				<option value=2>5.6 to 6</option>
+				<option value=3>6.1 to 6.5</option>
+				<option value=4>6.6 to 7.3</option>
+				</select></font></p>
+			</td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="phInterpretation"></div></td>
+		</tr>
+		<tr class="bgGray">
+			<td class="brd1" width="60%" bgcolor="#DDDDDD">
+			<font face="Verdana" size="2">Electrical conductivity -dS/m</font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<p align="center"><font face="Verdana">
+			<select size="1" name="D2" id="D2"  onChange="ecchange();" style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>Below 1</option>
+				<option value=2>1 to 3</option>
+				<option value=3>Above 3</option>
+				</select></font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="ecInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><font face="Verdana" size="2">
+			Organic carbon - %</font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<p align="center"><font face="Verdana">
+			<select size="1" name="D3" id="D3" onChange="occhange(); " style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>Below 0.76 %</option>
+				<option value=2>0.76 % to 1.50 %</option>
+				<option value=3>Above 1.50 %</option>
+				</select></font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="ocInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><font face="Verdana" size="2">
+			Available Phospherous -kg/ha</font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<p align="center"><font face="Verdana">
+			<select size="1" name="D4" id="D4" onChange="apchange(); " style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>Below 10 kg/ha</option>
+				<option value=2>10 to 24 kg/ha</option>
+				<option value=3>Above 24 kg/ha</option>
+				</select></font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%"><div id="apInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><font face="Verdana" size="2">
+			Available Potash -kg/ha </font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<p align="center"><font face="Verdana">
+			<select size="1" name="D5" id="D5" onChange="akchange(); " style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>Below 115 kg/ha</option>
+				<option value=2>115 to 275 kg/ha</option>
+				<option value=3>Above 275 kg/ha</option>
+				</select></font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="akInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><font face="Verdana" size="2">
+			Available calcium -mg/kg</font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<p align="center"><font face="Verdana">
+			<select size="1" name="D6" id="D6" onChange="acchange(); " style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>500-1000 ppm</option>
+				<option value=2>1000-1600 ppm</option>
+				<option value=3>1600-2400 ppm</option>
+				</select></font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="acInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><font face="Verdana" size="2">
+			Available magnesium -mg/kg </font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<p align="center"><font face="Verdana">
+			<select size="1" name="D7" id="D7" onChange="amchange(); " style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>20-40 ppm</option>
+				<option value=2>40-80 ppm</option>
+				<option value=3>80-180 ppm</option>
+				</select></font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="amInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><font face="Verdana" size="2">
+			Available sulpher - mg/kg</font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<p align="center"><font face="Verdana">
+			<select size="1" name="D8" id="D8" onChange="aschange(); " style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>Below 10 ppm</option>
+				<option value=2>Above 10 ppm</option>
+				</select></font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="asInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><font face="Verdana" size="2">
+			Zinc -HCl- mg/kg</font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<p align="center"><font face="Verdana">
+			<select size="1" name="D14" id="D14" onChange="zhchange(); " style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>Below 0.5 ppm</option>
+				<option value=2>0.5 to 1 ppm</option>
+				<option value=3>Above 1 ppm</option>
+				</select></font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="zhInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><font face="Verdana" size="2">
+			Maganese- HCl- mg/kg</font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<p align="center"><font face="Verdana">
+			<select size="1" name="D10" id="D10" onChange="mhchange(); " style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>Below 1 ppm</option>
+				<option value=2>1 to 3 ppm</option>
+				<option value=3>Above 3 ppm</option>
+				</select></font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="mhInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><font face="Verdana" size="2">
+			Iron - HCl- mg/kg</font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<p align="center"><font face="Verdana">
+			<select size="1" name="D11" id="D11" onChange="ihchange(); " style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>Below 3.7 ppm</option>
+				<option value=2>Above 3.7 ppm</option>
+				</select></font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="ihInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><font face="Verdana" size="2">
+			Copper - HCl- mg/kg</font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<p align="center"><font face="Verdana">
+			<select size="1" name="D12" id="D12" onChange="chchange(); " style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>Below 0.5 ppm</option>
+				<option value=2>0.5 to 1 ppm</option>
+				<option value=3>Above 1 ppm</option>
+				</select></font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="chInterpretation"></div></td>
+		</tr>
+		<tr>
+			<td class="brd1" bgcolor="#DDDDDD"><font face="Verdana" size="2">
+			Boron - mg/kg</font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<p align="center"><font face="Verdana">
+			<select size="1" name="D13" id="D13" onChange="bochange(); " style="width: 80%">
+				<option value=0>Select</option>
+				<option value=1>Below 0.5 ppm</option>
+				<option value=2>0.5 to 1 ppm</option>
+				<option value=3>Above 1 ppm</option>
+				</select></font></td>
+			<td class="brd1" bgcolor="#DDDDDD" width="20%">
+			<div id="boInterpretation"></div></td>
+		</tr>
+	</table>
+</div>
+			</form>
+
+</body>
+
+</html>
