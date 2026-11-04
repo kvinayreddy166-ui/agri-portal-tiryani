@@ -103,110 +103,6 @@ const initialFieldIndicators: FieldIndicatorState = {
   rootGrowth: 1,
 };
 
-// --- Presets ---
-interface PresetConfig {
-  id: string;
-  nameEn: string;
-  nameTe: string;
-  descEn: string;
-  descTe: string;
-  badge: string;
-  badgeColor: string;
-  lab: Partial<LabFormState>;
-  field: Partial<FieldIndicatorState>;
-}
-
-const PRESETS: PresetConfig[] = [
-  {
-    id: 'ideal-fertile',
-    nameEn: 'Ideal Fertile Soil',
-    nameTe: 'ఆదర్శవంతమైన సారవంతమైన నేల',
-    descEn: 'Neutral pH, optimum organic matter and high biological activity.',
-    descTe: 'తటస్థ పీహెచ్, తగినంత సేంద్రీయ పదార్థం మరియు సమృద్ధిగా వానపాములు.',
-    badge: 'Healthy (85-95%)',
-    badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300',
-    lab: {
-      phBracket: '4', phNum: '7.1',
-      ecBracket: '1', ecNum: '0.35',
-      ocBracket: '2', ocNum: '0.92',
-      nBracket: '2', nNum: '350',
-      pBracket: '2', pNum: '22',
-      kBracket: '2', kNum: '220',
-      sBracket: '2', znBracket: '2', feBracket: '2', bBracket: '2',
-    },
-    field: {
-      soilStructure: 1, drainage: 1, waterHolding: 1, compaction: 1, erosion: 1,
-      organicMatter: 1, earthworms: 1, cropCondition: 1, microbial: 1, rootGrowth: 1,
-    },
-  },
-  {
-    id: 'acidic-red',
-    nameEn: 'Acidic Red Soil',
-    nameTe: 'ఆమ్ల ఎర్ర నేల (Acidic)',
-    descEn: 'Low pH (<5.5), low available phosphorus and low organic carbon.',
-    descTe: 'తక్కువ పీహెచ్ (<5.5), భాస్వరం లభ్యత లోపం మరియు సున్నం అవసరం.',
-    badge: 'Acidic (Needs Lime)',
-    badgeColor: 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border-rose-300',
-    lab: {
-      phBracket: '1', phNum: '5.1',
-      ecBracket: '1', ecNum: '0.2',
-      ocBracket: '1', ocNum: '0.42',
-      nBracket: '1', nNum: '180',
-      pBracket: '1', pNum: '6.5',
-      kBracket: '1', kNum: '95',
-      sBracket: '1', znBracket: '1', feBracket: '2', bBracket: '1',
-    },
-    field: {
-      soilStructure: 2, drainage: 1, waterHolding: 2, compaction: 2, erosion: 2,
-      organicMatter: 2, earthworms: 2, cropCondition: 2, microbial: 2, rootGrowth: 2,
-    },
-  },
-  {
-    id: 'saline-sodic',
-    nameEn: 'Saline-Sodic Black Soil',
-    nameTe: 'చౌడు / ఉప్పు నేల (Saline-Sodic)',
-    descEn: 'High pH (>8.5), high salinity (EC >2.0), severe crusting and poor infiltration.',
-    descTe: 'అధిక పీహెచ్, అధిక ఉప్పు/లవణాలు, నీరు ఇంకని గట్టి నేల.',
-    badge: 'Sodic (Needs Gypsum)',
-    badgeColor: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300',
-    lab: {
-      phBracket: '5', phNum: '8.8',
-      ecBracket: '3', ecNum: '2.8',
-      ocBracket: '1', ocNum: '0.38',
-      nBracket: '1', nNum: '210',
-      pBracket: '1', pNum: '8',
-      kBracket: '3', kNum: '340',
-      sBracket: '2', znBracket: '1', feBracket: '1', bBracket: '2',
-    },
-    field: {
-      soilStructure: 3, drainage: 3, waterHolding: 2, compaction: 3, erosion: 2,
-      organicMatter: 3, earthworms: 3, cropCondition: 3, microbial: 3, rootGrowth: 3,
-    },
-  },
-  {
-    id: 'depleted-light',
-    nameEn: 'Degraded / Humus-Depleted',
-    nameTe: 'సేంద్రీయం లోపించిన తేలిక నేల',
-    descEn: 'Critically low organic carbon, no earthworms, drought prone.',
-    descTe: 'చాలా తక్కువ కర్బనం, వానపాములు లేకపోవడం, తేమ నిలవకపోవడం.',
-    badge: 'Depleted (Needs FYM)',
-    badgeColor: 'bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300 border-orange-300',
-    lab: {
-      phBracket: '3', phNum: '6.3',
-      ecBracket: '1', ecNum: '0.15',
-      ocBracket: '1', ocNum: '0.28',
-      nBracket: '1', nNum: '160',
-      pBracket: '1', pNum: '7.2',
-      kBracket: '1', kNum: '88',
-      sBracket: '1', znBracket: '1', feBracket: '1', bBracket: '1',
-    },
-    field: {
-      soilStructure: 3, drainage: 1, waterHolding: 3, compaction: 2, erosion: 3,
-      organicMatter: 3, earthworms: 3, cropCondition: 3, microbial: 3, rootGrowth: 2,
-    },
-  },
-];
-
 export function SoilHealthMeter() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
@@ -227,15 +123,6 @@ export function SoilHealthMeter() {
 
   const updateField = (key: keyof FieldIndicatorState, val: number) => {
     setFieldState((prev) => ({ ...prev, [key]: val }));
-  };
-
-  const applyPreset = (preset: PresetConfig) => {
-    setLabForm((prev) => ({ ...prev, ...preset.lab }));
-    setFieldState((prev) => ({ ...prev, ...preset.field }));
-    showSuccess(
-      t('Preset Loaded', 'ప్రిసెట్ లోడ్ అయింది'),
-      t(`Applied ${preset.nameEn} values.`, `${preset.nameTe} విలువలు లోడ్ చేయబడ్డాయి.`)
-    );
   };
 
   const handleReset = () => {
@@ -519,30 +406,104 @@ export function SoilHealthMeter() {
     return -90 + (clamped / 100) * 180;
   }, [activeScore]);
 
-  // Build Share text
+  // Soil Type Badge based on Acidity (Soil Reaction / pH)
+  const soilTypeBadge = useMemo(() => {
+    switch (labForm.phBracket) {
+      case '1':
+        return {
+          typeEn: 'Strongly Acidic Soil',
+          typeTe: 'తీవ్ర ఆమ్ల నేల (Strongly Acidic)',
+          badgeTextEn: 'pH < 5.5 · Strongly Acidic',
+          badgeTextTe: 'pH < 5.5 · తీవ్ర ఆమ్లత',
+          pillBorder: 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/70 dark:text-rose-200 dark:border-rose-800',
+          badgeBg: 'bg-rose-600 text-white',
+          remedySummaryEn: 'High acidity limits Phosphorus and Micronutrient availability. Agricultural lime or dolomite application is required.',
+          remedySummaryTe: 'తీవ్ర ఆమ్లత వలన భాస్వరం మరియు సూక్ష్మ పోషకాలు అందవు. వ్యవసాయ సున్నం లేదా డోలమైట్ వాడాలి.',
+          icon: AlertTriangle,
+        };
+      case '2':
+        return {
+          typeEn: 'Moderately Acidic Soil',
+          typeTe: 'మధ్యస్థ ఆమ్ల నేల (Moderately Acidic)',
+          badgeTextEn: 'pH 5.6 - 6.0 · Moderately Acidic',
+          badgeTextTe: 'pH 5.6 - 6.0 · మధ్యస్థ ఆమ్లత',
+          pillBorder: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/70 dark:text-amber-200 dark:border-amber-800',
+          badgeBg: 'bg-amber-600 text-white',
+          remedySummaryEn: 'Sub-optimal soil reaction. Light to moderate lime application and rock phosphate are recommended.',
+          remedySummaryTe: 'మధ్యస్థ ఆమ్ల స్థితి. మితమైన సున్నం మరియు భాస్వరం కోసం రాక్ ఫాస్ఫేట్ వాడండి.',
+          icon: AlertTriangle,
+        };
+      case '3':
+        return {
+          typeEn: 'Slightly Acidic Soil',
+          typeTe: 'స్వల్ప ఆమ్ల నేల (Slightly Acidic)',
+          badgeTextEn: 'pH 6.1 - 6.5 · Slightly Acidic',
+          badgeTextTe: 'pH 6.1 - 6.5 · స్వల్ప ఆమ్లత',
+          pillBorder: 'bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-950/70 dark:text-teal-200 dark:border-teal-800',
+          badgeBg: 'bg-teal-600 text-white',
+          remedySummaryEn: 'Mild acidity, near neutral range. Favorable for most field crops; organic compost maintains balance.',
+          remedySummaryTe: 'స్వల్ప ఆమ్లత, దాదాపు తటస్థం. అధిక పంటలకు అనుకూలం; సేంద్రీయ ఎరువులతో సరిపోతుంది.',
+          icon: Leaf,
+        };
+      case '5':
+        return {
+          typeEn: 'Alkaline / Sodic Soil',
+          typeTe: 'క్షార / చౌడు నేల (Alkaline / Sodic)',
+          badgeTextEn: 'pH > 7.5 · Alkaline / Sodic',
+          badgeTextTe: 'pH > 7.5 · క్షార / చౌడు నేల',
+          pillBorder: 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950/70 dark:text-purple-200 dark:border-purple-800',
+          badgeBg: 'bg-purple-600 text-white',
+          remedySummaryEn: 'High sodium/calcium carbonates causing crusting. Agricultural gypsum and deep flushing are required.',
+          remedySummaryTe: 'అధిక లవణాలు మరియు బిగుసుకుపోయే నేల. వ్యవసాయ జిప్సం వేసి మంచి నీటితో నింపడం అవసరం.',
+          icon: AlertTriangle,
+        };
+      case '4':
+      default:
+        return {
+          typeEn: 'Neutral / Ideal Soil',
+          typeTe: 'తటస్థ / అనువైన నేల (Neutral / Ideal)',
+          badgeTextEn: 'pH 6.5 - 7.5 · Neutral / Optimum',
+          badgeTextTe: 'pH 6.5 - 7.5 · తటస్థ / ఆదర్శం',
+          pillBorder: 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/70 dark:text-emerald-200 dark:border-emerald-800',
+          badgeBg: 'bg-emerald-600 text-white',
+          remedySummaryEn: 'Ideal soil reaction. Optimal availability for all major and micro nutrients with high biological activity.',
+          remedySummaryTe: 'ఆదర్శవంతమైన నేల ప్రతిచర్య. ప్రధాన మరియు సూక్ష్మ పోషకాలు సమృద్ధిగా అందుతాయి.',
+          icon: ShieldCheck,
+        };
+    }
+  }, [labForm.phBracket]);
+
+  // Build Share text for WhatsApp and Clipboard with bold formatting
   const shareText = useMemo(() => {
+    const separator = '━━━━━━━━━━━━━━━━━━━━';
     const lines = [
-      `🌱 AGRONIX — ${t('Soil Health Meter Report', 'మట్టి ఆరోగ్య మీటర్ నివేదిక')}`,
-      `━━━━━━━━━━━━━━━━━━━━`,
-      `${t('Soil Health Score', 'మట్టి ఆరోగ్య స్కోర్')}: ${activeScore}/100 (${language === 'te' ? healthTier.labelTe : healthTier.labelEn})`,
-      `${t('Assessment Mode', 'విశ్లేషణ విధానం')}: ${activeTab === 'test-based' ? t('Lab Test Based', 'రసాయన పరీక్ష ఆధారితం') : activeTab === 'indicator-based' ? t('Field Indicators Based', 'క్షేత్ర లక్షణాల ఆధారితం') : t('Combined Evaluation', 'సమగ్ర మూల్యాంకనం')}`,
+      `🌱 *${t('AGRONIX — Soil Health Meter Report', 'అగ్రోనిక్స్ — మట్టి ఆరోగ్య మీటర్ నివేదిక')}*`,
+      separator,
+      `🎯 *${t('SOIL HEALTH SCORE', 'మట్టి ఆరోగ్య స్కోరు')}:* *${activeScore}/100* (*${language === 'te' ? healthTier.labelTe : healthTier.labelEn}*)`,
+      `🧪 *${t('TYPE OF SOIL', 'నేల రకం')}:* *${language === 'te' ? soilTypeBadge.typeTe : soilTypeBadge.typeEn}*`,
+      `🔬 *${t('Soil Reaction (pH)', 'మట్టి ప్రతిచర్య')}:* ${language === 'te' ? soilTypeBadge.badgeTextTe : soilTypeBadge.badgeTextEn}`,
+      `📋 *${t('Assessment Mode', 'విశ్లేషణ విధానం')}:* ${activeTab === 'test-based' ? t('Lab Test Based (Chemical)', 'రసాయన పరీక్ష ఆధారితం') : activeTab === 'indicator-based' ? t('Field Indicators Based (Visual)', 'క్షేత్ర లక్షణాల ఆధారితం') : t('Combined Evaluation', 'సమగ్ర మూల్యాంకనం')}`,
+      separator,
+      `📊 *${t('KEY CHEMICAL PARAMETERS', 'ప్రధాన రసాయన పరీక్ష ఫలితాలు')}*`,
+      `• *pH (Reaction):* ${labScoreDetails.phStatus}`,
+      `• *EC (Salinity):* ${labScoreDetails.ecStatus}`,
+      `• *Organic Carbon (OC):* ${labScoreDetails.ocStatus}`,
+      `• *Available Nitrogen (N):* ${labScoreDetails.nAdj}`,
+      `• *Available Phosphorus (P):* ${labScoreDetails.pAdj}`,
+      `• *Available Potassium (K):* ${labScoreDetails.kAdj}`,
+      separator,
+      `🩺 *${t('ACTIONABLE RECLAMATION & ADVISORY', 'ముఖ్య సవరణలు & సిఫార్సులు')}*`,
+      `1️⃣ *${t('Soil Reaction Remedy', 'నేల ఆమ్లత / పీహెచ్ సవరణ')}:*`,
+      `   ${labScoreDetails.phRemedy}`,
       ``,
-      `📊 ${t('Key Chemical Parameters', 'ప్రధాన రసాయన లక్షణాలు')}:`,
-      `• pH: ${labScoreDetails.phStatus}`,
-      `• EC: ${labScoreDetails.ecStatus}`,
-      `• Organic Carbon: ${labScoreDetails.ocStatus}`,
-      `• Nitrogen (N): ${labScoreDetails.nAdj}`,
-      `• Phosphorus (P): ${labScoreDetails.pAdj}`,
-      `• Potassium (K): ${labScoreDetails.kAdj}`,
-      ``,
-      `🩺 ${t('Priority Recommendations', 'ముఖ్య సిఫార్సులు')}:`,
-      `• ${labScoreDetails.phRemedy}`,
-      `• ${labScoreDetails.ocRemedy}`,
-      ``,
-      `🌾 ${t('Evaluated using Agricultural University Standards on AGRONIX', 'AGRONIX వ్యవసాయ పోర్టల్ ద్వారా విశ్లేషించబడింది.')}`,
+      `2️⃣ *${t('Organic Matter Restoration', 'సేంద్రీయ కర్బన వృద్ధి')}:*`,
+      `   ${labScoreDetails.ocRemedy}`,
+      separator,
+      `🌾 *${t('Evaluated on AGRONIX Agriculture Platform', 'అగ్రోనిక్స్ వ్యవసాయ పోర్టల్ ద్వారా విశ్లేషించబడింది')}*`,
+      `🌐 www.agronix.in`,
     ];
     return lines.join('\n');
-  }, [activeScore, healthTier, activeTab, labScoreDetails, language, t]);
+  }, [activeScore, healthTier, soilTypeBadge, activeTab, labScoreDetails, language, t]);
 
   const copyResult = async () => {
     try {
@@ -614,54 +575,9 @@ export function SoilHealthMeter() {
       </div>
 
       <div className="mx-auto max-w-7xl space-y-4 px-4 pb-8 sm:px-6 lg:px-8">
-        {/* Quick Demo Presets Banner */}
-        <section className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 print:hidden">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
-            <div>
-              <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                {t('Soil Health Profiles & Presets', 'ప్రామాణిక నేల రకాల ప్రిసెట్లు')}
-              </h2>
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {t('Tap a soil condition to load standard test results and watch the meter calibrate.', 'నమూనా నేల రకాన్ని ఎంచుకుని మీటర్ ఎలా స్పందిస్తుందో వెంటనే పరిశీలించండి.')}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="w-fit self-start sm:self-auto inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-800 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700"
-            >
-              <RotateCcw className={`h-3 w-3 transition-transform duration-500 ${isResetting ? 'animate-spin' : ''}`} />
-              {t('Reset All', 'అన్నీ రీసెట్ చేయండి')}
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-            {PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => applyPreset(preset)}
-                className="group relative flex flex-col items-start p-3 text-left rounded-xl border border-slate-200/90 dark:border-slate-700/80 bg-slate-50/70 dark:bg-slate-800/50 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30 hover:border-emerald-300 dark:hover:border-emerald-700 transition"
-              >
-                <div className="flex w-full items-center justify-between gap-1 mb-1">
-                  <span className="text-xs font-black text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300">
-                    {language === 'te' ? preset.nameTe : preset.nameEn}
-                  </span>
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${preset.badgeColor}`}>
-                    {preset.badge}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug line-clamp-2">
-                  {language === 'te' ? preset.descTe : preset.descEn}
-                </p>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Tab Selector: Mode 1 vs Mode 2 vs Advisory */}
-        <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-2 print:hidden">
+        {/* Tab Selector: Mode 1 vs Mode 2 vs Advisory & Reset */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 gap-2 pb-1 sm:pb-0 print:hidden">
+          <div className="flex overflow-x-auto space-x-1 sm:space-x-2">
           <button
             type="button"
             onClick={() => setActiveTab('test-based')}
@@ -689,7 +605,7 @@ export function SoilHealthMeter() {
           <button
             type="button"
             onClick={() => setActiveTab('advisory')}
-            className={`flex items-center gap-2 py-2.5 px-4 text-xs sm:text-sm font-black border-b-2 transition ${
+            className={`flex items-center gap-2 py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-black border-b-2 whitespace-nowrap transition ${
               activeTab === 'advisory'
                 ? 'border-emerald-600 text-emerald-700 dark:border-emerald-400 dark:text-emerald-300'
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
@@ -697,6 +613,16 @@ export function SoilHealthMeter() {
           >
             <Sprout className="h-4 w-4" />
             {t('3. Comprehensive Advisory & Reclamation', '3. సమగ్ర సవరణలు & సిఫార్సులు')}
+          </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleReset}
+            className="w-fit self-start sm:self-auto inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-800 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700 mb-1 sm:mb-0 shrink-0"
+          >
+            <RotateCcw className={`h-3 w-3 transition-transform duration-500 ${isResetting ? 'animate-spin' : ''}`} />
+            {t('Reset All', 'అన్నీ రీసెట్ చేయండి')}
           </button>
         </div>
 
@@ -1679,9 +1605,20 @@ export function SoilHealthMeter() {
             {/* Score Breakdown & Actionable Overview */}
             <div className="lg:col-span-7 flex flex-col justify-center space-y-3">
               <div>
-                <p className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  {t('Soil Health Diagnostic Status', 'మట్టి ఆరోగ్య నిర్ధారణ స్థితి')}
-                </p>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <p className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    {t('Soil Health Diagnostic Status', 'మట్టి ఆరోగ్య నిర్ధారణ స్థితి')}
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                      {t('Soil Type:', 'నేల రకం:')}
+                    </span>
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black shadow-xs border ${soilTypeBadge.pillBorder}`}>
+                      <soilTypeBadge.icon className="h-3.5 w-3.5" />
+                      {language === 'te' ? soilTypeBadge.badgeTextTe : soilTypeBadge.badgeTextEn}
+                    </span>
+                  </div>
+                </div>
                 <h3 className={`text-lg sm:text-xl font-black ${healthTier.color} mt-0.5`}>
                   {language === 'te' ? healthTier.labelTe : healthTier.labelEn} ({activeScore}%)
                 </h3>
@@ -1753,7 +1690,7 @@ export function SoilHealthMeter() {
                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 transition"
                 >
                   <Printer className="h-3.5 w-3.5" />
-                  {t('Print Soil Card', 'సాయిల్ కార్డ్ ప్రింట్')}
+                  {t('Print', 'ప్రింట్')}
                 </button>
               </div>
             </div>
