@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import * as pdfWatermark from '../../../shared/lib/pdfWatermark';
 import {
   noticeBlocksHtml,
   noticeDocumentHtml,
@@ -62,5 +63,19 @@ describe('Legal Documents (Stop Sale, Seizure, SCN & Memos) 1.15 Line Spacing', 
     ];
     const doc = await renderNoticePdfDocument(blocks, 'Test Keep Together');
     expect(doc.getNumberOfPages()).toBe(2);
+  });
+
+  it('calls addEmblemImageWatermark when rendering notice PDF', async () => {
+    const spy = vi.spyOn(pdfWatermark, 'addEmblemImageWatermark');
+    const doc = await renderNoticePdfDocument(sampleBlocks, 'Test Watermark');
+    expect(spy).toHaveBeenCalledWith(doc);
+    spy.mockRestore();
+  });
+
+  it('respects watermark=false flag when rendering notice PDF', async () => {
+    const spy = vi.spyOn(pdfWatermark, 'addEmblemImageWatermark');
+    await renderNoticePdfDocument(sampleBlocks, 'Test Watermark', 'times', false);
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 });

@@ -11,6 +11,7 @@ import {
   getMandalsForDistrict,
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { setupPdfUnicodeFonts, DOCX_TELUGU_FONT } from '../../../shared/lib/pdfUnicodeFonts';
+import { addEmblemImageWatermark } from '../../../shared/lib/pdfWatermark';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
@@ -1105,7 +1106,12 @@ export async function loadNoticeFonts(doc: { addFileToVFS: (name: string, data: 
   }
 }
 
-export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title: string, font: NoticeDocFont = 'times') {
+export async function renderNoticePdfDocument(
+  noticeBlocks: NoticeBlock[],
+  title: string,
+  font: NoticeDocFont = 'times',
+  watermark = true
+) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
   doc.setProperties({ title, subject: title, creator: 'AGRONIX' });
@@ -1483,6 +1489,10 @@ export async function renderNoticePdfDocument(noticeBlocks: NoticeBlock[], title
         break;
     }
   });
+
+  if (watermark) {
+    await addEmblemImageWatermark(doc);
+  }
 
   return doc;
 }

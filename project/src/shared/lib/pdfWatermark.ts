@@ -3,6 +3,9 @@ import type { jsPDF as JsPdfInstance } from 'jspdf';
 let emblemDataUrlPromise: Promise<string | null> | null = null;
 
 function loadEmblemDataUrl(): Promise<string | null> {
+  if (typeof window === 'undefined') {
+    return Promise.resolve(null);
+  }
   if (!emblemDataUrlPromise) {
     emblemDataUrlPromise = fetch('/images/telangana-govt_emblem.webp')
       .then((response) => {
