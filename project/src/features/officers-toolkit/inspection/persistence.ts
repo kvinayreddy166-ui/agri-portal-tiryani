@@ -1,6 +1,6 @@
 import type { DraftRecord } from './types';
-
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 export const INSPECTION_SCHEMA_VERSION = 1;
 
 type VersionedPayload<T> = { v: number; data: T };
@@ -61,6 +61,14 @@ export function loadPersistedDrafts<T extends object>(
 export function persistDraftRecords<T>(key: string, drafts: DraftRecord<T>[]): void {
   const versioned = drafts.map((draft) => ({ ...draft, v: INSPECTION_SCHEMA_VERSION }));
   safeStorage.setItem(key, JSON.stringify(versioned));
+
+  const commodity = key.includes('fertilizer') ? 'fertilizer'
+    : key.includes('insecticide') || key.includes('pesticide') ? 'pesticide'
+    : 'seed';
+
+  drafts.forEach((draft) => {
+    void OfficerCloudSyncService.syncInspection(commodity, draft as unknown as Record<string, unknown>);
+  });
 }
 
 export interface DraftsExportFile<T = unknown> {

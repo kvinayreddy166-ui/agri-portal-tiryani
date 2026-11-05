@@ -74,11 +74,12 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
     setShowSignOutConfirm(false);
     void signOut();
   };
-  const { user, isAdminUser, isDealerUser, dealerName, signOut } = useAuth();
+  const { user, isAdminUser, isDealerUser, isOfficerUser, officerProfile, dealerName, signOut } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
   const pageMeta = useMemo(() => getPageMeta(currentPage, t), [currentPage, t]);
   const hidePortalLogo = currentPage === 'fertilizer-calculator' || currentPage === 'acreage-calculator';
+  const isOfficer = isOfficerUser || (!isAdminUser && !isDealerUser);
 
   const handleNavigation = (page: string) => {
     const replaceDrawerEntry = sidebarOpen;
@@ -120,11 +121,13 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
   };
 
   const userMeta = (user?.user_metadata ?? {}) as { name?: string; full_name?: string; display_name?: string; designation?: string };
-  const profileName = userMeta.name || userMeta.full_name || userMeta.display_name || user?.email?.split('@')[0] || 'User';
-  const profileRole = userMeta.designation || (isAdminUser ? t('Administrator', 'నిర్వాహకుడు') : isDealerUser ? dealerName || t('Dealer', 'డీలర్') : t('View access', 'చూడే ప్రవేశం'));
+  const profileName = officerProfile?.full_name || userMeta.full_name || userMeta.name || userMeta.display_name || user?.email?.split('@')[0] || 'User';
+  const profileRole = officerProfile?.designation || userMeta.designation || (isAdminUser ? t('Administrator', 'నిర్వాహకుడు') : isDealerUser ? dealerName || t('Dealer', 'డీలర్') : isOfficer ? t('Agricultural Officer', 'వ్యవసాయ అధికారి') : t('View access', 'చూడే ప్రవేశం'));
 
   const visibleMenuItems = isDealerUser
     ? dealerMenuItems
+    : isOfficer && !isAdminUser
+    ? menuItems.filter((item) => ['dashboard', 'officer-toolkit', 'knowledge', 'gos-circulars', 'agrochemicals'].includes(item.id))
     : menuItems.filter((item) => {
         if (item.id === 'stock') {
           return isAdminUser;
@@ -351,16 +354,12 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
         <div className="border-t border-slate-200 bg-slate-50 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))] dark:border-slate-800 dark:bg-slate-900/70">
           <div className="mb-2 flex items-center gap-2.5 rounded-xl border border-white bg-white px-2.5 py-2 shadow-sm dark:border-slate-800 dark:bg-slate-950">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 text-xs font-black text-white shadow-sm">
-              {user?.email?.charAt(0).toUpperCase()}
+              {profileName.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-black text-slate-900 dark:text-white">{user?.email}</p>
+              <p className="truncate text-xs font-black text-slate-900 dark:text-white">{profileName}</p>
               <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
-                {isAdminUser
-                  ? t('Administrator', 'నిర్వాహకుడు')
-                  : isDealerUser
-                    ? dealerName || t('Dealer', 'డీలర్')
-                    : t('View access', 'చూడే ప్రవేశం')}
+                {profileRole}
               </p>
             </div>
             <button

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
   AlertCircle,
+  CheckCircle2,
   ChevronRight,
   Eye,
   EyeOff,
-  FileText,
   Loader2,
   LockKeyhole,
   LogIn,
@@ -14,8 +14,8 @@ import {
   Send,
   ShieldCheck,
   Smartphone,
-  Sprout,
   Store,
+  UserPlus,
   X,
 } from 'lucide-react';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
@@ -35,7 +35,6 @@ const PublicOfficerTools = React.lazy(() => import('./PublicOfficerTools').then(
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
 const TEST_EMAIL = 'test@gmail.com';
-
 
 const TELANGANA_DISTRICTS = [
   'Adilabad',
@@ -88,15 +87,20 @@ type BeforeInstallPromptEvent = Event & {
 export function Login() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [loginMode, setLoginMode] = useState<'staff' | 'dealer'>('staff');
+  const [loginMode, setLoginMode] = useState<'staff' | 'officer' | 'dealer'>('officer');
+  const [officerEmail, setOfficerEmail] = useState('');
+  const [officerPassword, setOfficerPassword] = useState('');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [dealerPhone, setDealerPhone] = useState('');
   const [dealerPassword, setDealerPassword] = useState(DEALER_DEFAULT_PASSWORD);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [grievanceOpen, setGrievanceOpen] = useState(false);
   const [grievanceStatus, setGrievanceStatus] = useState<string | null>(null);
+
   const showOfficerToolkit = location.pathname === '/officer-toolkit';
   const showStatutoryForms = location.pathname === '/officer-toolkit/smart-sampling' || location.pathname === '/officer-toolkit/sampling-hub' || location.pathname === '/officer-toolkit/statutory-forms';
   const showFormsLibrary = location.pathname === '/officer-toolkit/forms-library';
@@ -105,7 +109,7 @@ export function Login() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installMessage, setInstallMessage] = useState<string | null>(null);
   const [appInstalled, setAppInstalled] = useState(
-    () => window.matchMedia?.('(display-mode: standalone)').matches || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
+    () => typeof window !== 'undefined' && (window.matchMedia?.('(display-mode: standalone)')?.matches || Boolean((window.navigator as Navigator & { standalone?: boolean })?.standalone))
   );
 
   const [grievance, setGrievance] = useState({
@@ -155,11 +159,29 @@ export function Login() {
     };
   }, [t]);
 
-
+  const handleOfficerPasswordSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccessMessage(null);
+    const targetEmail = officerEmail.trim().toLowerCase();
+    if (!targetEmail || !officerPassword) {
+      setError(t('Please enter both email and password.', 'దయచేసి ఇమెయిల్ మరియు పాస్వర్డ్ నమోదు చేయండి.'));
+      return;
+    }
+    setLoading(true);
+    const { error: signInErr } = await signIn(targetEmail, officerPassword);
+    setLoading(false);
+    if (signInErr) {
+      setError(signInErr.message);
+    } else {
+      navigate('/dashboard');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
     setLoading(true);
 
     if (loginMode === 'dealer') {
@@ -269,12 +291,9 @@ export function Login() {
     setInstallMessage(t('On iPhone/iPad: tap Share, then Add to Home Screen.', 'iPhone/iPadలో Share నొక్కి, Add to Home Screen ఎంచుకోండి.'));
   };
 
-  // Officer toolkit is now handled by App.tsx with OfficersToolkit component
-  // This prevents the old toolkit from flashing before the new one loads
   if (showOfficerToolkit) {
     return null;
   }
-
 
   if (showStatutoryForms || showFormsLibrary || calculatorOpen || fertilizerCalculatorOpen) {
     return (
@@ -286,7 +305,6 @@ export function Login() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-emerald-950 p-10 text-white lg:flex xl:p-14">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-gold-300/10" />
@@ -298,158 +316,244 @@ export function Login() {
         <div className="pointer-events-none absolute -left-24 top-1/2 h-[18rem] w-[18rem] -translate-y-1/2 rounded-full border border-white/10" />
         <div className="relative flex items-center gap-3">
           <div className="login-logo-hero inline-flex">
-            <PortalLogo size="md" />
+            <PortalLogo size="lg" />
           </div>
           <div>
-            <h2 className="text-2xl font-black tracking-wider text-gold-300 font-[var(--font-stylish)] drop-shadow-sm">
+            <h1 className="text-2xl font-black tracking-wider text-gold-300 font-[var(--font-stylish)] drop-shadow-sm">
               {t('AGRONIX', 'అగ్రోనిక్స్')}
-            </h2>
-            <p className="text-xs text-gold-200">
+            </h1>
+            <p className="text-xs font-semibold text-emerald-200">
               {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
             </p>
           </div>
         </div>
-        <div className="relative space-y-6">
-          <h1 className="max-w-md text-3xl font-bold leading-tight tracking-tight text-white xl:text-[2.5rem]">
-            {t('Field-Ready Enforcement Documents', 'ఫీల్డ్-రెడీ ఎన్ఫోర్స్‌మెంట్ పత్రాలు')}
-          </h1>
-          <p className="max-w-md text-[15px] leading-7 text-emerald-50/95">
-            {t('Inspections, notices, sample drawal memos, stop-sale & seizure orders — prepared in departmental format and ready for PDF/Word generation.', 'తనిఖీలు, నోటీసులు, నమూనా డ్రాయింగ్ మెమోలు, స్టాప్-సేల్ & జబ్తు ఆర్డర్లు — శాఖా ఫార్మాట్‌లో సిద్ధం చేయబడి PDF/Word రూపంలో సిద్ధం.')}
+
+        <div className="relative space-y-4 max-w-lg">
+          <span className="inline-flex items-center gap-2 rounded-full bg-emerald-800/80 px-3.5 py-1 text-xs font-semibold text-gold-300 ring-1 ring-gold-400/30">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            {t('Agricultural Management System', 'వ్యవసాయ నిర్వహణ వ్యవస్థ')}
+          </span>
+          <h2 className="text-3xl font-black tracking-tight leading-tight xl:text-4xl text-white">
+            {t('Enforcing Quality & Empowering Agricultural Officers', 'నాణ్యత పర్యవేక్షణ & అధికారులకు సమగ్ర డిజిటల్ సాధనాలు')}
+          </h2>
+          <p className="text-sm leading-relaxed text-emerald-100/90">
+            {t('Issue statutory Stop Sale & Seizure orders, conduct dealer inspections, track seed/fertilizer samples, and synchronize statutory notices securely with cloud backup.', 'స్టాప్ సేల్ & సీజర్ ఆర్డర్లు, డీలర్ తనిఖీలు, సాంప్లింగ్ రికార్డులను క్లౌడ్ బ్యాకప్‌తో సురక్షితంగా నిర్వహించండి.')}
           </p>
-          <ul className="max-w-md space-y-3 text-sm font-medium text-white">
-            <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-emerald-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold-300/15 ring-1 ring-gold-200/30 transition group-hover:scale-105">
-                <FileText className="h-4 w-4 text-gold-100" />
-              </span>
-              <span>{t('Sampling forms & covering letters', 'నమూనా ఫారాలు & కవరింగ్ లెటర్లు')}</span>
-            </li>
-            <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-emerald-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold-300/15 ring-1 ring-gold-200/30 transition group-hover:scale-105">
-                <ShieldCheck className="h-4 w-4 text-gold-100" />
-              </span>
-              <span>{t('Inspection & enforcement toolkit', 'తనిఖీ & అమలు టూల్‌కిట్')}</span>
-            </li>
-            <li className="group flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 px-3.5 py-3 shadow-lg shadow-emerald-950/10 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gold-300/15 ring-1 ring-gold-200/30 transition group-hover:scale-105">
-                <Sprout className="h-4 w-4 text-gold-100" />
-              </span>
-              <span>{t('Seed, fertilizer & pesticide workflows', 'విత్తన, ఎరువు & పురుగుమందు పనిప్రవాహాలు')}</span>
-            </li>
-          </ul>
         </div>
-        <div className="relative border-t border-white/15 pt-4 text-xs leading-5 text-emerald-100/80">
-          <p>version-1.0.1 &middot; &copy; 2026 {t('Agronix — Information Management System', 'అగ్రోనిక్స్ — సమాచార నిర్వహణ వ్యవస్థ')}</p>
-          <p>{t('Developed and maintained by K.Vinay Reddy, MAO, Tiryani', 'రూపకల్పన & నిర్వహణ: కె.వినయ్ రెడ్డి, ఎం.ఎ.ఓ, తిర్యాని')}</p>
+
+        <div className="relative text-xs text-emerald-300/80">
+          <p>&copy; 2026 Agronix IMS &middot; {t('Kumuram Bheem Asifabad District', 'కొమరం భీమ్ ఆసిఫాబాద్ జిల్లా')}</p>
         </div>
       </aside>
 
-      <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-emerald-50 to-green-100 p-4 pb-28 dark:from-slate-950 dark:via-emerald-950/50 dark:to-emerald-950/70 sm:pb-24 lg:min-h-0 lg:p-8">
-      <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-gold-300/30 blur-3xl dark:bg-emerald-500/10" />
-      <div className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-emerald-300/35 blur-3xl dashboard-float dark:bg-emerald-500/10" />
-      <div className="pointer-events-none absolute right-1/4 top-1/3 h-40 w-40 rounded-full bg-gold-300/25 blur-3xl dashboard-float dark:bg-green-500/10" style={{ animationDelay: '2s' }} />
-      <div className="flex flex-1 items-center justify-center">
-      <div className="relative w-full max-w-[28rem]">
-        <section className="relative flex flex-col justify-start overflow-hidden rounded-[28px] border border-white/80 bg-white/90 p-6 shadow-2xl shadow-emerald-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl animate-fadeIn dark:border-slate-800 dark:bg-slate-900/85 dark:ring-white/5 sm:p-10">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-800 via-gold-400 to-emerald-800" />
-          <div className="absolute left-4 top-4 z-10 sm:left-6 sm:top-6">
-            <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
-          </div>
-          <div className="w-full">
-            <div className="mb-8 flex flex-col items-center gap-3 text-center animate-slide-up lg:hidden">
-              <div className="login-logo-hero inline-flex">
-                <PortalLogo size="lg" />
-              </div>
-              <div>
-                <h2 className="whitespace-nowrap text-xl font-black tracking-wider sm:text-2xl text-[#c59b27] dark:text-gold-300 font-[var(--font-stylish)] drop-shadow-[0_1px_1px_rgba(212,175,55,0.25)]">
-                  {t('AGRONIX', 'అగ్రోనిక్స్')}
-                </h2>
-                <p className="mt-1 text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                  {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={openOfficerToolkit}
-              className="group mb-5 flex w-full animate-slide-up items-center gap-3 rounded-2xl border-2 lg:mt-12 border-emerald-300 bg-gradient-to-r from-emerald-50 via-green-50/80 to-emerald-50 px-3.5 py-3 text-left shadow-sm transition delay-100 hover:-translate-y-px hover:border-emerald-400 hover:from-emerald-100/80 hover:to-green-100/70 hover:shadow-md hover:shadow-emerald-500/10 active:translate-y-0 active:scale-[0.99] dark:border-emerald-500/50 dark:from-emerald-950/50 dark:via-green-950/40 dark:to-emerald-950/50 dark:hover:border-emerald-400 lg:mt-12"
-            >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-emerald-900 text-gold-300 shadow-md shadow-emerald-900/25 transition group-hover:scale-105">
-                <ShieldCheck className="h-[18px] w-[18px]" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-bold text-slate-800 dark:text-slate-100">{t('Officer Toolkit', 'అధికారుల టూల్‌కిట్')}</span>
-                <span className="block text-[11px] font-medium leading-snug text-slate-500 dark:text-slate-400">{t('Inspections, notices & orders', 'తనిఖీలు, నోటీసులు & ఆర్డర్లు')}</span>
-              </span>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-100/90 text-emerald-700 shadow-xs transition-all duration-200 group-hover:bg-gradient-to-br group-hover:from-emerald-700 group-hover:to-emerald-900 group-hover:text-gold-300 group-hover:translate-x-0.5 dark:bg-emerald-900/60 dark:text-emerald-300 dark:group-hover:from-emerald-600 dark:group-hover:to-emerald-800 dark:group-hover:text-white">
-                <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" strokeWidth={2.5} />
-              </span>
-            </button>
-
-            <div className="mb-6 grid animate-slide-up grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 text-sm font-semibold ring-1 ring-inset ring-slate-200/70 delay-100 dark:bg-slate-800 dark:ring-slate-700">
+      <div className="flex flex-1 items-center justify-center p-4 sm:p-6 lg:p-10">
+        <div className="relative w-full max-w-[30rem]">
+          <section className="relative flex flex-col justify-start overflow-hidden rounded-[28px] border border-white/80 bg-white/95 p-6 shadow-2xl shadow-emerald-900/10 ring-1 ring-slate-900/5 backdrop-blur-xl animate-fadeIn dark:border-slate-800 dark:bg-slate-900/90 dark:ring-white/5 sm:p-8">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-800 via-gold-400 to-emerald-800" />
+            
+            <div className="flex items-center justify-between mb-4">
+              <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
               <button
                 type="button"
-                onClick={() => setLoginMode('staff')}
-                className={`rounded-lg px-3 py-2.5 transition ${loginMode === 'staff' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
+                onClick={openOfficerToolkit}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:underline"
               >
-                {t('Staff / Test', 'సిబ్బంది / పరీక్ష')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setLoginMode('dealer')}
-                className={`rounded-lg px-3 py-2.5 transition ${loginMode === 'dealer' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
-              >
-                {t('Dealer', 'డీలర్')}
+                <ShieldCheck className="h-4 w-4" />
+                <span>{t('Public Toolkit', 'పబ్లిక్ టూల్‌కిట్')}</span>
+                <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            <div className="mb-4 animate-slide-up delay-200">
-              <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                {loginMode === 'dealer' ? t('Dealer sign in', 'డీలర్ సైన్ ఇన్') : t('Secure sign in', 'సురక్షిత సైన్ ఇన్')}
-              </h3>
-              <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                {t('Access Agronix with your official credentials', 'మీ అధికారిక ఆధారాలతో అగ్రోనిక్స్‌ను యాక్సెస్ చేయండి')}
-              </p>
-            </div>
-
-            {error && (
-              <div className="mb-4 flex gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 animate-shake dark:border-red-800/50 dark:bg-red-950/40 dark:text-red-300">
-                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
-                <span>{error}</span>
+            <div className="w-full">
+              <div className="mb-6 flex flex-col items-center gap-2 text-center animate-slide-up lg:hidden">
+                <div className="login-logo-hero inline-flex">
+                  <PortalLogo size="lg" />
+                </div>
+                <div>
+                  <h2 className="whitespace-nowrap text-xl font-black tracking-wider text-[#c59b27] dark:text-gold-300 font-[var(--font-stylish)]">
+                    {t('AGRONIX', 'అగ్రోనిక్స్')}
+                  </h2>
+                  <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                    {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
+                  </p>
+                </div>
               </div>
-            )}
 
-            <form onSubmit={handleSubmit} className="space-y-4 animate-slide-up delay-200">
-              {loginMode === 'dealer' ? (
+              {/* 3-Way Mode Switcher */}
+              <div className="mb-5 grid animate-slide-up grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 text-xs sm:text-sm font-semibold ring-1 ring-inset ring-slate-200/70 dark:bg-slate-800 dark:ring-slate-700">
+                <button
+                  type="button"
+                  onClick={() => { setLoginMode('officer'); setError(null); setSuccessMessage(null); }}
+                  className={`rounded-lg px-2 py-2 transition font-bold flex items-center justify-center gap-1.5 ${loginMode === 'officer' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
+                >
+                  <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                  <span>{t('Officer', 'అధికారి')}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setLoginMode('staff'); setError(null); setSuccessMessage(null); }}
+                  className={`rounded-lg px-2 py-2 transition font-bold ${loginMode === 'staff' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
+                >
+                  {t('Admin / Staff', 'అడ్మిన్ / సిబ్బంది')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setLoginMode('dealer'); setError(null); setSuccessMessage(null); }}
+                  className={`rounded-lg px-2 py-2 transition font-bold ${loginMode === 'dealer' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
+                >
+                  {t('Dealer', 'డీలర్')}
+                </button>
+              </div>
+
+              {error && (
+                <div className="mb-4 flex gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs sm:text-sm text-red-700 animate-shake dark:border-red-800/50 dark:bg-red-950/40 dark:text-red-300">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {successMessage && (
+                <div className="mb-4 flex gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs sm:text-sm text-emerald-800 animate-fadeIn dark:border-emerald-800/50 dark:bg-emerald-950/40 dark:text-emerald-200">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                  <span>{successMessage}</span>
+                </div>
+              )}
+
+              {/* ===================== OFFICER PORTAL ===================== */}
+              {loginMode === 'officer' && (
+                <div className="space-y-4 animate-slide-up">
+                  <div className="mb-2">
+                    <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                      {t('Officer Sign In', 'అధికారి లాగిన్')}
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {t('Sign in with your registered email address and password', 'మీ నమోదైన ఇమెయిల్ చిరునామా మరియు పాస్‌వర్డ్‌తో లాగిన్ అవ్వండి')}
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleOfficerPasswordSignIn} className="space-y-4">
+                    <LoginField
+                      label={t('Registered Email Address', 'నమోదైన ఇమెయిల్ చిరునామా')}
+                      icon={<Mail />}
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      value={officerEmail}
+                      onChange={setOfficerEmail}
+                      placeholder="officer@email.com / gmail.com"
+                    />
+                    <LoginField
+                      label={t('Password', 'పాస్వర్డ్')}
+                      icon={<LockKeyhole />}
+                      type="password"
+                      autoComplete="current-password"
+                      value={officerPassword}
+                      onChange={setOfficerPassword}
+                      placeholder={t('Enter password', 'పాస్వర్డ్ నమోదు చేయండి')}
+                    />
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => navigate('/forgot-password')}
+                        className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
+                      >
+                        {t('Forgot password?', 'పాస్‌వర్డ్ మర్చిపోయారా?')}
+                      </button>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow transition active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <LogIn className="h-4 w-4 shrink-0" />}
+                      <span>{loading ? t('Signing in...', 'లాగిన్ అవుతోంది...') : t('Sign In as Officer', 'అధికారిగా లాగిన్ అవ్వండి')}</span>
+                    </button>
+                  </form>
+
+                  {/* Visual separation */}
+                  <div className="relative my-4 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-slate-200 dark:border-slate-800" />
+                    </div>
+                    <span className="relative bg-white px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:bg-slate-900 dark:text-slate-500">
+                      {t('Or', 'లేదా')}
+                    </span>
+                  </div>
+
+                  {/* Prominent Officer Sign Up Button (Warm Harvest Amber/Gold — distinct from green Sign In) */}
+                  <div className="rounded-xl border border-amber-300/80 bg-gradient-to-br from-amber-50/90 via-gold-50/50 to-orange-50/30 p-3.5 text-center shadow-xs dark:border-amber-700/40 dark:bg-gradient-to-br dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900">
+                    <p className="text-xs font-medium text-amber-950 dark:text-amber-200">
+                      {t('New Agricultural Officer? Register with email verification', 'కొత్త వ్యవసాయ అధికారిలా? ఇమెయిల్ ధృవీకరణతో నమోదు చేసుకోండి')}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/register')}
+                      className="mt-2.5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition"
+                    >
+                      <UserPlus className="h-4 w-4 text-amber-200 shrink-0" />
+                      <span>{t('Sign Up as Officer', 'అధికారిగా సైన్ అప్ అవ్వండి')}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ===================== ADMIN / STAFF / DEALER PORTAL ===================== */}
+              {loginMode !== 'officer' && (
                 <>
-                  <LoginField label={t('Registered phone (Dealers Directory)', 'నమోదైన ఫోన్ (డీలర్ల డైరెక్టరీ)')} icon={<Phone />} type="tel" inputMode="tel" autoComplete="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
-                  <LoginField label={t('Guest Password', 'గెస్ట్ పాస్వర్డ్')} icon={<LockKeyhole />} type="password" autoComplete="current-password" value={dealerPassword} onChange={setDealerPassword} />
-                </>
-              ) : (
-                <>
-                  <LoginField label={t('Email Address', 'ఇమెయిల్ చిరునామా')} icon={<Mail />} type="email" inputMode="email" autoComplete="email" value={email} onChange={setEmail} placeholder={t('Enter email address', 'ఇమెయిల్ చిరునామా నమోదు చేయండి')} />
-                  <LoginField label={t('Password', 'పాస్వర్డ్')} icon={<LockKeyhole />} type="password" autoComplete="current-password" value={password} onChange={setPassword} placeholder={t('Enter password', 'పాస్వర్డ్ నమోదు చేయండి')} />
+                  <div className="mb-4 animate-slide-up">
+                    <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                      {loginMode === 'dealer' ? t('Dealer Sign In', 'డీలర్ సైన్ ఇన్') : t('Admin / Staff Sign In', 'అడ్మిన్ / సిబ్బంది సైన్ ఇన్')}
+                    </h3>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {loginMode === 'dealer'
+                        ? t('Access stock reports and allocations with registered phone', 'నమోదైన ఫోన్ నంబర్‌తో స్టాక్ రిపోర్టులు పొందండి')
+                        : t('Administrative access for staff and reviewers', 'సిబ్బంది మరియు సమీక్షకుల అధికారిక యాక్సెస్')}
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-4 animate-slide-up">
+                    {loginMode === 'dealer' ? (
+                      <>
+                        <LoginField label={t('Registered Phone Number', 'నమోదైన ఫోన్ నంబర్')} icon={<Phone />} type="tel" inputMode="tel" autoComplete="tel" value={dealerPhone} onChange={setDealerPhone} placeholder="9949497506" />
+                        <LoginField label={t('Guest Password', 'గెస్ట్ పాస్వర్డ్')} icon={<LockKeyhole />} type="password" autoComplete="current-password" value={dealerPassword} onChange={setDealerPassword} />
+                      </>
+                    ) : (
+                      <>
+                        <LoginField label={t('Email Address', 'ఇమెయిల్ చిరునామా')} icon={<Mail />} type="email" inputMode="email" autoComplete="email" value={email} onChange={setEmail} placeholder={t('Enter email address', 'ఇమెయిల్ చిరునామా నమోదు చేయండి')} />
+                        <LoginField label={t('Password', 'పాస్వర్డ్')} icon={<LockKeyhole />} type="password" autoComplete="current-password" value={password} onChange={setPassword} placeholder={t('Enter password', 'పాస్వర్డ్ నమోదు చేయండి')} />
+                      </>
+                    )}
+                    {loginMode !== 'dealer' && (
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => navigate('/forgot-password')}
+                          className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
+                        >
+                          {t('Forgot password?', 'పాస్‌వర్డ్ మర్చిపోయారా?')}
+                        </button>
+                      </div>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow transition active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : loginMode === 'dealer' ? <Store className="h-4 w-4 shrink-0" /> : <LogIn className="h-4 w-4 shrink-0" />}
+                      <span>{loading ? t('Signing in...', 'లాగిన్ అవుతోంది...') : loginMode === 'dealer' ? t('Dealer Sign In', 'డీలర్ లాగిన్') : t('Sign In', 'లాగిన్')}</span>
+                    </button>
+                  </form>
                 </>
               )}
-              <button
-                type="submit"
-                disabled={loading}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 via-emerald-800 to-emerald-900 py-3.5 font-semibold text-white shadow-lg shadow-emerald-900/25 transition hover:-translate-y-px hover:from-emerald-600 hover:via-emerald-700 hover:to-emerald-800 hover:shadow-xl hover:shadow-emerald-900/35 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/30 active:translate-y-0 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-60"
-              >
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : loginMode === 'dealer' ? <Store className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
-                {loading ? t('Signing in...', 'లాగిన్ అవుతోంది...') : loginMode === 'dealer' ? t('Dealer Sign In', 'డీలర్ లాగిన్') : t('Sign In', 'లాగిన్')}
-              </button>
-            </form>
-          </div>
-        </section>
+            </div>
+          </section>
 
-        <div className="mt-5 animate-fadeIn text-center text-xs leading-5 text-slate-400 delay-300 dark:text-slate-500 lg:hidden">
-          <p className="font-medium">version-1.0.1</p>
-          <p>&copy; 2026 {t('Agronix - Information Management System', 'అగ్రోనిక్స్ - సమాచార నిర్వహణ వ్యవస్థ')}</p>
-          <p>{t('Developed and maintained by K.Vinay Reddy, MAO, Tiryani', 'రూపకల్పన & నిర్వహణ: కె.వినయ్ రెడ్డి, ఎం.ఎ.ఓ, తిర్యాని')}</p>
+          <div className="mt-5 text-center text-xs leading-5 text-slate-400 dark:text-slate-500 lg:hidden">
+            <p className="font-medium">version-1.0.1</p>
+            <p>&copy; 2026 {t('Agronix - Information Management System', 'అగ్రోనిక్స్ - సమాచార నిర్వహణ వ్యవస్థ')}</p>
+            <p>{t('Developed and maintained by K.Vinay Reddy, MAO, Tiryani', 'రూపకల్పన & నిర్వహణ: కె.వినయ్ రెడ్డి, ఎం.ఎ.ఓ, తిర్యాని')}</p>
+          </div>
         </div>
-      </div>
-      </div>
       </div>
 
       <button
@@ -534,6 +638,7 @@ export function Login() {
     </div>
   );
 }
+
 function LoginField({
   label,
   icon,
@@ -557,10 +662,10 @@ function LoginField({
   const isPassword = type === 'password';
   return (
     <div className="group">
-      <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-200">{label}</label>
+      <label className="mb-1.5 block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">{label}</label>
       <div className="relative">
         {React.cloneElement(icon, {
-          className: 'pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-emerald-600',
+          className: 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-emerald-600',
         })}
         <input
           type={isPassword && revealed ? 'text' : type}
@@ -568,7 +673,7 @@ function LoginField({
           onChange={(e) => onChange(e.target.value)}
           inputMode={inputMode}
           autoComplete={autoComplete}
-          className={`w-full rounded-xl border border-slate-200 bg-slate-50/70 py-3.5 pl-11 text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:hover:border-slate-600 dark:focus:ring-emerald-500/20 ${isPassword ? 'pr-12' : 'pr-4'}`}
+          className={`h-10 w-full rounded-lg border border-slate-200 bg-slate-50/70 pl-10 text-xs sm:text-sm text-slate-900 shadow-xs outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:hover:border-slate-600 dark:focus:ring-emerald-500/20 ${isPassword ? 'pr-11' : 'pr-3.5'}`}
           placeholder={placeholder}
           required
         />
@@ -587,7 +692,4 @@ function LoginField({
   );
 }
 
-
 export default Login;
-
-

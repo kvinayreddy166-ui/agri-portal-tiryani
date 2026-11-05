@@ -96,6 +96,10 @@ export const isDealerUser = (user: { user_metadata?: Record<string, unknown> } |
   return user?.user_metadata?.role === 'dealer';
 };
 
+export const isOfficerUser = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
+  return user?.user_metadata?.role === 'officer';
+};
+
 export const getDealerIdFromUser = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
   const id = user?.user_metadata?.dealer_id;
   return typeof id === 'string' && id.length > 0 ? id : null;

@@ -29,6 +29,7 @@ import {
 } from './ShowCauseNoticeEntry';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 interface FertStopSaleProductRow {
   id: string;
   name: string;
@@ -355,6 +356,7 @@ export function FertilizerStopSaleEntry({ onRevoke }: { onRevoke?: (order: Saved
     };
     setSavedOrders((current) => [entry, ...current.filter((item) => item.id !== entry.id)]);
     setEditingId(entry.id);
+    void OfficerCloudSyncService.syncStatutoryOrder('stop_sale', 'fertilizer', entry as unknown as Record<string, unknown>);
     showSaved('Order saved', entry.orderNumber || 'Stop Sale Notice');
   };
 

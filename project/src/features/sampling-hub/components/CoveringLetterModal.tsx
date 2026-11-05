@@ -8,6 +8,7 @@ import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { useCoveringLetterMetadata, COVERING_LETTER_FINANCIAL_YEARS, getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { OfficerCloudSyncService } from '../../officers-toolkit/services/officerCloudSyncService';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 const COVERING_LETTER_DETAILS_KEY = 'tiryani-covering-letter-details';
 
@@ -308,6 +309,9 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
     setIsPreviewing(true);
     setIsGenerating(true);
+    editedQueue.forEach((sample) => {
+      void OfficerCloudSyncService.syncSampleMemo('fertilizer', sample);
+    });
     try {
       const { generateCoveringLetterPdf } = await import('../lib/coveringLetterPdf');
       

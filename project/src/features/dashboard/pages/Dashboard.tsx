@@ -1,5 +1,36 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { Building2, MapPin, Users, Droplets, CloudRain, Layers, TrendingUp, Edit2, PackageCheck, Plus, Save, X, Trash2, CalendarDays, Leaf } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Building2,
+  MapPin,
+  Users,
+  Droplets,
+  CloudRain,
+  Layers,
+  TrendingUp,
+  Edit2,
+  PackageCheck,
+  Plus,
+  Save,
+  X,
+  Trash2,
+  CalendarDays,
+  Leaf,
+  Archive,
+  ClipboardCheck,
+  Files,
+  FlaskConical,
+  Calculator,
+  FolderOpen,
+  FileCheck,
+  Scale,
+  Phone,
+  Stethoscope,
+  BookOpen,
+  ChevronRight,
+  FileStack,
+  ShieldCheck,
+} from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../../dealer-stock/lib/fertilizerStock';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -9,6 +40,127 @@ import { MandiPricesWidget } from '../components/MandiPricesWidget';
 import { WeatherWidget } from '../components/WeatherWidget';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { cachedSupabaseRows, cachedSupabaseValue } from '../../../shared/lib/offlineCache';
+
+type OfficerToolItem = {
+  title: string;
+  teTitle: string;
+  description: string;
+  teDescription: string;
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  gradient: string;
+};
+
+const officerDashboardTools: OfficerToolItem[] = [
+  {
+    title: 'Officer Records & Cloud Archive',
+    teTitle: 'అధికారి రికార్డులు & క్లౌడ్ ఆర్కైవ్',
+    description: 'Cloud archive of notices, stop sale orders, inspections & memos.',
+    teDescription: 'నోటీసులు, స్టాప్ సేల్ ఆర్డర్లు, తనిఖీలు & మెమోల క్లౌడ్ నిల్వ.',
+    path: '/officer-toolkit/my-records',
+    icon: Archive,
+    gradient: 'from-emerald-700 to-teal-800',
+  },
+  {
+    title: 'Inspection & Enforcement Hub',
+    teTitle: 'తనిఖీ & అమలు హబ్',
+    description: 'Inspection proforma, memos & show cause notices for seed, fertilizer & pesticide.',
+    teDescription: 'విత్తనం, ఎరువు & పురుగుమందు తనిఖీ ప్రొఫార్మా, మెమోలు & షోకాజ్ నోటీసులు.',
+    path: '/officer-toolkit/inspection-enforcement',
+    icon: ClipboardCheck,
+    gradient: 'from-emerald-700 to-green-800',
+  },
+  {
+    title: 'Smart Sampling',
+    teTitle: 'స్మార్ట్ సాంప్లింగ్',
+    description: 'Sample drawal forms (Form II, VIII, XX) & auto-generated covering letters.',
+    teDescription: 'నమూనా డ్రాయింగ్ ఫారాలు (ఫారం II, VIII, XX) & ఆటో కవరింగ్ లెటర్లు.',
+    path: '/officer-toolkit/smart-sampling',
+    icon: Files,
+    gradient: 'from-amber-600 to-orange-700',
+  },
+  {
+    title: 'Tour Diary',
+    teTitle: 'పర్యటన డైరీ',
+    description: 'Monthly tour diary with GPS & route logging.',
+    teDescription: 'జీపీఎస్ & ప్రయాణ ట్రాకింగ్‌తో నెలవారీ పర్యటన డైరీ.',
+    path: '/officer-toolkit/tour-diary',
+    icon: CalendarDays,
+    gradient: 'from-cyan-600 to-blue-700',
+  },
+  {
+    title: 'Agrochemicals Database',
+    teTitle: 'వ్యవసాయ రసాయనాల డేటాబేస్',
+    description: 'A–Z registered insecticides, fungicides & weedicides with IRAC/FRAC/HRAC MoA.',
+    teDescription: 'సిఐబి-ఆర్సి నమోదిత క్రిమిసంహారకాలు & మోడ్ ఆఫ్ యాక్షన్ పూర్తి వివరాలు.',
+    path: '/officer-toolkit/agrochemicals',
+    icon: FlaskConical,
+    gradient: 'from-teal-600 to-emerald-700',
+  },
+  {
+    title: 'Farm Calculators',
+    teTitle: 'వ్యవసాయ కాలిక్యులేటర్లు',
+    description: 'Fertilizer dose, acreage, seed rate & spray dilution calculators.',
+    teDescription: 'ఎరువుల మోతాదు, విస్తీర్ణం, విత్తన రేటు & పిచికారీ గణన సాధనాలు.',
+    path: '/officer-toolkit/farm-calculators',
+    icon: Calculator,
+    gradient: 'from-green-600 to-teal-700',
+  },
+  {
+    title: 'Forms Library',
+    teTitle: 'ఫారాలు & లైబ్రరీ',
+    description: 'Browse, download and manage department circulars and statutory forms.',
+    teDescription: 'శాఖ సర్క్యులర్లు మరియు చట్టబద్ధమైన ఫారాలను డౌన్‌లోడ్ చేయండి.',
+    path: '/officer-toolkit/forms-library',
+    icon: FolderOpen,
+    gradient: 'from-sky-600 to-cyan-700',
+  },
+  {
+    title: 'License Services',
+    teTitle: 'లైసెన్స్ సేవలు',
+    description: 'Fertilizer, seed & pesticide dealer licensing information.',
+    teDescription: 'ఎరువులు, విత్తనాలు & పురుగుమందుల డీలర్ లైసెన్సింగ్ సమాచారం.',
+    path: '/officer-toolkit/license-services',
+    icon: FileCheck,
+    gradient: 'from-sky-700 to-blue-800',
+  },
+  {
+    title: 'Acts & Orders',
+    teTitle: 'చట్టాలు & ఉత్తర్వులు',
+    description: 'FCO 1985, Seeds Act 1966, Insecticides Act 1968, Clauses & Rules.',
+    teDescription: 'ఎఫ్.సి.ఒ 1985, విత్తన చట్టం 1966, పురుగుమందు చట్టం 1968, క్లాజులు & నియమాలు.',
+    path: '/officer-toolkit/acts-and-orders',
+    icon: Scale,
+    gradient: 'from-slate-700 to-slate-900',
+  },
+  {
+    title: 'Officer Contacts',
+    teTitle: 'అధికారుల పరిచయాలు',
+    description: 'AEO • MAO • ADA • DAO contacts & jurisdiction directories.',
+    teDescription: 'ఏఈఓ • ఎంఏఓ • ఏడీఏ • డీఏఓ పరిచయాలు & పరిధి వివరాలు.',
+    path: '/officer-toolkit/officer-contacts',
+    icon: Phone,
+    gradient: 'from-emerald-600 to-teal-700',
+  },
+  {
+    title: 'Crop Doctor & Field Diagnosis',
+    teTitle: 'పంట డాక్టర్ & క్షేత్ర నిర్ధారణ',
+    description: 'Crop-wise pests, diseases, weeds and nutrient deficiency diagnosis.',
+    teDescription: 'పంటల వారీగా పురుగులు, వ్యాధులు, కలుపు మరియు పోషక లోపాల గుర్తింపు.',
+    path: '/officer-toolkit/crop-doctor',
+    icon: Stethoscope,
+    gradient: 'from-rose-600 to-red-700',
+  },
+  {
+    title: 'Knowledge Base AI',
+    teTitle: 'నాలెడ్జ్ బేస్ AI',
+    description: 'Natural language search across official GOs, circulars and agricultural manuals.',
+    teDescription: 'జీవోలు, సర్క్యులర్లు మరియు మాన్యువల్స్‌లో AI శోధన & సమాధానాలు.',
+    path: '/knowledge/assistant',
+    icon: BookOpen,
+    gradient: 'from-indigo-600 to-violet-800',
+  },
+];
 
 type FarmerDashboardRow = {
   s_no?: number;
@@ -37,7 +189,8 @@ type FarmerDashboardStats = {
 let farmerDashboardStatsCache: FarmerDashboardStats | null = null;
 
 export const Dashboard = React.memo(function Dashboard() {
-  const { isAdminUser } = useAuth();
+  const navigate = useNavigate();
+  const { isAdminUser, officerProfile } = useAuth();
   const { t } = useLanguage();
   const [crops, setCrops] = useState<Crop[]>([]);
   const [fertilizers, setFertilizers] = useState<DailyFertilizerStockSummary[]>([]);
@@ -45,7 +198,7 @@ export const Dashboard = React.memo(function Dashboard() {
   const [schemeBeneficiaries, setSchemeBeneficiaries] = useState<SchemeBeneficiary[]>([]);
   const [mandalData, setMandalData] = useState<MandalOverview | null>(null);
   const [farmerStats, setFarmerStats] = useState<FarmerDashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(isAdminUser);
   const [editingCrop, setEditingCrop] = useState<string | null>(null);
   const [editingScheme, setEditingScheme] = useState<string | null>(null);
   const [editingSchemeDetails, setEditingSchemeDetails] = useState<string | null>(null);
@@ -63,6 +216,10 @@ export const Dashboard = React.memo(function Dashboard() {
   });
 
   const fetchDashboardData = useCallback(async () => {
+    if (!isAdminUser) {
+      setLoading(false);
+      return;
+    }
     try {
       const [cropsRes, schemesRes, contentRes, beneficiariesRes] = await Promise.all([
         cachedSupabaseRows<Crop>(
@@ -221,14 +378,18 @@ export const Dashboard = React.memo(function Dashboard() {
       <div className="dashboard-rise flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-sm">
-            <Leaf className="h-5 w-5" />
+            {isAdminUser ? <Leaf className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
           </span>
           <div>
             <h1 className="text-lg font-black tracking-tight text-slate-950 dark:text-white sm:text-xl">
-              {t('Dashboard', 'డ్యాష్‌బోర్డ్')}
+              {isAdminUser ? t('Dashboard', 'డ్యాష్‌బోర్డ్') : t('Officer Dashboard', 'అధికారి డ్యాష్‌బోర్డ్')}
             </h1>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              {t('Welcome back, Officer', 'తిరిగి స్వాగతం, అధికారి')}
+              {isAdminUser
+                ? t('Welcome back, Admin', 'తిరిగి స్వాగతం, అడ్మిన్')
+                : officerProfile
+                ? `${officerProfile.full_name} • ${officerProfile.designation} (${officerProfile.mandal})`
+                : t('Welcome back, Officer', 'తిరిగి స్వాగతం, అధికారి')}
             </p>
           </div>
         </div>
@@ -242,8 +403,58 @@ export const Dashboard = React.memo(function Dashboard() {
         <MandiPricesWidget />
       </div>
 
+      {/* For Agricultural Officers: show Weather, Mandi Prices, and Officer Toolkit Tools only */}
+      {!isAdminUser ? (
+        <div className="dashboard-rise dashboard-delay-2 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-3 dark:border-slate-800">
+            <div>
+              <h2 className="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                <FileStack className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
+                <span>{t('Officer Toolkit & Field Tools', 'ఆఫీసర్ టూల్‌కిట్ & క్షేత్ర సాధనాలు')}</span>
+              </h2>
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                {t('Notices, inspection memos, smart sampling, calculators & cloud archive', 'నోటీసులు, తనిఖీ మెమోలు, స్మార్ట్ సాంప్లింగ్, కాలిక్యులేటర్లు & క్లౌడ్ నిల్వ')}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/officer-toolkit')}
+              className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs font-bold text-emerald-800 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 shrink-0 shadow-2xs"
+            >
+              <span>{t('Full Toolkit & Portals', 'పూర్తి టూల్‌కిట్ & పోర్టల్స్')}</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
 
-      {!hasAnyDashboardData ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {officerDashboardTools.map((tool) => (
+              <div
+                key={tool.title}
+                onClick={() => navigate(tool.path)}
+                className="group relative flex h-full cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-600/50 hover:shadow-md hover:shadow-emerald-900/10 dark:border-slate-800 dark:bg-slate-900"
+              >
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 via-gold-400 to-emerald-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div>
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${tool.gradient} text-white shadow-md transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105`}>
+                    <tool.icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-3 text-xs sm:text-sm font-bold text-slate-900 group-hover:text-emerald-800 dark:text-white dark:group-hover:text-emerald-300">
+                    {t(tool.title, tool.teTitle)}
+                  </h3>
+                  <p className="mt-1 text-[11px] leading-snug text-slate-500 line-clamp-2 dark:text-slate-400">
+                    {t(tool.description, tool.teDescription)}
+                  </p>
+                </div>
+                <div className="mt-3 flex items-center justify-end text-emerald-700 dark:text-emerald-400">
+                  <span className="text-[11px] font-bold opacity-0 transition-opacity group-hover:opacity-100 flex items-center gap-0.5">
+                    {t('Open', 'తెరవండి')} <ChevronRight className="h-3 w-3" />
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : !hasAnyDashboardData ? (
         <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm font-semibold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
           {t('No data available', 'డేటా అందుబాటులో లేదు')}
         </div>

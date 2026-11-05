@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, ReactNode, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, isAdmin, isTestUser, isDealerUser, getDealerIdFromUser, clearPersistedSupabaseAuth } from '../lib/supabase';
+import { supabase, isAdmin, isTestUser, isDealerUser, isOfficerUser, getDealerIdFromUser, clearPersistedSupabaseAuth } from '../lib/supabase';
 import {
   DEALER_DEFAULT_PASSWORD,
   dealerEmailFromPhone,
@@ -11,6 +11,7 @@ import {
   dealerLoginNotConfiguredError,
   isDealerRpcMissing,
 } from '../../features/auth/lib/dealerLoginMessages';
+import type { OfficerProfile, OfficerRegistrationData } from '../../features/auth/types/officerAuth';
 
 const AUTH_STARTUP_TIMEOUT_MS = 5000;
 
@@ -23,9 +24,15 @@ interface AuthContextType {
   isAdminUser: boolean;
   isTestUser: boolean;
   isDealerUser: boolean;
+  isOfficerUser: boolean;
+  officerProfile: OfficerProfile | null;
   dealerId: string | null;
   dealerName: string | null;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInOfficerOtp: (email: string) => Promise<{ error: Error | null }>;
+  verifyOfficerOtp: (email: string, token: string) => Promise<{ error: Error | null }>;
+  registerOfficer: (data: OfficerRegistrationData) => Promise<{ error: Error | null }>;
+  refreshOfficerProfile: () => Promise<void>;
   signInDealer: (phone: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -71,9 +78,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isTestUserFlag, setIsTestUserFlag] = useState(false);
   const [isDealerUserFlag, setIsDealerUserFlag] = useState(false);
+  const [isOfficerUserFlag, setIsOfficerUserFlag] = useState(false);
+  const [officerProfile, setOfficerProfile] = useState<OfficerProfile | null>(null);
   const [dealerId, setDealerId] = useState<string | null>(null);
   const [dealerName, setDealerName] = useState<string | null>(null);
   const authCheckedRef = useRef(false);
+
+  const fetchOfficerProfile = useCallback(async (targetUser: User | null) => {
+    if (!targetUser) {
+      setOfficerProfile(null);
+      setIsOfficerUserFlag(false);
+      return;
+    }
+
+    const isCurrentAdmin = isAdmin(targetUser.email);
+    const isExplicitOfficer = isOfficerUser(targetUser);
+
+    try {
+      const { data, error } = await supabase
+        .from('officer_profiles')
+        .select('*')
+        .eq('id', targetUser.id)
+        .maybeSingle();
+
+      if (data && !error) {
+        setOfficerProfile(data as OfficerProfile);
+        setIsOfficerUserFlag(true);
+        return;
+      }
+    } catch (err) {
+      console.warn('Could not query officer_profiles table:', err);
+    }
+
+    // Fallback: If officer metadata exists or is portal admin, synthesize profile
+    if (isExplicitOfficer || isCurrentAdmin) {
+      const fallbackProfile: OfficerProfile = {
+        id: targetUser.id,
+        full_name: (targetUser.user_metadata?.full_name as string) || (isCurrentAdmin ? 'K. Vinay Reddy' : 'Agricultural Officer'),
+        designation: (targetUser.user_metadata?.designation as string) || (isCurrentAdmin ? 'MAO' : 'AEO'),
+        hrms_id: (targetUser.user_metadata?.hrms_id as string) || '',
+        district: (targetUser.user_metadata?.district as string) || 'Kumuram Bheem Asifabad',
+        mandal: (targetUser.user_metadata?.mandal as string) || 'Tiryani',
+        phone: (targetUser.user_metadata?.phone as string) || '',
+        email: targetUser.email || '',
+        role: isCurrentAdmin ? 'admin' : 'officer',
+        status: 'active',
+      };
+      setOfficerProfile(fallbackProfile);
+      setIsOfficerUserFlag(true);
+    } else {
+      setOfficerProfile(null);
+      setIsOfficerUserFlag(false);
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -86,6 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completed = true;
       window.clearTimeout(startupTimer);
       applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
+      void fetchOfficerProfile(sess?.user ?? null);
       setLoading(false);
       setAuthChecked(true);
       authCheckedRef.current = true;
@@ -105,7 +163,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         .catch((err) => {
           console.error('Auth session error:', err);
-          // Check if it's a network error
           if (err?.message?.includes('fetch') || err?.message?.includes('network') || err?.message?.includes('Failed to fetch')) {
             console.warn('Network connectivity issue detected. App will continue in offline mode.');
           }
@@ -114,6 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const authState = supabase.auth.onAuthStateChange((_event, sess) => {
         applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
+        void fetchOfficerProfile(sess?.user ?? null);
         if (!authCheckedRef.current) {
           finishLoading(sess);
           return;
@@ -131,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.clearTimeout(startupTimer);
       subscription?.unsubscribe();
     };
-  }, []);
+  }, [fetchOfficerProfile]);
 
   const signIn = async (email: string, password: string) => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -149,7 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         console.error('Supabase signIn error:', error.message);
         if (error.message === 'Email not confirmed') {
-          return { error: new Error('Email not confirmed. Please contact the administrator.') };
+          return { error: new Error('Email not confirmed. Please check your email or contact the administrator.') };
         }
         if (error.message === 'Invalid login credentials') {
           return { error: new Error('Invalid email or password.') };
@@ -167,11 +225,157 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setDealerId,
         setDealerName
       );
+      void fetchOfficerProfile(data.session?.user ?? null);
 
       return { error: null };
     } catch (error) {
       console.error('Auth signIn exception:', error);
       return { error: error as Error };
+    }
+  };
+
+  const signInOfficerOtp = async (email: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !normalizedEmail.includes('@')) {
+      return { error: new Error('Please enter a valid official email address.') };
+    }
+
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: normalizedEmail,
+        options: {
+          shouldCreateUser: false,
+        },
+      });
+
+      if (error) {
+        if (error.message.toLowerCase().includes('signups not allowed') || error.message.toLowerCase().includes('user not found')) {
+          return { error: new Error('Officer email not registered. Please register first using the Register tab.') };
+        }
+        return { error };
+      }
+      return { error: null };
+    } catch (err) {
+      return { error: err as Error };
+    }
+  };
+
+  const verifyOfficerOtp = async (email: string, token: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const cleanedToken = token.trim();
+    if (!normalizedEmail || !cleanedToken) {
+      return { error: new Error('Email and OTP code are required.') };
+    }
+
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: normalizedEmail,
+        token: cleanedToken,
+        type: 'email',
+      });
+
+      if (error) {
+        return { error: new Error('Invalid or expired OTP code. Please try again.') };
+      }
+
+      if (data.session) {
+        applySession(
+          data.session,
+          setSession,
+          setUser,
+          setIsAdminUser,
+          setIsTestUserFlag,
+          setIsDealerUserFlag,
+          setDealerId,
+          setDealerName
+        );
+        void fetchOfficerProfile(data.session.user);
+      }
+      return { error: null };
+    } catch (err) {
+      return { error: err as Error };
+    }
+  };
+
+  const registerOfficer = async (data: OfficerRegistrationData) => {
+    const normalizedEmail = data.email.trim().toLowerCase();
+    if (!normalizedEmail || !data.full_name || !data.designation || !data.district || !data.mandal || !data.phone) {
+      return { error: new Error('Please fill in all mandatory officer registration fields.') };
+    }
+
+    try {
+      const password = data.password?.trim() || `Agri@${data.phone.slice(-4)}#2026`;
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password,
+        options: {
+          data: {
+            role: 'officer',
+            full_name: data.full_name.trim(),
+            designation: data.designation.trim(),
+            hrms_id: data.hrms_id?.trim() || '',
+            district: data.district.trim(),
+            mandal: data.mandal.trim(),
+            phone: data.phone.trim(),
+          },
+        },
+      });
+
+      if (authError) {
+        if (authError.message.toLowerCase().includes('already registered')) {
+          return { error: new Error('This official email is already registered. Please sign in with OTP or password.') };
+        }
+        return { error: authError };
+      }
+
+      const userId = authData.user?.id;
+      if (userId) {
+        const profileRow: OfficerProfile = {
+          id: userId,
+          full_name: data.full_name.trim(),
+          designation: data.designation.trim(),
+          hrms_id: data.hrms_id?.trim() || '',
+          district: data.district.trim(),
+          mandal: data.mandal.trim(),
+          phone: data.phone.trim(),
+          email: normalizedEmail,
+          role: 'officer',
+          status: 'active',
+        };
+
+        const { error: profileError } = await supabase
+          .from('officer_profiles')
+          .upsert(profileRow);
+
+        if (profileError) {
+          console.warn('Could not insert officer profile row immediately:', profileError.message);
+        }
+        setOfficerProfile(profileRow);
+        setIsOfficerUserFlag(true);
+      }
+
+      if (authData.session) {
+        applySession(
+          authData.session,
+          setSession,
+          setUser,
+          setIsAdminUser,
+          setIsTestUserFlag,
+          setIsDealerUserFlag,
+          setDealerId,
+          setDealerName
+        );
+      }
+
+      return { error: null };
+    } catch (err) {
+      return { error: err as Error };
+    }
+  };
+
+  const refreshOfficerProfile = async () => {
+    if (user) {
+      await fetchOfficerProfile(user);
     }
   };
 
@@ -190,7 +394,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       let portalEmail = dealerEmailFromPhone(phone);
-      let dealerId: string | null = null;
+      let targetDealerId: string | null = null;
       let dealerDisplayName = '';
 
       const { data: loginInfo, error: rpcError } = await supabase.rpc('get_dealer_login_info', {
@@ -204,7 +408,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!rpcError && loginInfo?.[0]) {
         const row = loginInfo[0] as { dealer_id: string; portal_email: string; dealer_name: string };
         portalEmail = row.portal_email || portalEmail;
-        dealerId = row.dealer_id;
+        targetDealerId = row.dealer_id;
         dealerDisplayName = row.dealer_name || '';
       }
 
@@ -214,7 +418,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password: dealerPassword,
         });
         if (error) return { error };
-        const signedDealerId = dealerId || getDealerIdFromUser(data.session?.user);
+        const signedDealerId = targetDealerId || getDealerIdFromUser(data.session?.user);
         applySession(
           data.session ?? null,
           setSession,
@@ -251,7 +455,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           options: {
             data: {
               role: 'dealer',
-              dealer_id: dealerId || '',
+              dealer_id: targetDealerId || '',
               dealer_name: dealerDisplayName,
               phone: digits,
             },
@@ -300,6 +504,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setIsAdminUser(false);
     setIsDealerUserFlag(false);
+    setIsOfficerUserFlag(false);
+    setOfficerProfile(null);
     setDealerId(null);
     setDealerName(null);
 
@@ -326,9 +532,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdminUser,
         isTestUser: isTestUserFlag,
         isDealerUser: isDealerUserFlag,
+        isOfficerUser: isOfficerUserFlag,
+        officerProfile,
         dealerId,
         dealerName,
         signIn,
+        signInOfficerOtp,
+        verifyOfficerOtp,
+        registerOfficer,
+        refreshOfficerProfile,
         signInDealer,
         signOut,
       }}

@@ -1,6 +1,8 @@
 import { lazy } from 'react';
 
 export const Login = lazy(() => import('../../features/auth/pages/Login').then((m) => ({ default: m.Login })));
+export const OfficerSignUp = lazy(() => import('../../features/auth/pages/OfficerSignUp').then((m) => ({ default: m.OfficerSignUp })));
+export const ForgotPassword = lazy(() => import('../../features/auth/pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword })));
 export const Layout = lazy(() => import('../Layout').then((m) => ({ default: m.Layout })));
 export const Dashboard = lazy(() => import('../../features/dashboard/pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 export const DealerManagement = lazy(() => import('../../features/dealer-stock/pages/DealerManagement').then((m) => ({ default: m.DealerManagement })));

@@ -29,6 +29,7 @@ import {
 } from './ShowCauseNoticeEntry';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 interface StopSaleProductRow {
   id: string;
   name: string;
@@ -375,6 +376,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
       return [entry, ...rest];
     });
     setEditingId(entry.id);
+    void OfficerCloudSyncService.syncStatutoryOrder('stop_sale', 'pesticide', entry as unknown as Record<string, unknown>);
     showSaved('Order saved', entry.orderNumber || 'Stop Sale Order');
   };
 

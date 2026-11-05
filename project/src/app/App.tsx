@@ -135,7 +135,7 @@ function AppContent() {
       return;
     }
 
-    if (user && isAdminUser && isDefaultAuthRoute) {
+    if (user && !isDealerUser && isDefaultAuthRoute) {
       safeStorage.removeItem('tiryani-post-login-page');
       navigateToPage('dashboard', { replace: true });
     }

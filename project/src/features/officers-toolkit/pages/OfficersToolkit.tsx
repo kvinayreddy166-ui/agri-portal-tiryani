@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Archive } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { OfficerRecordsHub } from '../components/OfficerRecordsHub';
 import { Calculator, ShieldCheck, FlaskConical, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, FolderOpen, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, Bug, Microscope, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 
@@ -20,9 +24,19 @@ interface ToolkitItem {
 interface OfficersToolkitProps {
   isAdmin?: boolean;
   isTestUser?: boolean;
+  isPublic?: boolean;
 }
 
 const toolkitItems: ToolkitItem[] = [
+  {
+    title: 'Officer Records & Cloud Archive',
+    description: 'Cloud archive of notices, stop sale orders, inspections & memos.',
+    path: '/officer-toolkit/my-records',
+    icon: Archive,
+    category: 'internal',
+    gradient: 'from-emerald-700 to-teal-800',
+    bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
+  },
   {
     title: 'Tour Diary',
     description: 'Monthly tour diary with journey tracking.',
@@ -299,6 +313,9 @@ const externalPortals: ToolkitItem[] = [
 
 function translateToolkit(label?: string) {
   const labels: Record<string, string> = {
+    'Officer Records & Cloud Archive': 'అధికారి రికార్డులు & క్లౌడ్ ఆర్కైవ్',
+    'My Saved Records': 'నా రికార్డులు',
+    'Cloud archive of notices, stop sale orders, inspections & memos.': 'నోటీసులు, స్టాప్ సేల్ ఆర్డర్లు, తనిఖీలు & మెమోల క్లౌడ్ నిల్వ.',
     'Tour Diary': 'పర్యటన డైరీ',
     'Monthly tour diary with journey tracking.': 'ప్రయాణ ట్రాకింగ్‌తో నెలవారీ పర్యటన డైరీ.',
     'License Services': 'లైసెన్స్ సేవలు',
@@ -411,17 +428,42 @@ function ToolkitCard({ item, onClick }: { item: ToolkitItem; onClick: () => void
   );
 }
 
-export function OfficersToolkit({ isAdmin = false, isTestUser = false }: OfficersToolkitProps) {
+export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic = false }: OfficersToolkitProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, language, toggleLanguage } = useLanguage();
+  const { user, isOfficerUser, isAdminUser, isTestUser: isAuthTestUser } = useAuth();
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tools' | 'portals'>('tools');
+
+  // Authenticated officers, staff admins, or designated test users can view records and cloud archive.
+  // Public visitors in the public toolkit cannot.
+  const canViewOfficerRecords = Boolean(
+    !isPublic && user && (isOfficerUser || isAdminUser || isAuthTestUser || isAdmin || isTestUser)
+  );
+
+  const [activeTab, setActiveTab] = useState<'tools' | 'records' | 'portals'>('tools');
+
+  useEffect(() => {
+    if (location.pathname === '/officer-toolkit/my-records') {
+      if (canViewOfficerRecords) {
+        setActiveTab('records');
+      } else {
+        setActiveTab('tools');
+      }
+    }
+  }, [location.pathname, canViewOfficerRecords]);
 
   const shouldHideHeader = isAdmin || isTestUser;
 
-  const visibleToolkitItems = toolkitItems.filter(
-    (item) => !(import.meta.env.PROD && item.path === '/officer-toolkit/field-diagnosis')
-  );
+  const visibleToolkitItems = toolkitItems.filter((item) => {
+    if (import.meta.env.PROD && item.path === '/officer-toolkit/field-diagnosis') {
+      return false;
+    }
+    if (!canViewOfficerRecords && item.path === '/officer-toolkit/my-records') {
+      return false;
+    }
+    return true;
+  });
   const sortedToolkitItems = [...visibleToolkitItems].sort((a, b) => a.title.localeCompare(b.title));
   const sortedExternalPortals = [...externalPortals].sort((a, b) => a.title.localeCompare(b.title));
 
@@ -447,7 +489,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-3.5">
                   <BackButton
-                    onClick={() => navigate('/login')}
+                    onClick={() => navigate(user ? '/dashboard' : '/login')}
                     colors="text-emerald-100 hover:text-white"
                     className="mt-1 shrink-0"
                   />
@@ -500,12 +542,13 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
         {/* Section Switcher — Field Tools / Government Portals */}
         <div className={`mb-5 transition duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="inline-flex w-full max-w-md items-stretch gap-1 rounded-2xl border border-emerald-900/10 bg-white/80 p-1 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/80">
-            {(
-              [
-                { id: 'tools', label: 'Field Tools', te: 'ఫీల్డ్ టూల్స్', icon: Calculator, count: sortedToolkitItems.length },
-                { id: 'portals', label: 'Government Portals', te: 'ప్రభుత్వ పోర్టల్స్', icon: Globe2, count: sortedExternalPortals.length },
-              ] as const
-            ).map((tab) => (
+            {[
+              { id: 'tools' as const, label: 'Field Tools', te: 'ఫీల్డ్ టూల్స్', icon: Calculator, count: sortedToolkitItems.length },
+              ...(canViewOfficerRecords
+                ? [{ id: 'records' as const, label: 'Officer Records & Cloud', te: 'అధికారి రికార్డులు & క్లౌడ్', icon: Archive, count: undefined }]
+                : []),
+              { id: 'portals' as const, label: 'Government Portals', te: 'ప్రభుత్వ పోర్టల్స్', icon: Globe2, count: sortedExternalPortals.length },
+            ].map((tab) => (
               <button
                 key={tab.id}
                 type="button"
@@ -518,15 +561,17 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
               >
                 <tab.icon className={`h-4 w-4 shrink-0 ${activeTab === tab.id ? 'text-gold-300' : ''}`} />
                 <span className="truncate">{t(tab.label, tab.te)}</span>
-                <span
-                  className={`hidden rounded-full px-1.5 py-0.5 text-[10px] font-black leading-none sm:inline-block ${
-                    activeTab === tab.id
-                      ? 'bg-white/15 text-emerald-50'
-                      : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                  }`}
-                >
-                  {tab.count}
-                </span>
+                {typeof tab.count === 'number' && (
+                  <span
+                    className={`hidden rounded-full px-1.5 py-0.5 text-[10px] font-black leading-none sm:inline-block ${
+                      activeTab === tab.id
+                        ? 'bg-white/15 text-emerald-50'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -543,10 +588,18 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false }: Officer
                 <ToolkitCard
                   key={item.path}
                   item={item}
-                  onClick={() => item.path && navigate(item.path)}
+                  onClick={() => {
+                    if (item.path === '/officer-toolkit/my-records') {
+                      setActiveTab('records');
+                    } else if (item.path) {
+                      navigate(item.path);
+                    }
+                  }}
                 />
               ))}
             </div>
+          ) : activeTab === 'records' && canViewOfficerRecords ? (
+            <OfficerRecordsHub />
           ) : (
             <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
               {sortedExternalPortals.map((item) => (

@@ -40,6 +40,8 @@ import {
   OfficerContacts,
   OfficerContactsAdmin,
   OfficersToolkit,
+  OfficerSignUp,
+  ForgotPassword,
   PesticideCalculator,
   PlantPopulationCalculator,
   ProfitabilityCalculator,
@@ -66,6 +68,22 @@ interface PageSwitchProps {
 
 export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchProps) {
   switch (currentPage) {
+    case 'register':
+    case 'officer-register':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <OfficerSignUp />
+          <AgronixBrandMark />
+        </SafeSuspense>
+      );
+    case 'forgot-password':
+    case 'reset-password':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <ForgotPassword />
+          <AgronixBrandMark />
+        </SafeSuspense>
+      );
     case 'dashboard':
       return <Dashboard />;
     case 'stock-analytics':
@@ -129,7 +147,7 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
         />
       );
     case 'officer-toolkit':
-      return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} />;
+      return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} isPublic={false} />;
     case 'license-services':
       return <LicenseServices />;
     case 'agrochemicals':
@@ -267,6 +285,22 @@ function PublicToolkitPage({ children, hideLogo = false }: { children: React.Rea
 // Pages reachable without authentication. Returns null when the page is not public.
 export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageSwitchProps) {
   switch (currentPage) {
+    case 'register':
+    case 'officer-register':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <OfficerSignUp />
+          <AgronixBrandMark />
+        </SafeSuspense>
+      );
+    case 'forgot-password':
+    case 'reset-password':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <ForgotPassword />
+          <AgronixBrandMark />
+        </SafeSuspense>
+      );
     case 'dealers':
       return (
         <PublicReadOnlyShell title="Dealers Directory" onHome={onPublicShellHome}>
@@ -276,7 +310,7 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
     case 'officer-toolkit':
       return (
         <SafeSuspense fallback={<PageLoader />}>
-          <OfficersToolkit isAdmin={false} isTestUser={false} />
+          <OfficersToolkit isAdmin={false} isTestUser={false} isPublic={true} />
           <AgronixBrandMark />
         </SafeSuspense>
       );

@@ -8,6 +8,7 @@ import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { useCoveringLetterMetadata, COVERING_LETTER_FINANCIAL_YEARS, getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { OfficerCloudSyncService } from '../../officers-toolkit/services/officerCloudSyncService';
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 const SEED_COVERING_LETTER_DETAILS_KEY = 'tiryani-seed-covering-letter-details';
 
@@ -308,6 +309,9 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     
     setIsGenerating(true);
     setIsPreviewing(true);
+    editedQueue.forEach((sample) => {
+      void OfficerCloudSyncService.syncSampleMemo('seed', sample);
+    });
     
     try {
       const { generateSeedCoveringLetterPdf } = await import('../lib/seedCoveringLetterPdf');

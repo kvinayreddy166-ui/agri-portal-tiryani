@@ -23,6 +23,8 @@ import {
 } from '../data/showCauseViolationData';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
+import type { StatutoryCommodity } from '../../auth/types/officerAuth';
 type NoticeStatus = 'Draft' | 'Issued' | 'Explanation Received' | 'Closed' | 'Action Proposed';
 
 interface NoticeFormState {
@@ -1702,6 +1704,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     const id = `${form.memoNumber || 'draft'}-${Date.now()}`;
     const saved: SavedNotice = { ...form, id, savedAt: new Date().toISOString() };
     setSavedNotices((current) => [saved, ...current.filter((item) => item.memoNumber !== form.memoNumber)]);
+    const comm: StatutoryCommodity = form.category === 'fertiliser' ? 'fertilizer' : form.category;
+    void OfficerCloudSyncService.syncStatutoryOrder('show_cause', comm, saved as unknown as Record<string, unknown>);
     showSaved('Draft saved', form.memoNumber || 'Untitled notice');
   };
 

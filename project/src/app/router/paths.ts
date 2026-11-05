@@ -1,6 +1,9 @@
 export const PUBLIC_VIEW_PAGES = new Set(['dealers']);
 export const PUBLIC_AUTH_ROUTES = new Set([
   '/login',
+  '/register',
+  '/officer-register',
+  '/forgot-password',
   '/officer-toolkit',
   '/officer-toolkit/license-services',
   '/officer-toolkit/smart-sampling',
@@ -31,6 +34,9 @@ export const PUBLIC_AUTH_ROUTES = new Set([
 
 // Page keys renderable without authentication (handled by PublicPageSwitch).
 export const PUBLIC_PAGES = new Set([
+  'register',
+  'officer-register',
+  'forgot-password',
   'dealers',
   'officer-toolkit',
   'forms-library',
@@ -58,6 +64,9 @@ export const PUBLIC_PAGES = new Set([
 
 export const PAGE_PATHS: Record<string, string> = {
   dashboard: '/dashboard',
+  register: '/register',
+  'officer-register': '/register',
+  'forgot-password': '/forgot-password',
   'stock-analytics': '/stock-analytics',
   'stock-receipts-sales': '/stock-receipts-sales',
   'dealer-portal': '/dealer-portal',
@@ -182,6 +191,9 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
 
 export const VALID_PAGES = new Set([
   'dashboard',
+  'register',
+  'officer-register',
+  'forgot-password',
   'stock-analytics',
   'stock-receipts-sales',
   'dealer-portal',
