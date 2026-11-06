@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
   Calendar,
   Check,
@@ -27,6 +27,7 @@ import {
   MandiPriceRecord,
   saveCustomMandiPrice,
 } from '../services/mandiPrices';
+import { detectUserLocation, resolveUserLocation, UserLocation } from '../services/userLocation';
 
 const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
 
@@ -38,6 +39,9 @@ export function MandiPricesWidget() {
   const [source, setSource] = useState<'ogd-live' | 'agmarknet-verified'>('agmarknet-verified');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [location, setLocation] = useState<UserLocation>(() => resolveUserLocation());
+  const locationRef = useRef(location);
+  locationRef.current = location;
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,13 +64,20 @@ export function MandiPricesWidget() {
     arrival_date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
   });
 
-  const loadPrices = useCallback(async (isManual = false) => {
+  const loadPrices = useCallback(async (isManual = false, locOverride?: UserLocation) => {
     if (isManual) {
       setRefreshing(true);
       invalidateMandiPricesCache();
     }
+    const loc = locOverride ?? locationRef.current;
     try {
-      const result = await fetchMandiPrices({ state: 'Telangana', limit: 120 });
+      const result = await fetchMandiPrices({
+        state: 'Telangana',
+        limit: 120,
+        // Only narrow to a district when we have a real GPS fix; the
+        // Tiryani default keeps the state-wide view.
+        ...(loc.source === 'gps' && loc.district ? { district: loc.district } : {}),
+      });
       setRecords(result?.records ?? []);
       setSource(result?.source ?? 'agmarknet-verified');
     } catch (err) {
@@ -79,6 +90,10 @@ export function MandiPricesWidget() {
 
   useEffect(() => {
     loadPrices();
+    detectUserLocation().then((loc) => {
+      setLocation(loc);
+      loadPrices(false, loc);
+    });
     const interval = setInterval(() => loadPrices(false), REFRESH_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [loadPrices]);
@@ -231,10 +246,15 @@ export function MandiPricesWidget() {
               </h3>
               <p className="text-xs text-emerald-100/90">
                 {t(
-                  'Daily wholesale prices (₹/quintal) · Kumram Bheem Asifabad & Telangana AMCs',
-                  'రోజువారీ టోకు ధరలు (₹/క్వింటాల్) · కుమ్రం భీమ్ ఆసిఫాబాద్ & తెలంగాణ మార్కెట్ యార్డులు'
+                  'Daily wholesale prices (₹/quintal)',
+                  'రోజువారీ టోకు ధరలు (₹/క్వింటాల్)'
                 )}
               </p>
+              {location.source === 'gps' && location.name && (
+                <p className="mt-0.5 text-[11px] font-semibold text-gold-200/90">
+                  {t('Near', 'దగ్గర')}: {location.name}
+                </p>
+              )}
             </div>
           </div>
 
@@ -248,7 +268,7 @@ export function MandiPricesWidget() {
               }`}
             >
               <span className={`h-2 w-2 rounded-full ${source === 'ogd-live' ? 'bg-emerald-400 animate-pulse' : 'bg-gold-400'}`} />
-              {source === 'ogd-live' ? t('Agmarknet Live', 'అగ్మార్క్‌నెట్ లైవ్') : t('Market Verified', 'మార్కెట్ ధృవీకృతం')}
+              {source === 'ogd-live' ? t('Agmarknet Live', 'అగ్మార్క్‌నెట్ లైవ్') : t('Indicative Rates', 'సూచిక ధరలు')}
             </span>
 
             {/* Refresh Button */}

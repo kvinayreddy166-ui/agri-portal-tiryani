@@ -1,6 +1,7 @@
 import React, { lazy, Suspense, useState } from 'react';
-import { Bug, FileText, FlaskConical, HelpCircle, Loader2, Sprout } from 'lucide-react';
+import { Bug, FileText, Files, FlaskConical, HelpCircle, Loader2, Sprout } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useBackButtonOverlay } from '../../../shared/hooks/useBackButtonOverlay';
 
 const FertilizerStatutoryPdfTool = lazy(() =>
@@ -60,17 +61,14 @@ export function SamplingHub() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-4">
-      <div>
-        <h1 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">
-          {t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్')}
-        </h1>
-        <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
-          {t(
-            'Create sample drawal details and generate the required statutory forms.',
-            'నమూనా వివరాలను సృష్టించండి మరియు అవసరమైన చట్టబద్ధ ఫారాలను సృష్టించండి.'
-          )}
-        </p>
-      </div>
+      <ModulePageHeader
+        title={t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్')}
+        subtitle={t(
+          'Create sample drawal details and generate the required statutory forms.',
+          'నమూనా వివరాలను సృష్టించండి మరియు అవసరమైన చట్టబద్ధ ఫారాలను సృష్టించండి.'
+        )}
+        icon={Files}
+      />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:gap-4">
         {SAMPLE_CATEGORIES.map((item) => {

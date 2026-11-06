@@ -12,11 +12,11 @@ import {
   Sparkles,
   Zap,
 } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
-import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import {
@@ -114,8 +114,8 @@ function formatWhole(value: number): string {
 export function IrrigationCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
-  const { isAdminUser, isTestUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const { toasts, removeToast, showSuccess } = useToast();
 
   const [mode, setMode] = useState<IrrigationMode>('drip');
@@ -226,17 +226,14 @@ export function IrrigationCalculator() {
       {/* Header */}
       <div className="mx-auto max-w-7xl px-4 pt-3 pb-1 sm:px-6 lg:px-8 print:hidden">
         {showCompactHeader ? (
-          <CompactToolkitHeader
-            icon={Droplets}
-            eyebrow={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
+          <ModulePageHeader
+            className="mb-4"
             title={t('Water & Irrigation Requirement Calculator', 'నీరు మరియు నీటిపారుదల అవసరాల కాలిక్యులేటర్')}
             subtitle={t(
               'Calculate pump run hours per acre, discharge rates, and water volume for Drip and Sprinkler systems.',
               'బిందు మరియు తుంపర సేద్యానికి ఎకరాకు పంపు పనివేళలు, ఉత్సర్గ రేటు మరియు నీటి పరిమాణాన్ని లెక్కించండి.'
             )}
-            onBack={() => navigate('/officer-toolkit/farm-calculators')}
-            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="teal" />}
-            className="mb-1"
+            icon={Droplets}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-cyan-300/60 bg-gradient-to-br from-cyan-600 via-sky-600 to-blue-700 p-3.5 sm:p-4 text-white shadow-md dark:border-cyan-700/60">

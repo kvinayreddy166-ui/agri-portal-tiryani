@@ -9,11 +9,11 @@ import {
   Sprout,
   X,
 } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
-import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { type AgrochemicalCategory, type AgrochemicalItem } from '../types';
@@ -32,8 +32,8 @@ const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 export function AgrochemicalDatabase() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
-  const { isAdminUser, isTestUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const { toasts, removeToast, showSuccess } = useToast();
 
   const [query, setQuery] = useState('');
@@ -76,17 +76,14 @@ export function AgrochemicalDatabase() {
       {/* Header */}
       <div className="mx-auto max-w-7xl px-4 pt-3 pb-1 sm:px-6 lg:px-8 print:hidden">
         {showCompactHeader ? (
-          <CompactToolkitHeader
-            icon={FlaskConical}
-            eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+          <ModulePageHeader
+            className="mb-4"
             title={t('Agrochemicals Database', 'వ్యవసాయ రసాయనాల భాండాగారం')}
             subtitle={t(
-              'A–Z technical database of Insecticides, Fungicides, Weedicides and Fertilizers with IRAC/FRAC/HRAC Mode of Action.',
-              'IRAC, FRAC, HRAC వర్గీకరణలతో కూడిన పురుగుమందులు, తెగుళ్ల మందులు, కలుపుమందులు మరియు ఎరువుల సమగ్ర డేటాబేస్.'
+              'CIB&RC approved pesticides, insecticides, fungicides & herbicides with registered crops, target pests, dosages, waiting periods & antidote info.',
+              'సిఐబి&ఆర్‌సి ఆమోదించిన పురుగుమందులు, తెగుళ్ల మందులు, కలుపు మందుల సమగ్ర సమాచారం.'
             )}
-            onBack={() => navigate('/officer-toolkit')}
-            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="teal" />}
-            className="mb-1"
+            icon={FlaskConical}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-teal-300/60 bg-gradient-to-br from-teal-700 via-emerald-700 to-green-800 p-3.5 sm:p-4 text-white shadow-md dark:border-teal-700/60">

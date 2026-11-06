@@ -6,8 +6,8 @@
 // and 5-day / 3-hour agro-meteorological forecasts.
 //
 // API Key resolution:
-//   1. localStorage ('agronix_openweather_api_key')
-//   2. VITE_OPENWEATHER_API_KEY environment variable
+//   1. VITE_OPENWEATHER_API_KEY environment variable
+//   2. localStorage ('agronix_openweather_api_key')
 // If unconfigured or unavailable, seamlessly falls back to Open-Meteo
 // and then offline local estimates so the dashboard is always functional.
 // =====================================================================
@@ -73,11 +73,11 @@ export interface RealtimeWeatherData {
  * Retrieve the active OpenWeather API key from localStorage or Vite env.
  */
 export function getOpenWeatherApiKey(): string | null {
-  const storedKey = safeStorage.getItem(OPENWEATHER_STORAGE_KEY)?.trim();
-  if (storedKey) return storedKey;
-
   const envKey = (import.meta.env.VITE_OPENWEATHER_API_KEY as string | undefined)?.trim();
   if (envKey) return envKey;
+
+  const storedKey = safeStorage.getItem(OPENWEATHER_STORAGE_KEY)?.trim();
+  if (storedKey) return storedKey;
 
   return null;
 }
@@ -183,11 +183,23 @@ export function getOpenWeatherIconUrl(iconCode?: string): string | undefined {
   return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
 }
 
+export interface WeatherLocation {
+  lat: number;
+  lon: number;
+  name: string;
+}
+
+const DEFAULT_WEATHER_LOCATION: WeatherLocation = {
+  lat: TIRYANI_COORDINATES.lat,
+  lon: TIRYANI_COORDINATES.lon,
+  name: TIRYANI_COORDINATES.name,
+};
+
 /**
  * Fetch real-time weather from OpenWeather (Current Weather + 5-Day Forecast).
  */
-export async function fetchOpenWeatherData(apiKey: string): Promise<RealtimeWeatherData> {
-  const { lat, lon } = TIRYANI_COORDINATES;
+export async function fetchOpenWeatherData(apiKey: string, location: WeatherLocation = DEFAULT_WEATHER_LOCATION): Promise<RealtimeWeatherData> {
+  const { lat, lon } = location;
 
   const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}&lang=en`;
   const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}&lang=en`;
@@ -248,7 +260,7 @@ export async function fetchOpenWeatherData(apiKey: string): Promise<RealtimeWeat
     weatherMain,
     iconCode,
     iconUrl: getOpenWeatherIconUrl(iconCode),
-    locationName: currentData.name ? `${currentData.name}, Mandal` : TIRYANI_COORDINATES.name,
+    locationName: currentData.name ? `${currentData.name}` : location.name,
     source: 'openweather',
     forecast: dailyForecasts,
     lastUpdated,
@@ -331,8 +343,8 @@ function isTomorrowDate(dateStr: string): boolean {
 /**
  * Fallback to Open-Meteo when OpenWeather key is not set or temporarily fails.
  */
-export async function fetchOpenMeteoData(): Promise<RealtimeWeatherData> {
-  const { lat, lon } = TIRYANI_COORDINATES;
+export async function fetchOpenMeteoData(location: WeatherLocation = DEFAULT_WEATHER_LOCATION): Promise<RealtimeWeatherData> {
+  const { lat, lon } = location;
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,surface_pressure,precipitation,wind_speed_10m,wind_direction_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset&forecast_days=6&timezone=Asia%2FKolkata`;
 
   const res = await fetch(url);
@@ -428,7 +440,7 @@ export async function fetchOpenMeteoData(): Promise<RealtimeWeatherData> {
     weatherMain: currentMeta.main,
     iconCode: currentMeta.icon,
     iconUrl: getOpenWeatherIconUrl(currentMeta.icon),
-    locationName: TIRYANI_COORDINATES.name,
+    locationName: location.name,
     source: 'openmeteo',
     forecast,
     lastUpdated,
@@ -439,7 +451,7 @@ export async function fetchOpenMeteoData(): Promise<RealtimeWeatherData> {
 /**
  * Static fallback for offline environments.
  */
-export function getOfflineFallbackWeatherData(): RealtimeWeatherData {
+export function getOfflineFallbackWeatherData(location: WeatherLocation = DEFAULT_WEATHER_LOCATION): RealtimeWeatherData {
   const today = new Date();
   const forecast: DailyForecastItem[] = Array.from({ length: 5 }, (_, i) => {
     const d = new Date(today);
@@ -489,7 +501,7 @@ export function getOfflineFallbackWeatherData(): RealtimeWeatherData {
     weatherMain: 'Clouds',
     iconCode: '02d',
     iconUrl: getOpenWeatherIconUrl('02d'),
-    locationName: TIRYANI_COORDINATES.name,
+    locationName: location.name,
     source: 'fallback',
     forecast,
     lastUpdated: today.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }),
@@ -504,13 +516,13 @@ export function getOfflineFallbackWeatherData(): RealtimeWeatherData {
  * 3. Falls back to Open-Meteo if no key or OpenWeather request fails
  * 4. Falls back to offline estimate if both fail
  */
-export async function getRealtimeWeather(_forceRefresh = false): Promise<RealtimeWeatherData> {
+export async function getRealtimeWeather(_forceRefresh = false, location: WeatherLocation = DEFAULT_WEATHER_LOCATION): Promise<RealtimeWeatherData> {
   const apiKey = getOpenWeatherApiKey();
 
   // If OpenWeather key is present, attempt OpenWeather
   if (apiKey) {
     try {
-      const data = await fetchOpenWeatherData(apiKey);
+      const data = await fetchOpenWeatherData(apiKey, location);
       return data;
     } catch (err) {
       console.warn('OpenWeather fetch failed, falling back to Open-Meteo:', err);
@@ -519,10 +531,10 @@ export async function getRealtimeWeather(_forceRefresh = false): Promise<Realtim
 
   // Attempt Open-Meteo
   try {
-    const meteoData = await fetchOpenMeteoData();
+    const meteoData = await fetchOpenMeteoData(location);
     return meteoData;
   } catch (err) {
     console.warn('Open-Meteo fetch failed, falling back to offline estimate:', err);
-    return getOfflineFallbackWeatherData();
+    return getOfflineFallbackWeatherData(location);
   }
 }

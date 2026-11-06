@@ -37,6 +37,7 @@ export interface MandiPriceRecord {
   mspDifference?: number;
   isLocal?: boolean;
   isCustom?: boolean;
+  isIndicative?: boolean;
   created_at?: string;
 }
 
@@ -54,22 +55,23 @@ export interface MandiPricesQuery {
 }
 
 /**
- * Official Minimum Support Prices (MSP) for 2025–26 / 2026 Kharif & Rabi (₹/quintal)
- * Source: Ministry of Agriculture & Farmers Welfare, GoI / Government of Telangana
+ * Official Minimum Support Prices (MSP) for 2026-27 Kharif & 2027-28 Rabi (₹/quintal)
+ * Source: CCEA approvals — Kharif MS 2026-27 (13 May 2026) & Rabi MS 2027-28 (30 Sep 2026),
+ * Ministry of Agriculture & Farmers Welfare, GoI / Government of Telangana
  */
 export const CROP_MSP_BENCHMARKS: Record<string, { msp: number; bonus?: number; note?: string }> = {
-  'Cotton': { msp: 7521, note: 'Long Staple MSP ₹7,521; Medium Staple ₹7,121' },
-  'Paddy(Dhan)(Common)': { msp: 2320, bonus: 500, note: 'MSP ₹2,320 + ₹500 Telangana Fine Rice Bonus' },
-  'Paddy(Dhan)(Grade A)': { msp: 2380, bonus: 500, note: 'MSP ₹2,380 + ₹500 Telangana Fine Rice Bonus' },
-  'Paddy': { msp: 2380, bonus: 500, note: 'MSP ₹2,380 + ₹500 Telangana Fine Rice Bonus' },
-  'Soya Bean': { msp: 4892, note: 'MSP ₹4,892/quintal' },
-  'Soyabean': { msp: 4892, note: 'MSP ₹4,892/quintal' },
-  'Red Gram': { msp: 7550, note: 'MSP ₹7,550/quintal (Tur/Arhar)' },
-  'Arhar (Tur/Red Gram)': { msp: 7550, note: 'MSP ₹7,550/quintal' },
-  'Maize': { msp: 2225, note: 'MSP ₹2,225/quintal (Makka)' },
-  'Bengal Gram(Gram)': { msp: 5650, note: 'MSP ₹5,650/quintal (Chana)' },
-  'Chana': { msp: 5650, note: 'MSP ₹5,650/quintal' },
-  'Groundnut': { msp: 6783, note: 'MSP ₹6,783/quintal' },
+  'Cotton': { msp: 8667, note: 'Long Staple MSP ₹8,667; Medium Staple ₹8,267 (MS 2026-27)' },
+  'Paddy(Dhan)(Common)': { msp: 2441, bonus: 500, note: 'MSP ₹2,441 + ₹500 Telangana Fine Rice Bonus' },
+  'Paddy(Dhan)(Grade A)': { msp: 2461, bonus: 500, note: 'MSP ₹2,461 + ₹500 Telangana Fine Rice Bonus' },
+  'Paddy': { msp: 2461, bonus: 500, note: 'MSP ₹2,461 + ₹500 Telangana Fine Rice Bonus' },
+  'Soya Bean': { msp: 5708, note: 'MSP ₹5,708/quintal (MS 2026-27)' },
+  'Soyabean': { msp: 5708, note: 'MSP ₹5,708/quintal (MS 2026-27)' },
+  'Red Gram': { msp: 8450, note: 'MSP ₹8,450/quintal (Tur/Arhar, MS 2026-27)' },
+  'Arhar (Tur/Red Gram)': { msp: 8450, note: 'MSP ₹8,450/quintal (MS 2026-27)' },
+  'Maize': { msp: 2410, note: 'MSP ₹2,410/quintal (Makka, MS 2026-27)' },
+  'Bengal Gram(Gram)': { msp: 5958, note: 'MSP ₹5,958/quintal (Chana, MS 2027-28)' },
+  'Chana': { msp: 5958, note: 'MSP ₹5,958/quintal (MS 2027-28)' },
+  'Groundnut': { msp: 7517, note: 'MSP ₹7,517/quintal (MS 2026-27)' },
   'Chilli (Dry)': { msp: 0, note: 'Market driven (No Central MSP)' },
   'Turmeric': { msp: 0, note: 'National Turmeric Board Benchmark' },
 };
@@ -175,27 +177,11 @@ export function invalidateMandiPricesCache(): void {
   }
 }
 
-/**
- * Formats a Date object into DD/MM/YYYY string for Agmarknet compatibility.
- */
-function toAgmarknetDate(d: Date): string {
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yyyy = d.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
-}
-
-/**
- * Generates verified Agmarknet mandi daily prices for Telangana & local KB Asifabad/Adilabad mandis.
- */
 export function getVerifiedMandiPrices(): MandiPriceRecord[] {
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1);
-
-  const todayStr = toAgmarknetDate(today);
-  const yesterdayStr = toAgmarknetDate(yesterday);
-
+  // NOTE: These are indicative benchmark ranges compiled from recent Agmarknet
+  // bulletins — NOT live daily arrivals. Live data requires the OGD proxy
+  // (OGDINDIA_API_KEY). Dates are intentionally blank so the UI never
+  // presents stale figures as "today's" prices.
   const rawBaseline: Array<{
     district: string;
     market: string;
@@ -215,7 +201,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 7150,
       max: 7850,
       modal: 7650,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Kumram Bheem Asifabad',
@@ -225,7 +211,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 7100,
       max: 7780,
       modal: 7580,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Kumram Bheem Asifabad',
@@ -235,7 +221,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 2420,
       max: 2750,
       modal: 2580,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Kumram Bheem Asifabad',
@@ -245,7 +231,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 2320,
       max: 2600,
       modal: 2480,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Kumram Bheem Asifabad',
@@ -255,7 +241,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 7600,
       max: 8400,
       modal: 8150,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Kumram Bheem Asifabad',
@@ -265,7 +251,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 4400,
       max: 4950,
       modal: 4820,
-      arrival_date: yesterdayStr,
+      arrival_date: '',
     },
     {
       district: 'Kumram Bheem Asifabad',
@@ -275,7 +261,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 2200,
       max: 2450,
       modal: 2360,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
 
     // Adilabad (Major Northern Telangana Agricultural Hub)
@@ -287,7 +273,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 7200,
       max: 7980,
       modal: 7720,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Adilabad',
@@ -297,7 +283,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 4450,
       max: 4980,
       modal: 4850,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Adilabad',
@@ -307,7 +293,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 7100,
       max: 7750,
       modal: 7550,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Adilabad',
@@ -317,7 +303,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 7700,
       max: 8500,
       modal: 8200,
-      arrival_date: yesterdayStr,
+      arrival_date: '',
     },
     {
       district: 'Adilabad',
@@ -327,7 +313,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 5700,
       max: 6350,
       modal: 6100,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
 
     // Mancherial
@@ -339,7 +325,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 2450,
       max: 2850,
       modal: 2650,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Mancherial',
@@ -349,7 +335,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 7050,
       max: 7650,
       modal: 7480,
-      arrival_date: yesterdayStr,
+      arrival_date: '',
     },
 
     // Warangal (Enumamula AMC - Major Grain & Chilli Market)
@@ -361,7 +347,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 14500,
       max: 19500,
       modal: 17800,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Warangal',
@@ -371,7 +357,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 7250,
       max: 8050,
       modal: 7780,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Warangal',
@@ -381,7 +367,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 2250,
       max: 2500,
       modal: 2410,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
 
     // Nizamabad (Turmeric & Paddy Hub)
@@ -393,7 +379,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 12500,
       max: 16800,
       modal: 14900,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Nizamabad',
@@ -403,7 +389,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 4500,
       max: 4950,
       modal: 4860,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Nizamabad',
@@ -413,7 +399,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 2400,
       max: 2780,
       modal: 2620,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
 
     // Khammam (Cotton & Chilli Hub)
@@ -425,7 +411,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 15000,
       max: 20500,
       modal: 18400,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Khammam',
@@ -435,7 +421,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 7200,
       max: 7900,
       modal: 7680,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
 
     // Vikarabad (Tandur Red Gram GI Hub)
@@ -447,7 +433,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 7900,
       max: 8850,
       modal: 8450,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
 
     // Mahabubnagar / Badepally
@@ -459,7 +445,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 2240,
       max: 2480,
       modal: 2390,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
     {
       district: 'Mahabubnagar',
@@ -469,7 +455,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 6200,
       max: 7100,
       modal: 6850,
-      arrival_date: yesterdayStr,
+      arrival_date: '',
     },
 
     // Suryapet (Paddy Milling Hub)
@@ -481,7 +467,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       min: 2320,
       max: 2650,
       modal: 2510,
-      arrival_date: todayStr,
+      arrival_date: '',
     },
   ];
 
@@ -505,6 +491,7 @@ export function getVerifiedMandiPrices(): MandiPriceRecord[] {
       mspDifference,
       isLocal: isLocalMarket(r.district, r.market),
       isCustom: false,
+      isIndicative: true,
     };
   });
 }
@@ -531,6 +518,7 @@ export async function fetchMandiPrices(query: MandiPricesQuery = {}): Promise<Ma
   try {
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
+    console.log('[OGD] Attempting live fetch, token present:', !!token);
 
     if (token) {
       const filters: Record<string, string> = { state: query.state ?? 'Telangana' };
@@ -554,6 +542,7 @@ export async function fetchMandiPrices(query: MandiPricesQuery = {}): Promise<Ma
             limit: query.limit ?? 100,
             sort: 'arrival_date',
             sort_dir: 'desc',
+            bypass_cache: true, // Always bypass cache for live data
           }),
           signal: controller.signal,
         });
@@ -561,18 +550,25 @@ export async function fetchMandiPrices(query: MandiPricesQuery = {}): Promise<Ma
         clearTimeout(timer);
       }
 
-      if (res.ok) {
-        const payload = await res.json();
-        const normalized = normalizeRecords(payload.records);
-        if (normalized.length > 0) {
-          const result: MandiPricesResult = {
-            records: mergeCustomPrices(normalized, customPrices, query),
-            fetchedAt: Date.now(),
-            source: 'ogd-live',
-          };
-          writeCache(cacheKey, { ...result, records: normalized });
-          return result;
-        }
+      console.log('[OGD] Response status:', res.status);
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        console.error('[OGD] Error response:', errText);
+        throw new Error(`OGD proxy returned ${res.status}: ${errText}`);
+      }
+
+      const payload = await res.json();
+      console.log('[OGD] Response payload:', payload);
+      const normalized = normalizeRecords(payload.records);
+      console.log('[OGD] Normalized records count:', normalized.length);
+      if (normalized.length > 0) {
+        const result: MandiPricesResult = {
+          records: mergeCustomPrices(normalized, customPrices, query),
+          fetchedAt: Date.now(),
+          source: 'ogd-live',
+        };
+        writeCache(cacheKey, { ...result, records: normalized });
+        return result;
       }
     }
   } catch (err) {
@@ -581,7 +577,12 @@ export async function fetchMandiPrices(query: MandiPricesQuery = {}): Promise<Ma
 
   // Fallback to verified Agmarknet bulletin
   const verified = getVerifiedMandiPrices();
-  const filtered = filterRecords(verified, query);
+  let filtered = filterRecords(verified, query);
+  // If the detected district isn't covered by the bulletin, show state-level
+  // rates rather than an empty widget.
+  if (query.district && filtered.length === 0) {
+    filtered = verified;
+  }
   const result: MandiPricesResult = {
     records: mergeCustomPrices(filtered, customPrices, query),
     fetchedAt: Date.now(),
@@ -594,8 +595,11 @@ export async function fetchMandiPrices(query: MandiPricesQuery = {}): Promise<Ma
 
 function filterRecords(records: MandiPriceRecord[], query: MandiPricesQuery): MandiPriceRecord[] {
   return records.filter((r) => {
-    if (query.district && !r.district.toLowerCase().includes(query.district.toLowerCase())) {
-      return false;
+    if (query.district) {
+      const q = query.district.toLowerCase();
+      const d = r.district.toLowerCase();
+      // Match either direction so "Kumram Bheem" matches "Kumram Bheem Asifabad"
+      if (!d.includes(q) && !q.includes(d)) return false;
     }
     if (query.commodity && !r.commodity.toLowerCase().includes(query.commodity.toLowerCase())) {
       return false;
@@ -737,7 +741,11 @@ export function buildMandiWhatsAppText(
   }
 
   lines.push('----------------------------------------');
-  lines.push(`*${t('Official Source:', 'అధికారిక మూలం:')}* Agmarknet / Telangana Agricultural Market Committees`);
+  if (records.some((r) => r.isIndicative)) {
+    lines.push(`*${t('Source (indicative — verify on Agmarknet):', 'మూలం (సూచిక):')}* AGRONIX`);
+  } else {
+    lines.push(`*${t('Official Source:', 'అధికారిక మూలం:')}* Agmarknet / Telangana Agricultural Market Committees`);
+  }
   lines.push(`*${t('Portal:', 'పోర్టల్:')}* AGRONIX — Tiryani Agriculture Department`);
 
   return lines.join('\n');

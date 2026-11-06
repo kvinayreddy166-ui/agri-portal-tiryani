@@ -244,7 +244,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signInWithOtp({
         email: normalizedEmail,
         options: {
-          shouldCreateUser: false,
+          // Allow creating a new user if the email does not exist
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/login`,
         },
       });
 
@@ -304,69 +306,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const password = data.password?.trim() || `Agri@${data.phone.slice(-4)}#2026`;
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: normalizedEmail,
-        password,
-        options: {
-          data: {
-            role: 'officer',
-            full_name: data.full_name.trim(),
-            designation: data.designation.trim(),
-            hrms_id: data.hrms_id?.trim() || '',
-            district: data.district.trim(),
-            mandal: data.mandal.trim(),
-            phone: data.phone.trim(),
-          },
-        },
-      });
-
-      if (authError) {
-        if (authError.message.toLowerCase().includes('already registered')) {
-          return { error: new Error('This official email is already registered. Please sign in with OTP or password.') };
-        }
-        return { error: authError };
-      }
-
-      const userId = authData.user?.id;
-      if (userId) {
-        const profileRow: OfficerProfile = {
-          id: userId,
+      // Use Edge Function to create user with email already confirmed (OTP verified via Resend)
+      const { data: fnData, error: fnError } = await supabase.functions.invoke('register-officer', {
+        body: {
+          email: normalizedEmail,
+          password: data.password?.trim() || `Agri@${data.phone.slice(-4)}#2026`,
           full_name: data.full_name.trim(),
           designation: data.designation.trim(),
           hrms_id: data.hrms_id?.trim() || '',
           district: data.district.trim(),
           mandal: data.mandal.trim(),
           phone: data.phone.trim(),
-          email: normalizedEmail,
-          role: 'officer',
-          status: 'active',
-        };
+        },
+      });
 
-        const { error: profileError } = await supabase
-          .from('officer_profiles')
-          .upsert(profileRow);
-
-        if (profileError) {
-          console.warn('Could not insert officer profile row immediately:', profileError.message);
+      if (fnError) {
+        let serverErrorMsg = fnError.message;
+        try {
+          if ('context' in fnError && (fnError as any).context) {
+            const errJson = await (fnError as any).context.json();
+            if (errJson?.error) serverErrorMsg = errJson.error;
+          }
+        } catch {
+          // ignore
         }
-        setOfficerProfile(profileRow);
-        setIsOfficerUserFlag(true);
+        return { error: new Error(serverErrorMsg || 'Failed to create officer account.') };
       }
 
-      if (authData.session) {
-        applySession(
-          authData.session,
-          setSession,
-          setUser,
-          setIsAdminUser,
-          setIsTestUserFlag,
-          setIsDealerUserFlag,
-          setDealerId,
-          setDealerName
-        );
+      if (!fnData?.success) {
+        return { error: new Error(fnData?.error || 'Failed to create officer account.') };
       }
 
+      // Officer profile was created by Edge Function
+      // User can now sign in with email + password
       return { error: null };
     } catch (err) {
       return { error: err as Error };

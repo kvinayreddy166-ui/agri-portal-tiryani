@@ -25,16 +25,8 @@ export interface VerifyOtpResult {
 
 export class ResendOtpService {
   /**
-   * Generates a 6-digit cryptographic numeric OTP
-   */
-  private static generateOtp(): string {
-    const arr = new Uint32Array(1);
-    window.crypto.getRandomValues(arr);
-    return (100000 + (arr[0] % 900000)).toString();
-  }
-
-  /**
-   * Dispatches an OTP to the officer's email using Resend
+   * Dispatches an OTP to the officer's email using Resend via Supabase Edge Function
+   * Requires RESEND_API_KEY to be configured in Supabase secrets
    */
   static async sendOtp({
     email,
@@ -48,7 +40,7 @@ export class ResendOtpService {
       return { success: false, message: '', error: 'Please enter a valid official email address.' };
     }
 
-    // 1. Try Supabase Edge Function first (server-side handles Resend securely without browser CORS issues)
+    // Use Supabase Edge Function which handles Resend API securely server-side
     try {
       const { data, error } = await supabase.functions.invoke('send-email-otp', {
         body: {
@@ -60,14 +52,6 @@ export class ResendOtpService {
         },
       });
 
-      if (!error && data?.success) {
-        return {
-          success: true,
-          message: data.message || 'OTP sent successfully via Resend.',
-          devOtp: data.devOtp,
-        };
-      }
-
       if (error) {
         let serverErrorMsg = error.message;
         try {
@@ -78,45 +62,35 @@ export class ResendOtpService {
         } catch {
           // ignore
         }
-        console.warn('send-email-otp returned error:', serverErrorMsg);
+        console.error('send-email-otp error:', serverErrorMsg);
+        return {
+          success: false,
+          message: '',
+          error: serverErrorMsg || 'Failed to send verification email. Please try again or contact support.',
+        };
       }
-    } catch (invokeErr) {
-      console.warn('send-email-otp invocation threw:', invokeErr);
-    }
 
-    // 2. Direct database RPC fallback
-    // Generates cryptographic OTP and stores it in Postgres via RPC (save_officer_email_otp).
-    // Avoids direct browser fetch to api.resend.com which is blocked by browser CORS.
-    const otp = this.generateOtp();
-
-    try {
-      const { error: rpcError } = await supabase.rpc('save_officer_email_otp', {
-        p_email: normalizedEmail,
-        p_otp_code: otp,
-        p_purpose: purpose,
-        p_payload: payload,
-        p_expiry_minutes: 10,
-      });
-
-      if (!rpcError) {
+      if (data?.success) {
         return {
           success: true,
-          message: 'OTP verification code generated and stored for verification.',
-          devOtp: otp,
+          message: data.message || 'OTP sent successfully via Resend.',
+          devOtp: data.devOtp,
         };
-      } else {
-        console.warn('save_officer_email_otp failed:', rpcError.message);
       }
-    } catch (err) {
-      console.warn('save_officer_email_otp exception:', err);
-    }
 
-    // 3. Ultimate fallback
-    return {
-      success: true,
-      message: 'OTP generated and ready for verification.',
-      devOtp: otp,
-    };
+      return {
+        success: false,
+        message: '',
+        error: data?.error || 'Failed to send verification email.',
+      };
+    } catch (invokeErr) {
+      console.error('send-email-otp invocation failed:', invokeErr);
+      return {
+        success: false,
+        message: '',
+        error: 'Network error while sending verification email. Please check your connection and try again.',
+      };
+    }
   }
 
   /**

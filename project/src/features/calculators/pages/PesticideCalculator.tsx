@@ -11,11 +11,11 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
-import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 
@@ -103,8 +103,8 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 export function PesticideCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
-  const { isAdminUser, isTestUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const [mode, setMode] = useState<Mode>('activeIngredient');
   const [form, setForm] = useState(initialForm);
   const [copied, setCopied] = useState(false);
@@ -188,17 +188,14 @@ export function PesticideCalculator() {
       {/* Header */}
       <div className="mx-auto max-w-7xl px-4 pt-3 pb-1 sm:px-6 lg:px-8 print:hidden">
         {showCompactHeader ? (
-          <CompactToolkitHeader
-            icon={Bug}
-            eyebrow={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
+          <ModulePageHeader
+            className="mb-4"
             title={t('Pesticide Calculator', 'పురుగుమందు కాలిక్యులేటర్')}
             subtitle={t(
               'Calculate commercial pesticide quantity, tank-wise spray solution and water calibration.',
               'స్ప్రే ట్యాంక్ మోతాదు, మొత్తం నీరు మరియు పురుగుమందు పరిమాణాన్ని ఖచ్చితంగా లెక్కించండి.'
             )}
-            onBack={() => navigate('/officer-toolkit/farm-calculators')}
-            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
-            className="mb-1"
+            icon={Bug}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-rose-300/60 bg-gradient-to-br from-rose-600 via-rose-500 to-red-700 p-3.5 sm:p-4 text-white shadow-md dark:border-rose-800/60">

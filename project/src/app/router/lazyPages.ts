@@ -43,6 +43,7 @@ export const SeedDealerInspection = lazy(() => import('../../features/officers-t
 export const FertilizerDealerInspection = lazy(() => import('../../features/officers-toolkit/pages/FertilizerDealerInspection').then((m) => ({ default: m.FertilizerDealerInspection })));
 export const InsecticideDealerInspection = lazy(() => import('../../features/officers-toolkit/pages/InsecticideDealerInspection').then((m) => ({ default: m.InsecticideDealerInspection })));
 export const InspectionEnforcementHub = lazy(() => import('../../features/officers-toolkit/pages/InspectionEnforcementHub').then((m) => ({ default: m.InspectionEnforcementHub })));
+export const EnforcementTracker = lazy(() => import('../../features/officers-toolkit/pages/EnforcementTracker').then((m) => ({ default: m.EnforcementTracker })));
 export const FieldDiagnosis = lazy(() => import('../../features/field-diagnosis/pages/FieldDiagnosis').then((m) => ({ default: m.FieldDiagnosis })));
 export const CropManagement = lazy(() => import('../../features/crop-management/pages/CropManagement').then((m) => ({ default: m.CropManagement })));
 export const CropAdminDashboard = lazy(() => import('../../features/crop-doctor/pages/CropAdminDashboard').then((m) => ({ default: m.CropAdminDashboard })));

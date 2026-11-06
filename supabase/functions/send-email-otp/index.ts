@@ -53,8 +53,12 @@ Deno.serve(async (req: Request) => {
     }
 
     // 4. Send email via Resend API
-    if (resendApiKey) {
-      const emailHtml = `
+    if (!resendApiKey) {
+      console.error('RESEND_API_KEY is not configured in Supabase secrets');
+      return errorResponse('Email service is not configured. Please contact the administrator.', 500);
+    }
+
+    const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -98,55 +102,52 @@ Deno.serve(async (req: Request) => {
   </div>
 </body>
 </html>
-      `;
+    `;
 
-      const emailSubject = purpose === 'reset_password'
-        ? `Agronix — Password Reset Code: ${otp}`
-        : `Agronix — Officer Verification OTP: ${otp}`;
+    const emailSubject = purpose === 'reset_password'
+      ? `Agronix — Password Reset Code: ${otp}`
+      : `Agronix — Officer Verification OTP: ${otp}`;
 
-      const resendRes = await fetch(RESEND_API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: fromEmail,
-          to: [email],
-          subject: emailSubject,
-          html: emailHtml,
-        }),
-      });
+    const resendRes = await fetch(RESEND_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [email],
+        subject: emailSubject,
+        html: emailHtml,
+      }),
+    });
 
-      if (!resendRes.ok) {
-        const errJson = await resendRes.json();
-        console.error('Resend API call failed:', errJson);
-
-        // If Resend restricted sending because of free tier (onboarding@resend.dev only delivers to account owner)
-        // Note: The OTP is already stored in the DB table, so the officer can still verify!
-        if (resendRes.status === 403 || errJson.message?.includes('testing emails')) {
-          const ownerMatch = errJson.message?.match(/\(([^)]+)\)/);
-          const ownerEmail = ownerMatch ? ownerMatch[1] : 'account owner';
-          return json({
-            success: true,
-            message: `Resend sandbox active: In free testing mode, email delivers to ${ownerEmail}. For testing, verification code is: ${otp}`,
-            email,
-            devOtp: otp,
-          });
-        }
-
-        return errorResponse(`Resend dispatch failed: ${errJson.message || resendRes.statusText}`, 400);
+    if (!resendRes.ok) {
+      const errJson = await resendRes.json();
+      console.error('Resend API call failed:', errJson);
+      
+      // Handle specific Resend errors
+      if (resendRes.status === 403) {
+        return errorResponse('Email delivery restricted. Please verify your sender domain in Resend dashboard.', 403);
       }
-    } else {
-      console.warn('RESEND_API_KEY is not set. OTP stored in database but email dispatch skipped.');
+      
+      if (resendRes.status === 429) {
+        return errorResponse('Too many email requests. Please wait a few minutes and try again.', 429);
+      }
+      
+      return errorResponse(`Failed to send email: ${errJson.message || resendRes.statusText}`, resendRes.status);
     }
+
+    const resendData = await resendRes.json();
+    console.log('Resend API success:', { id: resendData.id, email });
 
     return json({
       success: true,
       message: 'OTP dispatched successfully via Resend',
       email,
-      // For local development or when RESEND_API_KEY is not set:
-      devOtp: resendApiKey ? undefined : otp,
+      resendId: resendData.id,
+      // Only return devOtp in development mode
+      devOtp: Deno.env.get('ENVIRONMENT') === 'development' ? otp : undefined,
     });
   } catch (err) {
     console.error('Exception in send-email-otp:', err);

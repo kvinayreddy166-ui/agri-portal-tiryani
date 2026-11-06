@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Camera, RefreshCw, Search, Sprout, Stethoscope } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
 import type { CropProtectionCategory, CropProtectionCrop, CropProtectionItem, LanguageCode } from '../services/cropProtectionService';
@@ -9,7 +10,6 @@ import { ProtectionItemCard } from './ProtectionItemCard';
 import { CropProtectionAdmin } from './CropProtectionAdmin';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
-import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 
 const categories: Array<{
   key: CropProtectionCategory;
@@ -32,8 +32,8 @@ export function CropProtectionDashboard({
   onRefresh: () => void;
 }) {
   const navigate = useNavigate();
-  const { isAdminUser, isTestUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const [language, setLanguage] = useState<LanguageCode>('en');
   const [selectedCropKey, setSelectedCropKey] = useState(crops[0]?.crop_key || 'cotton');
   const [category, setCategory] = useState<CropProtectionCategory>('pest');
@@ -104,13 +104,11 @@ export function CropProtectionDashboard({
   return (
     <div className="space-y-4">
       {showCompactHeader ? (
-        <CompactToolkitHeader
-          icon={Stethoscope}
+        <ModulePageHeader
+          className="mb-4"
           title={label('Crop Doctor', language)}
           subtitle={label('Crop, pest, disease, weed and nutrient deficiency guidance for field officers.', language)}
-          actions={(
-            <LanguageToggle language={language} onClick={() => setLanguage((value) => (value === 'en' ? 'te' : 'en'))} accent="emerald" />
-          )}
+          icon={Stethoscope}
         />
       ) : (
       <section className="relative overflow-hidden rounded-2xl border border-emerald-200 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-800 via-green-700 to-emerald-800 p-4 text-white shadow-sm sm:p-5">

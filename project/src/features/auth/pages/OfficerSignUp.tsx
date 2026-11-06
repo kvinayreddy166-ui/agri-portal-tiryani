@@ -162,7 +162,8 @@ export function OfficerSignUp() {
 
     setStep('otp');
     setOtpCooldown(60);
-    if (res.devOtp) {
+    // Only show dev OTP in development mode, not in production
+    if (res.devOtp && import.meta.env.DEV) {
       setSuccessMessage(
         t(
           `Verification code sent! (Dev Mode Code: ${res.devOtp})`,
@@ -172,8 +173,8 @@ export function OfficerSignUp() {
     } else {
       setSuccessMessage(
         t(
-          `A 6-digit verification code has been dispatched via Resend to ${email}.`,
-          `${email} కి Resend ద్వారా 6-అంకెల ధృవీకరణ కోడ్ పంపబడింది.`
+          `A 6-digit verification code has been sent to ${email}. Please check your inbox and spam folder.`,
+          `${email} కి 6-అంకెల ధృవీకరణ కోడ్ పంపబడింది. దయచేసి మీ ఇన్బాక్స్ మరియు స్పామ్ ఫోల్డర్ చూడండి.`
         )
       );
     }
@@ -543,7 +544,7 @@ export function OfficerSignUp() {
                     className="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline disabled:text-slate-400 flex items-center gap-1.5"
                   >
                     <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
-                    <span>{otpCooldown > 0 ? `${t('Resend OTP in', 'మళ్లీ పంపు')} ${otpCooldown}s` : t('Resend OTP via Resend', 'Resend ద్వారా మళ్లీ పంపండి')}</span>
+                    <span>{otpCooldown > 0 ? `${t('Resend OTP in', 'మళ్లీ పంపు')} ${otpCooldown}s` : t('Resend OTP', 'మళ్లీ OTP పంపండి')}</span>
                   </button>
 
                   <button
@@ -709,9 +710,9 @@ export function OfficerSignUp() {
                   <button
                     type="button"
                     onClick={() => navigate('/dashboard')}
-                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 via-emerald-800 to-emerald-900 py-3 text-xs sm:text-sm font-bold text-white shadow-lg shadow-emerald-900/25 hover:from-emerald-600 hover:to-emerald-800 transition"
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 py-3 text-xs sm:text-sm font-bold text-white shadow-xs hover:shadow active:scale-[0.99] transition"
                   >
-                    <span>{t('Go to Officer Dashboard', 'ఆఫీసర్ డ్యాష్‌బోర్డ్‌కు వెళ్లండి')}</span>
+                    <span>{t('Go to Dashboard', 'డాష్‌బోర్డ్‌కు వెళ్లండి')}</span>
                     <ArrowRight className="h-4 w-4" />
                   </button>
 

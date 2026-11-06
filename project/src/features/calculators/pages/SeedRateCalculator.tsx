@@ -10,11 +10,11 @@ import {
   Sparkles,
   Wheat,
 } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
-import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 
@@ -89,8 +89,8 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 export function SeedRateCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
-  const { isAdminUser, isTestUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const [form, setForm] = useState(initialForm);
   const [copied, setCopied] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -173,17 +173,14 @@ export function SeedRateCalculator() {
       {/* Header */}
       <div className="mx-auto max-w-7xl px-4 pt-3 pb-1 sm:px-6 lg:px-8 print:hidden">
         {showCompactHeader ? (
-          <CompactToolkitHeader
-            icon={Scale}
-            eyebrow={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
+          <ModulePageHeader
+            className="mb-4"
             title={t('Seed Rate Calculator', 'విత్తన మోతాదు కాలిక్యులేటర్')}
             subtitle={t(
               'Calculate precise seed weight requirement from plant population, germination % and test weight.',
               'జనాభా, మొలక శాతం మరియు టెస్ట్ వెయిట్ ఆధారంగా విత్తన అవసరాన్ని లెక్కించండి.'
             )}
-            onBack={() => navigate('/officer-toolkit/farm-calculators')}
-            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
-            className="mb-1"
+            icon={Wheat}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-lime-300/60 bg-gradient-to-br from-lime-600 via-green-600 to-emerald-700 p-3.5 sm:p-4 text-white shadow-md dark:border-lime-700/60">

@@ -29,12 +29,12 @@ import {
   User,
   Wheat,
 } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
-import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { repairTeluguRecord, repairTeluguText } from '../../../shared/utils/textRepair';
 import {
   DEFAULT_GRADES,
@@ -1360,8 +1360,8 @@ function recommendationNpkLabel(recommendation: CropRecommendation) {
 
 export function FertilizerCalculator() {
   const navigate = useNavigate();
-  const { isAdminUser, isTestUser, user } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const { isAdminUser, isTestUser, isOfficerUser, user } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const [language, setLanguage] = useState<'en' | 'te'>('en');
   const toggleLanguage = () => setLanguage((current) => (current === 'en' ? 'te' : 'en'));
   const uiLabels = useMemo(() => (language === 'te' ? repairTeluguRecord(UI_LABELS.te) : UI_LABELS.en), [language]);
@@ -1952,14 +1952,11 @@ export function FertilizerCalculator() {
       {/* Header */}
       <div className="mx-auto max-w-7xl px-4 pt-3 pb-1 sm:px-6 lg:px-8 print:hidden">
         {showCompactHeader ? (
-          <CompactToolkitHeader
-            icon={FlaskConical}
-            eyebrow={language === 'te' ? 'వ్యవసాయ కాలిక్యులేటర్లు' : 'Farm Calculators'}
+          <ModulePageHeader
+            className="mb-4"
             title={language === 'te' ? 'ఎరువుల కాలిక్యులేటర్' : 'Fertilizer Calculator'}
             subtitle={language === 'te' ? 'పంటకు అవసరమైన ఎరువుల లెక్కింపు' : 'Calculate crop fertilizer requirements'}
-            onBack={() => navigate('/officer-toolkit/farm-calculators')}
-            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
-            className="mb-1"
+            icon={Package}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 p-3.5 sm:p-4 text-white shadow-md dark:border-emerald-700/60">

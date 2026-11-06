@@ -14,6 +14,7 @@ import {
   Dashboard,
   DealerManagement,
   DealerStockPortal,
+  EnforcementTracker,
   ExcelUploads,
   FarmCalculators,
   FarmerDatabase,
@@ -148,6 +149,8 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       );
     case 'officer-toolkit':
       return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} isPublic={false} />;
+    case 'officer-records':
+      return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} isPublic={false} />;
     case 'license-services':
       return <LicenseServices />;
     case 'agrochemicals':
@@ -194,6 +197,12 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       return <InsecticideDealerInspection />;
     case 'inspection-enforcement':
       return <InspectionEnforcementHub />;
+    case 'enforcement-tracker':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <EnforcementTracker />
+        </SafeSuspense>
+      );
     case 'field-diagnosis':
       if (import.meta.env.PROD) {
         return <Navigate to="/officer-toolkit" replace />;

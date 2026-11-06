@@ -31,7 +31,7 @@ export interface UnifiedOfficerRecord {
   createdAt: string;
 }
 
-const STORAGE_KEYS = {
+export const OFFICER_LOCAL_STORAGE_KEYS = {
   ORDERS: {
     fertilizer_stop_sale: 'agri-legal-fertilizer-stop-sale-orders',
     pesticide_stop_sale: 'agri-legal-pesticide-stop-sale-orders',
@@ -319,7 +319,7 @@ export class OfficerCloudSyncService {
     const knownRefNumbers = new Set(records.map((r) => r.referenceNumber));
 
     // Scan Orders
-    Object.entries(STORAGE_KEYS.ORDERS).forEach(([keyName, storageKey]) => {
+    Object.entries(OFFICER_LOCAL_STORAGE_KEYS.ORDERS).forEach(([keyName, storageKey]) => {
       try {
         const raw = safeStorage.getItem(storageKey);
         if (!raw) return;
@@ -383,7 +383,7 @@ export class OfficerCloudSyncService {
     }
 
     // Also remove from any local arrays if present
-    Object.values(STORAGE_KEYS.ORDERS).forEach((key) => {
+    Object.values(OFFICER_LOCAL_STORAGE_KEYS.ORDERS).forEach((key) => {
       try {
         const raw = safeStorage.getItem(key);
         if (!raw) return;

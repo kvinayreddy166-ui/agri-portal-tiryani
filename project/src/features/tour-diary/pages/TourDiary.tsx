@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { supabase } from '../../../shared/lib/supabase';
 import { BackButton } from '../../../shared/components/ui/BackButton';
-import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, Clock, ChevronRight as ArrowRight, X, ClipboardList, Download, Printer } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
 import { statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 import { deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
@@ -287,8 +287,8 @@ function DiaryDialog({ dialog, onResolve }: { dialog: DialogState; onResolve: (v
 
 export function TourDiary() {
   const navigate = useNavigate();
-  const { user, isAdminUser, isTestUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const [mounted, setMounted] = useState(false);
   
   // State
@@ -1811,11 +1811,11 @@ export function TourDiary() {
           <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex-1">
               {showCompactHeader ? (
-                <CompactToolkitHeader
-                  icon={NotebookPen}
+                <ModulePageHeader
+                  className="mb-4"
                   title="Tour Diary"
                   subtitle="Manage your monthly tour diaries"
-                  className="mb-0"
+                  icon={NotebookPen}
                 />
               ) : (
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-emerald-700 to-teal-800 p-4 shadow-lg">
@@ -2215,11 +2215,11 @@ export function TourDiary() {
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex-1">
             {showCompactHeader ? (
-              <CompactToolkitHeader
-                icon={NotebookPen}
+              <ModulePageHeader
+                className="mb-4"
                 title="Tour Diary"
                 subtitle="Monthly Tour Diary with Journey Tracking"
-                className="mb-0"
+                icon={NotebookPen}
               />
             ) : (
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-emerald-700 to-teal-800 p-4 shadow-lg">

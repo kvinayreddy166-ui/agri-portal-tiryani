@@ -1,6 +1,6 @@
 import React, { useMemo, useState, ReactNode } from 'react';
 import {
-  ChevronLeft, FlaskConical, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
+  ChevronLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
   Archive, BarChart3, Settings, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, BookOpen, LogOut,
   Globe, Check,
@@ -25,6 +25,8 @@ const adminMenuItems = [
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
   { id: 'farmer-database', label: 'Farmer Database', icon: Database },
   { id: 'officer-toolkit', label: 'Officer Toolkit', icon: FileStack },
+  // Separate module for Officer Records & Cloud Archive
+  { id: 'officer-records', label: 'Officer Records & Cloud Archive', icon: Archive },
   { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
   { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark },
@@ -34,7 +36,7 @@ const adminMenuItems = [
     label: 'Quality Control',
     icon: ShieldCheck,
   },
-  { id: 'agrochemicals', label: 'Agrochemicals', icon: FlaskConical },
+  // { id: 'agrochemicals', label: 'Agrochemicals', icon: FlaskConical }, // Removed duplicate as agrochemicals is in Officer Toolkit
   { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor },
   { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true },
   { id: 'analytics', label: 'Reports', icon: BarChart3 },
@@ -127,7 +129,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
   const visibleMenuItems = isDealerUser
     ? dealerMenuItems
     : isOfficer && !isAdminUser
-    ? menuItems.filter((item) => ['dashboard', 'officer-toolkit', 'knowledge', 'gos-circulars', 'agrochemicals'].includes(item.id))
+    ? menuItems.filter((item) => ['dashboard', 'officer-toolkit', 'knowledge', 'gos-circulars', 'officer-records'].includes(item.id))
     : menuItems.filter((item) => {
         if (item.id === 'stock') {
           return isAdminUser;
@@ -138,9 +140,9 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
 
   return (
     <div className="min-h-screen bg-[#f2f7f3] dark:bg-slate-950">
-      <header className="sticky top-[calc(0.25rem_+_env(safe-area-inset-top))] z-50 mx-1.5 rounded-2xl border border-emerald-900/30 bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-800 text-white shadow-lg sm:mx-2">
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] rounded-b-2xl bg-gradient-to-r from-transparent via-gold-400/80 to-transparent" />
-        <div className="relative flex min-w-0 items-center justify-between gap-2 px-4 py-2.5 sm:px-5 lg:px-6">
+      <header className="sticky top-0 z-50 border-b border-emerald-900/30 bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-800 text-white shadow-lg">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400/80 to-transparent" />
+        <div className="relative flex min-w-0 items-center justify-between gap-2 px-4 pb-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] sm:px-5 lg:px-6">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <button
               type="button"
@@ -163,7 +165,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                 <h1 className="truncate text-sm font-black tracking-tight sm:text-base text-gold-300 font-[var(--font-stylish)]">
                   {t('Agronix', 'తిర్యాని వ్యవసాయ పోర్టల్')}
                 </h1>
-                <p className="truncate text-[10px] font-semibold text-gold-300">
+                <p className="truncate text-[10px] font-semibold text-emerald-100">
                   {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
                 </p>
               </div>
@@ -389,24 +391,31 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <nav className="flex min-w-0 flex-wrap items-center gap-1 text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400" aria-label="Breadcrumb">
-                {pageMeta.breadcrumbs.map((item, index) => (
-                  <React.Fragment key={`${item.label}-${index}`}>
-                    {index > 0 && <ChevronRight className="h-3.5 w-3.5 text-slate-400" />}
-                    {item.page && item.page !== currentPage ? (
-                      <button
-                        type="button"
-                        onClick={() => onNavigate(item.page!)}
-                        className="rounded-md px-1.5 py-1 text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-slate-800"
-                      >
-                        {t(item.label, translateMenu(item.label))}
-                      </button>
-                    ) : (
-                      <span className="rounded-md px-1.5 py-1 text-slate-700 dark:text-slate-200">
-                        {t(item.label, translateMenu(item.label))}
-                      </span>
-                    )}
-                  </React.Fragment>
-                ))}
+                {pageMeta.breadcrumbs.map((item, index) => {
+                  const isLink = Boolean(item.page && item.page !== currentPage);
+                  const isCurrent = !isLink && index === pageMeta.breadcrumbs.length - 1;
+                  return (
+                    <React.Fragment key={`${item.label}-${index}`}>
+                      {index > 0 && <ChevronRight className="h-3.5 w-3.5 text-slate-400" />}
+                      {isLink ? (
+                        <button
+                          type="button"
+                          onClick={() => onNavigate(item.page!)}
+                          className="rounded-md px-1.5 py-1 text-emerald-700 transition-colors hover:bg-emerald-50 hover:underline hover:underline-offset-2 dark:text-emerald-300 dark:hover:bg-slate-800"
+                        >
+                          {t(item.label, translateMenu(item.label))}
+                        </button>
+                      ) : (
+                        <span
+                          aria-current={isCurrent ? 'page' : undefined}
+                          className={`rounded-md px-1.5 py-1 ${isCurrent ? 'font-extrabold text-slate-800 dark:text-slate-100' : 'text-slate-600 dark:text-slate-300'}`}
+                        >
+                          {t(item.label, translateMenu(item.label))}
+                        </span>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </nav>
             </div>
           )}
@@ -508,11 +517,12 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     dealers: { title: t('Dealers Directory', 'డీలర్ల డైరెక్టరీ'), breadcrumbs: [dashboard] },
     'farmer-database': { title: t('Farmer Database', 'రైతుల డేటాబేస్'), breadcrumbs: [dashboard] },
     'officer-toolkit': { title: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), breadcrumbs: [dashboard] },
+    'officer-records': { title: t('Officer Records & Cloud Archive', 'అధికారుల రికార్డులు & క్లౌడ్ ఆర్కైవ్'), breadcrumbs: [dashboard, toolkit] },
     knowledge: { title: t('Knowledge Base', 'జ్ఞాన భాండాగారం'), breadcrumbs: [dashboard] },
     forms: { title: t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్'), breadcrumbs: [dashboard, toolkit] },
     'forms-library': { title: t('Forms & Library', 'ఫారాలు & లైబ్రరీ'), breadcrumbs: [dashboard, toolkit] },
     'acreage-calculator': { title: t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
-    agrochemicals: { title: t('Agrochemicals Database', 'వ్యవసాయ రసాయనాల భాండాగారం'), breadcrumbs: [dashboard] },
+    agrochemicals: { title: t('Agrochemicals Database', 'వ్యవసాయ రసాయనాల భాండాగారం'), breadcrumbs: [dashboard, toolkit] },
     'farm-calculators': { title: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), breadcrumbs: [dashboard, toolkit] },
     'crop-doctor': { title: t('Crop Doctor', 'పంట డాక్టర్'), breadcrumbs: [dashboard, toolkit] },
     'fertilizer-calculator': { title: t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
@@ -522,15 +532,17 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'irrigation-calculator': { title: t('Irrigation Calculator', 'నీటిపారుదల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'profitability-calculator': { title: t('Profit Calculator', 'లాభదాయకత కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
     'soil-health-meter': { title: t('Soil Health Meter', 'మట్టి ఆరోగ్య మీటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
-    'acts-and-orders': { title: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు'), breadcrumbs: [dashboard, toolkit] },
+    'acts-and-orders': { title: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు'), breadcrumbs: [dashboard, toolkit, { label: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు') }] },
     'seed-dealer-inspection': { title: t('Seed Dealer Inspection', 'విత్తన డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
     'fertilizer-dealer-inspection': { title: t('Fertilizer Dealer Inspection', 'ఎరువుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
     'insecticide-dealer-inspection': { title: t('Pesticide Dealer Inspection', 'పురుగుమందుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
     'inspection-enforcement': { title: t('Inspection & Enforcement', 'తనిఖీ & అమలు'), breadcrumbs: [dashboard, toolkit] },
+    'enforcement-tracker': { title: t('Enforcement Tracker', 'అమలు ట్రాకర్'), breadcrumbs: [dashboard, toolkit] },
     'license-services': { title: t('License Services', 'లైసెన్స్ సేవలు'), breadcrumbs: [dashboard, toolkit] },
     'tour-diary': { title: t('Tour Diary', 'టూర్ డైరీ'), breadcrumbs: [dashboard, toolkit] },
     'officer-contacts': { title: t('Officer Contacts', 'అధికారుల పరిచయాలు'), breadcrumbs: [dashboard, toolkit] },
-    'officer-contacts-admin': { title: t('Officer Contacts Admin', 'అధికారుల పరిచయాల నిర్వహణ'), breadcrumbs: [dashboard, toolkit] },
+    'officer-contacts-admin': { title: t('Officer Contacts Admin', 'అధికారుల పరిచయాల నిర్వహణ'), breadcrumbs: [dashboard, { label: t('Officer Contacts', 'అధికారుల పరిచయాలు'), page: 'officer-contacts' }] },
+    'field-diagnosis': { title: t('Field Diagnosis', 'క్షేత్ర నిర్ధారణ'), breadcrumbs: [dashboard, toolkit] },
     'gos-circulars': { title: t('GOs & Circulars', 'జి.ఓ.లు & సర్క్యులర్లు'), breadcrumbs: [dashboard] },
     quality: { title: t('Quality Control', 'నాణ్యత నియంత్రణ'), breadcrumbs: [dashboard] },
     'farm-mechanization': { title: t('Farm Mechanization', 'వ్యవసాయ యాంత్రీకరణ'), breadcrumbs: [dashboard] },

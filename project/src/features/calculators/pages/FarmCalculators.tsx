@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bug, Droplets, FlaskConical, PackageCheck, Ruler, Sprout, TrendingUp, Wheat } from 'lucide-react';
+import { Bug, Calculator, Droplets, FlaskConical, PackageCheck, Ruler, Sprout, TrendingUp, Wheat } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
@@ -109,12 +110,20 @@ const calculatorItems = [
 export function FarmCalculators() {
   const navigate = useNavigate();
   const { t, language, toggleLanguage } = useLanguage();
-  const { isAdminUser, isTestUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
 
   return (
     <div className="space-y-4">
       <div className="mx-auto max-w-7xl px-4 pt-3 pb-1 sm:px-6 lg:px-8">
+        {showCompactHeader ? (
+          <ModulePageHeader
+            className="mb-4"
+            title={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
+            subtitle={t('Area, Plant, Seed and Fertilizer Calculations', 'విస్తీరణ, మొక్కలు, విత్తనం మరియు ఎరువుల లెక్కలు')}
+            icon={Calculator}
+          />
+        ) : (
         <ToolkitPageHeader
           icon={FlaskConical}
           tone="emerald"
@@ -128,12 +137,13 @@ export function FarmCalculators() {
             <LanguageToggle
               language={language}
               onClick={toggleLanguage}
-              tone={showCompactHeader ? 'light' : 'solid'}
+              tone="solid"
               accent="emerald"
             />
           }
           className="mb-0"
         />
+        )}
       </div>
 
       <div className="mx-auto max-w-7xl space-y-3 px-4 pb-4 sm:px-6 sm:pb-6 lg:px-8 lg:pb-8">

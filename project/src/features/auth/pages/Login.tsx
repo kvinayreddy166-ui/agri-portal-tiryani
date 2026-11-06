@@ -480,17 +480,22 @@ export function Login() {
                     </span>
                   </div>
 
-                  {/* Prominent Officer Sign Up Button (Warm Harvest Amber/Gold — distinct from green Sign In) */}
-                  <div className="rounded-xl border border-amber-300/80 bg-gradient-to-br from-amber-50/90 via-gold-50/50 to-orange-50/30 p-3.5 text-center shadow-xs dark:border-amber-700/40 dark:bg-gradient-to-br dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900">
-                    <p className="text-xs font-medium text-amber-950 dark:text-amber-200">
-                      {t('New Agricultural Officer? Register with email verification', 'కొత్త వ్యవసాయ అధికారిలా? ఇమెయిల్ ధృవీకరణతో నమోదు చేసుకోండి')}
-                    </p>
+                  {/* Officer Sign Up — same flat style as admin/staff section */}
+                  <div className="animate-slide-up">
+                    <div className="mb-4">
+                      <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                        {t('New Agricultural Officer', 'కొత్త వ్యవసాయ అధికారి')}
+                      </h3>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        {t('Register with email verification to create your officer account', 'ఇమెయిల్ ధృవీకరణతో మీ అధికారి ఖాతాను సృష్టించండి')}
+                      </p>
+                    </div>
                     <button
                       type="button"
                       onClick={() => navigate('/register')}
-                      className="mt-2.5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition"
+                      className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow transition active:scale-[0.99]"
                     >
-                      <UserPlus className="h-4 w-4 text-amber-200 shrink-0" />
+                      <UserPlus className="h-4 w-4 shrink-0" />
                       <span>{t('Sign Up as Officer', 'అధికారిగా సైన్ అప్ అవ్వండి')}</span>
                     </button>
                   </div>

@@ -85,6 +85,7 @@ export const PAGE_PATHS: Record<string, string> = {
   subsidy: '/subsidy',
   'subsidy-nfsm': '/subsidy-nfsm',
   'subsidy-state-seed': '/subsidy-state-seed',
+  'officer-records': '/officer-toolkit/my-records',
   'officer-toolkit': '/officer-toolkit',
   'license-services': '/officer-toolkit/license-services',
   'acreage-calculator': '/acreage-calculator',
@@ -107,6 +108,7 @@ export const PAGE_PATHS: Record<string, string> = {
   'fertilizer-dealer-inspection': '/officer-toolkit/fertilizer-dealer-inspection',
   'insecticide-dealer-inspection': '/officer-toolkit/insecticide-dealer-inspection',
   'inspection-enforcement': '/officer-toolkit/inspection-enforcement',
+  'enforcement-tracker': '/officer-toolkit/enforcement-tracker',
   'field-diagnosis': '/officer-toolkit/field-diagnosis',
   analytics: '/analytics',
   settings: '/settings',
@@ -127,14 +129,13 @@ export function pageToPath(page: string) {
 }
 
 export function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
-  // Don't redirect public officer-toolkit routes
-  if (pathname.startsWith('/officer-toolkit/')) {
-    return null;
+  if (pathname === '/officer-toolkit') {
+    return isAuthenticated ? '/dashboard' : '/login';
   }
-  if (pathname === '/officer-toolkit/acts-and-orders') {
-    return '/officer-toolkit';
+  if (pathname === '/admin/officer-contacts') {
+    return '/officer-toolkit/officer-contacts';
   }
-  if (pathname === '/officer-toolkit/license-services') {
+  if (pathname === '/officer-toolkit/my-records') {
     return '/officer-toolkit';
   }
   if (
@@ -150,23 +151,17 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
     return '/officer-toolkit/farm-calculators';
   }
   if (
-    pathname === '/officer-toolkit/smart-sampling' ||
-    pathname === '/officer-toolkit/sampling-hub' ||
-    pathname === '/officer-toolkit/forms-library' ||
-    pathname === '/officer-toolkit/statutory-forms' ||
-    pathname === '/officer-toolkit/acreage-calculator' ||
-    pathname === '/officer-toolkit/farm-calculators' ||
-    pathname === '/officer-toolkit/crop-doctor' ||
-    pathname === '/agrochemicals' ||
-    pathname === '/officer-toolkit/agrochemicals'
+    pathname === '/officer-toolkit/seed-dealer-inspection' ||
+    pathname === '/officer-toolkit/fertilizer-dealer-inspection' ||
+    pathname === '/officer-toolkit/insecticide-dealer-inspection'
   ) {
+    return '/officer-toolkit/inspection-enforcement';
+  }
+  if (pathname.startsWith('/officer-toolkit/')) {
     return '/officer-toolkit';
   }
-  if (pathname === '/forms' || pathname === '/acreage-calculator') {
+  if (pathname === '/forms' || pathname === '/acreage-calculator' || pathname === '/agrochemicals') {
     return '/officer-toolkit';
-  }
-  if (pathname === '/officer-toolkit') {
-    return isAuthenticated ? '/dashboard' : '/login';
   }
   if (isAuthenticated && pathname !== '/dashboard' && pathname !== '/' && pathname !== '/login') {
     return '/dashboard';
@@ -175,18 +170,43 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
 }
 
 export function getPageBackFallback(page: string, isDealerUser: boolean) {
-  if (page === 'forms' || page === 'forms-library' || page === 'acreage-calculator' || page === 'crop-doctor') return '/officer-toolkit';
-  if (page === 'license-services') return '/officer-toolkit';
-  if (page === 'farm-calculators') return '/officer-toolkit';
-  if (page === 'agrochemicals') return '/officer-toolkit';
-  if (page === 'fertilizer-calculator' || page === 'pesticide-calculator' || page === 'plant-population-calculator' || page === 'seed-rate-calculator' || page === 'irrigation-calculator' || page === 'profitability-calculator' || page === 'soil-health-meter') return '/officer-toolkit/farm-calculators';
-  if (page === 'acts-and-orders') return '/officer-toolkit';
-  if (page.startsWith('knowledge-')) return '/knowledge';
-  if (page === 'knowledge') return '/dashboard';
-  if (page === 'officer-toolkit') return '/dashboard';
-  if (page.startsWith('quality-')) return '/quality';
-  if (page.startsWith('subsidy-')) return '/subsidy';
-  return isDealerUser ? '/dealer-portal' : '/dashboard';
+  if (page === 'officer-records') return 'officer-toolkit';
+  if (
+    page === 'forms' ||
+    page === 'forms-library' ||
+    page === 'license-services' ||
+    page === 'farm-calculators' ||
+    page === 'agrochemicals' ||
+    page === 'crop-doctor' ||
+    page === 'acts-and-orders' ||
+    page === 'enforcement-tracker' ||
+    page === 'inspection-enforcement' ||
+    page === 'tour-diary' ||
+    page === 'officer-contacts' ||
+    page === 'field-diagnosis'
+  ) return 'officer-toolkit';
+  if (
+    page === 'acreage-calculator' ||
+    page === 'fertilizer-calculator' ||
+    page === 'pesticide-calculator' ||
+    page === 'plant-population-calculator' ||
+    page === 'seed-rate-calculator' ||
+    page === 'irrigation-calculator' ||
+    page === 'profitability-calculator' ||
+    page === 'soil-health-meter'
+  ) return 'farm-calculators';
+  if (
+    page === 'seed-dealer-inspection' ||
+    page === 'fertilizer-dealer-inspection' ||
+    page === 'insecticide-dealer-inspection'
+  ) return 'inspection-enforcement';
+  if (page === 'officer-contacts-admin') return 'officer-contacts';
+  if (page.startsWith('knowledge-')) return 'knowledge';
+  if (page === 'knowledge') return 'dashboard';
+  if (page === 'officer-toolkit') return 'dashboard';
+  if (page.startsWith('quality-')) return 'quality';
+  if (page.startsWith('subsidy-')) return 'subsidy';
+  return isDealerUser ? 'dealer-portal' : 'dashboard';
 }
 
 export const VALID_PAGES = new Set([
@@ -213,6 +233,7 @@ export const VALID_PAGES = new Set([
   'subsidy-nfsm',
   'subsidy-state-seed',
   'officer-toolkit',
+  'officer-records',
   'forms',
   'forms-library',
   'license-services',
@@ -235,6 +256,7 @@ export const VALID_PAGES = new Set([
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
   'inspection-enforcement',
+  'enforcement-tracker',
   'field-diagnosis',
   'analytics',
   'settings',
@@ -280,6 +302,7 @@ const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
   'inspection-enforcement',
+  'enforcement-tracker',
   'field-diagnosis',
 ]);
 const SUBPAGE_ALIASES: Record<string, string> = { 'smart-sampling': 'forms', 'sampling-hub': 'forms', 'statutory-forms': 'forms', 'legal-ready-reckoner': 'acts-and-orders', 'license-application-generator': 'license-services', 'crop-protection': 'crop-doctor', 'agrochemical-database': 'agrochemicals' };
@@ -295,12 +318,17 @@ export function resolvePageFromLocation(location: { pathname: string; search: st
     if (page.startsWith(OFFICER_TOOLKIT_PAGE_PREFIX)) {
       const sub = page.slice(OFFICER_TOOLKIT_PAGE_PREFIX.length);
       const base = sub.split('/')[0];
-      if (OFFICER_TOOLKIT_SUBPAGES.has(base)) {
+      // Officer Records & Cloud Archive lives at /officer-toolkit/my-records
+      if (base === 'my-records') {
+        page = 'officer-records';
+      } else if (OFFICER_TOOLKIT_SUBPAGES.has(base)) {
         page = SUBPAGE_ALIASES[base] || base;
       }
     }
 
-    if (page.startsWith('knowledge/')) {
+    if (page === 'admin/officer-contacts') {
+      page = 'officer-contacts-admin';
+    } else if (page.startsWith('knowledge/')) {
       page = `knowledge-${page.slice('knowledge/'.length)}`;
     }
 

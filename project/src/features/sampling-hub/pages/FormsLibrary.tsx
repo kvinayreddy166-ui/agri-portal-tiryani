@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Edit2, Folder, Link, Plus, Search, Trash2, Upload, X } from 'lucide-react';
+import { Edit2, Folder, FolderOpen, Link, Plus, Search, Trash2, Upload, X } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
@@ -291,31 +292,25 @@ export function FormsLibrary() {
           if (!isDeleting) setFormToDelete(null);
         }}
       />
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">
-            {t('Forms & Library', 'ఫారాలు & లైబ్రరీ')}
-          </h1>
-          <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
-            {t(
-              'Files uploaded here appear on the public Forms & Library page before login.',
-              'చట్టబద్ధ ఫారాలు మరియు టెంప్లేట్లను అప్లోడ్, సవరించు, తొలగించు, చూడండి మరియు డౌన్‌లోడ్ చేయండి.'
-            )}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {isAdminUser && (
+      <ModulePageHeader
+        title={t('Forms & Library', 'ఫారాలు & లైబ్రరీ')}
+        subtitle={t(
+          'Files uploaded here appear on the public Forms & Library page before login.',
+          'చట్టబద్ధ ఫారాలు మరియు టెంప్లేట్లను అప్లోడ్, సవరించు, తొలగించు, చూడండి మరియు డౌన్‌లోడ్ చేయండి.'
+        )}
+        icon={FolderOpen}
+        actions={
+          isAdminUser ? (
             <button
               onClick={openAddForm}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-950/20 transition hover:from-emerald-900 hover:to-emerald-800 hover:shadow-lg"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-4 w-4" />
               {t('Upload Form', 'Upload Form')}
             </button>
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
       {fetchError && (
         <div className="rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm text-red-700 dark:text-red-300">

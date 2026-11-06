@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import {
   BookOpen,
   CheckCircle2,
@@ -11,6 +12,7 @@ import {
   FileText,
   ImagePlus,
   Leaf,
+  Microscope,
   ShieldCheck,
   Sprout,
   Stethoscope,
@@ -20,8 +22,10 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
-import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
+import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { useAuth } from '../../../shared/context/AuthContext';
 
 import {
   FD_CROPS,
@@ -91,6 +95,8 @@ function cropById(id: string) {
 
 export function FieldDiagnosis() {
   const navigate = useNavigate();
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const { toasts, removeToast, showSuccess, showInfo, showDeleted, showWarning } = useToast();
 
   const [view, setView] = useState<View>('wizard');
@@ -1219,16 +1225,25 @@ export function FieldDiagnosis() {
 
       <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4">
         {/* Header */}
-        <ToolkitPageHeader
-          icon={Stethoscope}
-          tone="teal-indigo"
-          variant="solid"
-          eyebrow="Officer Toolkit"
-          title="Field Diagnosis"
-          subtitle="Identify Crop Diseases by Symptoms – For Better Decisions"
-          fallbackPath="/officer-toolkit"
-          onBack={() => navigate('/officer-toolkit')}
-        />
+        {showCompactHeader ? (
+          <ModulePageHeader
+            className="mb-4"
+            title="Field Diagnosis"
+            subtitle="Identify Crop Diseases by Symptoms – For Better Decisions"
+            icon={Microscope}
+          />
+        ) : (
+          <ToolkitPageHeader
+            icon={Stethoscope}
+            tone="teal-indigo"
+            variant="solid"
+            eyebrow="Officer Toolkit"
+            title="Field Diagnosis"
+            subtitle="Identify Crop Diseases by Symptoms – For Better Decisions"
+            fallbackPath="/officer-toolkit"
+            onBack={() => navigate('/officer-toolkit')}
+          />
+        )}
         {/* Feature chips */}
         <div className="mb-4 flex flex-wrap justify-center gap-1.5">
           {FEATURE_CHIPS.map(({ icon: Icon, label }) => (

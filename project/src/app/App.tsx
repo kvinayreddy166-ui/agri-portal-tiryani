@@ -139,7 +139,7 @@ function AppContent() {
       safeStorage.removeItem('tiryani-post-login-page');
       navigateToPage('dashboard', { replace: true });
     }
-  }, [location.pathname, user, isAdminUser, isDealerUser, navigateToPage]);
+  }, [location.pathname, user, isDealerUser, navigateToPage]);
 
   useEffect(() => {
     if (

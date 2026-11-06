@@ -65,9 +65,6 @@ export function useInitialBackFallback(
   useEffect(() => {
     if (loading) return;
 
-    // Skip history manipulation for public officer-toolkit routes
-    if (location.pathname.startsWith('/officer-toolkit/')) return;
-
     const currentUrl = getRouteUrl(location);
     const fallbackPath = getRouteBackFallback(location.pathname, isAuthenticated);
     if (!fallbackPath || fallbackPath === currentUrl || guardedUrlRef.current === currentUrl) return;

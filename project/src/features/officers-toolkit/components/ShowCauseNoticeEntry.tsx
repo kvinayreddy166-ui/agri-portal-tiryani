@@ -2,9 +2,9 @@ import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { FileChild } from 'docx';
 import { ChevronDown, Download, Edit3, FileText, FileType, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { currentFinancialYear, financialYearForDate } from '../../../shared/utils/financialYear';
 import { useAuth } from '../../../shared/context/AuthContext';
-import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { isAssistantDirectorOfAgriculture, statutoryDesignationDisplay, withOthersOption, effectiveLocationValue } from '../../../shared/data/assistantDirectorLocation';
 import {
   TELANGANA_DISTRICTS,
@@ -1500,8 +1500,8 @@ export async function renderNoticePdfDocument(
 }
 
 export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: NoticeCategory } = {}) {
-  const { isAdminUser, isTestUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const [form, setForm] = useState<NoticeFormState>(() => readFormDraft(lockedCategory ?? 'fertiliser') ?? makeInitialForm(lockedCategory ?? 'fertiliser'));
   const [savedNotices, setSavedNotices] = useState<SavedNotice[]>(() => readSavedNotices());
   const [savedSearch, setSavedSearch] = useState('');
@@ -1887,10 +1887,11 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
         onCancel={() => { setDeleteConfirmOpen(false); setNoticeToDelete(null); }}
       />
       {!lockedCategory && showCompactHeader && (
-        <CompactToolkitHeader
-          eyebrow="Inspection & Enforcement"
+        <ModulePageHeader
+          className="mb-4"
           title={config.title}
           subtitle="Show Cause Notice / Memo Entry"
+          icon={FileText}
         />
       )}
       {!lockedCategory && !showCompactHeader && (

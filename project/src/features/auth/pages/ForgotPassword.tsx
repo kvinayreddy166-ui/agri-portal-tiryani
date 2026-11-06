@@ -75,11 +75,12 @@ export function ForgotPassword() {
       setStep('otp');
       setSuccessMessage(
         t(
-          `A 6-digit verification code has been dispatched via Resend to ${normalizedEmail}.`,
-          `${normalizedEmail} కు Resend ద్వారా 6-అంకెల ధృవీకరణ కోడ్ పంపబడింది.`
+          `A 6-digit verification code has been sent to ${normalizedEmail}. Please check your inbox and spam folder.`,
+          `${normalizedEmail} కి 6-అంకెల ధృవీకరణ కోడ్ పంపబడింది. దయచేసి మీ ఇన్బాక్స్ మరియు స్పామ్ ఫోల్డర్ చూడండి.`
         )
       );
-      if (res.devOtp) {
+      // Only show dev OTP in development mode
+      if (res.devOtp && import.meta.env.DEV) {
         setDevOtpNotice(`[Test Code]: ${res.devOtp}`);
       }
     } else {

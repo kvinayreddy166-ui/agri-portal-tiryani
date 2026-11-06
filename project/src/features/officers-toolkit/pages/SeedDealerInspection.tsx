@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { ClipboardCheck, Eye, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { addEmblemImageWatermark } from '../../../shared/lib/pdfWatermark';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { ActionButton, ExportMenu, CheckRow, Field, InspectionTheme, Modal, RowTable, Section, StatusButtons, StatusInput, SummaryChip, useInputClass } from '../inspection/ui';
@@ -138,6 +140,8 @@ function migrateForm(parsed: Partial<InspectionForm>): Partial<InspectionForm> {
 
 export function SeedDealerInspection() {
   const navigate = useNavigate();
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
   const [confirmAction, setConfirmAction] = useState<{ title: string; message?: string; action: () => void } | null>(null);
   const [form, setForm] = useState<InspectionForm>(() => loadPersistedForm(FORM_KEY, initialForm, migrateForm));
@@ -379,19 +383,28 @@ export function SeedDealerInspection() {
         onCancel={() => setConfirmAction(null)}
       />
       <div className="relative mx-auto max-w-7xl p-4 pb-28 sm:p-6 lg:p-8">
-        <ToolkitPageHeader
-          icon={ClipboardCheck}
-          tone="emerald"
-          eyebrow="Seed inspection"
-          title="Seed dealer inspection form"
-          fallbackPath="/officer-toolkit/inspection-enforcement"
-          onBack={() => {
-            if (!confirmDiscardIfDirty(dirty)) return;
-            const idx = (window.history.state as { idx?: number } | null)?.idx;
-            if (typeof idx === 'number' && idx > 0) navigate(-1);
-            else navigate('/officer-toolkit/inspection-enforcement');
-          }}
-        />
+        {showCompactHeader ? (
+          <ModulePageHeader
+            className="mb-4"
+            title="Seed dealer inspection form"
+            subtitle="Seed inspection"
+            icon={ClipboardCheck}
+          />
+        ) : (
+          <ToolkitPageHeader
+            icon={ClipboardCheck}
+            tone="emerald"
+            eyebrow="Seed inspection"
+            title="Seed dealer inspection form"
+            fallbackPath="/officer-toolkit/inspection-enforcement"
+            onBack={() => {
+              if (!confirmDiscardIfDirty(dirty)) return;
+              const idx = (window.history.state as { idx?: number } | null)?.idx;
+              if (typeof idx === 'number' && idx > 0) navigate(-1);
+              else navigate('/officer-toolkit/inspection-enforcement');
+            }}
+          />
+        )}
 
         {error && <div className="mb-4 rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-sm font-bold text-red-700 dark:text-red-300">{error}</div>}
 

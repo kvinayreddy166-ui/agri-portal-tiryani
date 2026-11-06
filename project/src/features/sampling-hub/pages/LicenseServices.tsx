@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
-import { FileText, ChevronRight, CheckCircle, ExternalLink, Copy, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, ReceiptText, Store, ClipboardList, Sprout, ArrowUpRight } from 'lucide-react';
+import { FileText, ChevronRight, CheckCircle, ExternalLink, Copy, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, Store, ClipboardList, Sprout, ArrowUpRight, FileCheck, ReceiptText } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { TELANGANA_DISTRICTS } from '../../../shared/data/telanganaDistrictMandalData';
 
 // District to Division mapping
@@ -172,6 +174,8 @@ const INSECTICIDE_AMENDMENT_TYPES: Record<InsecticideAmendmentType, string> = {
 };
 
 export function LicenseServices() {
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
@@ -432,8 +436,15 @@ export function LicenseServices() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950 p-4 pb-28 sm:p-6 sm:pb-24">
       <div className="mx-auto w-full max-w-7xl">
-        {/* Hero / Title Card */}
-        <div className="mb-6">
+        {/* Header */}
+        {showCompactHeader ? (
+          <ModulePageHeader
+            className="mb-4"
+            title={t('License Services', 'లైసెన్స్ సేవలు')}
+            subtitle={t('Challan Details', 'చలాన్ వివరాలు')}
+            icon={FileCheck}
+          />
+        ) : (
           <ToolkitPageHeader
             icon={ReceiptText}
             iconSize="sm"
@@ -446,7 +457,7 @@ export function LicenseServices() {
             onBack={() => navigate('/officer-toolkit')}
             className="mb-0"
           />
-        </div>
+        )}
 
         {/* Toast Notification */}
         {toast && (

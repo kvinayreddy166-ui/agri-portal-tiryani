@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Archive } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useLocation } from 'react-router-dom';
 import { OfficerRecordsHub } from '../components/OfficerRecordsHub';
 import { Calculator, ShieldCheck, FlaskConical, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, FolderOpen, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, Bug, Microscope, type LucideIcon } from 'lucide-react';
@@ -90,6 +91,15 @@ const toolkitItems: ToolkitItem[] = [
     category: 'internal',
     gradient: 'from-emerald-700 to-green-800',
     bgGradient: 'from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30',
+  },
+  {
+    title: 'Enforcement Tracker',
+    description: 'Case management, notice deadlines, dealer risk scorecards & sample lab pipeline.',
+    path: '/officer-toolkit/enforcement-tracker',
+    icon: Gavel,
+    category: 'internal',
+    gradient: 'from-teal-600 to-emerald-700',
+    bgGradient: 'from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30',
   },
   {
     title: 'Agrochemicals Database',
@@ -395,36 +405,33 @@ function ToolkitCard({ item, onClick }: { item: ToolkitItem; onClick: () => void
   const { t } = useLanguage();
 
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-600/50 hover:shadow-md hover:shadow-emerald-900/10 dark:border-slate-800 dark:bg-slate-900 sm:p-5 opacity-100 translate-y-0"
+      className="group relative flex h-full w-full cursor-pointer flex-col rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-600/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700 sm:p-4"
     >
-      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-800 via-gold-400 to-emerald-800 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       <div className="flex items-start justify-between gap-2">
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.gradient} text-white shadow-md transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105 sm:h-12 sm:w-12`}>
-          <item.icon className="h-5 w-5 sm:h-6 sm:w-6" />
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.gradient} text-white shadow-sm transition-transform duration-200 group-hover:scale-105 sm:h-11 sm:w-11`}>
+          <item.icon className="h-5 w-5" />
         </div>
         {item.externalUrl && (
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-400 ring-1 ring-slate-200/80 transition duration-300 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:ring-emerald-200 dark:bg-slate-800 dark:text-slate-500 dark:ring-slate-700 dark:group-hover:bg-emerald-950/50 dark:group-hover:text-emerald-300 dark:group-hover:ring-emerald-700/50">
-            <ExternalLink className="h-3.5 w-3.5" />
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-400 ring-1 ring-slate-200 transition-colors duration-200 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:ring-emerald-200 dark:bg-slate-800 dark:text-slate-500 dark:ring-slate-700 dark:group-hover:bg-emerald-950/50 dark:group-hover:text-emerald-300 dark:group-hover:ring-emerald-700/50">
+            <ExternalLink className="h-3 w-3" />
           </span>
         )}
       </div>
-      <h3 className="relative mt-3 text-[13px] font-bold leading-tight text-slate-800 transition-colors group-hover:text-emerald-950 dark:text-slate-100 dark:group-hover:text-emerald-200 sm:text-sm">
+      <h3 className="mt-2.5 text-[13px] font-bold leading-snug text-slate-800 transition-colors group-hover:text-emerald-800 dark:text-slate-100 dark:group-hover:text-emerald-300 sm:text-sm">
         {t(item.title, translateToolkit(item.title))}
       </h3>
-      <div className="relative mt-1 hidden xl:block">
-        <p className="text-[11px] font-medium leading-snug text-slate-500 line-clamp-2 dark:text-slate-400">
-          {t(item.description, translateToolkit(item.description))}
-        </p>
-      </div>
+      <p className="mt-1 line-clamp-2 text-[11px] font-medium leading-snug text-slate-500 dark:text-slate-400">
+        {t(item.description, translateToolkit(item.description))}
+      </p>
       {item.statusMessage && (
-        <span className="relative mt-2 inline-flex w-fit rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50 sm:text-[10px]">
+        <span className="mt-2 inline-flex w-fit rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50 sm:text-[10px]">
           {t(item.statusMessage, translateToolkit(item.statusMessage))}
         </span>
       )}
-      <div className="pointer-events-none absolute -bottom-6 -right-6 h-24 w-24 rounded-full bg-emerald-400/20 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
-    </div>
+    </button>
   );
 }
 
@@ -453,7 +460,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
     }
   }, [location.pathname, canViewOfficerRecords]);
 
-  const shouldHideHeader = isAdmin || isTestUser;
+  const shouldHideHeader = isAdmin || isTestUser || !isPublic;
 
   const visibleToolkitItems = toolkitItems.filter((item) => {
     if (import.meta.env.PROD && item.path === '/officer-toolkit/field-diagnosis') {
@@ -489,7 +496,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-3.5">
                   <BackButton
-                    onClick={() => navigate(user ? '/dashboard' : '/login')}
+                    onClick={() => navigate(user ? '/officer-toolkit/my-records' : '/login')}
                     colors="text-emerald-100 hover:text-white"
                     className="mt-1 shrink-0"
                   />
@@ -526,17 +533,12 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
         )}
 
         {shouldHideHeader && (
-          <header className={`mb-4 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <p className="text-[11px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-              Officer Toolkit
-            </p>
-            <h1 className="mt-0.5 text-2xl font-black leading-tight text-slate-900 dark:text-white sm:text-3xl">
-              {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
-            </h1>
-            <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-              {t('Field Tools & Government Portals', 'క్షేత్ర సాధనాలు & ప్రభుత్వ పోర్టళ్లు')}
-            </p>
-          </header>
+          <ModulePageHeader
+            className={`mb-4 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            title={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+            subtitle={t('Field Tools & Government Portals', 'క్షేత్ర సాధనాలు & ప్రభుత్వ పోర్టళ్లు')}
+            icon={ShieldCheck}
+          />
         )}
 
         {/* Section Switcher — Field Tools / Government Portals */}
@@ -544,9 +546,6 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
           <div className="inline-flex w-full max-w-md items-stretch gap-1 rounded-2xl border border-emerald-900/10 bg-white/80 p-1 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/80">
             {[
               { id: 'tools' as const, label: 'Field Tools', te: 'ఫీల్డ్ టూల్స్', icon: Calculator, count: sortedToolkitItems.length },
-              ...(canViewOfficerRecords
-                ? [{ id: 'records' as const, label: 'Officer Records & Cloud', te: 'అధికారి రికార్డులు & క్లౌడ్', icon: Archive, count: undefined }]
-                : []),
               { id: 'portals' as const, label: 'Government Portals', te: 'ప్రభుత్వ పోర్టల్స్', icon: Globe2, count: sortedExternalPortals.length },
             ].map((tab) => (
               <button
@@ -555,7 +554,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold transition duration-200 sm:text-sm ${
                   activeTab === tab.id
-                    ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25'
+                    ? 'bg-emerald-700 text-white shadow-sm hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
                     : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-400 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300'
                 }`}
               >
@@ -583,7 +582,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
           className={`transition duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
         >
           {activeTab === 'tools' ? (
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
               {sortedToolkitItems.map((item) => (
                 <ToolkitCard
                   key={item.path}
@@ -601,20 +600,15 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
           ) : activeTab === 'records' && canViewOfficerRecords ? (
             <OfficerRecordsHub />
           ) : (
-            <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
               {sortedExternalPortals.map((item) => (
-                <a
+                <ToolkitCard
                   key={item.externalUrl}
-                  href={item.externalUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block h-full"
-                >
-                  <ToolkitCard
-                    item={item}
-                    onClick={() => {}}
-                  />
-                </a>
+                  item={item}
+                  onClick={() => {
+                    if (item.externalUrl) window.open(item.externalUrl, '_blank', 'noopener,noreferrer');
+                  }}
+                />
               ))}
             </div>
           )}

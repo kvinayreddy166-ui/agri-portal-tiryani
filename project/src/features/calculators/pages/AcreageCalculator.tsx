@@ -9,9 +9,9 @@ import {
   Scale,
   Sparkles,
 } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useNavigate } from 'react-router-dom';
 import { BackButton } from '../../../shared/components/ui/BackButton';
-import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
@@ -49,9 +49,9 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 
 export function AcreageCalculator() {
   const navigate = useNavigate();
-  const { isAdminUser, isTestUser } = useAuth();
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const { toasts, removeToast, showSuccess } = useToast();
 
   const [mode, setMode] = useState<AcreageMode>(() => readMode());
@@ -140,17 +140,14 @@ export function AcreageCalculator() {
       {/* Header */}
       <div className="mx-auto max-w-7xl px-4 pt-3 pb-1 sm:px-6 lg:px-8 print:hidden">
         {showCompactHeader ? (
-          <CompactToolkitHeader
-            icon={Calculator}
-            eyebrow={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
+          <ModulePageHeader
+            className="mb-4"
             title={t('Area Calculator', 'విస్తీర్ణ కాలిక్యులేటర్')}
             subtitle={t(
               'Convert land area between acres, hectares, cents and guntas for official field reports.',
               'ఫీల్డ్ నివేదికల కోసం ఎకరాలు, హెక్టార్లు, సెంట్లు మరియు గుంటల మధ్య భూవిస్తీర్ణాన్ని మార్చండి.'
             )}
-            onBack={() => navigate('/officer-toolkit/farm-calculators')}
-            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
-            className="mb-1"
+            icon={Ruler}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-sky-300/60 bg-gradient-to-br from-sky-600 via-cyan-600 to-teal-700 p-3.5 sm:p-4 text-white shadow-md dark:border-sky-700/60">

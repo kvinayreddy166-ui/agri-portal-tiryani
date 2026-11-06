@@ -1,51 +1,49 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  AlertCircle,
   CalendarDays,
-  Check,
   Cloud,
   CloudRain,
   Droplets,
-  ExternalLink,
   Eye,
-  Key,
+  MapPin,
   RefreshCw,
   Sun,
   Sunset,
   Sunrise,
   Thermometer,
   Wind,
-  X,
 } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import {
-  clearOpenWeatherApiKey,
-  getOpenWeatherApiKey,
   getRealtimeWeather,
-  hasOpenWeatherApiKey,
   RealtimeWeatherData,
-  setOpenWeatherApiKey,
-  TIRYANI_COORDINATES,
-  validateOpenWeatherApiKey,
 } from '../services/weatherService';
+import { detectUserLocation, getDefaultUserLocation, resolveUserLocation, UserLocation } from '../services/userLocation';
 
 export function WeatherWidget() {
   const { t } = useLanguage();
   const [weather, setWeather] = useState<RealtimeWeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const [inputKey, setInputKey] = useState('');
-  const [validating, setValidating] = useState(false);
-  const [configFeedback, setConfigFeedback] = useState<{
-    type: 'success' | 'error';
-    message: string;
-  } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [location, setLocation] = useState<UserLocation>(() => resolveUserLocation());
+  const locationRef = useRef(location);
+  locationRef.current = location;
 
-  const loadWeather = useCallback(async (isManualRefresh = false) => {
+  // Guard against stale/invalid location state (e.g. preserved across HMR)
+  const safeLocation: UserLocation =
+    Number.isFinite(location?.lat) && Number.isFinite(location?.lon) ? location : getDefaultUserLocation();
+
+  const loadWeather = useCallback(async (isManualRefresh = false, locOverride?: UserLocation) => {
     if (isManualRefresh) setRefreshing(true);
+    const loc = locOverride ?? locationRef.current;
+    const validLoc = Number.isFinite(loc?.lat) && Number.isFinite(loc?.lon) ? loc : getDefaultUserLocation();
     try {
-      const data = await getRealtimeWeather(isManualRefresh);
+      const data = await getRealtimeWeather(isManualRefresh, {
+        lat: validLoc.lat,
+        lon: validLoc.lon,
+        name: validLoc.name,
+      });
       setWeather(data);
     } catch (err) {
       console.error('Weather load error:', err);
@@ -57,6 +55,11 @@ export function WeatherWidget() {
 
   useEffect(() => {
     loadWeather();
+    // Request device location once; weather then follows the detected place
+    detectUserLocation().then((loc) => {
+      setLocation(loc);
+      loadWeather(false, loc);
+    });
     // Auto-refresh every 10 minutes
     const interval = setInterval(() => {
       loadWeather(false);
@@ -64,61 +67,12 @@ export function WeatherWidget() {
     return () => clearInterval(interval);
   }, [loadWeather]);
 
-  const handleOpenConfig = () => {
-    const currentKey = getOpenWeatherApiKey() || '';
-    setInputKey(currentKey);
-    setConfigFeedback(null);
-    setIsConfigOpen(true);
-  };
-
-  const handleSaveApiKey = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = inputKey.trim();
-    if (!trimmed) {
-      clearOpenWeatherApiKey();
-      setConfigFeedback({
-        type: 'success',
-        message: t('OpenWeather key removed. Operating with Open-Meteo backup.', 'OpenWeather కీ తొలగించబడింది. Open-Meteo బ్యాకప్ సక్రియం.'),
-      });
-      loadWeather(true);
-      return;
-    }
-
-    setValidating(true);
-    setConfigFeedback(null);
-
-    const validation = await validateOpenWeatherApiKey(trimmed);
-    setValidating(false);
-
-    if (validation.valid) {
-      setOpenWeatherApiKey(trimmed);
-      setConfigFeedback({
-        type: 'success',
-        message: t(
-          `OpenWeather API key verified for ${validation.cityName || 'Tiryani'}! Loading real-time data...`,
-          `OpenWeather API కీ విజయవంతంగా ధృవీకరించబడింది (${validation.cityName || 'తిర్యాని'})! ప్రత్యక్ష డేటా లోడ్ అవుతోంది...`
-        ),
-      });
-      setTimeout(() => {
-        setIsConfigOpen(false);
-        loadWeather(true);
-      }, 1000);
-    } else {
-      setConfigFeedback({
-        type: 'error',
-        message: validation.message,
-      });
-    }
-  };
-
-  const handleClearApiKey = () => {
-    clearOpenWeatherApiKey();
-    setInputKey('');
-    setConfigFeedback({
-      type: 'success',
-      message: t('OpenWeather key cleared. Using live backup feed.', 'OpenWeather కీ తీసివేయబడింది. బ్యాకప్ ఫీడ్ ఉపయోగిస్తున్నాం.'),
-    });
-    loadWeather(true);
+  const handleDetectLocation = async () => {
+    setLocating(true);
+    const loc = await detectUserLocation();
+    setLocation(loc);
+    setLocating(false);
+    loadWeather(true, loc);
   };
 
   if (loading) {
@@ -150,7 +104,6 @@ export function WeatherWidget() {
   }
 
   const isUsingOpenWeather = weather.source === 'openweather';
-  const hasConfiguredKey = hasOpenWeatherApiKey();
 
   return (
     <div className="portal-card overflow-hidden rounded-2xl border border-slate-200/90 shadow-sm dark:border-slate-800">
@@ -165,11 +118,19 @@ export function WeatherWidget() {
             </div>
             <div>
               <h3 className="text-base font-black tracking-tight sm:text-lg">
-                {t('Live Weather — Tiryani Mandal', 'లైవ్ వాతావరణం — తిర్యాని మండలం')}
+                {t('Live Weather', 'లైవ్ వాతావరణం')} — {safeLocation.name}
               </h3>
               <p className="text-xs text-emerald-200/80">
-                {TIRYANI_COORDINATES.district}, {TIRYANI_COORDINATES.state} (19.42° N, 79.33° E)
+                {safeLocation.lat.toFixed(2)}° N, {safeLocation.lon.toFixed(2)}° E
+                {safeLocation.source === 'gps' ? ` · ${t('My Location', 'నా స్థానం')}` : ` · ${safeLocation.district || safeLocation.state || 'Tiryani'}`}
               </p>
+              {safeLocation.source === 'default' && (
+                <p className="mt-1 text-[11px] font-semibold text-amber-200/90">
+                  {safeLocation.error === 'denied'
+                    ? t('Location access denied — allow it in browser settings, then tap the pin', 'Location access denied — tap the pin icon')
+                    : t('Showing default Tiryani — tap the pin to detect your location', 'Showing Tiryani default — tap pin for GPS')}
+                </p>
+              )}
             </div>
           </div>
 
@@ -202,19 +163,13 @@ export function WeatherWidget() {
             </button>
 
             <button
-              onClick={handleOpenConfig}
-              title={t('Configure OpenWeather API Key', 'OpenWeather API కీ సెట్ చేయండి')}
-              aria-label={t('OpenWeather Settings', 'ఓపెన్‌వెదర్ సెట్టింగ్‌లు')}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition active:scale-95 ${
-                hasConfiguredKey
-                  ? 'bg-emerald-600/60 text-emerald-100 hover:bg-emerald-600 ring-1 ring-emerald-400/40'
-                  : 'bg-gold-500/20 text-gold-200 hover:bg-gold-500/30 ring-1 ring-gold-400/50'
-              }`}
+              onClick={handleDetectLocation}
+              disabled={locating}
+              title={t('Use my current location', 'నా ప్రస్తుత స్థానాన్ని ఉపయోగించండి')}
+              aria-label={t('Detect location', 'స్థానాన్ని గుర్తించండి')}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-50"
             >
-              <Key className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">
-                {hasConfiguredKey ? t('API Key Active', 'కీ సక్రియం') : t('Set Key', 'కీ సెట్ చేయండి')}
-              </span>
+              <MapPin className={`h-4 w-4 ${locating ? 'animate-pulse text-gold-300' : ''}`} />
             </button>
           </div>
         </div>
@@ -257,24 +212,6 @@ export function WeatherWidget() {
             </p>
           </div>
         </div>
-
-        {/* Informational Callout when OpenWeather key is not configured */}
-        {!hasConfiguredKey && (
-          <div className="mt-2.5 flex items-center justify-between rounded-lg bg-emerald-950/60 px-3 py-1.5 text-xs text-emerald-200 ring-1 ring-emerald-500/20">
-            <span className="truncate">
-              {t(
-                'Operating on Open-Meteo. Want official OpenWeather real-time radar?',
-                'Open-Meteo ఫీడ్ నడుస్తోంది. అధికారిక OpenWeather కీని జోడించాలనుకుంటున్నారా?'
-              )}
-            </span>
-            <button
-              onClick={handleOpenConfig}
-              className="ml-2 shrink-0 font-bold text-gold-300 underline hover:text-gold-200"
-            >
-              {t('Connect Key', 'కీ కలపండి')}
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Weather Metrics Grid */}
@@ -437,140 +374,6 @@ export function WeatherWidget() {
         </div>
       )}
 
-      {/* OpenWeather API Key Configuration Modal */}
-      {isConfigOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-in fade-in"
-        >
-          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <div className="rounded-lg bg-emerald-100 p-2 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                  <Key className="h-5 w-5" />
-                </div>
-                <h4 className="text-base font-bold text-slate-900 dark:text-white">
-                  {t('OpenWeather API Configuration', 'OpenWeather API కాన్ఫిగరేషన్')}
-                </h4>
-              </div>
-              <button
-                onClick={() => setIsConfigOpen(false)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-3 text-xs text-slate-600 dark:text-slate-300">
-              <p>
-                {t(
-                  'AGRONIX connects to OpenWeather to deliver real-time temperatures, hourly rainfall tracking, and 5-day agro-meteorological forecasts for Tiryani Mandal.',
-                  'తిర్యాని మండలం కోసం రియల్-టైమ్ వాతావరణం, వర్షపాతం మరియు 5-రోజుల వ్యవసాయ అంచనాలను పొందడానికి OpenWeather APIని ఉపయోగించండి.'
-                )}
-              </p>
-
-              <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/70 p-3 text-emerald-900 dark:border-emerald-800/80 dark:bg-emerald-950/60 dark:text-emerald-200">
-                <p className="font-bold">
-                  {t('How to get a FREE API key (1 min):', 'ఉచిత API కీని ఎలా పొందాలి (1 నిమిషం):')}
-                </p>
-                <ol className="mt-1.5 list-decimal pl-4 space-y-1">
-                  <li>
-                    <a
-                      href="https://openweathermap.org/api"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 font-bold underline hover:text-emerald-700 dark:hover:text-emerald-300"
-                    >
-                      {t('Register on openweathermap.org', 'openweathermap.org లో రిజిస్టర్ అవ్వండి')}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </li>
-                  <li>{t('Generate a free API key under "My API Keys".', '"My API Keys" క్రింద ఉచిత API కీని రూపొందించండి.')}</li>
-                  <li>{t('Paste it below and click "Test & Save".', 'దాన్ని క్రింద పేస్ట్ చేసి "టెస్ట్ & సేవ్" పై క్లిక్ చేయండి.')}</li>
-                </ol>
-                <p className="mt-2 text-[11px] text-emerald-800/80 dark:text-emerald-300/80">
-                  {t(
-                    '*Note: Newly registered OpenWeather keys take 10–15 minutes to activate on OpenWeather servers.',
-                    '*గమనిక: కొత్త OpenWeather కీలు సర్వర్‌లో యాక్టివేట్ కావడానికి 10-15 నిమిషాలు పడుతుంది.'
-                  )}
-                </p>
-              </div>
-
-              <form onSubmit={handleSaveApiKey} className="mt-4 space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-200">
-                    {t('OpenWeather API Key (AppID)', 'OpenWeather API కీ')}
-                  </label>
-                  <input
-                    type="text"
-                    value={inputKey}
-                    onChange={(e) => setInputKey(e.target.value)}
-                    placeholder="e.g. 8f6b21c430a9e7123456789abcdef012"
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 font-mono text-xs text-slate-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                  />
-                  <p className="mt-1 text-[11px] text-slate-400">
-                    {t('Stored securely in your browser cache or configured via VITE_OPENWEATHER_API_KEY in .env', 'బ్రౌజర్‌లో సురక్షితంగా నిల్వ చేయబడుతుంది లేదా .env లో సెట్ చేయవచ్చు')}
-                  </p>
-                </div>
-
-                {configFeedback && (
-                  <div
-                    className={`flex items-start gap-2 rounded-xl p-3 text-xs ${
-                      configFeedback.type === 'success'
-                        ? 'border border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-200'
-                        : 'border border-red-200 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950/70 dark:text-red-200'
-                    }`}
-                  >
-                    {configFeedback.type === 'success' ? (
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                    ) : (
-                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
-                    )}
-                    <span>{configFeedback.message}</span>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  {hasConfiguredKey && (
-                    <button
-                      type="button"
-                      onClick={handleClearApiKey}
-                      className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                    >
-                      {t('Remove Key', 'కీ తొలగించు')}
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setIsConfigOpen(false)}
-                    className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                  >
-                    {t('Close', 'మూసివేయి')}
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={validating}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
-                  >
-                    {validating ? (
-                      <>
-                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                        {t('Verifying Key...', 'ధృవీకరిస్తున్నాం...')}
-                      </>
-                    ) : (
-                      <>
-                        <Check className="h-3.5 w-3.5" />
-                        {t('Test & Save', 'టెస్ట్ చేసి సేవ్ చేయండి')}
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

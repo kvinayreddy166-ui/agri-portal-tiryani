@@ -31,6 +31,7 @@ import {
   Store,
   Truck,
 } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { fcoOffenceEntries, type FcoOffenceEntry } from '../data/fcoOffencesData';
 import { type LegalCategory } from '../data/actsAndOrdersData';
 import { fcoClauseCards, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId, type FcoVariationNote } from '../data/fcoClauses';
@@ -378,8 +379,8 @@ function renderHeadingTitle(title: string, isWhite = true) {
 export function ActsAndOrders() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdminUser, isTestUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const [view, setView] = useState<ReckonerView>('powers');
   const [selectedLegalArea, setSelectedLegalArea] = useState<MainLegalArea | null>(null);
   const [query, setQuery] = useState('');
@@ -520,7 +521,7 @@ export function ActsAndOrders() {
   const currentMeta = useMemo(() => {
     if (!selectedLegalArea) {
       return {
-        eyebrow: 'Officer Toolkit • Acts & Orders',
+        eyebrow: undefined,
         title: 'Acts & Orders',
         subtitle: 'Agriculture laws, rules, and official procedures for Fertilizer, Seed, and Insecticide.',
         icon: Scale,
@@ -623,14 +624,11 @@ export function ActsAndOrders() {
     <div className="mx-auto max-w-7xl space-y-4 px-4 pb-6 pt-4 sm:px-6 sm:pb-8 lg:px-8">
       {!selectedFcoCardId && (
         showCompactHeader ? (
-          <CompactToolkitHeader
-            icon={CurrentIcon}
-            eyebrow={currentMeta.eyebrow}
+          <ModulePageHeader
+            className="mb-4"
             title={renderHeadingTitle(currentMeta.title, false)}
             subtitle={currentMeta.subtitle}
-            tone={selectedLegalArea === 'fertilizer' ? 'indigo' : selectedLegalArea === 'insecticide' ? 'amber' : 'emerald'}
-            onBack={handleBack}
-            className="mb-1"
+            icon={CurrentIcon}
           />
         ) : (
           <section className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 text-white shadow-lg ${
@@ -1361,8 +1359,8 @@ function FcoCardDetailPage({
   onOpenRelated: (target: { clauseId: string; cardId: string }) => void;
   onTabChange: (tab: FcoTabId) => void;
 }) {
-  const { isAdminUser, isTestUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
   const t = fcoAccentThemes[accent];
 

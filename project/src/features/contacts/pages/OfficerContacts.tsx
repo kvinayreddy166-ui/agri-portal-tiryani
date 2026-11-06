@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { Phone, Search, User, Building2, MapPin, Filter, MessageCircle, Loader2, Users } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { AEO_DISTRICTS } from '../data/aeoDistricts';
 import { supabase } from '../../../shared/lib/supabase';
 
@@ -76,6 +79,8 @@ function getDropdownCacheKey(officerType: OfficerType, district: string, divisio
 
 export function OfficerContacts() {
   const navigate = useNavigate();
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<OfficerType>('AEO');
   const [contacts, setContacts] = useState<OfficerContact[]>([]);
@@ -615,16 +620,25 @@ export function OfficerContacts() {
       <div className="relative mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
         <div className={`mb-8 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <ToolkitPageHeader
-            icon={Users}
-            tone="emerald"
-            eyebrow="Officer Directory"
-            title="Officer Contacts"
-            subtitle="Telangana Agriculture Department"
-            fallbackPath="/officer-toolkit"
-            onBack={() => navigate('/officer-toolkit')}
-            className="mb-0"
-          />
+          {showCompactHeader ? (
+            <ModulePageHeader
+              className="mb-4"
+              title="Officer Contacts"
+              subtitle="Telangana Agriculture Department"
+              icon={Phone}
+            />
+          ) : (
+            <ToolkitPageHeader
+              icon={Users}
+              tone="emerald"
+              eyebrow="Officer Directory"
+              title="Officer Contacts"
+              subtitle="Telangana Agriculture Department"
+              fallbackPath="/officer-toolkit"
+              onBack={() => navigate('/officer-toolkit')}
+              className="mb-0"
+            />
+          )}
         </div>
 
         {/* Tabs */}

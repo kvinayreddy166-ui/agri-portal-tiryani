@@ -51,6 +51,7 @@ Deno.serve(async (req: Request) => {
     const offset = clampInt(body?.offset, 0, 100000, 0);
     const sortField = typeof body?.sort === 'string' && allowed.includes(body.sort) ? body.sort : null;
     const sortDesc = body?.sort_dir !== 'asc';
+    const bypassCache = body?.bypass_cache === true;
 
     const params = new URLSearchParams({
       'api-key': apiKey,
@@ -68,28 +69,37 @@ Deno.serve(async (req: Request) => {
 
     const cacheKey = `${dataset}:${limit}:${offset}:${sortField}:${sortDesc}:${JSON.stringify(rawFilters)}`;
     const cached = cache.get(cacheKey);
-    if (cached && cached.expires > Date.now()) {
+    if (cached && cached.expires > Date.now() && !bypassCache) {
       return json({ ...(cached.payload as Record<string, unknown>), cached: true });
     }
+
+    const requestUrl = `${OGD_BASE_URL}/${resourceId}?${params.toString()}`;
+    console.log('OGD proxy requesting:', requestUrl);
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     let upstream: Response;
     try {
-      upstream = await fetch(`${OGD_BASE_URL}/${resourceId}?${params.toString()}`, { signal: controller.signal });
+      upstream = await fetch(requestUrl, { signal: controller.signal });
     } catch {
       return errorResponse('data.gov.in request timed out or failed.', 502);
     } finally {
       clearTimeout(timer);
     }
-    if (!upstream.ok) return errorResponse(`data.gov.in request failed (${upstream.status}).`, 502);
+    if (!upstream.ok) {
+      const errText = await upstream.text().catch(() => '');
+      console.error('data.gov.in error:', upstream.status, errText);
+      return errorResponse(`data.gov.in request failed (${upstream.status}): ${errText}`, 502);
+    }
 
     const payload = await upstream.json();
+    console.log('OGD proxy upstream payload:', payload);
     const result = {
       dataset,
       total: Number(payload.count ?? payload.total ?? 0),
       records: Array.isArray(payload.records) ? payload.records : [],
     };
+    console.log('OGD proxy result:', result);
     if (cache.size >= MAX_CACHE_ENTRIES) {
       const oldest = cache.keys().next().value;
       if (oldest) cache.delete(oldest);

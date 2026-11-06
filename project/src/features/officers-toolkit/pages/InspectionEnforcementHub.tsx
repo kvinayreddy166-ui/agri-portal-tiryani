@@ -1,7 +1,9 @@
 import React, { Suspense, lazy, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Ban, Bug, ChevronDown, ChevronRight, ClipboardCheck, FileText, FlaskConical, PackageX, Sprout } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
+import { useAuth } from '../../../shared/context/AuthContext';
 import type { SavedPestStopSaleOrder } from '../components/PesticideStopSaleEntry';
 import type { SavedFertStopSaleOrder } from '../components/FertilizerStopSaleEntry';
 import type { SavedSeedStopSaleOrder } from '../components/SeedStopSaleEntry';
@@ -188,6 +190,8 @@ const noticeModalThemes: Record<NoticeCategory, { header: string; icon: string; 
 
 export function InspectionEnforcementHub() {
   const navigate = useNavigate();
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const [openCard, setOpenCard] = useState<HubCardKey | null>(null);
   const [selectedNoticeCategory, setSelectedNoticeCategory] = useState<NoticeCategory | null>(null);
   const [showPesticideStopSale, setShowPesticideStopSale] = useState(false);
@@ -272,14 +276,24 @@ export function InspectionEnforcementHub() {
 
   return (
     <div className="mx-auto w-full max-w-7xl p-2 sm:p-3">
-      <ToolkitPageHeader
-        title="Inspection & Enforcement"
-        eyebrow="Officer Toolkit"
-        icon={ClipboardCheck}
-        tone="teal-indigo"
-        fallbackPath="/officer-toolkit"
-        className="mb-4"
-      />
+      {showCompactHeader ? (
+        <ModulePageHeader
+          className="mb-4"
+          title="Inspection & Enforcement"
+          subtitle="Inspection proforma, memo & show cause notice, stop sale & seizure orders"
+          icon={ClipboardCheck}
+        />
+      ) : (
+        <ToolkitPageHeader
+          icon={ClipboardCheck}
+          tone="teal-indigo"
+          eyebrow="Officer Toolkit"
+          title="Inspection & Enforcement"
+          fallbackPath="/officer-toolkit"
+          onBack={() => navigate('/officer-toolkit')}
+          className="mb-4"
+        />
+      )}
 
       <div className="grid items-start gap-4 sm:grid-cols-2">
         {hubCards.map((card) => {

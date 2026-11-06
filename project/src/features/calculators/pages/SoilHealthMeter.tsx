@@ -18,11 +18,11 @@ import {
   TestTube,
   Zap,
 } from 'lucide-react';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
-import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 
@@ -106,8 +106,8 @@ const initialFieldIndicators: FieldIndicatorState = {
 export function SoilHealthMeter() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
-  const { isAdminUser, isTestUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser;
+  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const { toasts, removeToast, showSuccess } = useToast();
 
   const [activeTab, setActiveTab] = useState<TabMode>('test-based');
@@ -526,17 +526,14 @@ export function SoilHealthMeter() {
       {/* Header */}
       <div className="mx-auto max-w-7xl px-4 pt-3 pb-1 sm:px-6 lg:px-8 print:hidden">
         {showCompactHeader ? (
-          <CompactToolkitHeader
-            icon={FlaskConical}
-            eyebrow={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
+          <ModulePageHeader
+            className="mb-4"
             title={t('Soil Health Meter', 'మట్టి ఆరోగ్య మీటర్')}
             subtitle={t(
               'Evaluate laboratory soil tests & field visual indicators with instant rating gauge and soil reclamation advisory.',
               'రసాయన పరీక్ష మరియు క్షేత్ర స్థాయి లక్షణాల ఆధారంగా మట్టి ఆరోగ్య స్కోర్ మరియు సమగ్ర సవరణ సిఫార్సులు పొందండి.'
             )}
-            onBack={() => navigate('/officer-toolkit/farm-calculators')}
-            actions={<LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />}
-            className="mb-1"
+            icon={Leaf}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-teal-300/60 bg-gradient-to-br from-teal-700 via-emerald-700 to-green-800 p-3.5 sm:p-4 text-white shadow-md dark:border-teal-700/60">
