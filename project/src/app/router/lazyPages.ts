@@ -23,6 +23,8 @@ export const DealerStockPortal = lazy(() => import('../../features/dealer-stock/
 export const AcreageCalculator = lazy(() => import('../../features/calculators/pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 export const FertilizerCalculator = lazy(() => import('../../features/calculators/pages/FertilizerCalculator').then((m) => ({ default: m.FertilizerCalculator })));
 export const OfficersToolkit = lazy(() => import('../../features/officers-toolkit/pages/OfficersToolkit').then((m) => ({ default: m.OfficersToolkit })));
+export const FieldToolsPage = lazy(() => import('../../features/officers-toolkit/pages/FieldToolsPage').then((m) => ({ default: m.FieldToolsPage })));
+export const GovernmentPortalsPage = lazy(() => import('../../features/officers-toolkit/pages/GovernmentPortalsPage').then((m) => ({ default: m.GovernmentPortalsPage })));
 export const LicenseServices = lazy(() => import('../../features/sampling-hub/pages/LicenseServices').then((m) => ({ default: m.LicenseServices })));
 export const FarmCalculators = lazy(() => import('../../features/calculators/pages/FarmCalculators').then((m) => ({ default: m.FarmCalculators })));
 export const AgrochemicalDatabase = lazy(() => import('../../features/agrochemicals/pages/AgrochemicalDatabase').then((m) => ({ default: m.AgrochemicalDatabase })));
@@ -58,3 +60,6 @@ export const KnowledgeSettings = lazy(() => import('../../features/knowledge-bas
 export const KnowledgeAssistant = lazy(() => import('../../features/knowledge-base/pages/KnowledgeAssistant').then((m) => ({ default: m.KnowledgeAssistant })));
 export const KnowledgeSearch = lazy(() => import('../../features/knowledge-base/pages/KnowledgeSearch').then((m) => ({ default: m.KnowledgeSearch })));
 export const KnowledgeDocumentViewer = lazy(() => import('../../features/knowledge-base/pages/KnowledgeDocumentViewer').then((m) => ({ default: m.KnowledgeDocumentViewer })));
+export const Disclaimer = lazy(() => import('../../features/legal/pages/Disclaimer').then((m) => ({ default: m.Disclaimer })));
+export const PrivacyPolicy = lazy(() => import('../../features/legal/pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })));
+export const TermsConditions = lazy(() => import('../../features/legal/pages/TermsConditions').then((m) => ({ default: m.TermsConditions })));

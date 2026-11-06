@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Archive } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useLocation } from 'react-router-dom';
 import { OfficerRecordsHub } from '../components/OfficerRecordsHub';
@@ -26,18 +25,11 @@ interface OfficersToolkitProps {
   isAdmin?: boolean;
   isTestUser?: boolean;
   isPublic?: boolean;
+  initialTab?: 'tools' | 'records' | 'portals';
+  fixedTab?: 'tools' | 'portals';
 }
 
 const toolkitItems: ToolkitItem[] = [
-  {
-    title: 'Officer Records & Cloud Archive',
-    description: 'Cloud archive of notices, stop sale orders, inspections & memos.',
-    path: '/officer-toolkit/my-records',
-    icon: Archive,
-    category: 'internal',
-    gradient: 'from-emerald-700 to-teal-800',
-    bgGradient: 'from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30',
-  },
   {
     title: 'Tour Diary',
     description: 'Monthly tour diary with journey tracking.',
@@ -323,7 +315,7 @@ const externalPortals: ToolkitItem[] = [
 
 function translateToolkit(label?: string) {
   const labels: Record<string, string> = {
-    'Officer Records & Cloud Archive': 'అధికారి రికార్డులు & క్లౌడ్ ఆర్కైవ్',
+    'Records & Cloud Archive': 'రికార్డులు & క్లౌడ్ ఆర్కైవ్',
     'My Saved Records': 'నా రికార్డులు',
     'Cloud archive of notices, stop sale orders, inspections & memos.': 'నోటీసులు, స్టాప్ సేల్ ఆర్డర్లు, తనిఖీలు & మెమోల క్లౌడ్ నిల్వ.',
     'Tour Diary': 'పర్యటన డైరీ',
@@ -435,7 +427,7 @@ function ToolkitCard({ item, onClick }: { item: ToolkitItem; onClick: () => void
   );
 }
 
-export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic = false }: OfficersToolkitProps) {
+export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic = false, initialTab = 'tools', fixedTab }: OfficersToolkitProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t, language, toggleLanguage } = useLanguage();
@@ -448,7 +440,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
     !isPublic && user && (isOfficerUser || isAdminUser || isAuthTestUser || isAdmin || isTestUser)
   );
 
-  const [activeTab, setActiveTab] = useState<'tools' | 'records' | 'portals'>('tools');
+  const [activeTab, setActiveTab] = useState<'tools' | 'records' | 'portals'>(fixedTab ?? initialTab);
 
   useEffect(() => {
     if (location.pathname === '/officer-toolkit/my-records') {
@@ -532,16 +524,25 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
           </div>
         )}
 
-        {shouldHideHeader && (
+        {shouldHideHeader && activeTab !== 'records' && (
           <ModulePageHeader
             className={`mb-4 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-            title={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
-            subtitle={t('Field Tools & Government Portals', 'క్షేత్ర సాధనాలు & ప్రభుత్వ పోర్టళ్లు')}
-            icon={ShieldCheck}
+            title={fixedTab === 'portals'
+              ? t('Government Portals', 'ప్రభుత్వ పోర్టల్స్')
+              : fixedTab === 'tools'
+                ? t('Field Tools', 'క్షేత్ర సాధనాలు')
+                : t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+            subtitle={fixedTab
+              ? (fixedTab === 'portals'
+                ? t('Official agriculture portals & resources', 'అధికారిక వ్యవసాయ పోర్టల్స్ & వనరులు')
+                : t('Calculators, inspections, forms & field resources', 'కాలిక్యులేటర్లు, తనిఖీలు, ఫారాలు & క్షేత్ర వనరులు'))
+              : t('Field Tools & Government Portals', 'క్షేత్ర సాధనాలు & ప్రభుత్వ పోర్టళ్లు')}
+            icon={fixedTab === 'portals' ? Globe2 : fixedTab === 'tools' ? Calculator : ShieldCheck}
           />
         )}
 
         {/* Section Switcher — Field Tools / Government Portals */}
+        {!fixedTab && activeTab !== 'records' && (
         <div className={`mb-5 transition duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="inline-flex w-full max-w-md items-stretch gap-1 rounded-2xl border border-emerald-900/10 bg-white/80 p-1 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/80">
             {[
@@ -575,6 +576,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
             ))}
           </div>
         </div>
+        )}
 
         {/* Active Section Grid */}
         <div
@@ -588,7 +590,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
                   key={item.path}
                   item={item}
                   onClick={() => {
-                    if (item.path === '/officer-toolkit/my-records') {
+                    if (item.path === '/officer-toolkit/my-records' && !fixedTab) {
                       setActiveTab('records');
                     } else if (item.path) {
                       navigate(item.path);

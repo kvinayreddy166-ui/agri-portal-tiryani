@@ -33,7 +33,7 @@ describe('OfficersToolkit — Public vs Authenticated Visibility', () => {
     });
   });
 
-  it('does NOT show Officer Records & Cloud Archive in the public toolkit', () => {
+  it('does NOT show Records & Cloud Archive in the public toolkit', () => {
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
       user: null,
       session: null,
@@ -67,15 +67,15 @@ describe('OfficersToolkit — Public vs Authenticated Visibility', () => {
     expect(html).toContain('Field Tools');
     expect(html).toContain('Government Portals');
 
-    // "Officer Records & Cloud Archive" must NOT be in public toolkit
+    // "Records & Cloud Archive" must NOT be in public toolkit
     expect(html).not.toContain('Officer Records &amp; Cloud Archive');
     expect(html).not.toContain('Officer Records & Cloud Archive');
-    expect(html).not.toContain('Officer Records &amp; Cloud');
-    expect(html).not.toContain('Officer Records & Cloud');
+    expect(html).not.toContain('Records &amp; Cloud Archive');
+    expect(html).not.toContain('Records & Cloud Archive');
     expect(html).not.toContain('Cloud archive of notices');
   });
 
-  it('shows Officer Records & Cloud Archive for authenticated agricultural officers', () => {
+  it('shows Records & Cloud Archive for authenticated agricultural officers', () => {
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
       user: { id: 'officer-123', email: 'officer@telangana.gov.in' } as any,
       session: {} as any,
@@ -110,18 +110,15 @@ describe('OfficersToolkit — Public vs Authenticated Visibility', () => {
     });
 
     const html = renderToString(
-      <MemoryRouter initialEntries={['/officer-toolkit']}>
-        <OfficersToolkit isAdmin={false} isTestUser={false} isPublic={false} />
+      <MemoryRouter initialEntries={['/officer-toolkit/my-records']}>
+        <OfficersToolkit isAdmin={false} isTestUser={false} isPublic={false} initialTab="records" />
       </MemoryRouter>
     );
 
     // General toolkit content should render
-    expect(html).toContain('Officer Toolkit');
     expect(html).toContain('Field Tools');
 
     // Authenticated officer sees their records & cloud archive
-    expect(html).toContain('Officer Records &amp; Cloud');
-    expect(html).toContain('Officer Records &amp; Cloud Archive');
-    expect(html).toContain('Cloud archive of notices, stop sale orders, inspections &amp; memos.');
+    expect(html).toContain('Records &amp; Cloud Archive');
   });
 });

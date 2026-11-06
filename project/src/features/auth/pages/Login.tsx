@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   AlertCircle,
   CheckCircle2,
@@ -484,7 +485,7 @@ export function Login() {
                   <div className="animate-slide-up">
                     <div className="mb-4">
                       <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-                        {t('New Agricultural Officer', 'కొత్త వ్యవసాయ అధికారి')}
+                        {t('New Agriculture Officer', 'కొత్త వ్యవసాయ అధికారి')}
                       </h3>
                       <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         {t('Register with email verification to create your officer account', 'ఇమెయిల్ ధృవీకరణతో మీ అధికారి ఖాతాను సృష్టించండి')}
@@ -553,10 +554,23 @@ export function Login() {
             </div>
           </section>
 
-          <div className="mt-5 text-center text-xs leading-5 text-slate-400 dark:text-slate-500 lg:hidden">
+          <div className="mt-5 text-center text-xs leading-5 text-slate-400 dark:text-slate-500">
             <p className="font-medium">version-1.0.1</p>
             <p>&copy; 2026 {t('Agronix - Information Management System', 'అగ్రోనిక్స్ - సమాచార నిర్వహణ వ్యవస్థ')}</p>
             <p>{t('Developed and maintained by K.Vinay Reddy, MAO, Tiryani', 'రూపకల్పన & నిర్వహణ: కె.వినయ్ రెడ్డి, ఎం.ఎ.ఓ, తిర్యాని')}</p>
+            <div className="mt-3 flex items-center justify-center gap-4">
+              <Link to="/disclaimer" className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
+                {t('Disclaimer', 'Disclaimer')}
+              </Link>
+              <span className="text-slate-300 dark:text-slate-600">|</span>
+              <Link to="/privacy-policy" className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
+                {t('Privacy Policy', 'Privacy Policy')}
+              </Link>
+              <span className="text-slate-300 dark:text-slate-600">|</span>
+              <Link to="/terms-conditions" className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
+                {t('Terms & Conditions', 'Terms & Conditions')}
+              </Link>
+            </div>
           </div>
         </div>
       </div>

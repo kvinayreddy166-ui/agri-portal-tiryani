@@ -111,7 +111,7 @@ export function detectUserLocation(): Promise<UserLocation> {
   pendingDetection = (async (): Promise<UserLocation> => {
     try {
       const pos = await requestPosition();
-      const { lat, lon } = pos.coords;
+      const { latitude: lat, longitude: lon } = pos.coords;
       try {
         const geo = await reverseGeocode(lat, lon);
         const loc: UserLocation = {

@@ -373,7 +373,7 @@ export function OfficerSignUp() {
                 <div className="grid gap-3.5 sm:grid-cols-2">
                   <div>
                     <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
-                      {t('HRMS / Employee ID', 'HRMS / ఉద్యోగి ID')}
+                      {t('Employee ID', 'ఉద్యోగి ID')}
                     </label>
                     <input
                       type="text"

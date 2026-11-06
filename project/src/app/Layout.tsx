@@ -1,9 +1,9 @@
 import React, { useMemo, useState, ReactNode } from 'react';
 import {
-  ChevronLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound, FileStack,
+  ChevronLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound,
   Archive, BarChart3, Settings, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, BookOpen, LogOut,
-  Globe, Check,
+  Globe, Check, Sprout,
 } from 'lucide-react';
 import { PortalLogo } from '../shared/components/ui/PortalLogo';
 import { ConfirmDialog } from '../shared/components/ui/ConfirmDialog';
@@ -24,9 +24,10 @@ const adminMenuItems = [
   { id: 'stock-analytics', label: 'Command Center', icon: PackageCheck },
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
   { id: 'farmer-database', label: 'Farmer Database', icon: Database },
-  { id: 'officer-toolkit', label: 'Officer Toolkit', icon: FileStack },
-  // Separate module for Officer Records & Cloud Archive
-  { id: 'officer-records', label: 'Officer Records & Cloud Archive', icon: Archive },
+  { id: 'field-tools', label: 'Field Tools', icon: Sprout },
+  { id: 'government-portals', label: 'Government Portals', icon: Globe },
+  // Separate module for Records & Cloud Archive
+  { id: 'officer-records', label: 'Records & Cloud Archive', icon: Archive },
   { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
   { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark },
@@ -129,7 +130,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
   const visibleMenuItems = isDealerUser
     ? dealerMenuItems
     : isOfficer && !isAdminUser
-    ? menuItems.filter((item) => ['dashboard', 'officer-toolkit', 'knowledge', 'gos-circulars', 'officer-records'].includes(item.id))
+    ? menuItems.filter((item) => ['dashboard', 'field-tools', 'government-portals', 'knowledge', 'gos-circulars', 'officer-records'].includes(item.id))
     : menuItems.filter((item) => {
         if (item.id === 'stock') {
           return isAdminUser;
@@ -296,7 +297,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
               <PortalLogo size="sm" />
               <div className="min-w-0">
                 <h2 className="truncate text-base font-black tracking-tight text-gold-300 font-[var(--font-stylish)]">{t('Agronix', 'తిర్యాని')}</h2>
-                <p className="truncate text-[11px] font-semibold text-gold-300">{t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}</p>
+                <p className="truncate text-[11px] font-semibold text-emerald-100">{t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}</p>
               </div>
             </div>
             <button
@@ -449,7 +450,7 @@ function menuSections(items: typeof adminMenuItems, t: (key: string, telugu: str
   const sections = [
     { title: t('Overview', 'అవలోకనం'), ids: ['dashboard', 'stock-analytics', 'analytics'] },
     { title: t('Field Operations', 'ఫీల్డ్ ఆపరేషన్స్'), ids: ['dealers', 'farmer-database', 'subsidy', 'farm-mechanization', 'quality', 'agrochemicals'] },
-    { title: t('Knowledge', 'జ్ఞానం'), ids: ['officer-toolkit', 'gos-circulars', 'knowledge'] },
+    { title: t('Knowledge', 'జ్ఞానం'), ids: ['field-tools', 'government-portals', 'gos-circulars', 'knowledge'] },
     { title: t('Records', 'రికార్డులు'), ids: ['file-directory', 'excel', 'settings'] },
   ];
 
@@ -472,7 +473,7 @@ function menuSections(items: typeof adminMenuItems, t: (key: string, telugu: str
 
 function getPageMeta(page: string, t: (key: string, telugu: string) => string): { title: string; breadcrumbs: BreadcrumbItem[] } {
   const dashboard = { label: t('Dashboard', 'డ్యాష్‌బోర్డ్'), page: 'dashboard' };
-  const toolkit = { label: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), page: 'officer-toolkit' };
+  const toolkit = { label: t('Field Tools', 'క్షేత్ర సాధనాలు'), page: 'field-tools' };
   const farmCalculators = { label: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), page: 'farm-calculators' };
   const inspectionsHub = { label: t('Inspection & Enforcement', 'తనిఖీ & అమలు'), page: 'inspection-enforcement' };
 
@@ -517,7 +518,9 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     dealers: { title: t('Dealers Directory', 'డీలర్ల డైరెక్టరీ'), breadcrumbs: [dashboard] },
     'farmer-database': { title: t('Farmer Database', 'రైతుల డేటాబేస్'), breadcrumbs: [dashboard] },
     'officer-toolkit': { title: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), breadcrumbs: [dashboard] },
-    'officer-records': { title: t('Officer Records & Cloud Archive', 'అధికారుల రికార్డులు & క్లౌడ్ ఆర్కైవ్'), breadcrumbs: [dashboard, toolkit] },
+    'field-tools': { title: t('Field Tools', 'క్షేత్ర పరికరాలు'), breadcrumbs: [dashboard] },
+    'government-portals': { title: t('Government Portals', 'ప్రభుత్వ పోర్టల్స్'), breadcrumbs: [dashboard] },
+    'officer-records': { title: t('Records & Cloud Archive', 'రికార్డులు & క్లౌడ్ ఆర్కైవ్'), breadcrumbs: [dashboard] },
     knowledge: { title: t('Knowledge Base', 'జ్ఞాన భాండాగారం'), breadcrumbs: [dashboard] },
     forms: { title: t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్'), breadcrumbs: [dashboard, toolkit] },
     'forms-library': { title: t('Forms & Library', 'ఫారాలు & లైబ్రరీ'), breadcrumbs: [dashboard, toolkit] },
@@ -585,6 +588,9 @@ function translateMenu(label: string) {
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
     'Farmer Database': 'రైతుల డేటాబేస్',
     'Officer Toolkit': 'ఆఫీసర్ టూల్‌కిట్',
+    'Records & Cloud Archive': 'రికార్డులు & క్లౌడ్ ఆర్కైవ్',
+    'Field Tools': 'క్షేత్ర పరికరాలు',
+    'Government Portals': 'ప్రభుత్వ పోర్టల్స్',
     'Smart Sampling': 'స్మార్ట్ సాంప్లింగ్',
     'Forms & Library': 'ఫారాలు & లైబ్రరీ',
     'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',

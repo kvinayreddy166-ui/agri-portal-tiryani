@@ -38,7 +38,7 @@ function AppContent() {
   const navigationType = useNavigationType();
   const [isHydrated, setIsHydrated] = useState(false);
   const [forceAppShell, setForceAppShell] = useState(false);
-  const currentPathIsPublic = PUBLIC_AUTH_ROUTES.has(location.pathname) || location.pathname.startsWith('/officer-toolkit/') || location.pathname === '/' || location.pathname === '/login';
+  const currentPathIsPublic = PUBLIC_AUTH_ROUTES.has(location.pathname) || location.pathname.startsWith('/officer-toolkit/') || location.pathname === '/' || location.pathname === '/login' || location.pathname === '/disclaimer' || location.pathname === '/privacy-policy' || location.pathname === '/terms-conditions';
   const hideCalculatorLogo =
     location.pathname === '/officer-toolkit/fertilizer-calculator' ||
     location.pathname === '/officer-toolkit/acreage-calculator' ||
@@ -150,7 +150,10 @@ function AppContent() {
       PUBLIC_PAGES.has(currentPage) ||
       location.pathname === '/officer-toolkit' ||
       PUBLIC_AUTH_ROUTES.has(location.pathname) ||
-      location.pathname.startsWith('/officer-toolkit/')
+      location.pathname.startsWith('/officer-toolkit/') ||
+      location.pathname === '/disclaimer' ||
+      location.pathname === '/privacy-policy' ||
+      location.pathname === '/terms-conditions'
     ) return;
     navigateToPage('dashboard', { replace: true });
   }, [currentPage, loading, location.pathname, navigateToPage, user]);

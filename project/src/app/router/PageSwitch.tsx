@@ -14,6 +14,7 @@ import {
   Dashboard,
   DealerManagement,
   DealerStockPortal,
+  Disclaimer,
   EnforcementTracker,
   ExcelUploads,
   FarmCalculators,
@@ -41,10 +42,13 @@ import {
   OfficerContacts,
   OfficerContactsAdmin,
   OfficersToolkit,
+  FieldToolsPage,
+  GovernmentPortalsPage,
   OfficerSignUp,
   ForgotPassword,
   PesticideCalculator,
   PlantPopulationCalculator,
+  PrivacyPolicy,
   ProfitabilityCalculator,
   QualityControl,
   QualityControlHub,
@@ -58,6 +62,7 @@ import {
   FormsLibrary,
   PublicOfficerTools,
   SubsidyTracking,
+  TermsConditions,
   TourDiary,
 } from './lazyPages';
 
@@ -150,7 +155,11 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
     case 'officer-toolkit':
       return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} isPublic={false} />;
     case 'officer-records':
-      return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} isPublic={false} />;
+      return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} isPublic={false} initialTab="records" />;
+    case 'field-tools':
+      return <FieldToolsPage />;
+    case 'government-portals':
+      return <GovernmentPortalsPage />;
     case 'license-services':
       return <LicenseServices />;
     case 'agrochemicals':
@@ -272,6 +281,27 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
           <KnowledgeDocumentViewer />
         </SafeSuspense>
       );
+    case 'disclaimer':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <Disclaimer />
+          <AgronixBrandMark />
+        </SafeSuspense>
+      );
+    case 'privacy-policy':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <PrivacyPolicy />
+          <AgronixBrandMark />
+        </SafeSuspense>
+      );
+    case 'terms-conditions':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <TermsConditions />
+          <AgronixBrandMark />
+        </SafeSuspense>
+      );
     default:
       return <Dashboard />;
   }
@@ -374,6 +404,27 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
         return <Navigate to="/officer-toolkit" replace />;
       }
       return <PublicToolkitPage><FieldDiagnosis /></PublicToolkitPage>;
+    case 'disclaimer':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <Disclaimer />
+          <AgronixBrandMark />
+        </SafeSuspense>
+      );
+    case 'privacy-policy':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <PrivacyPolicy />
+          <AgronixBrandMark />
+        </SafeSuspense>
+      );
+    case 'terms-conditions':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <TermsConditions />
+          <AgronixBrandMark />
+        </SafeSuspense>
+      );
     default:
       return null;
   }

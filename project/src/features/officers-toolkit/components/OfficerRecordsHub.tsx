@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Archive,
+  AlertTriangle,
+  Beaker,
   CheckCircle2,
   ChevronRight,
+  ClipboardList,
   Cloud,
   FileText,
+  Hash,
   Loader2,
   MapPin,
   RefreshCw,
@@ -114,7 +118,7 @@ export function OfficerRecordsHub() {
               </span>
               <div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                  {t('Officer Records & Cloud Archive', 'అధికారుల రికార్డులు & క్లౌడ్ భాండాగారం')}
+                  {t('Records & Cloud Archive', 'రికార్డులు & క్లౌడ్ భాండాగారం')}
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   {t('Unified repository of your statutory notices, dealer inspection reports, and sampling memos.', 'మీ అధికారిక నోటీసులు, డీలర్ తనిఖీ నివేదికలు & సాంప్లింగ్ మెమోల రికార్డులు.')}
@@ -377,14 +381,116 @@ export function OfficerRecordsHub() {
                 </div>
               </div>
 
+              {/* Structured Form Data Display */}
               <div>
-                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  {t('Payload Data / Form Entries', 'ఫారమ్ వివరాలు')}
+                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3">
+                  {t('Inspection Details', 'తనిఖీ వివరాలు')}
                 </h4>
-                <pre className="max-h-72 overflow-y-auto rounded-xl bg-slate-900 p-4 text-[11px] font-mono text-emerald-300 leading-relaxed">
-                  {JSON.stringify(selectedRecord.details, null, 2)}
-                </pre>
+                <div className="space-y-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 text-xs">
+                  {(() => {
+                    const form = (selectedRecord.details?.form || {}) as Record<string, any>;
+                    const entries = Object.entries(form).filter(([_, v]) => v !== null && v !== '' && (!Array.isArray(v) || v.length > 0));
+                    
+                    if (entries.length === 0) {
+                      return (
+                        <p className="text-slate-500 dark:text-slate-400 italic">
+                          {t('No form data available', 'ఫారమ్ డేటా లేదు')}
+                        </p>
+                      );
+                    }
+
+                    return entries.map(([key, value]) => {
+                      const labelMap: Record<string, string> = {
+                        dealerName: t('Dealer Name', 'డీలర్ పేరు'),
+                        salePlace: t('Sale Place', 'అమ్మకం స్థలం'),
+                        licenceNo: t('License Number', 'లైసెన్స్ నంబర్'),
+                        status: t('Status', 'స్థితి'),
+                        remarks: t('Remarks', 'వ్యాఖ్యాలు'),
+                        stockSeized: t('Stock Seized', 'స్టాక్ జబ్తు'),
+                      };
+                      const displayLabel = labelMap[key] || key;
+                      const isArray = Array.isArray(value);
+                      const isObject = typeof value === 'object' && value !== null && !isArray;
+
+                      return (
+                        <div key={key} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-3 py-2 border-b border-slate-200/60 dark:border-slate-700/60 last:border-0">
+                          <span className="font-semibold text-slate-500 dark:text-slate-400 min-w-[140px] shrink-0">
+                            {displayLabel}
+                          </span>
+                          <div className="flex-1 text-right sm:text-left font-medium text-slate-800 dark:text-slate-200">
+                            {isArray ? (
+                              <span className="inline-flex items-center gap-1">
+                                <ClipboardList className="h-3 w-3" />
+                                {value.length} {t('items', 'అంశాలు')}
+                              </span>
+                            ) : isObject ? (
+                              <span className="italic text-slate-500 dark:text-slate-400">
+                                {t('See full data', 'పూర్త డేటా చూడండి')}
+                              </span>
+                            ) : (
+                              String(value)
+                            )}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
               </div>
+
+              {/* Counts summary for arrays */}
+              {(() => {
+                    const form = (selectedRecord.details?.form || {}) as Record<string, any>;
+                    const samples = form.samples as any[] || [];
+                    const seizures = form.seizures as any[] || [];
+                    const detentions = form.detentions as any[] || [];
+                    const billsIssued = form.billsIssued as Record<string, any> || {};
+                    
+                    const hasArrays = samples.length > 0 || seizures.length > 0 || detentions.length > 0 || Object.keys(billsIssued).length > 0;
+                
+                    if (!hasArrays) return null;
+
+                    return (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {samples.length > 0 && (
+                          <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 p-3 text-center">
+                            <Beaker className="h-4 w-4 mx-auto mb-1 text-emerald-600 dark:text-emerald-400" />
+                            <div className="text-lg font-black text-emerald-900 dark:text-emerald-200">{samples.length}</div>
+                            <div className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                              {t('Samples', 'నమూనాలు')}
+                            </div>
+                          </div>
+                        )}
+                        {seizures.length > 0 && (
+                          <div className="rounded-lg bg-rose-50 dark:bg-rose-950/40 p-3 text-center">
+                            <AlertTriangle className="h-4 w-4 mx-auto mb-1 text-rose-600 dark:text-rose-400" />
+                            <div className="text-lg font-black text-rose-900 dark:text-rose-200">{seizures.length}</div>
+                            <div className="text-[10px] font-bold text-rose-700 dark:text-rose-300">
+                              {t('Seizures', 'జబ్తులు')}
+                            </div>
+                          </div>
+                        )}
+                        {detentions.length > 0 && (
+                          <div className="rounded-lg bg-amber-50 dark:bg-amber-950/40 p-3 text-center">
+                            <Hash className="h-4 w-4 mx-auto mb-1 text-amber-600 dark:text-amber-400" />
+                            <div className="text-lg font-black text-amber-900 dark:text-amber-200">{detentions.length}</div>
+                            <div className="text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                              {t('Detentions', 'నిర్బంధనలు')}
+                            </div>
+                          </div>
+                        )}
+                        {Object.keys(billsIssued).length > 0 && (
+                          <div className="rounded-lg bg-blue-50 dark:bg-blue-950/40 p-3 text-center">
+                            <FileText className="h-4 w-4 mx-auto mb-1 text-blue-600 dark:text-blue-400" />
+                            <div className="text-lg font-black text-blue-900 dark:text-blue-200">{Object.keys(billsIssued).length}</div>
+                            <div className="text-[10px] font-bold text-blue-700 dark:text-blue-300">
+                              {t('Bills', 'బిల్లు')}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
             </div>
 
             <div className="mt-5 flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">

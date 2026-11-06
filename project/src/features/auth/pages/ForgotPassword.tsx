@@ -162,13 +162,13 @@ export function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-950 py-8 px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center">
-      <div className="w-full max-w-lg">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-lg">
         {/* Navigation & Language Top Bar */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6">
           <Link
             to="/login"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-700/60 bg-slate-900/80 px-3.5 py-2 text-xs font-bold text-slate-200 shadow-xs hover:bg-slate-800 transition"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>{t('Back to Login', 'లాగిన్‌కు తిరిగి వెళ్ళండి')}</span>
@@ -177,7 +177,7 @@ export function ForgotPassword() {
         </div>
 
         {/* Main Card */}
-        <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/90 shadow-2xl backdrop-blur-xl">
+        <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xl shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900">
           {/* Header Banner */}
           <div className="relative overflow-hidden bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 p-6 text-white">
             <div className="pointer-events-none absolute inset-0 opacity-15 [background-image:radial-gradient(rgba(255,255,255,0.9)_1px,transparent_1px)] [background-size:16px_16px]" />
@@ -223,21 +223,21 @@ export function ForgotPassword() {
           {/* Form Body */}
           <div className="p-6 sm:p-8">
             {error && (
-              <div className="mb-5 flex gap-2.5 rounded-xl border border-red-800/50 bg-red-950/40 p-3.5 text-xs sm:text-sm text-red-300 animate-shake">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+              <div className="mb-5 flex gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs sm:text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300 animate-shake">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400" />
                 <span>{error}</span>
               </div>
             )}
 
             {successMessage && (
-              <div className="mb-5 flex gap-2.5 rounded-xl border border-emerald-800/50 bg-emerald-950/40 p-3.5 text-xs sm:text-sm text-emerald-200 animate-fadeIn">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+              <div className="mb-5 flex gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs sm:text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200 animate-fadeIn">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500 dark:text-emerald-400" />
                 <span>{successMessage}</span>
               </div>
             )}
 
             {devOtpNotice && (
-              <div className="mb-5 rounded-xl border border-amber-800/40 bg-amber-950/30 p-3 text-xs text-amber-200">
+              <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
                 <strong>{t('Development OTP Notice:', 'డెవలప్‌మెంట్ OTP నోటీసు:')}</strong> {devOtpNotice}
               </div>
             )}
@@ -246,10 +246,10 @@ export function ForgotPassword() {
             {step === 'email' && (
               <form onSubmit={handleSendOtp} className="space-y-4">
                 <div>
-                  <h3 className="text-base font-bold text-white">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
                     {t('Find Your Account', 'మీ ఖాతాను కనుగొనండి')}
                   </h3>
-                  <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                     {t(
                       'Enter your registered email address. We will dispatch a 6-digit OTP verification code to reset your password.',
                       'మీ నమోదైన ఇమెయిల్ చిరునామాను నమోదు చేయండి. పాస్‌వర్డ్ రీసెట్ చేయడానికి 6-అంకెల OTP కోడ్ పంపబడుతుంది.'
@@ -258,7 +258,7 @@ export function ForgotPassword() {
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-300">
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     {t('Registered Email Address', 'నమోదైన ఇమెయిల్ చిరునామా')} *
                   </label>
                   <div className="relative">
@@ -270,7 +270,7 @@ export function ForgotPassword() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="officer@email.com / gmail.com"
-                      className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-3 text-xs sm:text-sm text-white outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20"
+                      className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     />
                   </div>
                 </div>
@@ -289,13 +289,13 @@ export function ForgotPassword() {
             {/* STEP 2: Enter OTP */}
             {step === 'otp' && (
               <form onSubmit={handleVerifyOtp} className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-3 dark:border-slate-800">
                   <div>
-                    <h3 className="text-base font-bold text-white">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
                       {t('Enter 6-Digit Code', '6-అంకెల కోడ్ నమోదు చేయండి')}
                     </h3>
-                    <p className="mt-0.5 text-xs text-slate-400">
-                      {t('Code sent to:', 'కోడ్ పంపబడిన ఇమెయిల్:')} <span className="font-semibold text-emerald-400">{email}</span>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                      {t('Code sent to:', 'కోడ్ పంపబడిన ఇమెయిల్:')} <span className="font-semibold text-emerald-600 dark:text-emerald-400">{email}</span>
                     </p>
                   </div>
                   <button
@@ -308,7 +308,7 @@ export function ForgotPassword() {
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-300">
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     {t('6-Digit Verification Code', '6-అంకెల ధృవీకరణ కోడ్')} *
                   </label>
                   <input
@@ -320,7 +320,7 @@ export function ForgotPassword() {
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                     placeholder="123456"
-                    className="w-full text-center tracking-[12px] font-mono text-xl py-3 rounded-xl border border-slate-700 bg-slate-800/80 text-white outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20"
+                    className="w-full text-center tracking-[12px] font-mono text-xl py-3 rounded-xl border border-slate-200 bg-white text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-white"
                   />
                 </div>
 
@@ -329,7 +329,7 @@ export function ForgotPassword() {
                     type="button"
                     disabled={otpCooldown > 0 || loading}
                     onClick={() => handleSendOtp()}
-                    className="flex items-center gap-1.5 font-semibold text-amber-400 hover:underline disabled:text-slate-500"
+                    className="flex items-center gap-1.5 font-semibold text-amber-600 hover:underline disabled:text-slate-400 dark:text-amber-400 dark:disabled:text-slate-500"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                     <span>
@@ -355,16 +355,16 @@ export function ForgotPassword() {
             {step === 'password' && (
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div>
-                  <h3 className="text-base font-bold text-white">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
                     {t('Create New Password', 'కొత్త పాస్‌వర్డ్‌ను సృష్టించండి')}
                   </h3>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                     {t('Choose a strong password with at least 6 characters.', 'కనీసం 6 అక్షరాలతో బలమైన పాస్‌వర్డ్‌ను ఎంచుకోండి.')}
                   </p>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-300">
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     {t('New Password', 'కొత్త పాస్‌వర్డ్')} *
                   </label>
                   <div className="relative">
@@ -375,12 +375,12 @@ export function ForgotPassword() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder={t('Enter new password', 'కొత్త పాస్‌వర్డ్ నమోదు చేయండి')}
-                      className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-10 text-xs sm:text-sm text-white outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20"
+                      className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     />
                     <button
                       type="button"
                       onClick={() => setRevealed(!revealed)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                     >
                       {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -388,7 +388,7 @@ export function ForgotPassword() {
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-300">
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     {t('Confirm New Password', 'కొత్త పాస్‌వర్డ్‌ను నిర్ధారించండి')} *
                   </label>
                   <div className="relative">
@@ -399,12 +399,12 @@ export function ForgotPassword() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder={t('Confirm new password', 'కొత్త పాస్‌వర్డ్‌ను నిర్ధారించండి')}
-                      className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-10 text-xs sm:text-sm text-white outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20"
+                      className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     />
                     <button
                       type="button"
                       onClick={() => setConfirmRevealed(!confirmRevealed)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                     >
                       {confirmRevealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -425,14 +425,14 @@ export function ForgotPassword() {
             {/* STEP 4: Completed */}
             {step === 'completed' && (
               <div className="text-center py-4 space-y-4 animate-fadeIn">
-                <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/30">
+                <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 ring-1 ring-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:ring-emerald-500/30">
                   <ShieldCheck className="h-8 w-8" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                     {t('Password Reset Successful!', 'పాస్‌వర్డ్ విజయవంతంగా రీసెట్ చేయబడింది!')}
                   </h3>
-                  <p className="mt-1 text-xs text-slate-300 max-w-sm mx-auto">
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                     {t(
                       'Your password has been securely updated. You can now sign in using your registered email and new password.',
                       'మీ పాస్‌వర్డ్ సురక్షితంగా మార్చబడింది. మీ నమోదైన ఇమెయిల్ మరియు కొత్త పాస్‌వర్డ్‌తో లాగిన్ అవ్వండి.'

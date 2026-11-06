@@ -4,6 +4,9 @@ export const PUBLIC_AUTH_ROUTES = new Set([
   '/register',
   '/officer-register',
   '/forgot-password',
+  '/disclaimer',
+  '/privacy-policy',
+  '/terms-conditions',
   '/officer-toolkit',
   '/officer-toolkit/license-services',
   '/officer-toolkit/smart-sampling',
@@ -37,6 +40,9 @@ export const PUBLIC_PAGES = new Set([
   'register',
   'officer-register',
   'forgot-password',
+  'disclaimer',
+  'privacy-policy',
+  'terms-conditions',
   'dealers',
   'officer-toolkit',
   'forms-library',
@@ -87,6 +93,8 @@ export const PAGE_PATHS: Record<string, string> = {
   'subsidy-state-seed': '/subsidy-state-seed',
   'officer-records': '/officer-toolkit/my-records',
   'officer-toolkit': '/officer-toolkit',
+  'field-tools': '/field-tools',
+  'government-portals': '/government-portals',
   'license-services': '/officer-toolkit/license-services',
   'acreage-calculator': '/acreage-calculator',
   'farm-calculators': '/officer-toolkit/farm-calculators',
@@ -122,6 +130,9 @@ export const PAGE_PATHS: Record<string, string> = {
   'knowledge-assistant': '/knowledge/assistant',
   'knowledge-search': '/knowledge/search',
   'knowledge-viewer': '/knowledge/viewer',
+  disclaimer: '/disclaimer',
+  'privacy-policy': '/privacy-policy',
+  'terms-conditions': '/terms-conditions',
 };
 
 export function pageToPath(page: string) {
@@ -129,6 +140,9 @@ export function pageToPath(page: string) {
 }
 
 export function getRouteBackFallback(pathname: string, isAuthenticated: boolean) {
+  if (pathname === '/field-tools' || pathname === '/government-portals') {
+    return '/dashboard';
+  }
   if (pathname === '/officer-toolkit') {
     return isAuthenticated ? '/dashboard' : '/login';
   }
@@ -136,7 +150,7 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
     return '/officer-toolkit/officer-contacts';
   }
   if (pathname === '/officer-toolkit/my-records') {
-    return '/officer-toolkit';
+    return '/dashboard';
   }
   if (
     pathname === '/officer-toolkit/acreage-calculator' ||
@@ -158,10 +172,10 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
     return '/officer-toolkit/inspection-enforcement';
   }
   if (pathname.startsWith('/officer-toolkit/')) {
-    return '/officer-toolkit';
+    return '/field-tools';
   }
   if (pathname === '/forms' || pathname === '/acreage-calculator' || pathname === '/agrochemicals') {
-    return '/officer-toolkit';
+    return '/field-tools';
   }
   if (isAuthenticated && pathname !== '/dashboard' && pathname !== '/' && pathname !== '/login') {
     return '/dashboard';
@@ -170,7 +184,8 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
 }
 
 export function getPageBackFallback(page: string, isDealerUser: boolean) {
-  if (page === 'officer-records') return 'officer-toolkit';
+  if (page === 'officer-records') return 'dashboard';
+  if (page === 'field-tools' || page === 'government-portals') return 'dashboard';
   if (
     page === 'forms' ||
     page === 'forms-library' ||
@@ -184,7 +199,7 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
     page === 'tour-diary' ||
     page === 'officer-contacts' ||
     page === 'field-diagnosis'
-  ) return 'officer-toolkit';
+  ) return 'field-tools';
   if (
     page === 'acreage-calculator' ||
     page === 'fertilizer-calculator' ||
@@ -203,7 +218,7 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
   if (page === 'officer-contacts-admin') return 'officer-contacts';
   if (page.startsWith('knowledge-')) return 'knowledge';
   if (page === 'knowledge') return 'dashboard';
-  if (page === 'officer-toolkit') return 'dashboard';
+  if (page === 'officer-toolkit') return 'field-tools';
   if (page.startsWith('quality-')) return 'quality';
   if (page.startsWith('subsidy-')) return 'subsidy';
   return isDealerUser ? 'dealer-portal' : 'dashboard';
@@ -214,6 +229,9 @@ export const VALID_PAGES = new Set([
   'register',
   'officer-register',
   'forgot-password',
+  'disclaimer',
+  'privacy-policy',
+  'terms-conditions',
   'stock-analytics',
   'stock-receipts-sales',
   'dealer-portal',
@@ -234,6 +252,8 @@ export const VALID_PAGES = new Set([
   'subsidy-state-seed',
   'officer-toolkit',
   'officer-records',
+  'field-tools',
+  'government-portals',
   'forms',
   'forms-library',
   'license-services',
@@ -318,7 +338,7 @@ export function resolvePageFromLocation(location: { pathname: string; search: st
     if (page.startsWith(OFFICER_TOOLKIT_PAGE_PREFIX)) {
       const sub = page.slice(OFFICER_TOOLKIT_PAGE_PREFIX.length);
       const base = sub.split('/')[0];
-      // Officer Records & Cloud Archive lives at /officer-toolkit/my-records
+      // Records & Cloud Archive lives at /officer-toolkit/my-records
       if (base === 'my-records') {
         page = 'officer-records';
       } else if (OFFICER_TOOLKIT_SUBPAGES.has(base)) {

@@ -1,24 +1,27 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Edit2, Folder, FolderOpen, Link, Plus, Search, Trash2, Upload, X } from 'lucide-react';
+import { BookOpen, Download, Edit2, Eye, FileText, FolderOpen, Layers, Link, Loader2, Plus, Scale, Trash2, Upload, X } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
+import { FilePreviewModal } from '../../../shared/components/ui/FilePreviewModal';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { FormDownload } from '../../../shared/types/database';
-import { FileActionButtons } from '../../../shared/components/ui/FileActionButtons';
 import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 import { inferFileTypeFromName } from '../../../shared/lib/fileTypes';
 import { uploadPortalFile } from '../../../shared/lib/uploadFile';
+import { downloadFileFromUrl, fetchBlobUrl, revokeBlobUrl } from '../../../shared/lib/fileBlob';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
-import { classifyPublicForm, comparePublicForms, PUBLIC_FORM_SUBGROUPS } from '../../auth/pages/PublicOfficerTools';
+import { classifyPublicForm, comparePublicForms, PUBLIC_FORM_SUBGROUPS, type PublicFormSubGroup, type PublicFormGroupMeta } from '../../auth/pages/PublicOfficerTools';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 const folders = [
+  { id: 'fertilizers', label: 'Fertilizer', telugu: 'ఎరువులు' },
   { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
-  { id: 'fertilizers', label: 'Fertilizers', telugu: 'ఎరువులు' },
-  { id: 'pesticides', label: 'Pesticides', telugu: 'పురుగుమందులు' },
+  { id: 'pesticides', label: 'Pesticide', telugu: 'పురుగుమందులు' },
 ];
+
+const FORMS_PAGE_SIZE = 100;
 
 const emptyForm = {
   title: '',
@@ -77,6 +80,12 @@ export function FormsLibrary() {
   const { toasts, removeToast, showSaved, showDeleted, showWarning } = useToast();
   const [formToDelete, setFormToDelete] = useState<FormDownload | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [subGroupFilter, setSubGroupFilter] = useState<'all' | PublicFormSubGroup>('all');
+  const [formsPage, setFormsPage] = useState(0);
+  const [previewForm, setPreviewForm] = useState<FormDownload | null>(null);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+  const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
+  const [downloadingFormId, setDownloadingFormId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchForms();
@@ -146,16 +155,159 @@ export function FormsLibrary() {
 
   const selectedForms = useMemo(() => {
     const list = forms.filter((form) => form.category === selectedFolder);
-    const q = searchQuery.trim().toLowerCase();
-    const filtered = !q
-      ? list
-      : list.filter((form) =>
-          (form.title || '').toLowerCase().includes(q) ||
-          (form.description || '').toLowerCase().includes(q)
-        );
-    return [...filtered].sort(comparePublicForms);
+    return [...list].sort(comparePublicForms);
+  }, [forms, selectedFolder]);
+
+  const subGroupCounts = useMemo(() => {
+    const counts: Record<'all' | PublicFormSubGroup, number> = {
+      all: selectedForms.length,
+      sampling: 0,
+      enforcement: 0,
+      reference: 0,
+    };
+    for (const form of selectedForms) {
+      const g = classifyPublicForm(form);
+      counts[g] = (counts[g] || 0) + 1;
+    }
+    return counts;
+  }, [selectedForms]);
+
+  const filteredForms = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return selectedForms.filter((form) => {
+      if (subGroupFilter !== 'all' && classifyPublicForm(form) !== subGroupFilter) {
+        return false;
+      }
+      if (!query) return true;
+      const title = (form.title || form.label || '').toLowerCase();
+      const description = (form.description || '').toLowerCase();
+      return title.includes(query) || description.includes(query);
+    });
+  }, [selectedForms, subGroupFilter, searchQuery]);
+
+  const groupedForms = useMemo(() => {
+    const groups: {
+      meta: PublicFormGroupMeta;
+      icon: typeof FileText;
+      colorClasses: { badge: string; headerBg: string; headerBorder: string; headerText: string };
+      forms: FormDownload[];
+    }[] = [
+      {
+        meta: PUBLIC_FORM_SUBGROUPS.sampling,
+        icon: FileText,
+        colorClasses: {
+          badge: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300',
+          headerBg: 'bg-emerald-100/60 dark:bg-emerald-950/40',
+          headerBorder: 'border-emerald-200/80 dark:border-emerald-900/60',
+          headerText: 'text-emerald-900 dark:text-emerald-200',
+        },
+        forms: [],
+      },
+      {
+        meta: PUBLIC_FORM_SUBGROUPS.enforcement,
+        icon: Scale,
+        colorClasses: {
+          badge: 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300',
+          headerBg: 'bg-amber-100/60 dark:bg-amber-950/40',
+          headerBorder: 'border-amber-200/80 dark:border-amber-900/60',
+          headerText: 'text-amber-900 dark:text-amber-200',
+        },
+        forms: [],
+      },
+      {
+        meta: PUBLIC_FORM_SUBGROUPS.reference,
+        icon: BookOpen,
+        colorClasses: {
+          badge: 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300',
+          headerBg: 'bg-sky-100/60 dark:bg-sky-950/40',
+          headerBorder: 'border-sky-200/80 dark:border-sky-900/60',
+          headerText: 'text-sky-900 dark:text-sky-200',
+        },
+        forms: [],
+      },
+    ];
+
+    for (const form of filteredForms) {
+      const g = classifyPublicForm(form);
+      const target = groups.find((item) => item.meta.id === g);
+      if (target) target.forms.push(form);
+    }
+
+    return groups.filter((g) => g.forms.length > 0);
+  }, [filteredForms]);
+
+  const otherMatches = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.trim().toLowerCase();
+    return folders.filter((f) => f.id !== selectedFolder)
+      .map((f) => {
+        const matchCount = forms.filter(
+          (form) =>
+            form.category === f.id &&
+            ((form.title || '').toLowerCase().includes(query) ||
+              (form.description || '').toLowerCase().includes(query))
+        ).length;
+        return { ...f, matchCount };
+      })
+      .filter((f) => f.matchCount > 0);
   }, [forms, selectedFolder, searchQuery]);
-  const activeFolder = folders.find((folder) => folder.id === selectedFolder) || folders[0];
+
+  const formsPageCount = Math.max(1, Math.ceil(filteredForms.length / FORMS_PAGE_SIZE));
+  const paginatedForms = useMemo(
+    () => filteredForms.slice(formsPage * FORMS_PAGE_SIZE, formsPage * FORMS_PAGE_SIZE + FORMS_PAGE_SIZE),
+    [filteredForms, formsPage]
+  );
+
+  useEffect(() => {
+    setSubGroupFilter('all');
+    setFormsPage(0);
+  }, [selectedFolder]);
+
+  useEffect(() => {
+    setFormsPage(0);
+  }, [searchQuery, subGroupFilter]);
+
+  const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  const openPreview = async (form: FormDownload) => {
+    if (!form.file_url) return;
+    const mobileTab = isMobileDevice ? window.open('', '_blank') : null;
+    setPreviewLoadingId(form.id);
+    try {
+      const blobUrl = await fetchBlobUrl(form.file_url, form.title);
+      if (mobileTab) {
+        mobileTab.location.href = blobUrl;
+        window.setTimeout(() => revokeBlobUrl(blobUrl), 60_000);
+        return;
+      }
+      setPreviewBlobUrl(blobUrl);
+      setPreviewForm({ ...form, file_url: blobUrl });
+    } catch {
+      mobileTab?.close();
+      setPreviewForm(form);
+    } finally {
+      setPreviewLoadingId(null);
+    }
+  };
+
+  const closePreview = () => {
+    setPreviewForm(null);
+    revokeBlobUrl(previewBlobUrl);
+    setPreviewBlobUrl(null);
+  };
+
+  const handleDownload = async (form: FormDownload) => {
+    if (!form.file_url) return;
+    setDownloadingFormId(form.id);
+    try {
+      await downloadFileFromUrl(form.file_url, form.title);
+    } catch (error) {
+      console.error('Download failed:', error);
+      window.open(form.file_url, '_blank', 'noopener,noreferrer');
+    } finally {
+      setDownloadingFormId(null);
+    }
+  };
 
   const resetForm = () => {
     setNewForm({ ...emptyForm, category: selectedFolder });
@@ -263,6 +415,104 @@ export function FormsLibrary() {
     setShowAddForm(true);
   };
 
+  const badgeClassesFor = (subGroup: PublicFormSubGroup) =>
+    subGroup === 'sampling'
+      ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300'
+      : subGroup === 'enforcement'
+      ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300'
+      : 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300';
+
+  const renderFormCard = (form: FormDownload) => {
+    const subGroup = classifyPublicForm(form);
+    const meta = PUBLIC_FORM_SUBGROUPS[subGroup];
+
+    return (
+      <div
+        key={form.id}
+        className="group flex items-center justify-between gap-2.5 sm:gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2.5 sm:p-3.5 transition duration-150 hover:border-emerald-300 hover:shadow-sm dark:hover:border-emerald-700/60"
+      >
+        <div className="flex items-start gap-2.5 sm:gap-3 min-w-0 flex-1">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-200/50 dark:ring-slate-700/50">
+            <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5 mb-1">
+              <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${badgeClassesFor(subGroup)}`}>
+                {language === 'te' ? meta.badgeTelugu : meta.badge}
+              </span>
+            </div>
+            <h3 className="text-sm font-black text-slate-900 dark:text-white leading-snug break-words">
+              {form.title}
+            </h3>
+            {form.description && (
+              <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400 line-clamp-2">
+                {form.description}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0 justify-end">
+          {form.file_url && (
+            <>
+              <button
+                type="button"
+                onClick={() => void openPreview(form)}
+                disabled={previewLoadingId === form.id}
+                className="inline-flex h-9 w-9 sm:w-auto items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 px-0 sm:px-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 disabled:opacity-50"
+                aria-label={t('Preview file', 'ఫైల్‌ను ప్రివ్యూ చేయండి')}
+                title={t('Preview', 'ప్రివ్యూ')}
+              >
+                {previewLoadingId === form.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Eye className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                )}
+                <span className="hidden sm:inline">{t('Preview', 'ప్రివ్యూ')}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDownload(form)}
+                disabled={downloadingFormId === form.id}
+                className="inline-flex h-9 w-9 sm:w-auto items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-0 sm:px-3 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 disabled:opacity-50"
+                aria-label={t('Download file', 'ఫైల్‌ను డౌన్‌లోడ్ చేయండి')}
+                title={t('Download', 'డౌన్‌లోడ్')}
+              >
+                {downloadingFormId === form.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">{t('Download', 'డౌన్‌లోడ్')}</span>
+              </button>
+            </>
+          )}
+          {isAdminUser && (
+            <>
+              <button
+                type="button"
+                onClick={() => openEditForm(form)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-blue-600 dark:text-blue-300 transition hover:bg-blue-50 dark:hover:bg-blue-950/40"
+                aria-label={t('Edit form', 'ఫారం సవరించండి')}
+                title={t('Edit', 'సవరించు')}
+              >
+                <Edit2 className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormToDelete(form)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/40"
+                aria-label={t('Delete form', 'ఫారం తొలగించు')}
+                title={t('Delete', 'తొలగించు')}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -318,35 +568,38 @@ export function FormsLibrary() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        {folders.map((folder) => (
-          <button
-            key={folder.id}
-            type="button"
-            onClick={() => setSelectedFolder(folder.id)}
-            className={`relative overflow-hidden rounded-2xl border p-3.5 text-left transition duration-200 ${
-              selectedFolder === folder.id
-                ? 'border-emerald-700 bg-gradient-to-br from-emerald-800 to-emerald-900 text-white shadow-md shadow-emerald-950/20'
-                : 'border-slate-200/90 bg-white text-slate-800 shadow-sm hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100'
-            }`}
-          >
-            {selectedFolder === folder.id && (
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-gold-400 via-gold-300 to-gold-400" />
-            )}
-            <div className="flex items-center justify-between gap-2">
-              <div className={`rounded-xl p-2.5 ${selectedFolder === folder.id ? 'bg-white/15 text-white' : 'bg-emerald-50 text-emerald-800 dark:bg-slate-800 dark:text-emerald-300'}`}>
-                <Folder className="h-4 w-4" />
-              </div>
-              <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                selectedFolder === folder.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-              }`}>
-                {folderCounts[folder.id] || 0}
+      {/* Category selector — same style as the public Forms & Library */}
+      <section className="rounded-2xl border border-emerald-100 dark:border-emerald-900/60 bg-gradient-to-br from-emerald-100 dark:from-emerald-900 via-lime-50 dark:via-lime-950/60 to-cyan-100 dark:to-cyan-900 p-4 sm:p-5 shadow-md">
+        <div className="mb-4">
+          <h2 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">
+            {t('Select Category', 'వర్గాన్ని ఎంచుకోండి')}
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+          {folders.map((folder) => (
+            <button
+              key={folder.id}
+              type="button"
+              onClick={() => setSelectedFolder(folder.id)}
+              className={`flex min-h-[48px] sm:h-[52px] items-center justify-between rounded-xl border px-4 py-2.5 text-left transition duration-200 ${
+                selectedFolder === folder.id
+                  ? 'border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-900/15'
+                  : 'border-emerald-200/90 bg-white text-slate-800 shadow-xs hover:border-emerald-400 hover:bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-slate-900 dark:text-slate-100'
+              }`}
+            >
+              <span className="text-sm font-black">
+                {language === 'te' ? folder.telugu : folder.label}
               </span>
-            </div>
-            <h2 className="mt-2.5 truncate text-sm font-black font-[var(--font-heading)]">{t(folder.label, folder.telugu)}</h2>
-          </button>
-        ))}
-      </div>
+              {selectedFolder === folder.id && (
+                <span className="shrink-0 text-xs font-black text-emerald-100">✓</span>
+              )}
+            </button>
+          ))}
+        </div>
+        <p className="mt-3 text-right text-xs font-bold text-slate-500 dark:text-slate-400">
+          {folderCounts[selectedFolder] || 0} {t('items', 'అంశాలు')}
+        </p>
+      </section>
 
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -445,116 +698,182 @@ export function FormsLibrary() {
         </div>
       )}
 
-      <section className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-xl font-black text-slate-900 dark:text-white font-[var(--font-heading)]">{t(activeFolder.label, activeFolder.telugu)}</h2>
-            <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
-              {selectedForms.length} {t('items available', 'ఐటమ్లు అందుబాటులో ఉన్నాయి')}
-            </p>
-          </div>
-          <div className="relative w-full sm:w-72">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('Search forms in folder...', 'ఫారాలను వెతకండి...')}
-              className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-xs font-semibold text-slate-900 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-950"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                aria-label="Clear search"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
+      {/* Search, subgroup filters and grouped form cards — same style as public Forms & Library */}
+      <div className="space-y-3">
+        <div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('Search forms, acts, orders & manuals...', 'ఫారాలు, చట్టాలు, ఆర్డర్లు & మాన్యువల్స్ వెతకండి...')}
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-950 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+          />
         </div>
 
-        {selectedForms.length > 0 ? (
-          <div className="overflow-x-auto rounded-xl border border-slate-200/80 dark:border-slate-700/80">
-            <table className="min-w-[720px] w-full border-collapse text-left">
-              <thead className="bg-slate-50 text-xs font-black uppercase tracking-wider text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                <tr>
-                  <th className="w-20 px-3.5 py-3">{t('S.No.', 'S.No.')}</th>
-                  <th className="px-3.5 py-3">{t('Proforma / Form Name', 'Proforma / Form Name')}</th>
-                  <th className="w-36 px-3.5 py-3">{t('Date', 'తేదీ')}</th>
-                  <th className="w-36 px-3.5 py-3 text-right">{t('Action', 'చర్య')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {selectedForms.map((form, index) => {
-                  const subGroup = classifyPublicForm(form);
-                  const meta = PUBLIC_FORM_SUBGROUPS[subGroup];
-                  const badgeClasses =
-                    subGroup === 'sampling'
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300'
-                      : subGroup === 'enforcement'
-                      ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300'
-                      : 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300';
+        {/* Sub-group filter tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <button
+            type="button"
+            onClick={() => setSubGroupFilter('all')}
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black transition ${
+              subGroupFilter === 'all'
+                ? 'bg-slate-900 text-white shadow-xs dark:bg-emerald-600'
+                : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Layers className="h-3.5 w-3.5" />
+            <span>{t('All', 'అన్నీ')}</span>
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                subGroupFilter === 'all'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+              }`}
+            >
+              {subGroupCounts.all}
+            </span>
+          </button>
 
-                  return (
-                    <tr key={form.id} className="transition hover:bg-emerald-50/40 dark:hover:bg-slate-800/60">
-                      <td className="px-3 py-2 text-sm font-bold text-slate-600 dark:text-slate-300">{index + 1}</td>
-                      <td className="px-3 py-2">
-                        <div className="flex min-w-0 items-center gap-3">
-                          <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="max-w-[28rem] truncate text-sm font-bold text-gray-950 dark:text-white">{form.title}</h3>
-                              <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${badgeClasses}`}>
-                                {language === 'te' ? meta.badgeTelugu : meta.badge}
-                              </span>
-                            </div>
-                            {form.description && (
-                              <p className="truncate text-xs text-slate-500 dark:text-slate-400">{form.description}</p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                    <td className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-slate-400">
-                      {new Date(form.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex items-center justify-end gap-0.5">
-                        {form.file_url && (
-                          <FileActionButtons fileUrl={form.file_url} fileName={form.title} fileType={form.file_type} size="sm" />
-                        )}
-                        {isAdminUser && (
-                          <>
-                            <button onClick={() => openEditForm(form)} className="rounded-md p-1 text-blue-600 dark:text-blue-300 transition hover:bg-blue-50" aria-label="Edit item">
-                              <Edit2 className="h-4 w-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setFormToDelete(form)}
-                              className="rounded-md p-1 text-red-500 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                              aria-label={t('Delete form', 'ఫారం తొలగించు')}
-                              title={t('Delete form', 'ఫారం తొలగించు')}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </>
-                        )}
+          {(['sampling', 'enforcement', 'reference'] as PublicFormSubGroup[]).map((groupKey) => {
+            const meta = PUBLIC_FORM_SUBGROUPS[groupKey];
+            const count = subGroupCounts[groupKey];
+            const isSelected = subGroupFilter === groupKey;
+            const GroupIcon = groupKey === 'sampling' ? FileText : groupKey === 'enforcement' ? Scale : BookOpen;
+
+            return (
+              <button
+                key={groupKey}
+                type="button"
+                onClick={() => setSubGroupFilter(groupKey)}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black transition ${
+                  isSelected
+                    ? groupKey === 'sampling'
+                      ? 'bg-emerald-700 text-white shadow-xs'
+                      : groupKey === 'enforcement'
+                      ? 'bg-amber-700 text-white shadow-xs'
+                      : 'bg-sky-700 text-white shadow-xs'
+                    : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                <GroupIcon className="h-3.5 w-3.5" />
+                <span>{language === 'te' ? meta.telugu : meta.label}</span>
+                <span
+                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                    isSelected
+                      ? 'bg-white/20 text-white'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-between pt-1">
+          <h2 className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
+            {subGroupFilter === 'all'
+              ? t('Related Forms & Reference Materials', 'సంబంధిత ఫారాలు & మార్గదర్శక పత్రాలు')
+              : language === 'te'
+              ? PUBLIC_FORM_SUBGROUPS[subGroupFilter].telugu
+              : PUBLIC_FORM_SUBGROUPS[subGroupFilter].label}
+          </h2>
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+            {filteredForms.length} {t(filteredForms.length === 1 ? 'Form' : 'Forms', filteredForms.length === 1 ? 'ఫారం' : 'ఫారాలు')}
+          </span>
+        </div>
+
+        {filteredForms.length > 0 ? (
+          subGroupFilter === 'all' ? (
+            <div className="space-y-5">
+              {groupedForms.map((group) => (
+                <div key={group.meta.id} className="space-y-2">
+                  <div className={`flex items-center justify-between rounded-xl border px-3 py-2 ${group.colorClasses.headerBg} ${group.colorClasses.headerBorder}`}>
+                    <div className="flex items-center gap-2">
+                      <div className={`flex h-6 w-6 items-center justify-center rounded-md border ${group.colorClasses.badge}`}>
+                        <group.icon className="h-3.5 w-3.5" />
                       </div>
-                    </td>
-                  </tr>
-                );
-              })}
-              </tbody>
-            </table>
-          </div>
+                      <h3 className={`text-xs font-black uppercase tracking-wider ${group.colorClasses.headerText}`}>
+                        {language === 'te' ? group.meta.telugu : group.meta.label}
+                      </h3>
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                      {group.forms.length} {t(group.forms.length === 1 ? 'item' : 'items', group.forms.length === 1 ? 'అంశం' : 'అంశాలు')}
+                    </span>
+                  </div>
+                  <div className="grid gap-2">
+                    {group.forms.map(renderFormCard)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              {paginatedForms.map(renderFormCard)}
+            </div>
+          )
         ) : (
-          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-700 p-12 text-center">
-            <Folder className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-            <p className="font-semibold text-gray-600 dark:text-slate-300">{t('No items in this folder yet', 'ఈ ఫోల్డర్‌లో ఇంకా ఐటమ్లు లేవు')}</p>
+          <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-8 text-center">
+            <FileText className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600" />
+            <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
+              {searchQuery.trim()
+                ? t('No forms matching your search in this group.', 'ఈ విభాగంలో మీ శోధనకు సరిపోలే ఫారాలు లేవు.')
+                : t('No statutory forms found in this group.', 'ఈ విభాగంలో చట్టబద్ధ ఫారాలు లేవు.')}
+            </p>
+            {otherMatches.length > 0 && (
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  {t('Found in other categories:', 'ఇతర వర్గాలలో దొరికాయి:')}
+                </span>
+                {otherMatches.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setSelectedFolder(m.id)}
+                    className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700"
+                  >
+                    {language === 'te' ? m.telugu : m.label} ({m.matchCount})
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
-      </section>
+
+        {filteredForms.length > FORMS_PAGE_SIZE && subGroupFilter !== 'all' && (
+          <div className="mt-2 flex items-center justify-end gap-2 text-xs font-black text-slate-600 dark:text-slate-300">
+            <button
+              type="button"
+              onClick={() => setFormsPage(Math.max(0, formsPage - 1))}
+              disabled={formsPage === 0}
+              className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 disabled:opacity-50"
+            >
+              {t('Previous', 'మునుపటి')}
+            </button>
+            <span className="uppercase tracking-wide">
+              {t('Page', 'పేజీ')} {formsPage + 1} / {formsPageCount}
+            </span>
+            <button
+              type="button"
+              onClick={() => setFormsPage(Math.min(formsPageCount - 1, formsPage + 1))}
+              disabled={formsPage >= formsPageCount - 1}
+              className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 disabled:opacity-50"
+            >
+              {t('Next', 'తదుపరి')}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {previewForm?.file_url && (
+        <FilePreviewModal
+          fileUrl={previewForm.file_url}
+          fileName={previewForm.title}
+          fileType={previewForm.file_type}
+          onClose={closePreview}
+        />
+      )}
     </div>
   );
 }
