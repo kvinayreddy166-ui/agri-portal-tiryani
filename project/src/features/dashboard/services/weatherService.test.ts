@@ -16,6 +16,7 @@ describe('weatherService', () => {
 
   beforeEach(() => {
     store.clear();
+    vi.stubEnv('VITE_OPENWEATHER_API_KEY', '');
     vi.stubGlobal('window', {
       localStorage: {
         getItem: (k: string) => store.get(k) ?? null,

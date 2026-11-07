@@ -3,7 +3,8 @@ import {
   ChevronLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound,
   Archive, BarChart3, Settings, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, BookOpen, LogOut,
-  Globe, Check, Sprout,
+  Globe, Check, Sprout, Gavel, CalendarDays, Phone, FileCheck, Files,
+  ClipboardCheck, FlaskConical, Calculator, Stethoscope, Microscope, Scale,
 } from 'lucide-react';
 import { PortalLogo } from '../shared/components/ui/PortalLogo';
 import { ConfirmDialog } from '../shared/components/ui/ConfirmDialog';
@@ -20,27 +21,44 @@ interface LayoutProps {
 }
 
 const adminMenuItems = [
+  // Overview
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'stock-analytics', label: 'Command Center', icon: PackageCheck },
-  { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
-  { id: 'farmer-database', label: 'Farmer Database', icon: Database },
-  { id: 'field-tools', label: 'Field Tools', icon: Sprout },
-  { id: 'government-portals', label: 'Government Portals', icon: Globe },
-  // Separate module for Records & Cloud Archive
-  { id: 'officer-records', label: 'Records & Cloud Archive', icon: Archive },
-  { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },
-  { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
-  { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark },
-  { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText },
-  {
-    id: 'quality',
-    label: 'Quality Control',
-    icon: ShieldCheck,
-  },
-  // { id: 'agrochemicals', label: 'Agrochemicals', icon: FlaskConical }, // Removed duplicate as agrochemicals is in Officer Toolkit
-  { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor },
-  { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true },
+  { id: 'stock-analytics', label: 'Command Center', icon: PackageCheck, adminOnly: true },
   { id: 'analytics', label: 'Reports', icon: BarChart3 },
+
+  // Statutory & Enforcement (Separate Field Tools Modules)
+  { id: 'inspection-enforcement', label: 'Inspection & Enforcement', icon: ClipboardCheck },
+  { id: 'enforcement-tracker', label: 'Enforcement Tracker', icon: Gavel },
+  { id: 'forms', label: 'Smart Sampling', icon: Files },
+  { id: 'forms-library', label: 'Forms & Library', icon: FolderOpen },
+  { id: 'license-services', label: 'License Services', icon: FileCheck },
+  { id: 'acts-and-orders', label: 'Acts & Orders', icon: Scale },
+
+  // Field Advisory & Diagnostics (Separate Field Tools Modules)
+  { id: 'crop-doctor', label: 'Crop Doctor', icon: Stethoscope },
+  { id: 'field-diagnosis', label: 'Field Diagnosis', icon: Microscope },
+  { id: 'farm-calculators', label: 'Farm Calculators', icon: Calculator },
+  { id: 'agrochemicals', label: 'Agrochemicals Database', icon: FlaskConical },
+
+  // Field Operations & Officer Administration (Separate Field Tools Modules + Operations)
+  { id: 'tour-diary', label: 'Tour Diary', icon: CalendarDays },
+  { id: 'officer-contacts', label: 'Officer Contacts', icon: Phone },
+  { id: 'farmer-database', label: 'Farmer Database', icon: Database },
+  { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
+  { id: 'quality', label: 'Quality Control', icon: ShieldCheck },
+  { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark },
+  { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor },
+
+  // Knowledge & Portals
+  { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },
+  { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText },
+  { id: 'government-portals', label: 'Government Portals', icon: Globe },
+
+  // Records & Admin
+  { id: 'officer-records', label: 'Records & Cloud Archive', icon: Archive },
+  { id: 'field-tools', label: 'Field Tools Hub', icon: Sprout },
+  { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
+  { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
@@ -129,13 +147,8 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
 
   const visibleMenuItems = isDealerUser
     ? dealerMenuItems
-    : isOfficer && !isAdminUser
-    ? menuItems.filter((item) => ['dashboard', 'field-tools', 'government-portals', 'knowledge', 'gos-circulars', 'officer-records'].includes(item.id))
     : menuItems.filter((item) => {
-        if (item.id === 'stock') {
-          return isAdminUser;
-        }
-        if (item.adminOnly) return isAdminUser;
+        if (item.adminOnly && !isAdminUser) return false;
         return true;
       });
 
@@ -448,10 +461,30 @@ type BreadcrumbItem = {
 
 function menuSections(items: typeof adminMenuItems, t: (key: string, telugu: string) => string) {
   const sections = [
-    { title: t('Overview', 'అవలోకనం'), ids: ['dashboard', 'stock-analytics', 'analytics'] },
-    { title: t('Field Operations', 'ఫీల్డ్ ఆపరేషన్స్'), ids: ['dealers', 'farmer-database', 'subsidy', 'farm-mechanization', 'quality', 'agrochemicals'] },
-    { title: t('Knowledge', 'జ్ఞానం'), ids: ['field-tools', 'government-portals', 'gos-circulars', 'knowledge'] },
-    { title: t('Records', 'రికార్డులు'), ids: ['file-directory', 'excel', 'settings'] },
+    {
+      title: t('Overview', 'అవలోకనం'),
+      ids: ['dashboard', 'stock-analytics', 'analytics'],
+    },
+    {
+      title: t('Statutory & Enforcement', 'చట్టబద్ధమైన & అమలు'),
+      ids: ['inspection-enforcement', 'enforcement-tracker', 'forms', 'forms-library', 'license-services', 'acts-and-orders'],
+    },
+    {
+      title: t('Field Advisory & Diagnostics', 'ఫీల్డ్ అడ్వైజరీ & నిర్ధారణ'),
+      ids: ['crop-doctor', 'field-diagnosis', 'farm-calculators', 'agrochemicals'],
+    },
+    {
+      title: t('Field Operations & Duties', 'ఫీల్డ్ విధులు & కార్యకలాపాలు'),
+      ids: ['tour-diary', 'officer-contacts', 'farmer-database', 'dealers', 'quality', 'subsidy', 'farm-mechanization'],
+    },
+    {
+      title: t('Knowledge & Portals', 'జ్ఞాన భాండాగారం & పోర్టల్స్'),
+      ids: ['knowledge', 'gos-circulars', 'government-portals'],
+    },
+    {
+      title: t('Records & Archives', 'రికార్డులు & ఆర్కైవ్'),
+      ids: ['officer-records', 'field-tools', 'file-directory', 'excel', 'settings'],
+    },
   ];
 
   const itemById = new Map(items.map((item) => [item.id, item]));
@@ -473,7 +506,6 @@ function menuSections(items: typeof adminMenuItems, t: (key: string, telugu: str
 
 function getPageMeta(page: string, t: (key: string, telugu: string) => string): { title: string; breadcrumbs: BreadcrumbItem[] } {
   const dashboard = { label: t('Dashboard', 'డ్యాష్‌బోర్డ్'), page: 'dashboard' };
-  const toolkit = { label: t('Field Tools', 'క్షేత్ర సాధనాలు'), page: 'field-tools' };
   const farmCalculators = { label: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), page: 'farm-calculators' };
   const inspectionsHub = { label: t('Inspection & Enforcement', 'తనిఖీ & అమలు'), page: 'inspection-enforcement' };
 
@@ -518,34 +550,34 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     dealers: { title: t('Dealers Directory', 'డీలర్ల డైరెక్టరీ'), breadcrumbs: [dashboard] },
     'farmer-database': { title: t('Farmer Database', 'రైతుల డేటాబేస్'), breadcrumbs: [dashboard] },
     'officer-toolkit': { title: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), breadcrumbs: [dashboard] },
-    'field-tools': { title: t('Field Tools', 'క్షేత్ర పరికరాలు'), breadcrumbs: [dashboard] },
+    'field-tools': { title: t('Field Tools Hub', 'క్షేత్ర పరికరాల హబ్'), breadcrumbs: [dashboard] },
     'government-portals': { title: t('Government Portals', 'ప్రభుత్వ పోర్టల్స్'), breadcrumbs: [dashboard] },
     'officer-records': { title: t('Records & Cloud Archive', 'రికార్డులు & క్లౌడ్ ఆర్కైవ్'), breadcrumbs: [dashboard] },
     knowledge: { title: t('Knowledge Base', 'జ్ఞాన భాండాగారం'), breadcrumbs: [dashboard] },
-    forms: { title: t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్'), breadcrumbs: [dashboard, toolkit] },
-    'forms-library': { title: t('Forms & Library', 'ఫారాలు & లైబ్రరీ'), breadcrumbs: [dashboard, toolkit] },
-    'acreage-calculator': { title: t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
-    agrochemicals: { title: t('Agrochemicals Database', 'వ్యవసాయ రసాయనాల భాండాగారం'), breadcrumbs: [dashboard, toolkit] },
-    'farm-calculators': { title: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), breadcrumbs: [dashboard, toolkit] },
-    'crop-doctor': { title: t('Crop Doctor', 'పంట డాక్టర్'), breadcrumbs: [dashboard, toolkit] },
-    'fertilizer-calculator': { title: t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
-    'pesticide-calculator': { title: t('Pesticide Calculator', 'పురుగుమందుల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
-    'plant-population-calculator': { title: t('Plant Population Calculator', 'మొక్కల జనాభా కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
-    'seed-rate-calculator': { title: t('Seed Rate Calculator', 'విత్తన మోతాదు కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
-    'irrigation-calculator': { title: t('Irrigation Calculator', 'నీటిపారుదల కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
-    'profitability-calculator': { title: t('Profit Calculator', 'లాభదాయకత కాలిక్యులేటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
-    'soil-health-meter': { title: t('Soil Health Meter', 'మట్టి ఆరోగ్య మీటర్'), breadcrumbs: [dashboard, toolkit, farmCalculators] },
-    'acts-and-orders': { title: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు'), breadcrumbs: [dashboard, toolkit, { label: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు') }] },
-    'seed-dealer-inspection': { title: t('Seed Dealer Inspection', 'విత్తన డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
-    'fertilizer-dealer-inspection': { title: t('Fertilizer Dealer Inspection', 'ఎరువుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
-    'insecticide-dealer-inspection': { title: t('Pesticide Dealer Inspection', 'పురుగుమందుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, toolkit, inspectionsHub] },
-    'inspection-enforcement': { title: t('Inspection & Enforcement', 'తనిఖీ & అమలు'), breadcrumbs: [dashboard, toolkit] },
-    'enforcement-tracker': { title: t('Enforcement Tracker', 'అమలు ట్రాకర్'), breadcrumbs: [dashboard, toolkit] },
-    'license-services': { title: t('License Services', 'లైసెన్స్ సేవలు'), breadcrumbs: [dashboard, toolkit] },
-    'tour-diary': { title: t('Tour Diary', 'టూర్ డైరీ'), breadcrumbs: [dashboard, toolkit] },
-    'officer-contacts': { title: t('Officer Contacts', 'అధికారుల పరిచయాలు'), breadcrumbs: [dashboard, toolkit] },
+    forms: { title: t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్'), breadcrumbs: [dashboard] },
+    'forms-library': { title: t('Forms & Library', 'ఫారాలు & లైబ్రరీ'), breadcrumbs: [dashboard] },
+    'acreage-calculator': { title: t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్'), breadcrumbs: [dashboard, farmCalculators] },
+    agrochemicals: { title: t('Agrochemicals Database', 'వ్యవసాయ రసాయనాల భాండాగారం'), breadcrumbs: [dashboard] },
+    'farm-calculators': { title: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), breadcrumbs: [dashboard] },
+    'crop-doctor': { title: t('Crop Doctor', 'పంట డాక్టర్'), breadcrumbs: [dashboard] },
+    'fertilizer-calculator': { title: t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్'), breadcrumbs: [dashboard, farmCalculators] },
+    'pesticide-calculator': { title: t('Pesticide Calculator', 'పురుగుమందుల కాలిక్యులేటర్'), breadcrumbs: [dashboard, farmCalculators] },
+    'plant-population-calculator': { title: t('Plant Population Calculator', 'మొక్కల జనాభా కాలిక్యులేటర్'), breadcrumbs: [dashboard, farmCalculators] },
+    'seed-rate-calculator': { title: t('Seed Rate Calculator', 'విత్తన మోతాదు కాలిక్యులేటర్'), breadcrumbs: [dashboard, farmCalculators] },
+    'irrigation-calculator': { title: t('Irrigation Calculator', 'నీటిపారుదల కాలిక్యులేటర్'), breadcrumbs: [dashboard, farmCalculators] },
+    'profitability-calculator': { title: t('Profit Calculator', 'లాభదాయకత కాలిక్యులేటర్'), breadcrumbs: [dashboard, farmCalculators] },
+    'soil-health-meter': { title: t('Soil Health Meter', 'మట్టి ఆరోగ్య మీటర్'), breadcrumbs: [dashboard, farmCalculators] },
+    'acts-and-orders': { title: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు'), breadcrumbs: [dashboard] },
+    'seed-dealer-inspection': { title: t('Seed Dealer Inspection', 'విత్తన డీలర్ తనిఖీ'), breadcrumbs: [dashboard, inspectionsHub] },
+    'fertilizer-dealer-inspection': { title: t('Fertilizer Dealer Inspection', 'ఎరువుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, inspectionsHub] },
+    'insecticide-dealer-inspection': { title: t('Pesticide Dealer Inspection', 'పురుగుమందుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, inspectionsHub] },
+    'inspection-enforcement': { title: t('Inspection & Enforcement', 'తనిఖీ & అమలు'), breadcrumbs: [dashboard] },
+    'enforcement-tracker': { title: t('Enforcement Tracker', 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్'), breadcrumbs: [dashboard] },
+    'license-services': { title: t('License Services', 'లైసెన్స్ సేవలు'), breadcrumbs: [dashboard] },
+    'tour-diary': { title: t('Tour Diary', 'టూర్ డైరీ'), breadcrumbs: [dashboard] },
+    'officer-contacts': { title: t('Officer Contacts', 'అధికారుల పరిచయాలు'), breadcrumbs: [dashboard] },
     'officer-contacts-admin': { title: t('Officer Contacts Admin', 'అధికారుల పరిచయాల నిర్వహణ'), breadcrumbs: [dashboard, { label: t('Officer Contacts', 'అధికారుల పరిచయాలు'), page: 'officer-contacts' }] },
-    'field-diagnosis': { title: t('Field Diagnosis', 'క్షేత్ర నిర్ధారణ'), breadcrumbs: [dashboard, toolkit] },
+    'field-diagnosis': { title: t('Field Diagnosis', 'క్షేత్ర నిర్ధారణ'), breadcrumbs: [dashboard] },
     'gos-circulars': { title: t('GOs & Circulars', 'జి.ఓ.లు & సర్క్యులర్లు'), breadcrumbs: [dashboard] },
     quality: { title: t('Quality Control', 'నాణ్యత నియంత్రణ'), breadcrumbs: [dashboard] },
     'farm-mechanization': { title: t('Farm Mechanization', 'వ్యవసాయ యాంత్రీకరణ'), breadcrumbs: [dashboard] },
@@ -578,6 +610,12 @@ function subsidyTitle(page: string) {
 
 function translateMenu(label: string) {
   const labels: Record<string, string> = {
+    Overview: 'అవలోకనం',
+    'Statutory & Enforcement': 'చట్టబద్ధమైన & అమలు',
+    'Field Advisory & Diagnostics': 'ఫీల్డ్ అడ్వైజరీ & నిర్ధారణ',
+    'Field Operations & Duties': 'ఫీల్డ్ విధులు & కార్యకలాపాలు',
+    'Knowledge & Portals': 'జ్ఞాన భాండాగారం & పోర్టల్స్',
+    'Records & Archives': 'రికార్డులు & ఆర్కైవ్',
     Dashboard: 'డ్యాష్‌బోర్డ్',
     'Command Center': 'కమాండ్ సెంటర్',
     'Stock Analytics': 'స్టాక్ విశ్లేషణలు',
@@ -590,6 +628,7 @@ function translateMenu(label: string) {
     'Officer Toolkit': 'ఆఫీసర్ టూల్‌కిట్',
     'Records & Cloud Archive': 'రికార్డులు & క్లౌడ్ ఆర్కైవ్',
     'Field Tools': 'క్షేత్ర పరికరాలు',
+    'Field Tools Hub': 'క్షేత్ర పరికరాల హబ్',
     'Government Portals': 'ప్రభుత్వ పోర్టల్స్',
     'Smart Sampling': 'స్మార్ట్ సాంప్లింగ్',
     'Forms & Library': 'ఫారాలు & లైబ్రరీ',
@@ -602,11 +641,21 @@ function translateMenu(label: string) {
     'Area Calculator': 'ఎకరాల కాలిక్యులేటర్',
     'GOs & Circulars': 'జి.ఓ.లు & సర్క్యులర్లు',
     'Quality Control': 'నాణ్యత నియంత్రణ',
-    'Agrochemicals': 'వ్యవసాయ రసాయనాలు',
+    'Agrochemicals Database': 'వ్యవసాయ రసాయనాల భాండాగారం',
+    Agrochemicals: 'వ్యవసాయ రసాయనాలు',
     'Farm Mechanization': 'వ్యవసాయ యాంత్రీకరణ',
     'Office Records': 'కార్యాలయ రికార్డులు',
     'Document Repository': 'పత్రాల భాండాగారం',
     'Subsidy & Schemes': 'సబ్సిడీ & పథకాలు',
+    'Tour Diary': 'టూర్ డైరీ',
+    'Officer Contacts': 'అధికారుల పరిచయాలు',
+    'License Services': 'లైసెన్స్ సేవలు',
+    'Inspection & Enforcement': 'తనిఖీ & అమలు',
+    'Enforcement Tracker': 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్',
+    'Field Diagnosis': 'క్షేత్ర నిర్ధారణ',
+    'Crop Doctor': 'పంట డాక్టర్',
+    'Knowledge Base': 'జ్ఞాన భాండాగారం',
+    Reports: 'నివేదికలు',
     NFSM: 'ఎన్.ఎఫ్.ఎస్.ఎం',
     'State Seed Cell': 'రాష్ట్ర విత్తన కార్యాలయం',
     Seeds: 'విత్తనాలు',

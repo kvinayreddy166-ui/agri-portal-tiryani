@@ -30,6 +30,7 @@ import {
   ChevronRight,
   FileStack,
   ShieldCheck,
+  Gavel,
 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../../dealer-stock/lib/fertilizerStock';
@@ -52,6 +53,15 @@ type OfficerToolItem = {
 };
 
 const officerDashboardTools: OfficerToolItem[] = [
+  {
+    title: 'Enforcement Tracker',
+    teTitle: 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్',
+    description: 'Case management, statutory deadlines, dealer risk scorecards & lab pipeline.',
+    teDescription: 'కేసు నిర్వహణ, గడువులు, డీలర్ స్కోర్‌కార్డులు & ల్యాబ్ ట్రాకింగ్.',
+    path: '/officer-toolkit/enforcement-tracker',
+    icon: Gavel,
+    gradient: 'from-teal-600 to-emerald-700',
+  },
   {
     title: 'Records & Cloud Archive',
     teTitle: 'రికార్డులు & క్లౌడ్ ఆర్కైవ్',

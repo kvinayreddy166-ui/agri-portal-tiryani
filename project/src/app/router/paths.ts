@@ -149,7 +149,7 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
   if (pathname === '/admin/officer-contacts') {
     return '/officer-toolkit/officer-contacts';
   }
-  if (pathname === '/officer-toolkit/my-records') {
+  if (pathname === '/officer-toolkit/my-records' || pathname === '/officer-toolkit/enforcement-tracker' || pathname === '/enforcement-tracker') {
     return '/dashboard';
   }
   if (
@@ -184,7 +184,7 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
 }
 
 export function getPageBackFallback(page: string, isDealerUser: boolean) {
-  if (page === 'officer-records') return 'dashboard';
+  if (page === 'officer-records' || page === 'enforcement-tracker') return 'dashboard';
   if (page === 'field-tools' || page === 'government-portals') return 'dashboard';
   if (
     page === 'forms' ||
@@ -194,7 +194,6 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
     page === 'agrochemicals' ||
     page === 'crop-doctor' ||
     page === 'acts-and-orders' ||
-    page === 'enforcement-tracker' ||
     page === 'inspection-enforcement' ||
     page === 'tour-diary' ||
     page === 'officer-contacts' ||

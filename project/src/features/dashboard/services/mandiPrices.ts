@@ -16,7 +16,7 @@
 import { supabase } from '../../../shared/lib/supabase';
 import { safeStorage } from '../../../shared/lib/safeStorage';
 
-const EDGE_FUNCTION_BASE = `${import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '') || ''}/functions/v1`;
+const EDGE_FUNCTION_BASE = `${import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '') || 'https://api.supabase.co'}/functions/v1`;
 const CACHE_PREFIX = 'mandi-prices:v8:';
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 const TIMEOUT_MS = 10000;
@@ -924,7 +924,7 @@ export async function fetchMandiPrices(query: MandiPricesQuery = {}): Promise<Ma
 
   // Attempt live OGD proxy via Edge Function
   try {
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'anon-key';
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
     const authToken = token || supabaseAnonKey;

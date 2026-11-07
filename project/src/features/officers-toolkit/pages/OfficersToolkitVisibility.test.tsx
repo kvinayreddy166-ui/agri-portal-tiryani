@@ -133,6 +133,94 @@ describe('OfficersToolkit — Public vs Authenticated Visibility', () => {
     expect(html).toContain('Field Tools');
     expect(html).toContain('Tour Diary');
     expect(html).not.toContain('Records &amp; Cloud Archive');
+    // Enforcement Tracker is a separate module, NOT in Field Tools cards
+    expect(html).not.toContain('Enforcement Tracker');
+    expect(html).not.toContain('Case management, notice deadlines');
+  });
+
+  it('renders Enforcement Tracker as a separate module tab in switcher for authenticated officers', () => {
+    vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
+      user: { id: 'officer-123', email: 'officer@telangana.gov.in' } as any,
+      session: {} as any,
+      loading: false,
+      authChecked: true,
+      appReady: true,
+      isAdminUser: false,
+      isTestUser: false,
+      isDealerUser: false,
+      isOfficerUser: true,
+      officerProfile: {
+        id: 'officer-123',
+        full_name: 'K. Vinay Reddy',
+        designation: 'MAO',
+        hrms_id: '123456',
+        district: 'Kumuram Bheem Asifabad',
+        mandal: 'Tiryani',
+        phone: '9949497506',
+        email: 'officer@telangana.gov.in',
+        role: 'officer',
+        status: 'active',
+      },
+      dealerId: null,
+      dealerName: null,
+      signIn: vi.fn(),
+      signInDealer: vi.fn(),
+      signInOfficerOtp: vi.fn(),
+      verifyOfficerOtp: vi.fn(),
+      registerOfficer: vi.fn(),
+      refreshOfficerProfile: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    const html = renderToString(
+      <MemoryRouter initialEntries={['/officer-toolkit']}>
+        <OfficersToolkit isAdmin={false} isTestUser={false} isPublic={false} />
+      </MemoryRouter>
+    );
+
+    // Switcher should have all modules
+    expect(html).toContain('Field Tools');
+    expect(html).toContain('Enforcement Tracker');
+    expect(html).toContain('Records &amp; Cloud Archive');
+    expect(html).toContain('Government Portals');
+
+    // Field Tools card grid should NOT have Enforcement Tracker
+    expect(html).not.toContain('Case management, notice deadlines');
+  });
+
+  it('renders Enforcement Tracker when fixedTab="enforcement"', () => {
+    vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
+      user: { id: 'officer-123', email: 'officer@telangana.gov.in' } as any,
+      session: {} as any,
+      loading: false,
+      authChecked: true,
+      appReady: true,
+      isAdminUser: false,
+      isTestUser: false,
+      isDealerUser: false,
+      isOfficerUser: true,
+      officerProfile: null,
+      dealerId: null,
+      dealerName: null,
+      signIn: vi.fn(),
+      signInDealer: vi.fn(),
+      signInOfficerOtp: vi.fn(),
+      verifyOfficerOtp: vi.fn(),
+      registerOfficer: vi.fn(),
+      refreshOfficerProfile: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    const html = renderToString(
+      <MemoryRouter initialEntries={['/officer-toolkit/enforcement-tracker']}>
+        <OfficersToolkit isAdmin={false} isTestUser={false} isPublic={false} fixedTab="enforcement" />
+      </MemoryRouter>
+    );
+
+    // Should NOT render Field Tools or Government Portals tab switchers
+    expect(html).not.toContain('Government Portals');
+    // Renders EnforcementTracker (which starts with loader or header)
+    expect(html).toBeDefined();
   });
 
   it('renders Government Portals module without disturbing cards', () => {

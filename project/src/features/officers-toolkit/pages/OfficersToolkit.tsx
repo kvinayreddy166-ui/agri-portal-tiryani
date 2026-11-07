@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useLocation } from 'react-router-dom';
 import { OfficerRecordsHub } from '../components/OfficerRecordsHub';
+import { EnforcementTracker } from './EnforcementTracker';
 import { Calculator, ShieldCheck, FlaskConical, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, FolderOpen, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, Bug, Microscope, Archive, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
@@ -25,8 +26,8 @@ interface OfficersToolkitProps {
   isAdmin?: boolean;
   isTestUser?: boolean;
   isPublic?: boolean;
-  initialTab?: 'tools' | 'records' | 'portals';
-  fixedTab?: 'tools' | 'portals' | 'records';
+  initialTab?: 'tools' | 'records' | 'portals' | 'enforcement';
+  fixedTab?: 'tools' | 'portals' | 'records' | 'enforcement';
 }
 
 const toolkitItems: ToolkitItem[] = [
@@ -83,15 +84,6 @@ const toolkitItems: ToolkitItem[] = [
     category: 'internal',
     gradient: 'from-emerald-700 to-green-800',
     bgGradient: 'from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30',
-  },
-  {
-    title: 'Enforcement Tracker',
-    description: 'Case management, notice deadlines, dealer risk scorecards & sample lab pipeline.',
-    path: '/officer-toolkit/enforcement-tracker',
-    icon: Gavel,
-    category: 'internal',
-    gradient: 'from-teal-600 to-emerald-700',
-    bgGradient: 'from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30',
   },
   {
     title: 'Agrochemicals Database',
@@ -315,6 +307,7 @@ const externalPortals: ToolkitItem[] = [
 
 function translateToolkit(label?: string) {
   const labels: Record<string, string> = {
+    'Enforcement Tracker': 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్',
     'Records & Cloud Archive': 'రికార్డులు & క్లౌడ్ ఆర్కైవ్',
     'My Saved Records': 'నా రికార్డులు',
     'Cloud archive of notices, stop sale orders, inspections & memos.': 'నోటీసులు, స్టాప్ సేల్ ఆర్డర్లు, తనిఖీలు & మెమోల క్లౌడ్ నిల్వ.',
@@ -440,12 +433,18 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
     !isPublic && user && (isOfficerUser || isAdminUser || isAuthTestUser || isAdmin || isTestUser)
   );
 
-  const [activeTab, setActiveTab] = useState<'tools' | 'records' | 'portals'>(fixedTab ?? initialTab);
+  const [activeTab, setActiveTab] = useState<'tools' | 'records' | 'portals' | 'enforcement'>(fixedTab ?? initialTab);
 
   useEffect(() => {
     if (location.pathname === '/officer-toolkit/my-records') {
       if (canViewOfficerRecords) {
         setActiveTab('records');
+      } else {
+        setActiveTab('tools');
+      }
+    } else if (location.pathname === '/officer-toolkit/enforcement-tracker') {
+      if (canViewOfficerRecords) {
+        setActiveTab('enforcement');
       } else {
         setActiveTab('tools');
       }
@@ -524,38 +523,53 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
           </div>
         )}
 
-        {shouldHideHeader && activeTab !== 'records' && (
+        {shouldHideHeader && activeTab !== 'records' && activeTab !== 'enforcement' && (
           <ModulePageHeader
             className={`mb-4 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
             title={fixedTab === 'portals'
               ? t('Government Portals', 'ప్రభుత్వ పోర్టల్స్')
               : fixedTab === 'tools'
                 ? t('Field Tools', 'క్షేత్ర సాధనాలు')
-                : t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+                : fixedTab === 'enforcement'
+                  ? t('Enforcement Tracker', 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్')
+                  : t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
             subtitle={fixedTab
               ? (fixedTab === 'portals'
                 ? t('Official agriculture portals & resources', 'అధికారిక వ్యవసాయ పోర్టల్స్ & వనరులు')
-                : t('Calculators, inspections, forms & field resources', 'కాలిక్యులేటర్లు, తనిఖీలు, ఫారాలు & క్షేత్ర వనరులు'))
+                : fixedTab === 'tools'
+                  ? t('Calculators, inspections, forms & field resources', 'కాలిక్యులేటర్లు, తనిఖీలు, ఫారాలు & క్షేత్ర వనరులు')
+                  : fixedTab === 'enforcement'
+                    ? t('Cases, statutory deadlines, dealer risk scorecards & lab pipeline', 'కేసులు, గడువులు, డీలర్ రిస్క్ & నమూనా పైప్‌లైన్')
+                    : t('Calculators, inspections, forms & field resources', 'కాలిక్యులేటర్లు, తనిఖీలు, ఫారాలు & క్షేత్ర వనరులు'))
               : t('Field Tools & Government Portals', 'క్షేత్ర సాధనాలు & ప్రభుత్వ పోర్టళ్లు')}
-            icon={fixedTab === 'portals' ? Globe2 : fixedTab === 'tools' ? Calculator : ShieldCheck}
+            icon={fixedTab === 'portals' ? Globe2 : fixedTab === 'tools' ? Calculator : fixedTab === 'enforcement' ? Gavel : ShieldCheck}
           />
         )}
 
         {/* Section Switcher — Field Tools / Government Portals / Records & Cloud Archive */}
-        {!fixedTab && activeTab !== 'records' && (
+        {!fixedTab && activeTab !== 'records' && activeTab !== 'enforcement' && (
         <div className={`mb-5 transition duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="inline-flex w-full max-w-md items-stretch gap-1 rounded-2xl border border-emerald-900/10 bg-white/80 p-1 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/80">
             {[
               { id: 'tools' as const, label: 'Field Tools', te: 'ఫీల్డ్ టూల్స్', icon: Calculator, count: sortedToolkitItems.length },
               ...(canViewOfficerRecords
-                ? [{ id: 'records' as const, label: 'Records & Cloud Archive', te: 'రికార్డులు & క్లౌడ్ ఆర్కైవ్', icon: Archive, count: undefined }]
+                ? [
+                    { id: 'enforcement' as const, label: 'Enforcement Tracker', te: 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్', icon: Gavel, count: undefined },
+                    { id: 'records' as const, label: 'Records & Cloud Archive', te: 'రికార్డులు & క్లౌడ్ ఆర్కైవ్', icon: Archive, count: undefined },
+                  ]
                 : []),
               { id: 'portals' as const, label: 'Government Portals', te: 'ప్రభుత్వ పోర్టల్స్', icon: Globe2, count: sortedExternalPortals.length },
             ].map((tab) => (
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  if (tab.id === 'enforcement') {
+                    navigate('/officer-toolkit/enforcement-tracker');
+                  } else {
+                    setActiveTab(tab.id);
+                  }
+                }}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold transition duration-200 sm:text-sm ${
                   activeTab === tab.id
                     ? 'bg-emerald-700 text-white shadow-sm hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
@@ -602,6 +616,8 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
                 />
               ))}
             </div>
+          ) : activeTab === 'enforcement' && canViewOfficerRecords ? (
+            <EnforcementTracker />
           ) : activeTab === 'records' && canViewOfficerRecords ? (
             <OfficerRecordsHub />
           ) : (
