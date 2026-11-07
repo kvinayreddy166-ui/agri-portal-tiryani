@@ -3,7 +3,7 @@ import {
   ChevronLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound,
   Archive, BarChart3, Settings, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, BookOpen, LogOut,
-  Globe, Check, Sprout, Gavel, CalendarDays, Phone, FileCheck, Files,
+  Globe, Check, Gavel, CalendarDays, Phone, FileCheck, Files,
   ClipboardCheck, FlaskConical, Calculator, Stethoscope, Microscope, Scale,
 } from 'lucide-react';
 import { PortalLogo } from '../shared/components/ui/PortalLogo';
@@ -56,7 +56,6 @@ const adminMenuItems = [
 
   // Records & Admin
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
-  { id: 'field-tools', label: 'Field Tools Hub', icon: Sprout },
   { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true },
   { id: 'officer-records', label: 'Records & Cloud Archive', icon: Archive },
   { id: 'settings', label: 'Settings', icon: Settings },
@@ -483,7 +482,7 @@ function menuSections(items: typeof adminMenuItems, t: (key: string, telugu: str
     },
     {
       title: t('Records & Archives', 'రికార్డులు & ఆర్కైవ్'),
-      ids: ['file-directory', 'field-tools', 'excel', 'officer-records', 'settings'],
+      ids: ['file-directory', 'excel', 'officer-records', 'settings'],
     },
   ];
 

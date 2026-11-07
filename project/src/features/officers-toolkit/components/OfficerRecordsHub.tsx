@@ -7,7 +7,6 @@ import {
   ChevronRight,
   ClipboardList,
   Cloud,
-  CloudOff,
   Copy,
   Download,
   Edit2,
@@ -17,14 +16,11 @@ import {
   LayoutGrid,
   List,
   Loader2,
-  MapPin,
   Printer,
   RefreshCw,
   Search,
-  ShieldCheck,
   Smartphone,
   Trash2,
-  Upload,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -40,8 +36,6 @@ import {
   type ReportExportOptions,
 } from '../services/officerReportExportService';
 import type {
-  DocumentCategory,
-  FileFormat,
   OfficerDocumentArchiveRecord,
   StorageOverviewStats,
   UploadStatus,
@@ -49,7 +43,7 @@ import type {
 import type { StatutoryCommodity } from '../../auth/types/officerAuth';
 
 export function OfficerRecordsHub() {
-  const { user, officerProfile, isOfficerUser, isAdminUser } = useAuth();
+  const { user, officerProfile } = useAuth();
   const { t } = useLanguage();
 
   // Tab View: 'documents' (Cloudflare R2 Archive) vs 'forms' (Statutory Form Drafts/Findings)
@@ -72,10 +66,6 @@ export function OfficerRecordsHub() {
     successfullyUploaded: 0,
     pendingUploads: 0,
     failedUploads: 0,
-  });
-  const [storageHealth, setStorageHealth] = useState<{ online: boolean; message: string }>({
-    online: false,
-    message: 'Probing storage...',
   });
   const [retryingQueue, setRetryingQueue] = useState(false);
 
@@ -106,16 +96,6 @@ export function OfficerRecordsHub() {
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
-  // Manual Document Upload Modal State
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadDocName, setUploadDocName] = useState('');
-  const [uploadCategory, setUploadCategory] = useState<DocumentCategory>('order');
-  const [uploadDocNumber, setUploadDocNumber] = useState('');
-  const [uploadDocDate, setUploadDocDate] = useState(new Date().toISOString().slice(0, 10));
-  const [isUploadingFile, setIsUploadingFile] = useState(false);
-  const uploadFileInputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -143,8 +123,7 @@ export function OfficerRecordsHub() {
 
     try {
       // 1. Check genuine Cloudflare R2 health (never display static active)
-      const health = await OfficerDocumentArchiveService.checkR2StorageHealth();
-      setStorageHealth(health);
+      await OfficerDocumentArchiveService.checkR2StorageHealth();
 
       // 2. Fetch Archived Documents & Storage Overview
       const [docsData, statsData, formsData] = await Promise.all([
@@ -273,69 +252,6 @@ export function OfficerRecordsHub() {
       }
     } finally {
       setRecordToDelete(null);
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadFile(file);
-      if (!uploadDocName.trim()) {
-        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
-        setUploadDocName(nameWithoutExt.replace(/[_-]/g, ' '));
-      }
-    }
-  };
-
-  const handleManualUploadSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!uploadFile) {
-      alert(t('Please select a file to upload.', 'దయచేసి అప్‌లోడ్ చేయడానికి ఒక ఫైల్‌ను ఎంచుకోండి.'));
-      return;
-    }
-
-    setIsUploadingFile(true);
-    try {
-      const ext = (uploadFile.name.split('.').pop() || 'pdf').toLowerCase();
-      const fileFormat: FileFormat = ext === 'docx' || ext === 'doc' ? 'docx'
-        : ext === 'xlsx' || ext === 'xls' || ext === 'csv' ? 'xlsx'
-        : ext === 'txt' ? 'txt'
-        : 'pdf';
-
-      const finalFilename = uploadDocName.trim()
-        ? (uploadDocName.trim().toLowerCase().endsWith(`.${ext}`) ? uploadDocName.trim() : `${uploadDocName.trim()}.${ext}`)
-        : uploadFile.name;
-
-      const res = await OfficerDocumentArchiveService.archiveGeneratedDocument(uploadFile, {
-        filename: finalFilename,
-        documentCategory: uploadCategory,
-        documentNumber: uploadDocNumber.trim() || undefined,
-        documentDate: uploadDocDate,
-        sourceModule: 'manual_upload',
-        fileFormat,
-        mimeType: uploadFile.type,
-      });
-
-      if (res.success) {
-        setIsUploadModalOpen(false);
-        setUploadFile(null);
-        setUploadDocName('');
-        setUploadDocNumber('');
-        setUploadDocDate(new Date().toISOString().slice(0, 10));
-        setUploadCategory('order');
-        await loadAllData(true);
-        alert(
-          res.duplicate
-            ? t('Document already exists in cloud records (matching SHA-256 fingerprint).', 'ఈ పత్రం ఇప్పటికే రికార్డులలో ఉంది (SHA-256 సరిపోలింది).')
-            : t('Document successfully uploaded to Cloud Records!', 'పత్రం క్లౌడ్ రికార్డులకు విజయవంతంగా అప్‌లోడ్ చేయబడింది!')
-        );
-      } else {
-        alert(t(`Upload failed: ${res.error || 'Unknown error'}`, `అప్‌లోడ్ విఫలమైంది: ${res.error || 'తెలియని లోపం'}`));
-      }
-    } catch (err) {
-      alert(t(`Upload error: ${err instanceof Error ? err.message : String(err)}`, `అప్‌లోడ్ లోపం: ${err instanceof Error ? err.message : String(err)}`));
-    } finally {
-      setIsUploadingFile(false);
     }
   };
 
@@ -796,22 +712,17 @@ export function OfficerRecordsHub() {
             </button>
 
             {isExportMenuOpen && (
-              <div className="absolute right-0 mt-1.5 w-52 rounded-xl border border-slate-200 bg-white py-1.5 shadow-xl z-30 dark:border-slate-700 dark:bg-slate-800">
+              <div className="absolute right-0 mt-1.5 w-32 rounded-xl border border-slate-200 bg-white py-1 shadow-lg z-30 dark:border-slate-700 dark:bg-slate-800">
                 <button
                   type="button"
                   onClick={() => {
                     setIsExportMenuOpen(false);
                     void handleExport('excel');
                   }}
-                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 transition"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 transition"
                 >
                   <FileSpreadsheet className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <div>
-                    <div className="font-bold text-slate-900 dark:text-slate-100">
-                      {t('Excel Spreadsheet', 'ఎక్సెల్ స్ప్రెడ్‌షీట్')}
-                    </div>
-                    <div className="text-[10px] text-slate-400 dark:text-slate-400">.xlsx statutory format</div>
-                  </div>
+                  <span>EXCEL</span>
                 </button>
 
                 <button
@@ -820,15 +731,10 @@ export function OfficerRecordsHub() {
                     setIsExportMenuOpen(false);
                     void handleExport('pdf');
                   }}
-                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-rose-50 hover:text-rose-800 dark:text-slate-200 dark:hover:bg-rose-950/40 dark:hover:text-rose-300 transition border-t border-slate-100 dark:border-slate-700/60"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-800 dark:text-slate-200 dark:hover:bg-rose-950/40 dark:hover:text-rose-300 transition border-t border-slate-100 dark:border-slate-700/60"
                 >
                   <Printer className="h-4 w-4 text-rose-600 shrink-0" />
-                  <div>
-                    <div className="font-bold text-slate-900 dark:text-slate-100">
-                      {t('Official PDF Report', 'అధికారిక PDF నివేదిక')}
-                    </div>
-                    <div className="text-[10px] text-slate-400 dark:text-slate-400">.pdf landscape register</div>
-                  </div>
+                  <span>PDF</span>
                 </button>
               </div>
             )}

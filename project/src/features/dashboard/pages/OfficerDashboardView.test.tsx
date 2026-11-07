@@ -179,7 +179,9 @@ describe('Dashboard — Officer vs Admin view isolation', () => {
     expect(html).toContain('MAO');
 
     // Officer menu items present
-    expect(html).toContain('Field Tools');
+    expect(html).not.toContain('Field Tools Hub');
+    expect(html).toContain('Farm Calculators');
+    expect(html).toContain('Field Diagnosis');
     expect(html).toContain('Enforcement Tracker');
     expect(html).toContain('Records &amp; Cloud Archive');
     expect(html).toContain('Knowledge Base');
