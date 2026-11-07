@@ -1,5 +1,6 @@
 import React, { Component, Suspense, useEffect, useState } from 'react';
 import { PortalLogo } from '../../shared/components/ui/PortalLogo';
+import { Spinner } from '../../shared/components/ui/Spinner';
 import { APP_BUILD_LABEL, clearAppCacheAndReload } from '../../shared/lib/appVersion';
 import { isRecoverableChunkError, recoverFromStaleAssets } from '../../shared/lib/pwaRecovery';
 
@@ -14,7 +15,7 @@ export function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#f2f7f3] p-6 text-center dark:bg-slate-950">
       {!hideLogo && <PortalLogo size="xl" />}
-      <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
+      <Spinner size="xl" className="text-emerald-700 dark:text-emerald-400" label="Loading AGRONIX" />
       {!hideLogo && (
         <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
           Loading AGRONIX...
@@ -120,23 +121,23 @@ class LazyLoadBoundary extends Component<LazyLoadBoundaryProps, LazyLoadBoundary
 
     if (this.state.showUpdateScreen) {
       return (
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#f2f7f3] p-6 text-center">
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#f2f7f3] p-6 text-center dark:bg-slate-950">
           <PortalLogo size="lg" />
           <div className="mt-8 max-w-md">
-            <h1 className="text-2xl font-black text-slate-900">
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">
               AGRONIX
             </h1>
-            <p className="mt-4 text-base font-bold text-slate-700">
+            <p className="mt-4 text-base font-bold text-slate-700 dark:text-slate-200">
               A new version of AGRONIX is available.
             </p>
-            <p className="mt-2 text-sm font-semibold text-slate-600">
+            <p className="mt-2 text-sm font-semibold text-slate-600 dark:text-slate-400">
               Please refresh the application to continue.
             </p>
           </div>
           <button
             type="button"
             onClick={this.handleRefreshNow}
-            className="mt-8 rounded-xl bg-emerald-700 px-8 py-3 text-base font-bold text-white hover:bg-emerald-800 transition-colors"
+            className="mt-8 rounded-xl bg-emerald-700 px-8 py-3 text-base font-bold text-white hover:bg-emerald-800 transition-colors dark:bg-emerald-600 dark:hover:bg-emerald-500"
           >
             Refresh Now
           </button>
@@ -154,10 +155,10 @@ class LazyLoadBoundary extends Component<LazyLoadBoundaryProps, LazyLoadBoundary
             The page could not load. Please try refreshing.
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <button type="button" onClick={() => window.location.reload()} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800">
+            <button type="button" onClick={() => window.location.reload()} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-black text-white hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500">
               Retry
             </button>
-            <button type="button" onClick={() => void clearAppCacheAndReload()} className="rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-black text-emerald-800 hover:bg-emerald-50">
+            <button type="button" onClick={() => void clearAppCacheAndReload()} className="rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-black text-emerald-800 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-800 dark:text-emerald-300 dark:hover:bg-slate-700">
               Clear cache and reload
             </button>
           </div>

@@ -32,8 +32,8 @@ export function CropProtectionDashboard({
   onRefresh: () => void;
 }) {
   const navigate = useNavigate();
-  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const [language, setLanguage] = useState<LanguageCode>('en');
   const [selectedCropKey, setSelectedCropKey] = useState(crops[0]?.crop_key || 'cotton');
   const [category, setCategory] = useState<CropProtectionCategory>('pest');
@@ -109,6 +109,7 @@ export function CropProtectionDashboard({
           title={label('Crop Doctor', language)}
           subtitle={label('Crop, pest, disease, weed and nutrient deficiency guidance for field officers.', language)}
           icon={Stethoscope}
+          onBack={!user ? () => navigate('/dashboard') : undefined}
         />
       ) : (
       <section className="relative overflow-hidden rounded-2xl border border-emerald-200 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-800 via-green-700 to-emerald-800 p-4 text-white shadow-sm sm:p-5">

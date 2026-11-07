@@ -49,9 +49,9 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 
 export function AcreageCalculator() {
   const navigate = useNavigate();
-  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const { toasts, removeToast, showSuccess } = useToast();
 
   const [mode, setMode] = useState<AcreageMode>(() => readMode());
@@ -148,6 +148,8 @@ export function AcreageCalculator() {
               'ఫీల్డ్ నివేదికల కోసం ఎకరాలు, హెక్టార్లు, సెంట్లు మరియు గుంటల మధ్య భూవిస్తీర్ణాన్ని మార్చండి.'
             )}
             icon={Ruler}
+            onBack={!user ? () => navigate('/officer-toolkit/farm-calculators') : undefined}
+            actions={!user ? <LanguageToggle language={language} onClick={toggleLanguage} accent="teal" /> : undefined}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-sky-300/60 bg-gradient-to-br from-sky-600 via-cyan-600 to-teal-700 p-3.5 sm:p-4 text-white shadow-md dark:border-sky-700/60">
@@ -158,7 +160,7 @@ export function AcreageCalculator() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
-                    <Calculator className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" aria-label="Area Calculator" />
+                    <Calculator className="h-5 w-5 sm:h-[22px] sm:w-[22px] text-white" aria-label="Area Calculator" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-sky-100 mb-0.5">

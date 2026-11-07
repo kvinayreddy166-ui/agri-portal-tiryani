@@ -285,8 +285,8 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 export function ProfitabilityCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
-  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const { toasts, removeToast, showSuccess, showWarning } = useToast();
 
   // Reset animation state
@@ -592,6 +592,8 @@ export function ProfitabilityCalculator() {
               'సమగ్ర సాగు ఖర్చు, దిగుబడి ఆదాయం మరియు నికర లాభాల విశ్లేషణ.'
             )}
             icon={TrendingUp}
+            onBack={!user ? () => navigate('/officer-toolkit/farm-calculators') : undefined}
+            actions={!user ? <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" /> : undefined}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 p-3.5 sm:p-4 text-white shadow-md dark:border-emerald-700/60">
@@ -602,7 +604,7 @@ export function ProfitabilityCalculator() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
-                    <CircleDollarSign className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" aria-hidden="true" />
+                    <CircleDollarSign className="h-5 w-5 sm:h-[22px] sm:w-[22px] text-white" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
@@ -1175,7 +1177,7 @@ export function ProfitabilityCalculator() {
                       {calculations.bcRatio.toFixed(2)} : 1
                     </span>
                     <span
-                      className={`rounded px-1.5 py-0.2 text-[9px] font-black ${
+                      className={`rounded px-1.5 py-0.5 text-[9px] font-black ${
                         calculations.bcRatio >= 1.5
                           ? 'bg-emerald-400/30 text-emerald-200'
                           : calculations.bcRatio >= 1.0

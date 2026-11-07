@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { FileText, ChevronRight, CheckCircle, ExternalLink, Copy, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, Store, ClipboardList, Sprout, ArrowUpRight, FileCheck, ReceiptText, FlaskConical, Bug, SlidersHorizontal } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
-import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { TELANGANA_DISTRICTS } from '../../../shared/data/telanganaDistrictMandalData';
 
@@ -206,7 +205,6 @@ const LICENSE_CATEGORIES = [
 export function LicenseServices() {
   const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
   const isLoginUser = Boolean(user) || isAdminUser || isTestUser || isOfficerUser;
-  const showCompactHeader = isLoginUser;
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const [mounted, setMounted] = useState(false);
@@ -532,7 +530,7 @@ export function LicenseServices() {
                           : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/60 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/50'
                       }`}
                     >
-                      <CatIcon className="h-4.5 w-4.5" />
+                      <CatIcon className="h-[18px] w-[18px]" />
                     </div>
                     <div className="min-w-0">
                       <span className="block truncate text-sm font-black font-[var(--font-heading)]">
@@ -811,7 +809,7 @@ export function LicenseServices() {
             <div className="flex items-start justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/50">
-                  <ReceiptText className="h-4.5 w-4.5" />
+                  <ReceiptText className="h-[18px] w-[18px]" />
                 </div>
                 <div>
                   <h2 className="text-base font-black text-slate-900 dark:text-white font-[var(--font-heading)]">
@@ -967,7 +965,7 @@ export function LicenseServices() {
               onClick={handleProceedToChallan}
               className="w-full min-h-[50px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-800 px-6 py-3.5 text-sm font-bold text-white shadow-xs transition hover:from-emerald-800 hover:to-emerald-900 hover:shadow-sm dark:from-emerald-600 dark:to-emerald-700"
             >
-              <ExternalLink className="h-4.5 w-4.5" />
+              <ExternalLink className="h-[18px] w-[18px]" />
               <span>{t('Proceed to Treasury Portal (IFMIS)', 'ట్రెజరీ పోర్టల్‌కు వెళ్లండి (IFMIS)')}</span>
             </button>
 
@@ -1036,27 +1034,13 @@ export function LicenseServices() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950 p-4 pb-28 sm:p-6 sm:pb-24">
       <div className="mx-auto w-full max-w-7xl">
         {/* Header */}
-        {showCompactHeader ? (
-          <ModulePageHeader
-            className="mb-4"
-            title={t('License Services', 'లైసెన్స్ సేవలు')}
-            subtitle={t('Challan Details', 'చలాన్ వివరాలు')}
-            icon={FileCheck}
-          />
-        ) : (
-          <ToolkitPageHeader
-            icon={ReceiptText}
-            iconSize="sm"
-            tone="blue"
-            variant="solid"
-            eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
-            title={t('License Services', 'లైసెన్స్ సేవలు')}
-            subtitle={t('Challan Details', 'చలాన్ వివరాలు')}
-            fallbackPath="/dashboard"
-            onBack={() => navigate('/dashboard')}
-            className="mb-0"
-          />
-        )}
+        <ModulePageHeader
+          className="mb-4"
+          title={t('License Services', 'లైసెన్స్ సేవలు')}
+          subtitle={t('Challan Details', 'చలాన్ వివరాలు')}
+          icon={FileCheck}
+          onBack={() => navigate('/dashboard')}
+        />
 
         {/* Toast Notification */}
         {toast && (

@@ -415,7 +415,7 @@ export function RowTable<T extends Record<string, string>>({ title, rows, onChan
                       ) : column.allowOther && row[column.key] && !(column.options ?? []).includes(row[column.key]) && row[column.key] !== '__other__' ? (
                         <div className="flex gap-1">
                           <input value={row[column.key]} onChange={(e) => update(index, column.key, e.target.value)} className={inputClass} />
-                          <button type="button" onClick={() => update(index, column.key, '')} className="shrink-0 rounded-lg border border-slate-200 px-2 text-xs font-bold text-slate-500 hover:bg-slate-50">List</button>
+                          <button type="button" onClick={() => update(index, column.key, '')} className="shrink-0 rounded-lg border border-slate-200 px-2 text-xs font-bold text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800">List</button>
                         </div>
                       ) : (
                         <select value={row[column.key]} onChange={(e) => update(index, column.key, e.target.value)} className={inputClass}>

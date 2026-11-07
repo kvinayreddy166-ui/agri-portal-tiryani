@@ -123,6 +123,7 @@ export interface GosCircular {
   file_url: string;
   file_name: string;
   file_type: string;
+  doc_type?: 'go' | 'circular' | string;
   issued_date: string | null;
   created_at: string;
   created_by: string;

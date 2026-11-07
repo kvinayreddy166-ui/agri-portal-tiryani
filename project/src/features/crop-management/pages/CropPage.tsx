@@ -354,9 +354,9 @@ export function CropPage({ cropType }: CropPageProps) {
             <div className="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-700">
               <div>
                 <h2 className="text-xl font-black text-slate-950 dark:text-white">Edit Crop Intelligence JSON</h2>
-                <p className="text-sm text-slate-500">Update bilingual text, varieties, risks, chemicals, or image URLs.</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Update bilingual text, varieties, risks, chemicals, or image URLs.</p>
               </div>
-              <button onClick={() => setEditOpen(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">
+              <button onClick={() => setEditOpen(false)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -367,7 +367,7 @@ export function CropPage({ cropType }: CropPageProps) {
               spellCheck={false}
             />
             <div className="flex gap-3 border-t border-slate-200 p-4 dark:border-slate-700">
-              <button onClick={() => setEditOpen(false)} className="flex-1 rounded-lg border border-slate-300 px-4 py-2 font-bold text-slate-700">
+              <button onClick={() => setEditOpen(false)} className="flex-1 rounded-lg border border-slate-300 px-4 py-2 font-bold text-slate-700 dark:border-slate-600 dark:text-slate-200">
                 Cancel
               </button>
               <button onClick={saveRecord} disabled={saving} className="flex-1 rounded-lg bg-emerald-700 px-4 py-2 font-bold text-white disabled:opacity-60">

@@ -316,7 +316,11 @@ export function Login() {
         <div className="pointer-events-none absolute right-10 top-1/2 h-44 w-44 rounded-full bg-gold-300/15 blur-3xl dashboard-float" style={{ animationDelay: '2.5s' }} />
         <div className="pointer-events-none absolute -left-40 top-1/2 h-[28rem] w-[28rem] -translate-y-1/2 rounded-full border border-white/10" />
         <div className="pointer-events-none absolute -left-24 top-1/2 h-[18rem] w-[18rem] -translate-y-1/2 rounded-full border border-white/10" />
-        <div className="relative flex items-center gap-3">
+        {/* Animated side channel — thin signal lines + slow dashed orbit ring */}
+        <div className="pointer-events-none absolute left-[6%] top-0 h-full w-px bg-gradient-to-b from-transparent via-gold-300/50 to-transparent side-channel-pulse" />
+        <div className="pointer-events-none absolute right-[8%] top-0 h-full w-px bg-gradient-to-b from-transparent via-emerald-300/40 to-transparent side-channel-pulse" style={{ animationDelay: '2.2s' }} />
+        <div className="pointer-events-none absolute right-[16%] top-1/2 h-72 w-72 -translate-y-1/2 rounded-full border border-dashed border-gold-300/20 side-ring-spin" />
+        <div className="relative flex items-center gap-3 animate-slide-up">
           <div className="login-logo-hero inline-flex">
             <PortalLogo size="lg" />
           </div>
@@ -330,7 +334,7 @@ export function Login() {
           </div>
         </div>
 
-        <div className="relative space-y-4 max-w-lg">
+        <div className="relative space-y-4 max-w-lg animate-slide-up delay-200">
           <span className="inline-flex items-center gap-2 rounded-full bg-emerald-800/80 px-3.5 py-1 text-xs font-semibold text-gold-300 ring-1 ring-gold-400/30">
             <ShieldCheck className="h-3.5 w-3.5" />
             {t('Agricultural Management System', 'వ్యవసాయ నిర్వహణ వ్యవస్థ')}
@@ -343,7 +347,7 @@ export function Login() {
           </p>
         </div>
 
-        <div className="relative text-xs text-emerald-300/80">
+        <div className="relative text-xs text-emerald-300/80 animate-slide-up delay-400">
           <p>&copy; 2026 Agronix IMS &middot; {t('Kumuram Bheem Asifabad District', 'కొమరం భీమ్ ఆసిఫాబాద్ జిల్లా')}</p>
         </div>
       </aside>
@@ -575,6 +579,7 @@ export function Login() {
                 {t('Terms & Conditions', 'Terms & Conditions')}
               </Link>
             </div>
+            <OfficialChannelsSidebar inline />
           </div>
         </div>
       </div>
@@ -593,7 +598,6 @@ export function Login() {
         </div>
       )}
 
-      <OfficialChannelsSidebar />
       <button
         type="button"
         onClick={openGrievance}

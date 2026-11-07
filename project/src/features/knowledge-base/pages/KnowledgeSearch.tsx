@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Search as SearchIcon, Loader2, FileText, BookOpen } from 'lucide-react';
+import { Search as SearchIcon, Loader2, FileText, BookOpen, ChevronRight } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
@@ -78,25 +78,28 @@ export function KnowledgeSearch() {
           <p className="mt-2 text-sm font-bold text-slate-500">No relevant documents were found. Try different keywords or another search mode.</p>
         </div>
       ) : !searched ? null : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {results.map((r) => (
-            <div key={r.chunkId} className="portal-card modern-card p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <button onClick={() => go('viewer', { documentId: r.documentId, page: r.pageNumber ?? 1 })} className="flex items-center gap-2 text-left">
-                    <FileText className="h-4 w-4 shrink-0 text-emerald-600" />
-                    <span className="truncate font-bold text-emerald-800 hover:underline dark:text-emerald-300">{r.documentTitle}</span>
-                  </button>
-                  <p className="mt-0.5 text-xs font-semibold text-slate-500">
-                    {r.documentType}
-                    {r.pageNumber && ` · Page ${r.pageNumber}${r.pageEndNumber && r.pageEndNumber !== r.pageNumber ? `-${r.pageEndNumber}` : ''}`}
-                    {r.sectionHeading && ` · ${r.sectionHeading}`}
-                    {r.referenceNumber && ` · ${r.referenceNumber}`}
-                  </p>
-                </div>
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">{(r.combinedScore * 100).toFixed(0)}%</span>
+            <div key={r.chunkId} className="group portal-card modern-card flex items-start gap-2.5 p-2.5 transition-all duration-200 hover:border-emerald-500/60 hover:shadow-sm sm:p-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-2xs transition-transform duration-200 group-hover:scale-105">
+                <FileText className="h-4 w-4" aria-hidden="true" />
               </div>
-              <p className="mt-2 line-clamp-4 text-sm font-medium text-slate-600 dark:text-slate-300">{r.text}</p>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <button onClick={() => go('viewer', { documentId: r.documentId, page: r.pageNumber ?? 1 })} className="flex min-w-0 items-center gap-1.5 text-left">
+                    <span className="truncate text-[13px] font-bold leading-5 text-emerald-800 hover:underline dark:text-emerald-300 sm:text-sm">{r.documentTitle}</span>
+                  </button>
+                  <span className="shrink-0 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">{(r.combinedScore * 100).toFixed(0)}%</span>
+                </div>
+                <p className="mt-0.5 text-[11px] font-semibold leading-4 text-slate-500 dark:text-slate-400 sm:text-xs">
+                  {r.documentType}
+                  {r.pageNumber && ` · Page ${r.pageNumber}${r.pageEndNumber && r.pageEndNumber !== r.pageNumber ? `-${r.pageEndNumber}` : ''}`}
+                  {r.sectionHeading && ` · ${r.sectionHeading}`}
+                  {r.referenceNumber && ` · ${r.referenceNumber}`}
+                </p>
+                <p className="mt-1.5 line-clamp-3 text-xs font-medium leading-5 text-slate-600 dark:text-slate-300 sm:text-sm">{r.text}</p>
+              </div>
+              <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-emerald-600 dark:text-slate-600 dark:group-hover:text-emerald-400" aria-hidden="true" />
             </div>
           ))}
         </div>

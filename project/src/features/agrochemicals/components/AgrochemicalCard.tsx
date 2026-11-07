@@ -53,16 +53,16 @@ export function AgrochemicalCard({ item, onSelect }: AgrochemicalCardProps) {
   return (
     <article
       onClick={() => onSelect(item)}
-      className={`group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-4.5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer dark:border-slate-800 dark:bg-slate-900 ${categoryTheme.accentBorder}`}
+      className={`group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer dark:border-slate-800 dark:bg-slate-900 sm:p-5 ${categoryTheme.accentBorder}`}
     >
       <div>
         {/* Top Header: Category & MoA Pill */}
-        <div className="flex items-center justify-between gap-2 mb-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
           <span
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider ${categoryTheme.badge}`}
+            className={`inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-lg border px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider ${categoryTheme.badge}`}
           >
-            <CategoryIcon className="h-3.5 w-3.5" />
-            <span>{t(item.category, item.categoryTe)}</span>
+            <CategoryIcon className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{t(item.category, item.categoryTe)}</span>
           </span>
 
           <div className="flex items-center gap-1.5">
@@ -75,7 +75,7 @@ export function AgrochemicalCard({ item, onSelect }: AgrochemicalCardProps) {
               </span>
             )}
             <span
-              className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-black ${categoryTheme.moaBadge}`}
+              className={`inline-flex max-w-[9rem] items-center truncate rounded-md border px-2 py-0.5 text-[10px] font-black ${categoryTheme.moaBadge}`}
               title={item.moaGroupName}
             >
               {item.moaGroup}
@@ -131,11 +131,11 @@ export function AgrochemicalCard({ item, onSelect }: AgrochemicalCardProps) {
       </div>
 
       {/* Footer Info: PHI & Toxicity / Action */}
-      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-2.5 dark:border-slate-800">
+      <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5 dark:border-slate-800">
         {item.category !== 'fertilizer' && item.waitingPeriodDays !== 'N/A' ? (
-          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-600 dark:text-slate-300">
-            <Clock className="h-3.5 w-3.5 text-amber-500" />
-            <span>
+          <div className="flex min-w-0 items-center gap-1 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <Clock className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+            <span className="truncate">
               {item.waitingPeriodDays} {t('days PHI', 'రోజుల నిరీక్షణ')}
             </span>
           </div>

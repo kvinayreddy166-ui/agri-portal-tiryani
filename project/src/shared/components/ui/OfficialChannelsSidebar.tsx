@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { Fragment } from 'react';
 import { Youtube } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -14,7 +14,7 @@ const X_TWITTER_SVG = (
     fill="currentColor"
     width="20"
     height="20"
-    className="h-5 w-5 shrink-0 text-black dark:text-white"
+    className="h-5 w-5 shrink-0"
     aria-hidden="true"
   >
     <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
@@ -25,208 +25,122 @@ interface OfficialChannelsSidebarProps {
   whatsappLink?: string;
   youtubeLink?: string;
   twitterLink?: string;
-  defaultCollapsed?: boolean;
+  inline?: boolean;
+}
+
+type Channel = {
+  href: string;
+  label: string;
+  labelTe: string;
+  ariaLabel: string;
+  ariaLabelTe: string;
+  dotClass: string;
+  iconClass: string;
+  icon: React.ReactNode;
+};
+
+function ChannelButton({ channel, placement }: { channel: Channel; placement: 'left' | 'top' }) {
+  const { t } = useLanguage();
+  const isTop = placement === 'top';
+  return (
+    <div className="group/btn relative">
+      <a
+        href={channel.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 ${channel.iconClass}`}
+        aria-label={t(channel.ariaLabel, channel.ariaLabelTe)}
+      >
+        {channel.icon}
+      </a>
+      <div
+        role="tooltip"
+        className={`pointer-events-none absolute z-50 hidden items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-700 bg-slate-950/95 px-3 py-1.5 text-xs font-bold text-white opacity-0 shadow-2xl backdrop-blur-sm transition-all duration-200 group-hover/btn:opacity-100 group-hover/btn:flex ${
+          isTop
+            ? 'bottom-full left-1/2 mb-2 -translate-x-1/2'
+            : 'right-full top-1/2 mr-3 -translate-y-1/2'
+        }`}
+      >
+        <span className={`h-2 w-2 rounded-full ${channel.dotClass}`} />
+        <span>{t(channel.label, channel.labelTe)}</span>
+        <div
+          className={`absolute border-4 border-transparent ${
+            isTop
+              ? 'left-1/2 top-full -translate-x-1/2 border-t-slate-950'
+              : 'left-full top-1/2 -ml-1 -translate-y-1/2 border-l-slate-950'
+          }`}
+        />
+      </div>
+    </div>
+  );
 }
 
 export function OfficialChannelsSidebar({
   whatsappLink = 'https://www.whatsapp.com/channel/0029Vb61tsc59PwZEKYH3A0A',
   youtubeLink = 'https://www.youtube.com/@AgricultureDepartmentTelangana',
   twitterLink = 'https://x.com/DirectorAgriTS',
-  defaultCollapsed = true,
+  inline = false,
 }: OfficialChannelsSidebarProps) {
   const { t } = useLanguage();
-  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
-  const containerRef = useRef<HTMLElement>(null);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Close on click outside when expanded
-  useEffect(() => {
-    if (isCollapsed) return;
-    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsCollapsed(true);
-      }
-    };
-    window.addEventListener('mousedown', handlePointerDown);
-    window.addEventListener('touchstart', handlePointerDown);
-    return () => {
-      window.removeEventListener('mousedown', handlePointerDown);
-      window.removeEventListener('touchstart', handlePointerDown);
-    };
-  }, [isCollapsed]);
+  const channels: Channel[] = [
+    {
+      href: whatsappLink,
+      label: 'WhatsApp Channel',
+      labelTe: 'వాట్సాప్ ఛానల్',
+      ariaLabel: 'WhatsApp Channel',
+      ariaLabelTe: 'వాట్సాప్ ఛానల్',
+      dotClass: 'bg-[#25D366]',
+      iconClass: 'text-[#25D366] hover:bg-emerald-50 focus-visible:ring-emerald-400 dark:hover:bg-emerald-950/50',
+      icon: WHATSAPP_SVG,
+    },
+    {
+      href: youtubeLink,
+      label: 'YouTube Channel',
+      labelTe: 'యూట్యూబ్ ఛానల్',
+      ariaLabel: 'YouTube Channel - Agriculture Department Telangana',
+      ariaLabelTe: 'తెలంగాణ వ్యవసాయ శాఖ యూట్యూబ్ ఛానల్',
+      dotClass: 'bg-[#FF0000]',
+      iconClass: 'text-[#FF0000] hover:bg-red-50 focus-visible:ring-red-400 dark:hover:bg-red-950/50',
+      icon: <Youtube className="h-5 w-5" />,
+    },
+    {
+      href: twitterLink,
+      label: 'X (Twitter) - @DirectorAgriTS',
+      labelTe: 'ఎక్స్ (ట్విట్టర్) - @DirectorAgriTS',
+      ariaLabel: 'X (Twitter) - @DirectorAgriTS',
+      ariaLabelTe: 'ఎక్స్ (ట్విట్టర్) - @DirectorAgriTS',
+      dotClass: 'bg-slate-900 dark:bg-slate-100',
+      iconClass: 'text-slate-950 dark:text-white hover:bg-slate-100 focus-visible:ring-slate-400 dark:hover:bg-slate-800/80',
+      icon: X_TWITTER_SVG,
+    },
+  ];
 
-  // Close on Escape key
-  useEffect(() => {
-    if (isCollapsed) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsCollapsed(true);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isCollapsed]);
+  const buttons = channels.map((channel, index) => (
+    <Fragment key={channel.href}>
+      {!inline && index > 0 && <div className="my-0.5 h-px w-6 bg-slate-200/80 dark:bg-slate-700/60" />}
+      <ChannelButton channel={channel} placement={inline ? 'top' : 'left'} />
+    </Fragment>
+  ));
 
-  const handleMouseEnter = () => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    setIsCollapsed(false);
-  };
-
-  const handleMouseLeave = () => {
-    hoverTimeoutRef.current = setTimeout(() => {
-      setIsCollapsed(true);
-    }, 400);
-  };
-
-  const toggleCollapse = () => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    setIsCollapsed((prev) => !prev);
-  };
+  if (inline) {
+    return (
+      <div
+        aria-label={t('Official Channels', 'అధికారిక ఛానెల్స్')}
+        className="mt-3 flex items-center justify-center gap-1.5"
+      >
+        {buttons}
+      </div>
+    );
+  }
 
   return (
     <aside
-      ref={containerRef}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       aria-label={t('Official Channels', 'అధికారిక ఛానెల్స్')}
-      className="fixed right-0 top-20 sm:top-24 z-40 flex items-center select-none"
+      className="fixed right-3 top-1/2 z-40 -translate-y-1/2 select-none"
     >
-      <style>{`
-        @keyframes channelNudge {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(-3px); }
-        }
-      `}</style>
-
-      {/* Pull / Toggle Tab */}
-      <button
-        type="button"
-        onClick={toggleCollapse}
-        aria-expanded={!isCollapsed}
-        aria-label={
-          isCollapsed
-            ? t('Open Official Channels', 'అధికారిక ఛానెల్స్ తెరవండి')
-            : t('Collapse Channels', 'ఛానెల్స్ మూసివేయండి')
-        }
-        title={
-          isCollapsed
-            ? t('Official Channels', 'అధికారిక ఛానెల్స్')
-            : t('Collapse Channels', 'ఛానెల్స్ మూసివేయండి')
-        }
-        className={`group flex items-center justify-center rounded-l-2xl border-l border-y border-emerald-500/40 dark:border-emerald-400/30 bg-gradient-to-b from-emerald-800 via-emerald-900 to-emerald-950 py-3.5 px-2.5 shadow-xl shadow-emerald-950/30 backdrop-blur-md transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
-          isCollapsed
-            ? 'hover:from-emerald-700 hover:via-emerald-800 hover:to-emerald-900 hover:-translate-x-0.5 hover:shadow-emerald-900/40 cursor-pointer'
-            : 'border-r-0 rounded-r-none'
-        }`}
-      >
-        <div
-          className={`flex items-center justify-center transition-transform duration-300 ease-out ${
-            isCollapsed ? '' : 'rotate-180'
-          }`}
-          style={{
-            animation: isCollapsed ? 'channelNudge 1.8s ease-in-out infinite' : 'none',
-          }}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            className="h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110 drop-shadow-sm"
-            aria-hidden="true"
-          >
-            <defs>
-              <linearGradient id="channelsGradientChevron" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#FFFFFF" />
-                <stop offset="45%" stopColor="#FEF08A" />
-                <stop offset="100%" stopColor="#F59E0B" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M15 19l-7-7 7-7"
-              stroke="url(#channelsGradientChevron)"
-              strokeWidth="2.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-      </button>
-
-      {/* Expandable Channels Dock */}
-      <div
-        className={`flex flex-col items-center border-y border-r border-emerald-500/40 dark:border-emerald-400/30 bg-white/95 dark:bg-slate-900/95 shadow-2xl shadow-slate-950/15 backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isCollapsed
-            ? 'max-w-0 opacity-0 pointer-events-none p-0 border-l-0 overflow-hidden'
-            : 'max-w-[75px] opacity-100 p-1.5 border-l border-emerald-500/30 dark:border-emerald-500/20 overflow-visible'
-        }`}
-      >
-        {/* WhatsApp Link */}
-        <div className="relative group/btn">
-          <a
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-[#25D366] transition-all duration-200 hover:bg-emerald-50 hover:scale-105 active:scale-95 dark:hover:bg-emerald-950/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-            aria-label={t('WhatsApp Channel', 'వాట్సాప్ ఛానల్')}
-          >
-            {WHATSAPP_SVG}
-          </a>
-          <div
-            role="tooltip"
-            className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-3 hidden group-hover/btn:flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-emerald-500/30 bg-slate-950/95 px-3 py-1.5 text-xs font-bold text-white shadow-2xl animate-fadeIn z-50 backdrop-blur-sm"
-          >
-            <span className="h-2 w-2 rounded-full bg-[#25D366]" />
-            <span>{t('WhatsApp Channel', 'వాట్సాప్ ఛానల్')}</span>
-            <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-1 border-4 border-transparent border-l-slate-950" />
-          </div>
-        </div>
-
-        {/* Micro-divider */}
-        <div className="my-1 h-px w-5 bg-slate-200/80 dark:bg-slate-700/60" />
-
-        {/* YouTube Link */}
-        <div className="relative group/btn">
-          <a
-            href={youtubeLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-[#FF0000] transition-all duration-200 hover:bg-red-50 hover:scale-105 active:scale-95 dark:hover:bg-red-950/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-            aria-label={t('YouTube Channel - Agriculture Department Telangana', 'తెలంగాణ వ్యవసాయ శాఖ యూట్యూబ్ ఛానల్')}
-          >
-            <Youtube className="h-5 w-5" />
-          </a>
-          <div
-            role="tooltip"
-            className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-3 hidden group-hover/btn:flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-red-500/30 bg-slate-950/95 px-3 py-1.5 text-xs font-bold text-white shadow-2xl animate-fadeIn z-50 backdrop-blur-sm"
-          >
-            <span className="h-2 w-2 rounded-full bg-[#FF0000]" />
-            <span>{t('YouTube Channel', 'యూట్యూబ్ ఛానల్')}</span>
-            <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-1 border-4 border-transparent border-l-slate-950" />
-          </div>
-        </div>
-
-        {/* Micro-divider */}
-        <div className="my-1 h-px w-5 bg-slate-200/80 dark:bg-slate-700/60" />
-
-        {/* X / Twitter Link */}
-        <div className="relative group/btn">
-          <a
-            href={twitterLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-black dark:text-white transition-all duration-200 hover:bg-slate-100 hover:scale-105 active:scale-95 dark:hover:bg-slate-800/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-            aria-label={t('X (Twitter) - @DirectorAgriTS', 'ఎక్స్ (ట్విట్టర్) - @DirectorAgriTS')}
-          >
-            {X_TWITTER_SVG}
-          </a>
-          <div
-            role="tooltip"
-            className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-3 hidden group-hover/btn:flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-700 bg-slate-950/95 px-3 py-1.5 text-xs font-bold text-white shadow-2xl animate-fadeIn z-50 backdrop-blur-sm"
-          >
-            <span className="h-2 w-2 rounded-full bg-slate-900 dark:bg-slate-100" />
-            <span>{t('X (Twitter) - @DirectorAgriTS', 'ఎక్స్ (ట్విట్టర్) - @DirectorAgriTS')}</span>
-            <div className="absolute left-full top-1/2 -translate-y-1/2 -ml-1 border-4 border-transparent border-l-slate-950" />
-          </div>
-        </div>
+      <div className="animate-dock-in flex flex-col items-center gap-0.5 rounded-2xl border border-emerald-500/25 bg-white/90 p-1.5 shadow-xl shadow-emerald-950/10 backdrop-blur-md dark:border-emerald-400/20 dark:bg-slate-900/90">
+        {buttons}
       </div>
     </aside>
   );

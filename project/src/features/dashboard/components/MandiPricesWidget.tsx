@@ -453,7 +453,7 @@ export function MandiPricesWidget() {
                   {h.emoji} {h.title}
                 </span>
                 {isLive && (
-                  <span className="rounded bg-emerald-500/20 px-1 py-0.2 text-[9px] font-black text-emerald-700 dark:text-emerald-300">
+                  <span className="rounded bg-emerald-500/20 px-1 py-0.5 text-[9px] font-black text-emerald-700 dark:text-emerald-300">
                     Live
                   </span>
                 )}
@@ -692,7 +692,7 @@ export function MandiPricesWidget() {
                           {r.market}
                         </span>
                         {r.isLocal && (
-                          <span className="inline-flex items-center rounded-full bg-emerald-100 px-1.5 py-0.2 text-[10px] font-black text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                          <span className="inline-flex items-center rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
                             {t('Local', 'స్థానిక')}
                           </span>
                         )}

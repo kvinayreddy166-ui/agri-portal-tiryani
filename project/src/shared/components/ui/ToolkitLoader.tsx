@@ -1,5 +1,6 @@
 import React from 'react';
-import { ShieldCheck, Loader2 } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
+import { Spinner } from './Spinner';
 
 interface ToolkitLoaderProps {
   message?: string;
@@ -25,7 +26,7 @@ export function ToolkitLoader({ message = 'Loading Officer Toolkit...' }: Toolki
 
         {/* Loading Spinner */}
         <div className="relative">
-          <Loader2 className="h-10 w-10 animate-spin text-emerald-600 dark:text-emerald-400" />
+          <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
         </div>
 
         {/* Loading Message */}

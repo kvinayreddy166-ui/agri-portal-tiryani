@@ -189,10 +189,10 @@ export function CompactToolkitHeader({
     ? 'h-11 w-11 sm:h-12 sm:w-12 rounded-xl'
     : 'h-9 w-9 sm:h-10 sm:w-10 rounded-xl';
   const iconSvgClass = iconSize === 'sm'
-    ? 'h-4 w-4 sm:h-4.5 sm:w-4.5'
+    ? 'h-4 w-4 sm:h-[18px] sm:w-[18px]'
     : iconSize === 'lg'
-    ? 'h-5.5 w-5.5 sm:h-6 sm:w-6'
-    : 'h-4.5 w-4.5 sm:h-5 sm:w-5';
+    ? 'h-[22px] w-[22px] sm:h-6 sm:w-6'
+    : 'h-[18px] w-[18px] sm:h-5 sm:w-5';
 
   return (
     <header className={`mb-4 ${className}`}>
@@ -282,10 +282,10 @@ export function ToolkitPageHeader({
     ? 'h-11 w-11 sm:h-12 sm:w-12 rounded-xl'
     : 'h-9 w-9 sm:h-10 sm:w-10 rounded-xl';
   const iconSvgClass = iconSize === 'sm'
-    ? 'h-4 w-4 sm:h-4.5 sm:w-4.5'
+    ? 'h-4 w-4 sm:h-[18px] sm:w-[18px]'
     : iconSize === 'lg'
-    ? 'h-5.5 w-5.5 sm:h-6 sm:w-6'
-    : 'h-4.5 w-4.5 sm:h-5 sm:w-5';
+    ? 'h-[22px] w-[22px] sm:h-6 sm:w-6'
+    : 'h-[18px] w-[18px] sm:h-5 sm:w-5';
 
   return (
     <div className={`relative mb-5 overflow-hidden rounded-2xl border p-4 ${theme.container} ${className}`}>

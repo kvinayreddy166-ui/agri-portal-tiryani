@@ -13,6 +13,7 @@ import {
   Sprout,
 } from 'lucide-react';
 import { BackButton } from '../../../shared/components/ui/BackButton';
+import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { FilePreviewModal } from '../../../shared/components/ui/FilePreviewModal';
@@ -619,32 +620,14 @@ export function PublicOfficerTools() {
         <div className="mx-auto w-full max-w-6xl space-y-4">
           {showToolPage ? (
             <div className="mb-4">
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-green-700 to-teal-700 p-4 shadow-lg border border-emerald-800/60">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
-                <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
-                  <BackButton onClick={closeToolPage} tone="solid" label={t('Back', 'వెనుకకు')} className="mt-1 shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start gap-2.5 sm:gap-3">
-                      <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
-                        <FileText className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-white" aria-label={samplingHubOpen ? 'Smart Sampling' : 'Forms & Library'} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
-                          {t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
-                        </p>
-                        <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
-                          {samplingHubOpen ? t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్') : t('Forms & Library', 'ఫారాలు & లైబ్రరీ')}
-                        </h1>
-                        <p className="mt-0.5 text-xs sm:text-sm font-medium text-emerald-50 leading-snug max-w-3xl">
-                          {samplingHubOpen
-                            ? t('Create sample drawal forms for seed, fertilizer & pesticide', 'విత్తనం, ఎరువు & పురుగుమందు నమూనా డ్రాయింగ్ ఫారాలను సృష్టించండి')
-                            : t('Download statutory forms, proformas and official documents', 'చట్టబద్ధ ఫారాలు, ప్రొఫార్మాలు మరియు అధికారిక పత్రాలను డౌన్‌లోడ్ చేయండి')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ModulePageHeader
+                title={samplingHubOpen ? t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్') : t('Forms & Library', 'ఫారాలు & లైబ్రరీ')}
+                subtitle={samplingHubOpen
+                  ? t('Create sample drawal forms for seed, fertilizer & pesticide', 'విత్తనం, ఎరువు & పురుగుమందు నమూనా డ్రాయింగ్ ఫారాలను సృష్టించండి')
+                  : t('Download statutory forms, proformas and official documents', 'చట్టబద్ధ ఫారాలు, ప్రొఫార్మాలు మరియు అధికారిక పత్రాలను డౌన్‌లోడ్ చేయండి')}
+                icon={FileText}
+                onBack={closeToolPage}
+              />
             </div>
           ) : (
             <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -781,7 +764,7 @@ export function PublicOfficerTools() {
                   <Layers className="h-3.5 w-3.5" />
                   <span>{t('All', 'అన్నీ')}</span>
                   <span
-                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
                       subGroupFilter === 'all'
                         ? 'bg-white/20 text-white'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
@@ -815,7 +798,7 @@ export function PublicOfficerTools() {
                       <GroupIcon className="h-3.5 w-3.5" />
                       <span>{language === 'te' ? meta.telugu : meta.label}</span>
                       <span
-                        className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
                           isSelected
                             ? 'bg-white/20 text-white'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'

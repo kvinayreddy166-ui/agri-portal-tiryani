@@ -103,8 +103,8 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 export function PesticideCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
-  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const [mode, setMode] = useState<Mode>('activeIngredient');
   const [form, setForm] = useState(initialForm);
   const [copied, setCopied] = useState(false);
@@ -196,6 +196,8 @@ export function PesticideCalculator() {
               'స్ప్రే ట్యాంక్ మోతాదు, మొత్తం నీరు మరియు పురుగుమందు పరిమాణాన్ని ఖచ్చితంగా లెక్కించండి.'
             )}
             icon={Bug}
+            onBack={!user ? () => navigate('/officer-toolkit/farm-calculators') : undefined}
+            actions={!user ? <LanguageToggle language={language} onClick={toggleLanguage} accent="teal" /> : undefined}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-rose-300/60 bg-gradient-to-br from-rose-600 via-rose-500 to-red-700 p-3.5 sm:p-4 text-white shadow-md dark:border-rose-800/60">
@@ -206,7 +208,7 @@ export function PesticideCalculator() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
-                    <Bug className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" aria-label="Pesticide Calculator" />
+                    <Bug className="h-5 w-5 sm:h-[22px] sm:w-[22px] text-white" aria-label="Pesticide Calculator" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-rose-100 mb-0.5">

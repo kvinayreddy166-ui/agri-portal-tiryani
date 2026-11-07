@@ -615,7 +615,7 @@ export function FormsLibrary() {
                         : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/60 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/50'
                     }`}
                   >
-                    <FolderIcon className="h-4.5 w-4.5" />
+                    <FolderIcon className="h-[18px] w-[18px]" />
                   </div>
                   <div className="min-w-0">
                     <span className="block truncate text-sm font-black font-[var(--font-heading)]">

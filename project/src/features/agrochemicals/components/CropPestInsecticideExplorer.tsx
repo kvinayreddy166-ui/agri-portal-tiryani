@@ -57,6 +57,8 @@ export function CropPestInsecticideExplorer({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedIrac, setSelectedIrac] = useState<string>('all');
   const [selectedToxicity, setSelectedToxicity] = useState<ToxicityBand | 'all'>('all');
+  const [visibleCount, setVisibleCount] = useState(50);
+  const PAGE_SIZE = 50;
 
   // Master crop list
   const cropList = useMemo(() => getCropList(CROP_PEST_INSECTICIDES_DATA), []);
@@ -82,6 +84,15 @@ export function CropPestInsecticideExplorer({
       iracGroup: selectedIrac,
       toxicityBand: selectedToxicity,
     });
+  }, [selectedCrop, selectedPest, searchQuery, selectedIrac, selectedToxicity]);
+
+  const visibleEntries = useMemo(
+    () => filteredEntries.slice(0, visibleCount),
+    [filteredEntries, visibleCount]
+  );
+
+  React.useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
   }, [selectedCrop, selectedPest, searchQuery, selectedIrac, selectedToxicity]);
 
   // Handle crop change: reset pest & irac filters
@@ -119,7 +130,7 @@ export function CropPestInsecticideExplorer({
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
-              <Bug className="h-4.5 w-4.5" />
+              <Bug className="h-[18px] w-[18px]" />
             </span>
             <div>
               <h2 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white">
@@ -241,7 +252,7 @@ export function CropPestInsecticideExplorer({
                 }`}
               >
                 <span>{t('All Pests', 'అన్ని పురుగులు')}</span>
-                <span className="ml-1 rounded-full bg-black/15 dark:bg-white/20 px-1 py-0.2 text-[10px]">
+                <span className="ml-1 rounded-full bg-black/15 dark:bg-white/20 px-1 py-0.5 text-[10px]">
                   {filteredEntries.length}
                 </span>
               </button>
@@ -260,7 +271,7 @@ export function CropPestInsecticideExplorer({
                     }`}
                   >
                     <span>{language === 'te' ? p.nameTe : p.name}</span>
-                    <span className="rounded-full bg-rose-200/60 dark:bg-rose-900/60 px-1 py-0.2 text-[10px]">
+                    <span className="rounded-full bg-rose-200/60 dark:bg-rose-900/60 px-1 py-0.5 text-[10px]">
                       {p.count}
                     </span>
                   </button>
@@ -366,8 +377,9 @@ export function CropPestInsecticideExplorer({
 
       {/* Insecticide Recommendation Cards Grid */}
       {filteredEntries.length > 0 ? (
+        <>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredEntries.map((entry) => (
+          {visibleEntries.map((entry) => (
             <article
               key={entry.id}
               className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm transition hover:border-rose-400 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-rose-600"
@@ -482,6 +494,18 @@ export function CropPestInsecticideExplorer({
             </article>
           ))}
         </div>
+        {filteredEntries.length > visibleCount && (
+          <div className="flex flex-col items-center gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+              className="inline-flex items-center gap-2 rounded-xl border border-rose-300 bg-white px-5 py-2.5 text-sm font-black text-rose-800 shadow-sm transition hover:bg-rose-50 hover:border-rose-400 dark:border-rose-800 dark:bg-slate-900 dark:text-rose-300 dark:hover:bg-slate-800"
+            >
+              {t('Load More', 'మరిన్ని లోడ్ చేయండి')} ({filteredEntries.length - visibleCount} {t('remaining', 'మిగిలి ఉన్నాయి')})
+            </button>
+          </div>
+        )}
+        </>
       ) : (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400 mb-3">

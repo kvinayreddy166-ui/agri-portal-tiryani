@@ -15,7 +15,6 @@ import {
   X,
   Trash2,
   CalendarDays,
-  Leaf,
   Archive,
   ClipboardCheck,
   Files,
@@ -29,7 +28,6 @@ import {
   BookOpen,
   ChevronRight,
   FileStack,
-  ShieldCheck,
   Gavel,
   Search,
 } from 'lucide-react';
@@ -255,10 +253,19 @@ type FarmerDashboardStats = {
 
 let farmerDashboardStatsCache: FarmerDashboardStats | null = null;
 
+function getTimeGreeting(): { en: string; te: string; emoji: string } {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return { en: 'Good morning', te: 'శుభోదయం', emoji: '☀️' };
+  if (hour >= 12 && hour < 17) return { en: 'Good afternoon', te: 'శుభ మధ్యాహ్నం', emoji: '🌤️' };
+  if (hour >= 17 && hour < 21) return { en: 'Good evening', te: 'శుభ సాయంత్రం', emoji: '🌆' };
+  return { en: 'Good night', te: 'శుభ రాత్రి', emoji: '🌙' };
+}
+
 export const Dashboard = React.memo(function Dashboard() {
   const navigate = useNavigate();
   const { isAdminUser, officerProfile } = useAuth();
   const { t } = useLanguage();
+  const greeting = useMemo(() => getTimeGreeting(), []);
   const [crops, setCrops] = useState<Crop[]>([]);
   const [fertilizers, setFertilizers] = useState<DailyFertilizerStockSummary[]>([]);
   const [schemes, setSchemes] = useState<Scheme[]>([]);
@@ -460,32 +467,19 @@ export const Dashboard = React.memo(function Dashboard() {
 
   return (
     <div className="dashboard-shell space-y-6">
-      <div className="dashboard-rise relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-600 via-gold-400 to-emerald-600" />
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-gold-300 shadow-xs ring-1 ring-emerald-800">
-              {isAdminUser ? <Leaf className="h-5 w-5 text-white" /> : <ShieldCheck className="h-5 w-5 text-gold-300" />}
-            </span>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-black tracking-tight text-slate-950 dark:text-white sm:text-xl">
-                  {isAdminUser ? t('Dashboard', 'డ్యాష్‌బోర్డ్') : t('Officer Dashboard', 'అధికారి డ్యాష్‌బోర్డ్')}
-                </h1>
-                {!isAdminUser && (
-                  <span className="hidden sm:inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-emerald-800 ring-1 ring-emerald-200/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/40">
-                    {t('Official Portal', 'అధికారిక పోర్టల్')}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                {isAdminUser
-                  ? t('Welcome back, Admin', 'తిరిగి స్వాగతం, అడ్మిన్')
-                  : officerProfile
-                  ? `${officerProfile.full_name} • ${officerProfile.designation} (${officerProfile.mandal})`
-                  : t('Welcome back, Officer', 'తిరిగి స్వాగతం, అధికారి')}
-              </p>
-            </div>
+      <div className="dashboard-rise flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-black tracking-tight text-emerald-700 dark:text-emerald-400 sm:text-3xl">
+              <span aria-hidden="true" className="mr-1.5">{greeting.emoji}</span>
+              {t(greeting.en, greeting.te)}
+            </h1>
+            <p className="mt-0.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {isAdminUser
+                ? t('Admin', 'అడ్మిన్')
+                : officerProfile
+                ? `${officerProfile.full_name} • ${officerProfile.designation}${officerProfile.mandal ? ` • ${officerProfile.mandal}` : ''}`
+                : t('Officer', 'అధికారి')}
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {!isAdminUser && (
@@ -499,7 +493,6 @@ export const Dashboard = React.memo(function Dashboard() {
               {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
             </div>
           </div>
-        </div>
       </div>
       <div className="dashboard-rise dashboard-delay-1 grid grid-cols-1 gap-4 xl:grid-cols-2">
         <WeatherWidget />
@@ -539,7 +532,7 @@ export const Dashboard = React.memo(function Dashboard() {
                 >
                   <span>{t(tab.label, tab.te)}</span>
                   <span
-                    className={`text-[10px] font-black rounded-full px-1.5 py-0.2 ${
+                    className={`text-[10px] font-black rounded-full px-1.5 py-0.5 ${
                       toolCategory === tab.id
                         ? 'bg-white/20 text-emerald-50'
                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'

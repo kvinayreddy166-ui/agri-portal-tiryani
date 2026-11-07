@@ -15,14 +15,14 @@ type BackButtonProps = {
 
 const toneClass: Record<BackButtonTone, string> = {
   light:
-    'text-emerald-700 hover:text-emerald-900 dark:text-emerald-300 dark:hover:text-emerald-100',
+    'border-slate-200/80 bg-white/90 text-emerald-700 shadow-sm hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 dark:border-slate-700 dark:bg-slate-900/90 dark:text-emerald-300 dark:hover:border-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-200',
   solid:
-    'text-white hover:text-white/80',
+    'border-white/25 bg-white/15 text-white backdrop-blur-sm hover:border-white/40 hover:bg-white/25',
 };
 
 /**
- * Bare back-chevron button that sits flush on the header's leading edge.
- * No border/background — just the chevron glyph with a generous touch target.
+ * Compact glass back-button tile — chevron nudges left on hover.
+ * Sits at the header's leading edge with a proper touch target.
  */
 export function BackButton({ onClick, tone = 'light', colors, className = '', label = 'Go back' }: BackButtonProps) {
   return (
@@ -32,12 +32,17 @@ export function BackButton({ onClick, tone = 'light', colors, className = '', la
       aria-label={label}
       title={label}
       className={[
-        '-ml-2 inline-flex shrink-0 items-center justify-center rounded-md p-2 transition hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 active:scale-95',
-        colors ?? toneClass[tone],
+        'group -ml-1.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border backdrop-blur-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-1 active:scale-90',
+        colors
+          ? `border-white/30 bg-white/15 hover:border-white/45 hover:bg-white/25 ${colors}`
+          : toneClass[tone],
         className,
       ].join(' ')}
     >
-      <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+      <ChevronLeft
+        className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5"
+        aria-hidden="true"
+      />
     </button>
   );
 }

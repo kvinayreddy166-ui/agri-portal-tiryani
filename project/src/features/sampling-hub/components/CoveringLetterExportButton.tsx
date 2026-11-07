@@ -49,12 +49,12 @@ export function CoveringLetterExportButton({ onExport, disabled, isGenerating, c
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-40 cursor-default"
           />
-          <div role="menu" className="absolute bottom-full right-0 z-50 mb-1 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
+          <div role="menu" className="absolute bottom-full right-0 z-50 mb-1 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
             <button
               type="button"
               role="menuitem"
               onClick={() => choose('pdf')}
-              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
             >
               <FileText className="h-4 w-4" />
               PDF
@@ -63,7 +63,7 @@ export function CoveringLetterExportButton({ onExport, disabled, isGenerating, c
               type="button"
               role="menuitem"
               onClick={() => choose('word')}
-              className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-left text-sm font-bold text-blue-700 transition hover:bg-blue-50"
+              className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-left text-sm font-bold text-blue-700 transition hover:bg-blue-50 dark:border-slate-800 dark:text-blue-300 dark:hover:bg-slate-800"
             >
               <FileType className="h-4 w-4" />
               WORD

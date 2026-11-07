@@ -1064,13 +1064,28 @@ export class OfficerDocumentArchiveService {
     // 2. Secondary Cloud Storage Fallback: Supabase Storage
     if (!uploaded && isOnline) {
       try {
-        const fallbackContentType = doc.compressionMethod === 'gzip' ? 'application/octet-stream' : doc.mimeType;
+        // The 'uploads' bucket only accepts a fixed allow-list of MIME types.
+        // Stored bytes may be gzip-compressed, but the object is labelled with
+        // the document's original MIME type (restoration uses compression
+        // metadata, not the storage content type).
+        const SUPABASE_ALLOWED_MIMES = new Set([
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'text/csv',
+          'image/jpeg',
+          'image/png',
+          'image/webp',
+          'image/gif',
+        ]);
+        const fallbackContentType =
+          doc.mimeType && SUPABASE_ALLOWED_MIMES.has(doc.mimeType) ? doc.mimeType : 'application/pdf';
         const { error: storageError } = await supabase.storage
           .from('uploads')
           .upload(objectKey, new Blob([doc.fileBlob], { type: fallbackContentType }), {
             upsert: true,
-            // Supabase Storage rejects 'application/gzip'; octet-stream is always allowed.
-            // The client restores the gzip stream itself using compression metadata.
             contentType: fallbackContentType,
           });
 

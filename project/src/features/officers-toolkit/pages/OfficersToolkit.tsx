@@ -383,38 +383,32 @@ function ToolkitCard({ item, onClick }: { item: ToolkitItem; onClick: () => void
     <button
       type="button"
       onClick={onClick}
-      className="group relative flex h-full w-full cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-3.5 sm:p-4 text-left shadow-2xs transition-all duration-200 hover:-translate-y-1 hover:border-emerald-600/50 hover:shadow-md hover:shadow-emerald-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700"
+      className="group flex h-full w-full cursor-pointer items-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white p-2.5 text-left shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/60 hover:shadow-md hover:shadow-emerald-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700 sm:gap-3 sm:p-3"
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-600 via-gold-400 to-emerald-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-      <div>
-        <div className="flex items-start justify-between gap-2">
-          <div className={`flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.gradient} text-white shadow-2xs transition-transform duration-200 group-hover:scale-105`}>
-            <item.icon className="h-5 w-5" />
-          </div>
-          {item.externalUrl && (
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-400 ring-1 ring-slate-200 transition-colors duration-200 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:ring-emerald-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700 dark:group-hover:bg-emerald-950/50 dark:group-hover:text-emerald-300">
-              <ExternalLink className="h-3 w-3" />
-            </span>
-          )}
+      <div className="relative shrink-0">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${item.gradient} text-white shadow-2xs transition-transform duration-200 group-hover:scale-105 sm:h-11 sm:w-11`}>
+          <item.icon className="h-5 w-5" aria-hidden="true" />
         </div>
-        <h3 className="mt-2.5 text-xs sm:text-sm font-bold leading-snug text-slate-900 transition-colors group-hover:text-emerald-800 dark:text-slate-100 dark:group-hover:text-emerald-300">
+        {item.externalUrl && (
+          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-slate-400 ring-1 ring-slate-200 transition-colors duration-200 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:ring-emerald-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700 dark:group-hover:bg-emerald-950/50 dark:group-hover:text-emerald-300">
+            <ExternalLink className="h-2.5 w-2.5" aria-hidden="true" />
+          </span>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <h3 className="text-xs font-bold leading-5 text-slate-900 transition-colors group-hover:text-emerald-800 dark:text-slate-100 dark:group-hover:text-emerald-300 sm:text-sm">
           {t(item.title, translateToolkit(item.title))}
         </h3>
-        <p className="mt-1 line-clamp-2 text-[11px] font-medium leading-snug text-slate-500 dark:text-slate-400">
+        <p className="mt-0.5 line-clamp-2 text-[11px] font-medium leading-snug text-slate-500 dark:text-slate-400">
           {t(item.description, translateToolkit(item.description))}
         </p>
-      </div>
-      <div className="mt-3 flex items-center justify-between">
-        {item.statusMessage ? (
-          <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50">
+        {item.statusMessage && (
+          <span className="mt-1.5 inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50">
             {t(item.statusMessage, translateToolkit(item.statusMessage))}
           </span>
-        ) : <span />}
-        <span className="text-[11px] font-bold text-emerald-700 opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5 flex items-center gap-0.5 dark:text-emerald-400">
-          {item.externalUrl ? t('Open Portal', 'పోర్టల్') : t('Open', 'తెరవండి')}
-          <ChevronRight className="h-3 w-3" />
-        </span>
+        )}
       </div>
+      <ChevronRight className="h-4 w-4 shrink-0 text-emerald-600/50 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-emerald-600 dark:text-emerald-400/60 dark:group-hover:text-emerald-400" aria-hidden="true" />
     </button>
   );
 }
@@ -492,7 +486,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start gap-2.5 sm:gap-3">
                       <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-gold-300 shadow-sm ring-1 ring-white/25 backdrop-blur-xs mt-0.5">
-                        <ShieldCheck className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-gold-300" />
+                        <ShieldCheck className="h-4 w-4 sm:h-[18px] sm:w-[18px] text-gold-300" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-200/80 mb-0.5">

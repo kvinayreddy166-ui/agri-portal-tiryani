@@ -235,7 +235,7 @@ export function KnowledgeUpload() {
                 <p className="truncate text-sm font-bold text-slate-800 dark:text-slate-100">{file.name}</p>
                 <p className="text-xs text-slate-500">{formatFileSize(file.size)} • {getExtension(file.name).toUpperCase()}</p>
               </div>
-              <button type="button" onClick={() => setFile(null)} className="rounded-lg p-1 text-slate-400 hover:bg-white hover:text-red-500">
+              <button type="button" onClick={() => setFile(null)} className="rounded-lg p-1 text-slate-400 hover:bg-white hover:text-red-500 dark:text-slate-500 dark:hover:bg-slate-700">
                 <X className="h-5 w-5" />
               </button>
             </div>

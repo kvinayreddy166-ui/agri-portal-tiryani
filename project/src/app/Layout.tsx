@@ -1,6 +1,6 @@
 import React, { useMemo, useState, ReactNode } from 'react';
 import {
-  ChevronLeft, ChevronRight, Menu, X, LayoutDashboard, PackageCheck, UsersRound,
+  ChevronLeft, ChevronRight, X, LayoutDashboard, PackageCheck, UsersRound,
   Archive, BarChart3, Settings, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, BookOpen, LogOut,
   Globe, Check, Gavel, CalendarDays, Phone, FileCheck, Files,
@@ -161,16 +161,31 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
             <button
               type="button"
               onClick={toggleSidebar}
-              className={`group relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border shadow-sm transition focus:outline-none focus:ring-4 focus:ring-white/25 ${
+              className={`group relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border shadow-sm backdrop-blur-sm transition-all duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-white/30 active:scale-90 ${
                 sidebarOpen
-                  ? 'border-white/40 bg-white text-emerald-800'
-                  : 'border-white/20 bg-white/15 text-white hover:border-white/35 hover:bg-white/25'
+                  ? 'border-white/40 bg-white text-emerald-800 shadow-md'
+                  : 'border-white/15 bg-white/10 text-white hover:border-white/30 hover:bg-white/20'
               }`}
               aria-label={sidebarOpen ? t('Close menu', 'మెనూ మూసివేయండి') : t('Open menu', 'మెనూ తెరవండి')}
               aria-expanded={sidebarOpen}
             >
-              <span className="absolute inset-1 rounded-lg bg-white/10 opacity-0 transition group-hover:opacity-100" />
-              {sidebarOpen ? <X className="relative h-4 w-4" /> : <Menu className="relative h-4 w-4" />}
+              <span className="absolute left-1/2 top-1/2 h-[14px] w-[18px] -translate-x-1/2 -translate-y-1/2" aria-hidden>
+                <span
+                  className={`absolute left-0 h-[2px] rounded-full bg-current transition-all duration-300 ease-out ${
+                    sidebarOpen ? 'top-1/2 w-full -translate-y-1/2 rotate-45' : 'top-0 w-5/6'
+                  }`}
+                />
+                <span
+                  className={`absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 rounded-full bg-current transition-all duration-200 ${
+                    sidebarOpen ? 'opacity-0' : 'opacity-100'
+                  }`}
+                />
+                <span
+                  className={`absolute left-0 h-[2px] rounded-full bg-current transition-all duration-300 ease-out ${
+                    sidebarOpen ? 'top-1/2 w-full -translate-y-1/2 -rotate-45' : 'bottom-0 w-4/6'
+                  }`}
+                />
+              </span>
             </button>
 
             <div className="flex min-w-0 items-center gap-2">
@@ -186,27 +201,42 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
             </div>
           </div>
 
-          <div className="relative flex shrink-0 items-center gap-1.5">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition hover:bg-white/25"
-              aria-label={isDark ? 'Light mode' : 'Dark mode'}
-              title={isDark ? t('Light mode', 'లైట్ మోడ్') : t('Dark mode', 'డార్క్ మోడ్')}
-            >
-              {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-            </button>
-            <button
-              type="button"
-              onClick={toggleLangMenu}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-bold transition hover:bg-white/30 focus:outline-none focus:ring-4 focus:ring-white/25"
-              aria-label={t('Change language', 'భాష మార్చండి')}
-              aria-expanded={langOpen}
-              aria-haspopup="menu"
-              title={t('Change language', 'భాష మార్చండి')}
-            >
-              <Globe className="h-4 w-4" />
-            </button>
+          <div className="relative flex shrink-0 items-center gap-2">
+            <div className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 p-1 backdrop-blur-sm">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-white/80 transition hover:bg-white/15 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 active:scale-90"
+                aria-label={isDark ? 'Light mode' : 'Dark mode'}
+                title={isDark ? t('Light mode', 'లైట్ మోడ్') : t('Dark mode', 'డార్క్ మోడ్')}
+              >
+                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+              <button
+                type="button"
+                onClick={toggleLangMenu}
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-white/80 transition hover:bg-white/15 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 active:scale-90"
+                aria-label={t('Change language', 'భాష మార్చండి')}
+                aria-expanded={langOpen}
+                aria-haspopup="menu"
+                title={t('Change language', 'భాష మార్చండి')}
+              >
+                <Globe className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={toggleProfile}
+                className="relative flex h-9 w-9 items-center justify-center rounded-xl transition hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 active:scale-90"
+                aria-label={t('Profile menu', 'ప్రొఫైల్ మెనూ')}
+                aria-expanded={profileOpen}
+                aria-haspopup="menu"
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-gold-300 to-gold-500 text-[11px] font-black text-emerald-950 ring-2 ring-white/25">
+                  {user?.email?.charAt(0).toUpperCase()}
+                </span>
+                {profileOpen && <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-gold-400" aria-hidden />}
+              </button>
+            </div>
             {langOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={langOverlay.closeOverlay} aria-hidden />
@@ -235,16 +265,6 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                 </div>
               </>
             )}
-            <button
-              type="button"
-              onClick={toggleProfile}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-bold transition hover:bg-white/30 focus:outline-none focus:ring-4 focus:ring-white/25"
-              aria-label={t('Profile menu', 'ప్రొఫైల్ మెనూ')}
-              aria-expanded={profileOpen}
-              aria-haspopup="menu"
-            >
-              {user?.email?.charAt(0).toUpperCase()}
-            </button>
             {profileOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={profileOverlay.closeOverlay} aria-hidden />
@@ -254,7 +274,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                   role="menu"
                 >
                   <div className="flex items-center gap-2.5 border-b border-slate-100 px-3.5 py-3 dark:border-slate-800">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 to-emerald-800 text-sm font-black text-white">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gold-300 to-gold-500 text-sm font-black text-emerald-950 ring-2 ring-emerald-100 dark:ring-slate-700">
                       {user?.email?.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">

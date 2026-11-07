@@ -360,9 +360,9 @@ export function QualityControl({ category }: QualityControlProps) {
 
         {samples.length > 0 ? (
           <div className="overflow-hidden rounded-lg border border-gray-100 dark:border-slate-800">
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-slate-800">
               {samples.map((sample) => (
-                <div key={sample.id} className="grid grid-cols-[1fr_auto] gap-2 p-2 transition hover:bg-gray-50 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-center">
+                <div key={sample.id} className="grid grid-cols-[1fr_auto] gap-2 p-2 transition hover:bg-gray-50 dark:hover:bg-slate-800/60 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-center">
                   <div className="flex min-w-0 items-center gap-2">
                     {sample.form_url && (
                       <FileTypeIcon

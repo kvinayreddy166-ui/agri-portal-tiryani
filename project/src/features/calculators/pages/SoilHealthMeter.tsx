@@ -544,7 +544,7 @@ export function SoilHealthMeter() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start gap-3">
                     <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
-                      <FlaskConical className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" aria-label="Soil Health Meter" />
+                      <FlaskConical className="h-5 w-5 sm:h-[22px] sm:w-[22px] text-white" aria-label="Soil Health Meter" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-teal-100 mb-0.5">
@@ -850,7 +850,7 @@ export function SoilHealthMeter() {
                     <label className="text-xs font-black text-slate-800 dark:text-slate-200">
                       {t('Available Sulfur (S - ppm)', 'లభ్య గంధకం (S - ppm)')}
                     </label>
-                    <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${labForm.sBracket === '1' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${labForm.sBracket === '1' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
                       {labForm.sBracket === '1' ? t('Deficient', 'లోపం') : t('OK', 'సరిపడా')}
                     </span>
                   </div>
@@ -870,7 +870,7 @@ export function SoilHealthMeter() {
                     <label className="text-xs font-black text-slate-800 dark:text-slate-200">
                       {t('Zinc (Zn - ppm)', 'జింక్ (Zn - ppm)')}
                     </label>
-                    <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${labForm.znBracket === '1' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${labForm.znBracket === '1' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
                       {labForm.znBracket === '1' ? t('Deficient', 'లోపం') : t('OK', 'సరిపడా')}
                     </span>
                   </div>
@@ -907,7 +907,7 @@ export function SoilHealthMeter() {
                     <label className="text-xs font-black text-slate-800 dark:text-slate-200">
                       {t('Iron (Fe - ppm)', 'ఇనుము (Fe - ppm)')}
                     </label>
-                    <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${labForm.feBracket === '1' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${labForm.feBracket === '1' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
                       {labForm.feBracket === '1' ? t('Deficient', 'లోపం') : t('OK', 'సరిపడా')}
                     </span>
                   </div>
@@ -943,7 +943,7 @@ export function SoilHealthMeter() {
                     <label className="text-xs font-black text-slate-800 dark:text-slate-200">
                       {t('Boron (B - ppm)', 'బోరాన్ (B - ppm)')}
                     </label>
-                    <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${labForm.bBracket === '1' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${labForm.bBracket === '1' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
                       {labForm.bBracket === '1' ? t('Deficient', 'లోపం') : t('OK', 'సరిపడా')}
                     </span>
                   </div>

@@ -1362,7 +1362,7 @@ function recommendationNpkLabel(recommendation: CropRecommendation) {
 export function FertilizerCalculator() {
   const navigate = useNavigate();
   const { isAdminUser, isTestUser, isOfficerUser, user } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const [language, setLanguage] = useState<'en' | 'te'>('en');
   const toggleLanguage = () => setLanguage((current) => (current === 'en' ? 'te' : 'en'));
   const uiLabels = useMemo(() => (language === 'te' ? repairTeluguRecord(UI_LABELS.te) : UI_LABELS.en), [language]);
@@ -1967,6 +1967,8 @@ export function FertilizerCalculator() {
             title={language === 'te' ? 'ఎరువుల కాలిక్యులేటర్' : 'Fertilizer Calculator'}
             subtitle={language === 'te' ? 'పంటకు అవసరమైన ఎరువుల లెక్కింపు' : 'Calculate crop fertilizer requirements'}
             icon={Package}
+            onBack={!user ? () => navigate('/officer-toolkit/farm-calculators') : undefined}
+            actions={!user ? <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" /> : undefined}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 p-3.5 sm:p-4 text-white shadow-md dark:border-emerald-700/60">
@@ -1977,7 +1979,7 @@ export function FertilizerCalculator() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
-                    <FlaskConical className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" aria-hidden="true" />
+                    <FlaskConical className="h-5 w-5 sm:h-[22px] sm:w-[22px] text-white" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
@@ -2009,7 +2011,7 @@ export function FertilizerCalculator() {
           <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 shadow-2xs dark:bg-emerald-950 dark:text-emerald-300">
-                <Sparkles className="h-4.5 w-4.5" />
+                <Sparkles className="h-[18px] w-[18px]" />
               </span>
               <div>
                 <h2 className="text-sm font-black text-slate-900 dark:text-white">
@@ -2214,7 +2216,7 @@ export function FertilizerCalculator() {
                 <Sprout className="h-4 w-4" />
                 <span>{language === 'te' ? repairTeluguText(uiLabels.mode2Crop) : 'Crop Recommendation'}</span>
                 {mode === 'crop' && (
-                  <span className="hidden sm:inline-block rounded-full bg-emerald-100 px-1.5 py-0.2 text-[9px] font-black text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                  <span className="hidden sm:inline-block rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-black text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                     Recommended
                   </span>
                 )}
@@ -2974,7 +2976,7 @@ function SummaryTile({ title, values, tone }: { title: string; values: Nutrients
       <div className="flex items-center justify-between gap-1 mb-1">
         <p className="text-[11px] font-black uppercase tracking-wider">{title}</p>
         {statusBadge && (
-          <span className="rounded-full bg-white/80 dark:bg-slate-900/80 px-1.5 py-0.2 text-[9px] font-black">
+          <span className="rounded-full bg-white/80 dark:bg-slate-900/80 px-1.5 py-0.5 text-[9px] font-black">
             {statusBadge}
           </span>
         )}

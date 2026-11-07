@@ -880,6 +880,26 @@ button {
   animation: loadingBar 1.5s ease-in-out infinite;
 }
 
+/* Shared SVG arc spinner — constant motion, so linear is correct */
+@keyframes spinnerRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spinner {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spinnerRotate 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Gentler, not zero — loading state must remain perceivable */
+  .animate-spinner {
+    animation-duration: 2.4s;
+  }
+}
+
 @keyframes dashboardRise {
   from {
     opacity: 0;
@@ -956,6 +976,54 @@ button {
 .login-logo-hero {
   animation: loginLogoHero 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both, loginLogoBreathe 4.5s ease-in-out 0.9s infinite;
   transform-origin: center;
+}
+
+/* Login side-channel ambient motion — opacity/transform only */
+@keyframes sideChannelPulse {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.55; }
+}
+
+@keyframes sideRingSpin {
+  to { transform: rotate(360deg); }
+}
+
+.side-channel-pulse {
+  animation: sideChannelPulse 6s ease-in-out infinite;
+}
+
+.side-ring-spin {
+  animation: sideRingSpin 70s linear infinite;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .side-channel-pulse,
+  .side-ring-spin {
+    animation: none;
+  }
+}
+
+/* Official channels dock entrance — translate + fade, ease-out */
+@keyframes dockSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-dock-in {
+  animation: dockSlideIn 400ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-dock-in {
+    animation: none;
+  }
 }
 
 .dashboard-rise {

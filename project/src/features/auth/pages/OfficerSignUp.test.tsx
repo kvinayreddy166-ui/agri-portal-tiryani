@@ -83,7 +83,7 @@ describe('OfficerSignUp — 3-Step Registration Flow', () => {
     expect(html).toContain('Officer Full Name');
     expect(html).toContain('Designation');
     expect(html).toContain('Mobile Number');
-    expect(html).toContain('Registered Email Address');
+    expect(html).toContain('Email Address');
     expect(html).toContain('Send Verification OTP &amp; Continue');
 
     // Password must NOT be present in Step 1

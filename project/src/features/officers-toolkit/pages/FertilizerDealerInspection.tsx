@@ -144,8 +144,8 @@ function migrateForm(parsed: Partial<InspectionForm>): Partial<InspectionForm> {
 
 export function FertilizerDealerInspection() {
   const navigate = useNavigate();
-  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
   const [confirmAction, setConfirmAction] = useState<{ title: string; message?: string; action: () => void } | null>(null);
   const [form, setForm] = useState<InspectionForm>(() => loadPersistedForm(FORM_KEY, initialForm, migrateForm));
@@ -411,6 +411,12 @@ export function FertilizerDealerInspection() {
             title="Fertilizer dealer inspection form"
             subtitle="Fertilizer inspection"
             icon={ClipboardCheck}
+            onBack={!user ? () => {
+              if (!confirmDiscardIfDirty(dirty)) return;
+              const idx = (window.history.state as { idx?: number } | null)?.idx;
+              if (typeof idx === 'number' && idx > 0) navigate(-1);
+              else navigate('/officer-toolkit/inspection-enforcement');
+            } : undefined}
           />
         ) : (
           <ToolkitPageHeader

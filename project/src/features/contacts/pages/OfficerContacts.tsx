@@ -79,8 +79,8 @@ function getDropdownCacheKey(officerType: OfficerType, district: string, divisio
 
 export function OfficerContacts() {
   const navigate = useNavigate();
-  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<OfficerType>('AEO');
   const [contacts, setContacts] = useState<OfficerContact[]>([]);
@@ -626,6 +626,7 @@ export function OfficerContacts() {
               title="Officer Contacts"
               subtitle="Telangana Agriculture Department"
               icon={Phone}
+              onBack={!user ? () => navigate('/dashboard') : undefined}
             />
           ) : (
             <ToolkitPageHeader

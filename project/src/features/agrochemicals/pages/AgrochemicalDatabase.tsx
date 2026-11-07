@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Bug,
   Flame,
@@ -32,14 +32,16 @@ const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 export function AgrochemicalDatabase() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
-  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const { toasts, removeToast, showSuccess } = useToast();
 
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<AgrochemicalCategory>('insecticide');
   const [selectedLetter, setSelectedLetter] = useState<string>('');
   const [activeItem, setActiveItem] = useState<AgrochemicalItem | null>(null);
+  const [visibleCount, setVisibleCount] = useState(50);
+  const PAGE_SIZE = 50;
 
   // Available letters and category counts
   const categoryCounts = useMemo(() => getCategoryCounts(AGROCHEMICALS_DATA), []);
@@ -52,6 +54,15 @@ export function AgrochemicalDatabase() {
       category: selectedCategory,
       letter: selectedLetter,
     });
+  }, [query, selectedCategory, selectedLetter]);
+
+  const visibleChemicals = useMemo(
+    () => filteredChemicals.slice(0, visibleCount),
+    [filteredChemicals, visibleCount]
+  );
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
   }, [query, selectedCategory, selectedLetter]);
 
   const resetFilters = () => {
@@ -84,6 +95,8 @@ export function AgrochemicalDatabase() {
               'సిఐబి&ఆర్‌సి ఆమోదించిన పురుగుమందులు, తెగుళ్ల మందులు, కలుపు మందుల సమగ్ర సమాచారం.'
             )}
             icon={FlaskConical}
+            onBack={!user ? () => navigate('/dashboard') : undefined}
+            actions={!user ? <LanguageToggle language={language} onClick={toggleLanguage} accent="teal" /> : undefined}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-teal-300/60 bg-gradient-to-br from-teal-700 via-emerald-700 to-green-800 p-3.5 sm:p-4 text-white shadow-md dark:border-teal-700/60">
@@ -94,7 +107,7 @@ export function AgrochemicalDatabase() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start gap-2.5 sm:gap-3">
                     <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white shadow-sm ring-1 ring-white/25 backdrop-blur-xs mt-0.5">
-                      <FlaskConical className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" aria-label="Agrochemicals Database" />
+                      <FlaskConical className="h-5 w-5 sm:h-[22px] sm:w-[22px] text-white" aria-label="Agrochemicals Database" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-teal-100 mb-0.5">
@@ -162,7 +175,7 @@ export function AgrochemicalDatabase() {
                 }`}
               >
                 <span>{t('All Chemicals', 'అన్ని రసాయనాలు')}</span>
-                <span className="rounded-full bg-white/20 px-1.5 py-0.2 text-[10px]">
+                <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px]">
                   {categoryCounts.all}
                 </span>
               </button>
@@ -178,7 +191,7 @@ export function AgrochemicalDatabase() {
               >
                 <Bug className="h-3.5 w-3.5" />
                 <span>{t('Insecticides', 'పురుగుమందులు')}</span>
-                <span className="rounded-full bg-white/20 px-1.5 py-0.2 text-[10px]">
+                <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px]">
                   732
                 </span>
               </button>
@@ -194,7 +207,7 @@ export function AgrochemicalDatabase() {
               >
                 <Flame className="h-3.5 w-3.5" />
                 <span>{t('Fungicides', 'శిలీంద్ర సంహారిణులు')}</span>
-                <span className="rounded-full bg-white/20 px-1.5 py-0.2 text-[10px]">
+                <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px]">
                   {categoryCounts.fungicide}
                 </span>
               </button>
@@ -210,7 +223,7 @@ export function AgrochemicalDatabase() {
               >
                 <Leaf className="h-3.5 w-3.5" />
                 <span>{t('Weedicides', 'కలుపుమందులు')}</span>
-                <span className="rounded-full bg-white/20 px-1.5 py-0.2 text-[10px]">
+                <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px]">
                   {categoryCounts.weedicide}
                 </span>
               </button>
@@ -226,7 +239,7 @@ export function AgrochemicalDatabase() {
               >
                 <Sprout className="h-3.5 w-3.5" />
                 <span>{t('Fertilizers (FCO)', 'ఎరువులు & పోషకాలు')}</span>
-                <span className="rounded-full bg-white/20 px-1.5 py-0.2 text-[10px]">
+                <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px]">
                   {categoryCounts.fertilizer}
                 </span>
               </button>
@@ -298,6 +311,9 @@ export function AgrochemicalDatabase() {
             <div className="flex items-center justify-between text-xs px-1">
               <span className="font-bold text-slate-600 dark:text-slate-400">
                 {t('Showing', 'చూపిస్తున్నవి')}{' '}
+                <strong className="text-slate-900 dark:text-white font-black">{visibleChemicals.length}</strong>
+                {' '}
+                {t('of', 'నుండి')}{' '}
                 <strong className="text-slate-900 dark:text-white font-black">{filteredChemicals.length}</strong>{' '}
                 {t('registered chemicals', 'నమోదిత రసాయనాలు')}
               </span>
@@ -311,15 +327,31 @@ export function AgrochemicalDatabase() {
 
             {/* Responsive Cards Grid */}
             {filteredChemicals.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredChemicals.map((item) => (
-                  <AgrochemicalCard
-                    key={item.id}
-                    item={item}
-                    onSelect={(selected) => setActiveItem(selected)}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {visibleChemicals.map((item) => (
+                    <AgrochemicalCard
+                      key={item.id}
+                      item={item}
+                      onSelect={(selected) => setActiveItem(selected)}
+                    />
+                  ))}
+                </div>
+                {filteredChemicals.length > visibleCount && (
+                  <div className="flex flex-col items-center gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+                      className="inline-flex items-center gap-2 rounded-xl border border-teal-300 bg-white px-5 py-2.5 text-sm font-black text-teal-800 shadow-sm transition hover:bg-teal-50 hover:border-teal-400 dark:border-teal-800 dark:bg-slate-900 dark:text-teal-300 dark:hover:bg-slate-800"
+                    >
+                      {t('Load More', 'మరిన్ని లోడ్ చేయండి')} ({filteredChemicals.length - visibleCount} {t('remaining', 'మిగిలి ఉన్నాయి')})
+                    </button>
+                    <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                      {t('Showing', 'చూపిస్తున్నవి')} {visibleChemicals.length} {t('of', 'నుండి')} {filteredChemicals.length}
+                    </p>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-xs dark:border-slate-800 dark:bg-slate-900">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 dark:bg-teal-950/50 dark:text-teal-400 mb-3">

@@ -380,8 +380,8 @@ function renderHeadingTitle(title: string, isWhite = true) {
 export function ActsAndOrders() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const [view, setView] = useState<ReckonerView>('powers');
   const [selectedLegalArea, setSelectedLegalArea] = useState<MainLegalArea | null>(null);
   const [query, setQuery] = useState('');
@@ -630,6 +630,7 @@ export function ActsAndOrders() {
             title={renderHeadingTitle(currentMeta.title, false)}
             subtitle={currentMeta.subtitle}
             icon={CurrentIcon}
+            onBack={!user ? handleBack : undefined}
           />
         ) : (
           <section className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 text-white shadow-lg ${
@@ -1368,8 +1369,8 @@ function FcoCardDetailPage({
   onOpenRelated: (target: { clauseId: string; cardId: string }) => void;
   onTabChange: (tab: FcoTabId) => void;
 }) {
-  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
   const t = fcoAccentThemes[accent];
 

@@ -160,8 +160,8 @@ const noticeModalThemes: Record<NoticeCategory, { header: string; icon: string; 
 export function InspectionEnforcementHub() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const [openCard, setOpenCard] = useState<HubCardKey | null>(null);
   const [selectedNoticeCategory, setSelectedNoticeCategory] = useState<NoticeCategory | null>(null);
   const [showPesticideStopSale, setShowPesticideStopSale] = useState(false);
@@ -271,6 +271,7 @@ export function InspectionEnforcementHub() {
           title={t('Inspection & Enforcement', 'తనిఖీ & అమలు')}
           subtitle={t('Inspection proforma, memo & show cause notice, stop sale & seizure orders', 'విత్తనం, ఎరువు & పురుగుమందు తనిఖీ ప్రొఫార్మా, మెమోలు, షోకాజ్ నోటీసులు & జప్తి ఉత్తర్వులు')}
           icon={ClipboardCheck}
+          onBack={!user ? () => navigate('/dashboard') : undefined}
         />
       ) : (
         <ToolkitPageHeader

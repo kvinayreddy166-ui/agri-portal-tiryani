@@ -50,18 +50,18 @@ export function KnowledgeDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <ModernStatCard label="Total Documents" value={stats?.totalDocuments ?? 0} icon={FileText} gradient="from-emerald-500 to-emerald-600" />
-        <ModernStatCard label="Active" value={stats?.activeDocuments ?? 0} icon={CheckCircle2} gradient="from-green-500 to-emerald-600" />
-        <ModernStatCard label="Processing" value={stats?.processing ?? 0} icon={Loader2} gradient="from-blue-500 to-cyan-600" />
-        <ModernStatCard label="Failed" value={stats?.failed ?? 0} icon={AlertTriangle} gradient="from-red-500 to-rose-600" />
-        <ModernStatCard label="OCR Required" value={stats?.ocrRequired ?? 0} icon={ScanLine} gradient="from-amber-500 to-orange-600" />
-        <ModernStatCard label="Total Chunks" value={stats?.totalChunks ?? 0} icon={Layers} gradient="from-teal-600 to-emerald-700" />
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-6">
+        <ModernStatCard compact label="Total Documents" value={stats?.totalDocuments ?? 0} icon={FileText} gradient="from-emerald-500 to-emerald-600" />
+        <ModernStatCard compact label="Active" value={stats?.activeDocuments ?? 0} icon={CheckCircle2} gradient="from-green-500 to-emerald-600" />
+        <ModernStatCard compact label="Processing" value={stats?.processing ?? 0} icon={Loader2} gradient="from-blue-500 to-cyan-600" />
+        <ModernStatCard compact label="Failed" value={stats?.failed ?? 0} icon={AlertTriangle} gradient="from-red-500 to-rose-600" />
+        <ModernStatCard compact label="OCR Required" value={stats?.ocrRequired ?? 0} icon={ScanLine} gradient="from-amber-500 to-orange-600" />
+        <ModernStatCard compact label="Total Chunks" value={stats?.totalChunks ?? 0} icon={Layers} gradient="from-teal-600 to-emerald-700" />
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
-        <ModernStatCard label="Total Queries" value={stats?.totalQueries ?? 0} icon={Search} gradient="from-sky-600 to-blue-700" />
-        <ModernStatCard label="Unanswered" value={stats?.unansweredQuestions ?? 0} icon={AlertTriangle} gradient="from-amber-500 to-yellow-600" />
+      <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
+        <ModernStatCard compact label="Total Queries" value={stats?.totalQueries ?? 0} icon={Search} gradient="from-sky-600 to-blue-700" />
+        <ModernStatCard compact label="Unanswered" value={stats?.unansweredQuestions ?? 0} icon={AlertTriangle} gradient="from-amber-500 to-yellow-600" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">

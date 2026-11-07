@@ -89,8 +89,8 @@ function WhatsAppIcon({ className = '' }: React.SVGProps<SVGSVGElement>) {
 export function SeedRateCalculator() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
-  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const [form, setForm] = useState(initialForm);
   const [copied, setCopied] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -181,6 +181,8 @@ export function SeedRateCalculator() {
               'జనాభా, మొలక శాతం మరియు టెస్ట్ వెయిట్ ఆధారంగా విత్తన అవసరాన్ని లెక్కించండి.'
             )}
             icon={Wheat}
+            onBack={!user ? () => navigate('/officer-toolkit/farm-calculators') : undefined}
+            actions={!user ? <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" /> : undefined}
           />
         ) : (
           <section className="relative overflow-hidden rounded-2xl border border-lime-300/60 bg-gradient-to-br from-lime-600 via-green-600 to-emerald-700 p-3.5 sm:p-4 text-white shadow-md dark:border-lime-700/60">
@@ -191,7 +193,7 @@ export function SeedRateCalculator() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
-                    <Scale className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-white" aria-label="Seed Rate Calculator" />
+                    <Scale className="h-5 w-5 sm:h-[22px] sm:w-[22px] text-white" aria-label="Seed Rate Calculator" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-lime-100 mb-0.5">

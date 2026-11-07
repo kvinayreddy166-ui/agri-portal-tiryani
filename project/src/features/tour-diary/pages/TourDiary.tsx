@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { supabase } from '../../../shared/lib/supabase';
@@ -286,6 +287,7 @@ function DiaryDialog({ dialog, onResolve }: { dialog: DialogState; onResolve: (v
 }
 
 export function TourDiary() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
@@ -1826,6 +1828,7 @@ export function TourDiary() {
             title={t('Tour Diary', 'టూర్ డైరీ')}
             subtitle={t('Manage your monthly tour diaries', 'మీ నెలవారీ టూర్ డైరీలను నిర్వహించండి')}
             icon={NotebookPen}
+            onBack={!user ? () => navigate('/login') : undefined}
           />
 
           {/* Action Cards - Modern Mobile-First Design */}
@@ -2197,6 +2200,7 @@ export function TourDiary() {
           title={t('Tour Diary', 'టూర్ డైరీ')}
           subtitle={t('Monthly Tour Diary with Journey Tracking', 'ప్రయాణ ట్రాకింగ్‌తో నెలవారీ టూర్ డైరీ')}
           icon={NotebookPen}
+          onBack={!user ? () => setShowLandingPage(true) : undefined}
         />
 
         {/* Officer Details */}
