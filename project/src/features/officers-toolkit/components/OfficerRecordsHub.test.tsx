@@ -121,13 +121,15 @@ describe('OfficerRecordsHub (Enhanced Cloudflare R2 Archive)', () => {
     expect(html).toContain('Field Form Records &amp; Findings');
   });
 
-  it('renders filter controls and search bar', () => {
+  it('renders filter controls, search bar, and compact Export button', () => {
     const html = renderToString(<OfficerRecordsHub />);
 
     expect(html).toContain('All Categories');
     expect(html).toContain('Statutory Orders');
     expect(html).toContain('Show Cause Notices');
     expect(html).toContain('Search by document name');
+    expect(html).toContain('Export');
+    expect(html).toContain('List View');
   });
 
   it('provides the Field Form Records view details interface', async () => {

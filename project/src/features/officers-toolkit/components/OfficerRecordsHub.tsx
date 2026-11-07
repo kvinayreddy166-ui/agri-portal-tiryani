@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Archive,
   AlertTriangle,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   ClipboardList,
   Cloud,
@@ -99,6 +100,29 @@ export function OfficerRecordsHub() {
   const [hashCopied, setHashCopied] = useState(false);
   const [storedHashCopied, setStoredHashCopied] = useState(false);
   const [exportingType, setExportingType] = useState<'excel' | 'pdf' | null>(null);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsExportMenuOpen(false);
+      }
+    };
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setIsExportMenuOpen(false);
+      }
+    };
+    if (isExportMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isExportMenuOpen]);
 
   const loadAllData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -674,43 +698,70 @@ export function OfficerRecordsHub() {
             </select>
           )}
 
-          {/* Export Report Actions (Excel & PDF) */}
-          <div className="flex items-center gap-1.5">
+          {/* Export Dropdown Button (Tucks Excel & PDF inside) */}
+          <div className="relative" ref={exportMenuRef}>
             <button
               type="button"
-              onClick={() => void handleExport('excel')}
+              onClick={() => setIsExportMenuOpen((prev) => !prev)}
               disabled={
                 exportingType !== null ||
                 (activeTab === 'documents' ? filteredDocuments.length === 0 : filteredRecords.length === 0)
               }
-              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 transition hover:bg-emerald-100 disabled:opacity-40 disabled:cursor-not-allowed dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
-              title={t('Export Official Report to Excel (.xlsx)', 'అధికారిక నివేదికను ఎక్సెల్‌కు ఎగుమతి చేయండి (.xlsx)')}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              title={t('Export Register & Reports', 'రిజిస్టర్ & నివేదికలను ఎగుమతి చేయండి')}
+              aria-haspopup="true"
+              aria-expanded={isExportMenuOpen}
             >
-              {exportingType === 'excel' ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-700 dark:text-emerald-300" />
+              {exportingType !== null ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600 dark:text-emerald-400" />
               ) : (
-                <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-300" />
+                <Download className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
               )}
-              <span className="hidden sm:inline">{t('Excel', 'ఎక్సెల్')}</span>
+              <span>{t('Export', 'ఎగుమతి')}</span>
+              <ChevronDown
+                className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${
+                  isExportMenuOpen ? 'rotate-180 text-emerald-600' : ''
+                }`}
+              />
             </button>
 
-            <button
-              type="button"
-              onClick={() => void handleExport('pdf')}
-              disabled={
-                exportingType !== null ||
-                (activeTab === 'documents' ? filteredDocuments.length === 0 : filteredRecords.length === 0)
-              }
-              className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800 transition hover:bg-rose-100 disabled:opacity-40 disabled:cursor-not-allowed dark:border-rose-800/60 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/50"
-              title={t('Export Official Report to PDF (.pdf)', 'అధికారిక నివేదికను PDFకి ఎగుమతి చేయండి (.pdf)')}
-            >
-              {exportingType === 'pdf' ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-rose-700 dark:text-rose-300" />
-              ) : (
-                <Printer className="h-3.5 w-3.5 text-rose-700 dark:text-rose-300" />
-              )}
-              <span className="hidden sm:inline">{t('PDF', 'PDF')}</span>
-            </button>
+            {isExportMenuOpen && (
+              <div className="absolute right-0 mt-1.5 w-52 rounded-xl border border-slate-200 bg-white py-1.5 shadow-xl z-30 dark:border-slate-700 dark:bg-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    void handleExport('excel');
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 transition"
+                >
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <div>
+                    <div className="font-bold text-slate-900 dark:text-slate-100">
+                      {t('Excel Spreadsheet', 'ఎక్సెల్ స్ప్రెడ్‌షీట్')}
+                    </div>
+                    <div className="text-[10px] text-slate-400 dark:text-slate-400">.xlsx statutory format</div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    void handleExport('pdf');
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-rose-50 hover:text-rose-800 dark:text-slate-200 dark:hover:bg-rose-950/40 dark:hover:text-rose-300 transition border-t border-slate-100 dark:border-slate-700/60"
+                >
+                  <Printer className="h-4 w-4 text-rose-600 shrink-0" />
+                  <div>
+                    <div className="font-bold text-slate-900 dark:text-slate-100">
+                      {t('Official PDF Report', 'అధికారిక PDF నివేదిక')}
+                    </div>
+                    <div className="text-[10px] text-slate-400 dark:text-slate-400">.pdf landscape register</div>
+                  </div>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* View Mode Toggle: List (default) vs Card Grid */}

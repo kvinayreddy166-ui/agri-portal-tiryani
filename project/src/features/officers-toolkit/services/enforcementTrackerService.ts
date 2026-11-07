@@ -89,6 +89,60 @@ export interface SamplePipelineItem {
   reportReceivedAt?: string | null;
   daysInStage: number;
   labReportRef?: string | null;
+  failureFinding?: string | null;
+}
+
+export function getStatutoryNonComplianceInfo(commodity: StatutoryCommodity) {
+  switch (commodity) {
+    case 'pesticide':
+      return {
+        label: 'Misbranded',
+        shortLabel: 'Misbranded',
+        telugu: 'మిస్‌బ్రాండెడ్',
+        buttonText: 'Mark Misbranded',
+        buttonTelugu: 'మిస్‌బ్రాండెడ్‌గా గుర్తించండి',
+        description: 'Insecticides Act, 1968 (Sec 3(k) / 24) — Product does not conform to registered active ingredient or chemical specifications.',
+        actRef: 'Insecticides Act, 1968 · Sec 3(k) & 24',
+        badgeCls: 'bg-red-100 text-red-700 border-red-300 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800',
+        buttonCls: 'bg-red-600 hover:bg-red-700 text-white shadow-xs',
+      };
+    case 'fertilizer':
+      return {
+        label: 'Not according to Specifications',
+        shortLabel: 'Not to Spec',
+        telugu: 'స్పెసిఫికేషన్ల ప్రకారం లేదు',
+        buttonText: 'Mark Not to Spec',
+        buttonTelugu: 'స్పెసిఫికేషన్ల ప్రకారం లేదుగా గుర్తించండి',
+        description: 'Fertiliser (Control) Order, 1985 (Clause 19 / Sch I) — Sample fails to satisfy prescribed statutory nutrient specifications.',
+        actRef: 'FCO, 1985 · Clause 19 & Schedule I',
+        badgeCls: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800',
+        buttonCls: 'bg-amber-600 hover:bg-amber-700 text-white shadow-xs',
+      };
+    case 'seed':
+      return {
+        label: 'Substandard',
+        shortLabel: 'Substandard',
+        telugu: 'సబ్‌స్టాండర్డ్ (నాసిరకం)',
+        buttonText: 'Mark Substandard',
+        buttonTelugu: 'సబ్‌స్టాండర్డ్‌గా గుర్తించండి',
+        description: 'Seeds Act, 1966 (Sec 6 / 15) — Germination percentage, physical purity or genetic quality below notified minimum standards.',
+        actRef: 'Seeds Act, 1966 · Sec 6 & 15',
+        badgeCls: 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-800',
+        buttonCls: 'bg-orange-600 hover:bg-orange-700 text-white shadow-xs',
+      };
+    default:
+      return {
+        label: 'Non-Standard',
+        shortLabel: 'Non-Standard',
+        telugu: 'నాన్-స్టాండర్డ్',
+        buttonText: 'Mark Non-Standard',
+        buttonTelugu: 'నాన్-స్టాండర్డ్‌గా గుర్తించండి',
+        description: 'Sample does not conform to prescribed statutory quality standards.',
+        actRef: 'Statutory Control Act',
+        badgeCls: 'bg-red-100 text-red-700 border-red-300 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800',
+        buttonCls: 'bg-red-600 hover:bg-red-700 text-white shadow-xs',
+      };
+  }
 }
 
 const CASE_STAGES: CaseStage[] = ['INSPECTION', 'SAMPLING', 'LAB_TEST', 'SHOW_CAUSE', 'ENFORCEMENT', 'CLOSED'];
@@ -459,29 +513,65 @@ export class EnforcementTrackerService {
       }
     };
 
-    return samples.map((s) => ({
-      id: s.id,
-      sampleCode: s.sample_code,
-      dealerName: s.firm_name,
-      commodity: s.commodity,
-      labStatus: s.lab_status,
-      sampledDate: s.date_of_sampling,
-      dispatchedAt: s.dispatched_at,
-      reportReceivedAt: s.report_received_at,
-      daysInStage: daysBetween(stageAnchor(s)),
-      labReportRef: s.lab_report_ref,
-    }));
+    return samples.map((s) => {
+      let failureFinding: string | null = null;
+      if (s.lab_status === 'TEST_FAILED') {
+        const json = (s.covering_letter_json || {}) as Record<string, unknown>;
+        if (typeof json.failureFinding === 'string' && json.failureFinding) {
+          failureFinding = json.failureFinding;
+        } else if (s.lab_report_ref && (s.lab_report_ref.includes('Misbranded') || s.lab_report_ref.includes('Specifications') || s.lab_report_ref.includes('Substandard'))) {
+          failureFinding = s.lab_report_ref;
+        } else {
+          failureFinding = s.commodity === 'pesticide' ? 'Misbranded' : s.commodity === 'fertilizer' ? 'Not according to Specifications' : 'Substandard';
+        }
+      }
+      return {
+        id: s.id,
+        sampleCode: s.sample_code,
+        dealerName: s.firm_name,
+        commodity: s.commodity,
+        labStatus: s.lab_status,
+        sampledDate: s.date_of_sampling,
+        dispatchedAt: s.dispatched_at,
+        reportReceivedAt: s.report_received_at,
+        daysInStage: daysBetween(stageAnchor(s)),
+        labReportRef: s.lab_report_ref,
+        failureFinding,
+      };
+    });
   }
 
   static async updateSampleLab(
     sampleId: string,
-    updates: { labStatus?: LabStatus; dispatchedAt?: string | null; reportReceivedAt?: string | null; labReportRef?: string | null }
+    updates: {
+      labStatus?: LabStatus;
+      dispatchedAt?: string | null;
+      reportReceivedAt?: string | null;
+      labReportRef?: string | null;
+      failureFinding?: string | null;
+    }
   ): Promise<boolean> {
     const payload: Record<string, unknown> = {};
     if (updates.labStatus) payload.lab_status = updates.labStatus;
     if (updates.dispatchedAt !== undefined) payload.dispatched_at = updates.dispatchedAt;
     if (updates.reportReceivedAt !== undefined) payload.report_received_at = updates.reportReceivedAt;
     if (updates.labReportRef !== undefined) payload.lab_report_ref = updates.labReportRef;
+
+    if (updates.failureFinding) {
+      try {
+        const { data: cur } = await supabase.from('officer_samples').select('covering_letter_json').eq('id', sampleId).maybeSingle();
+        const currentJson = (cur?.covering_letter_json && typeof cur.covering_letter_json === 'object' ? cur.covering_letter_json : {}) as Record<string, unknown>;
+        payload.covering_letter_json = {
+          ...currentJson,
+          failureFinding: updates.failureFinding,
+          reportReceivedAt: updates.reportReceivedAt,
+          labReportRef: updates.labReportRef,
+        };
+      } catch {
+        // ignore
+      }
+    }
+
     const { error } = await supabase.from('officer_samples').update(payload).eq('id', sampleId);
     return !error;
   }

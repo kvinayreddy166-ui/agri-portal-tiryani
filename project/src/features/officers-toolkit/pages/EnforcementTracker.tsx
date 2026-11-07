@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { localTodayDate } from '../../../shared/utils/dateUtils';
 import {
   AlertTriangle,
   ArrowRight,
@@ -31,6 +33,7 @@ import {
   type SamplePipelineItem,
   type ReplyStatus,
   type OrderRow,
+  getStatutoryNonComplianceInfo,
 } from '../services/enforcementTrackerService';
 import type { StatutoryCommodity } from '../../auth/types/officerAuth';
 
@@ -78,7 +81,15 @@ const COMMODITY_LABELS: Record<StatutoryCommodity | 'mixed', { en: string; te: s
 
 export function EnforcementTracker() {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<TrackerTab>('cases');
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<TrackerTab>(() => {
+    const tabParam = searchParams.get('tab') as TrackerTab | null;
+    if (tabParam && ['cases', 'deadlines', 'scorecards', 'samples'].includes(tabParam)) {
+      return tabParam;
+    }
+    return 'cases';
+  });
   const [data, setData] = useState<EnforcementData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -91,6 +102,39 @@ export function EnforcementTracker() {
   const [newCaseForm, setNewCaseForm] = useState({ dealerName: '', commodity: 'fertilizer' as StatutoryCommodity, priority: 'NORMAL' as CasePriority, notes: '' });
   const [saving, setSaving] = useState(false);
   const [noteText, setNoteText] = useState('');
+  const [markingSample, setMarkingSample] = useState<{
+    sample: SamplePipelineItem;
+    finding: ReturnType<typeof getStatutoryNonComplianceInfo>;
+  } | null>(null);
+  const [reportRefInput, setReportRefInput] = useState('');
+  const [reportDateInput, setReportDateInput] = useState(localTodayDate());
+  const [reportRemarksInput, setReportRemarksInput] = useState('');
+  const [submittingLabReport, setSubmittingLabReport] = useState(false);
+
+  const handleConfirmNonCompliance = async () => {
+    if (!markingSample) return;
+    setSubmittingLabReport(true);
+    try {
+      const { sample, finding } = markingSample;
+      const fullRef = reportRefInput.trim()
+        ? `${finding.label}: ${reportRefInput.trim()}`
+        : finding.label;
+      await EnforcementTrackerService.updateSampleLab(sample.id, {
+        labStatus: 'TEST_FAILED',
+        reportReceivedAt: reportDateInput || new Date().toISOString(),
+        labReportRef: fullRef,
+        failureFinding: finding.label,
+      });
+      setMarkingSample(null);
+      setReportRefInput('');
+      setReportRemarksInput('');
+      void load(true);
+    } catch (err) {
+      console.error('Failed to mark sample non-compliance:', err);
+    } finally {
+      setSubmittingLabReport(false);
+    }
+  };
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -583,26 +627,114 @@ export function EnforcementTracker() {
                           {s.sampleCode} · {t(COMMODITY_LABELS[s.commodity].en, COMMODITY_LABELS[s.commodity].te)} · {s.sampledDate} · {s.daysInStage}d {t('in stage', 'స్టేజ్‌లో')}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         {status === 'DRAFT' && (
                           <button type="button" onClick={() => void handleUpdateSampleStatus(s.id, 'DISPATCHED', true)} className="rounded-lg bg-emerald-700 px-2 py-1 text-[10px] font-black text-white hover:bg-emerald-600">
                             {t('Mark Dispatched', 'పంపబడింది మార్క్')}
                           </button>
                         )}
                         {status === 'DISPATCHED' && (
-                          <button type="button" onClick={() => void handleUpdateSampleStatus(s.id, 'RECEIVED_LAB')} className="rounded-lg bg-sky-600 px-2 py-1 text-[10px] font-black text-white hover:bg-sky-500">
-                            {t('Reached Lab', 'ల్యాబ్‌కు చేరింది')}
-                          </button>
+                          <>
+                            <button type="button" onClick={() => void handleUpdateSampleStatus(s.id, 'RECEIVED_LAB')} className="rounded-lg bg-sky-600 px-2 py-1 text-[10px] font-black text-white hover:bg-sky-500">
+                              {t('Reached Lab', 'ల్యాబ్‌కు చేరింది')}
+                            </button>
+                            <button type="button" onClick={() => void handleUpdateSampleStatus(s.id, 'TEST_PASSED', false, true)} className="rounded-lg bg-emerald-600 px-2 py-1 text-[10px] font-black text-white hover:bg-emerald-500">
+                              {t('Pass', 'పాస్')}
+                            </button>
+                            {(() => {
+                              const finding = getStatutoryNonComplianceInfo(s.commodity);
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setMarkingSample({ sample: s, finding });
+                                    setReportDateInput(localTodayDate());
+                                    setReportRefInput('');
+                                    setReportRemarksInput('');
+                                  }}
+                                  className={`rounded-lg px-2.5 py-1 text-[10px] font-black transition shadow-xs ${finding.buttonCls}`}
+                                  title={t(`Mark dispatched sample as ${finding.label}`, finding.buttonTelugu)}
+                                >
+                                  <span className="flex items-center gap-1">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    {t(finding.buttonText, finding.buttonTelugu)}
+                                  </span>
+                                </button>
+                              );
+                            })()}
+                          </>
                         )}
                         {status === 'RECEIVED_LAB' && (
                           <>
                             <button type="button" onClick={() => void handleUpdateSampleStatus(s.id, 'TEST_PASSED', false, true)} className="rounded-lg bg-emerald-600 px-2 py-1 text-[10px] font-black text-white hover:bg-emerald-500">
                               {t('Pass', 'పాస్')}
                             </button>
-                            <button type="button" onClick={() => void handleUpdateSampleStatus(s.id, 'TEST_FAILED', false, true)} className="rounded-lg bg-red-600 px-2 py-1 text-[10px] font-black text-white hover:bg-red-500">
-                              {t('Fail', 'ఫెయిల్')}
-                            </button>
+                            {(() => {
+                              const finding = getStatutoryNonComplianceInfo(s.commodity);
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setMarkingSample({ sample: s, finding });
+                                    setReportDateInput(localTodayDate());
+                                    setReportRefInput('');
+                                    setReportRemarksInput('');
+                                  }}
+                                  className={`rounded-lg px-2.5 py-1 text-[10px] font-black transition shadow-xs ${finding.buttonCls}`}
+                                  title={t(`Mark sample as ${finding.label}`, finding.buttonTelugu)}
+                                >
+                                  <span className="flex items-center gap-1">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    {t(finding.buttonText, finding.buttonTelugu)}
+                                  </span>
+                                </button>
+                              );
+                            })()}
                           </>
+                        )}
+                        {status === 'TEST_FAILED' && (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {(() => {
+                              const finding = getStatutoryNonComplianceInfo(s.commodity);
+                              const displayLabel = s.failureFinding || finding.label;
+                              return (
+                                <span
+                                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase ${finding.badgeCls}`}
+                                  title={finding.description}
+                                >
+                                  <AlertTriangle className="h-2.5 w-2.5" />
+                                  {displayLabel}
+                                </span>
+                              );
+                            })()}
+                            {s.labReportRef && (
+                              <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-mono font-bold text-slate-700 dark:text-slate-300">
+                                {s.labReportRef}
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => navigate('/officer-toolkit/inspection-enforcement')}
+                              className="rounded-lg bg-emerald-700 px-2 py-1 text-[10px] font-black text-white hover:bg-emerald-600"
+                              title={t('Issue statutory show cause notice', 'షోకాజ్ నోటీస్ జారీ')}
+                            >
+                              {t('Issue SCN', 'నోటీస్ జారీ')}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void handleUpdateSampleStatus(s.id, 'DISPATCHED')}
+                              className="rounded-lg border border-slate-200 bg-white dark:bg-slate-800 dark:border-slate-700 px-1.5 py-1 text-[9px] font-bold text-slate-500 hover:text-slate-700"
+                              title={t('Revert to Dispatched', 'డిస్పాచ్డ్‌కు రీవర్ట్ చేయండి')}
+                            >
+                              {t('Revert', 'రీవర్ట్')}
+                            </button>
+                          </div>
+                        )}
+                        {status === 'TEST_PASSED' && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-100 px-2.5 py-0.5 text-[10px] font-black text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                            <CheckCircle2 className="h-3 w-3" />
+                            {t('Standard / Passed', 'ప్రమాణాల ప్రకారం ఉంది')}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -617,6 +749,137 @@ export function EnforcementTracker() {
               <p className="mt-2 text-sm font-bold text-slate-500">{t('No samples found.', 'నమూనాలు కనుగొనబడలేదు.')}</p>
             </div>
           )}
+        </div>
+      )}
+
+
+      {/* ============ MARK STATUTORY NON-COMPLIANCE MODAL ============ */}
+      {markingSample && (
+        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-950/60 dark:text-red-400">
+                  <ShieldAlert className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white">
+                    {t(`Mark Sample as ${markingSample.finding.label}`, markingSample.finding.buttonTelugu)}
+                  </h3>
+                  <p className="text-[11px] font-semibold text-slate-500">
+                    {markingSample.finding.actRef}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMarkingSample(null)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Sample summary */}
+            <div className="mt-3.5 rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs dark:border-slate-800 dark:bg-slate-800/40">
+              <div className="grid grid-cols-2 gap-2 text-slate-600 dark:text-slate-300">
+                <div>
+                  <span className="text-[10px] font-black uppercase text-slate-400">{t('Sample Code', 'నమూనా కోడ్')}:</span>
+                  <p className="font-mono font-bold text-slate-900 dark:text-white">{markingSample.sample.sampleCode}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase text-slate-400">{t('Commodity', 'వస్తువు')}:</span>
+                  <p className="font-bold text-slate-900 dark:text-white capitalize">{markingSample.sample.commodity}</p>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-[10px] font-black uppercase text-slate-400">{t('Firm / Dealer', 'డీలర్ / సంస్థ')}:</span>
+                  <p className="font-bold text-slate-900 dark:text-white truncate">{markingSample.sample.dealerName}</p>
+                </div>
+              </div>
+              <p className="mt-2 text-[11px] text-slate-500 border-t border-slate-200/60 pt-2 dark:border-slate-700/60">
+                {markingSample.finding.description}
+              </p>
+            </div>
+
+            {/* Form fields */}
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">
+                  {t('Lab Analysis / Test Report No.', 'ల్యాబ్ రిపోర్ట్ / టెస్ట్ నంబర్')}
+                </label>
+                <input
+                  type="text"
+                  value={reportRefInput}
+                  onChange={(e) => setReportRefInput(e.target.value)}
+                  placeholder="e.g. CTL/RPT/2026/042 or Memorandum No."
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">
+                    {t('Report Date', 'రిపోర్ట్ తేదీ')}
+                  </label>
+                  <input
+                    type="date"
+                    value={reportDateInput}
+                    onChange={(e) => setReportDateInput(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">
+                    {t('Finding Classification', 'చట్టబద్ధ వర్గీకరణ')}
+                  </label>
+                  <div className={`rounded-xl border px-3 py-2 text-xs font-black ${markingSample.finding.badgeCls}`}>
+                    {markingSample.finding.label}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">
+                  {t('Non-compliance Remarks / Test Parameters (Optional)', 'రిమార్కులు / విఫలమైన పారామితులు')}
+                </label>
+                <input
+                  type="text"
+                  value={reportRemarksInput}
+                  onChange={(e) => setReportRemarksInput(e.target.value)}
+                  placeholder="e.g. Active ingredient below tolerance, Germination % below minimum standard"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="mt-5 flex items-center justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setMarkingSample(null)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                {t('Cancel', 'రద్దు చేయండి')}
+              </button>
+              <button
+                type="button"
+                disabled={submittingLabReport}
+                onClick={() => void handleConfirmNonCompliance()}
+                className={`rounded-xl px-4 py-2 text-xs font-black shadow-md transition disabled:opacity-60 ${markingSample.finding.buttonCls}`}
+              >
+                {submittingLabReport ? (
+                  <span className="flex items-center gap-1.5">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    {t('Saving...', 'సేవ్ అవుతోంది...')}
+                  </span>
+                ) : (
+                  <span>
+                    {t(`Confirm as ${markingSample.finding.label}`, markingSample.finding.buttonTelugu)}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

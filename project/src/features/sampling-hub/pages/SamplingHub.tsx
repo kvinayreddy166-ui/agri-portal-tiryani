@@ -1,4 +1,5 @@
 import React, { lazy, Suspense, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bug, FileText, Files, FlaskConical, HelpCircle, Loader2, Sprout } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
@@ -43,6 +44,7 @@ const SAMPLE_CATEGORIES = [
 
 export function SamplingHub() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [category, setCategory] = useState('fertilizers');
   const [toolOpen, setToolOpen] = useState(false);
   const [seedInstructionOpen, setSeedInstructionOpen] = useState(true);
@@ -118,6 +120,35 @@ export function SamplingHub() {
           <FileText className="h-5 w-5" />
           {t('Start New Sample Drawal', 'కొత్త నమూనా డ్రాయింగ్‌ను ప్రారంభించండి')}
         </button>
+      </section>
+
+      <section className="rounded-2xl border border-emerald-900/10 bg-gradient-to-br from-emerald-50/60 via-white to-slate-50 p-5 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                <FlaskConical className="h-4 w-4" />
+              </div>
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
+                {t('Dispatched Samples & Lab Tracker', 'పంపబడిన నమూనాలు & ల్యాబ్ ట్రాకర్')}
+              </h3>
+            </div>
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 max-w-2xl">
+              {t(
+                'Track laboratory test results for dispatched samples. Mark non-compliant findings statutorily: Misbranded for Pesticides, Not according to Specifications for Fertilizer, or Substandard for Seed.',
+                'పంపబడిన నమూనాల ల్యాబ్ ఫలితాలను ట్రాక్ చేయండి: పురుగుమందుల కోసం మిస్‌బ్రాండెడ్, ఎరువుల కోసం స్పెసిఫికేషన్ల ప్రకారం లేదు, విత్తనాల కోసం సబ్‌స్టాండర్డ్‌గా గుర్తించండి.'
+              )}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/officer-toolkit/enforcement-tracker?tab=samples')}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 py-2.5 text-xs font-black text-white shadow-sm hover:bg-emerald-700 transition"
+          >
+            <FlaskConical className="h-4 w-4" />
+            <span>{t('Open Dispatched Samples Tracker →', 'డిస్పాచ్ నమూనాల ట్రాకర్ తెరవండి →')}</span>
+          </button>
+        </div>
       </section>
 
       {toolOpen && (
