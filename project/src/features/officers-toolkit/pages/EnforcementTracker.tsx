@@ -302,13 +302,14 @@ export function EnforcementTracker() {
       {/* Summary stat cards */}
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
         {[
-          { label: t('Open Cases', 'ఓపెన్ కేసులు'), value: stats.openCases, icon: Briefcase, tone: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50' },
-          { label: t('Urgent Deadlines', 'అత్యవసర గడువులు'), value: stats.urgentDeadlines, icon: AlertTriangle, tone: 'text-red-600 bg-red-50 dark:bg-red-950/50' },
-          { label: t('High-Risk Dealers', 'అధిక రిస్క్ డీలర్లు'), value: stats.criticalDealers, icon: ShieldAlert, tone: 'text-orange-600 bg-orange-50 dark:bg-orange-950/50' },
-          { label: t('Active Samples', 'యాక్టివ్ నమూనాలు'), value: stats.activeSamples, icon: FlaskConical, tone: 'text-sky-600 bg-sky-50 dark:bg-sky-950/50' },
+          { label: t('Open Cases', 'ఓపెన్ కేసులు'), value: stats.openCases, icon: Briefcase, tone: 'text-emerald-700 bg-emerald-50 ring-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/40', bar: 'bg-emerald-600' },
+          { label: t('Urgent Deadlines', 'అత్యవసర గడువులు'), value: stats.urgentDeadlines, icon: AlertTriangle, tone: 'text-rose-700 bg-rose-50 ring-rose-200/60 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-800/40', bar: 'bg-rose-600' },
+          { label: t('High-Risk Dealers', 'అధిక రిస్క్ డీలర్లు'), value: stats.criticalDealers, icon: ShieldAlert, tone: 'text-amber-700 bg-amber-50 ring-amber-200/60 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/40', bar: 'bg-amber-500' },
+          { label: t('Active Samples', 'యాక్టివ్ నమూనాలు'), value: stats.activeSamples, icon: FlaskConical, tone: 'text-sky-700 bg-sky-50 ring-sky-200/60 dark:bg-sky-950/50 dark:text-sky-300 dark:ring-sky-800/40', bar: 'bg-sky-600' },
         ].map((s) => (
-          <div key={s.label} className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${s.tone}`}>
+          <div key={s.label} className="relative overflow-hidden flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+            <div className={`pointer-events-none absolute inset-x-0 top-0 h-0.5 ${(s as any).bar}`} />
+            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ${s.tone} shadow-2xs`}>
               <s.icon className="h-5 w-5" />
             </span>
             <div className="min-w-0">
@@ -320,22 +321,22 @@ export function EnforcementTracker() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-4 inline-flex w-full max-w-2xl items-stretch gap-1 rounded-2xl border border-emerald-900/10 bg-white/80 p-1 shadow-sm dark:border-white/10 dark:bg-slate-900/80">
+      <div className="mb-4 inline-flex w-full max-w-2xl items-stretch gap-1 rounded-2xl border border-slate-200/90 bg-white/90 p-1 shadow-2xs backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/90">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-[11px] font-bold transition sm:text-xs ${
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-[11px] font-bold transition sm:text-xs ${
               activeTab === tab.id
-                ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25'
-                : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-400 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300'
+                ? 'bg-emerald-700 text-white shadow-2xs hover:bg-emerald-600 dark:bg-emerald-600'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-emerald-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-emerald-300'
             }`}
           >
-            <tab.icon className="h-3.5 w-3.5 shrink-0" />
+            <tab.icon className={`h-3.5 w-3.5 shrink-0 ${activeTab === tab.id ? 'text-gold-300' : ''}`} />
             <span className="truncate">{t(tab.label, tab.te)}</span>
             {typeof tab.badge === 'number' && tab.badge > 0 && (
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black leading-none ${activeTab === tab.id ? 'bg-white/15 text-emerald-50' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black leading-none ${activeTab === tab.id ? 'bg-white/20 text-emerald-50' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
                 {tab.badge}
               </span>
             )}
@@ -345,13 +346,13 @@ export function EnforcementTracker() {
 
       {/* Search */}
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={t('Search dealer, case no, sample code...', 'డీలర్, కేసు నం, నమూనా కోడ్ వెతకండి...')}
-          className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 shadow-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+          className="w-full rounded-xl border border-slate-200/90 bg-white py-2.5 pl-10 pr-4 text-xs sm:text-sm text-slate-900 shadow-2xs outline-none focus:border-emerald-500 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
         />
       </div>
 
