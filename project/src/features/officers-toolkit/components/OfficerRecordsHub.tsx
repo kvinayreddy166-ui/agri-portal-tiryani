@@ -920,29 +920,9 @@ export function OfficerRecordsHub() {
                           {doc.document_category}
                         </span>
 
-                        <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                          v{doc.version_number}
-                        </span>
-
                         <span className="inline-flex items-center uppercase rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-mono font-bold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
                           {doc.file_format}
                         </span>
-
-                        {doc.compression_method === 'gzip' ? (
-                          <span
-                            className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-mono font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                            title={t('Reversible GZIP Lossless Compression', 'రివర్సిబుల్ GZIP కంప్రెషన్')}
-                          >
-                            GZIP
-                          </span>
-                        ) : (
-                          <span
-                            className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                            title={t('Original Uncompressed', 'అసలు సైజు')}
-                          >
-                            RAW
-                          </span>
-                        )}
 
                         {renderUploadStatusBadge(doc.upload_status)}
                       </div>
@@ -1040,27 +1020,9 @@ export function OfficerRecordsHub() {
                         <span className="inline-flex items-center uppercase rounded-lg bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
                           {doc.document_category}
                         </span>
-                        <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                          v{doc.version_number}
-                        </span>
                         <span className="inline-flex items-center uppercase rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-mono font-bold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
                           {doc.file_format}
                         </span>
-                        {doc.compression_method === 'gzip' ? (
-                          <span
-                            className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-mono font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                            title={t('Reversible GZIP Lossless Compression', 'రివర్సిబుల్ GZIP కంప్రెషన్')}
-                          >
-                            GZIP
-                          </span>
-                        ) : (
-                          <span
-                            className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                            title={t('Original Uncompressed', 'అసలు సైజు')}
-                          >
-                            RAW
-                          </span>
-                        )}
                       </div>
 
                       {renderUploadStatusBadge(doc.upload_status)}
