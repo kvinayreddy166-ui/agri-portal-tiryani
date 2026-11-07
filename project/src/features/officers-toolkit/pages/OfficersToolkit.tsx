@@ -3,7 +3,7 @@ import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader
 import { useLocation } from 'react-router-dom';
 import { OfficerRecordsHub } from '../components/OfficerRecordsHub';
 import { EnforcementTracker } from './EnforcementTracker';
-import { Calculator, ShieldCheck, FlaskConical, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, FolderOpen, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, Bug, Microscope, Archive, type LucideIcon } from 'lucide-react';
+import { Calculator, ShieldCheck, FlaskConical, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, FolderOpen, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, Bug, Microscope, Archive, ChevronRight, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -393,29 +393,38 @@ function ToolkitCard({ item, onClick }: { item: ToolkitItem; onClick: () => void
     <button
       type="button"
       onClick={onClick}
-      className="group relative flex h-full w-full cursor-pointer flex-col rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-600/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700 sm:p-4"
+      className="group relative flex h-full w-full cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-3.5 sm:p-4 text-left shadow-2xs transition-all duration-200 hover:-translate-y-1 hover:border-emerald-600/50 hover:shadow-md hover:shadow-emerald-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700"
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${item.gradient} text-white shadow-sm transition-transform duration-200 group-hover:scale-105 sm:h-11 sm:w-11`}>
-          <item.icon className="h-5 w-5" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-600 via-gold-400 to-emerald-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      <div>
+        <div className="flex items-start justify-between gap-2">
+          <div className={`flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.gradient} text-white shadow-2xs transition-transform duration-200 group-hover:scale-105`}>
+            <item.icon className="h-5 w-5" />
+          </div>
+          {item.externalUrl && (
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-400 ring-1 ring-slate-200 transition-colors duration-200 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:ring-emerald-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700 dark:group-hover:bg-emerald-950/50 dark:group-hover:text-emerald-300">
+              <ExternalLink className="h-3 w-3" />
+            </span>
+          )}
         </div>
-        {item.externalUrl && (
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-400 ring-1 ring-slate-200 transition-colors duration-200 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:ring-emerald-200 dark:bg-slate-800 dark:text-slate-500 dark:ring-slate-700 dark:group-hover:bg-emerald-950/50 dark:group-hover:text-emerald-300 dark:group-hover:ring-emerald-700/50">
-            <ExternalLink className="h-3 w-3" />
-          </span>
-        )}
+        <h3 className="mt-2.5 text-xs sm:text-sm font-bold leading-snug text-slate-900 transition-colors group-hover:text-emerald-800 dark:text-slate-100 dark:group-hover:text-emerald-300">
+          {t(item.title, translateToolkit(item.title))}
+        </h3>
+        <p className="mt-1 line-clamp-2 text-[11px] font-medium leading-snug text-slate-500 dark:text-slate-400">
+          {t(item.description, translateToolkit(item.description))}
+        </p>
       </div>
-      <h3 className="mt-2.5 text-[13px] font-bold leading-snug text-slate-800 transition-colors group-hover:text-emerald-800 dark:text-slate-100 dark:group-hover:text-emerald-300 sm:text-sm">
-        {t(item.title, translateToolkit(item.title))}
-      </h3>
-      <p className="mt-1 line-clamp-2 text-[11px] font-medium leading-snug text-slate-500 dark:text-slate-400">
-        {t(item.description, translateToolkit(item.description))}
-      </p>
-      {item.statusMessage && (
-        <span className="mt-2 inline-flex w-fit rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50 sm:text-[10px]">
-          {t(item.statusMessage, translateToolkit(item.statusMessage))}
+      <div className="mt-3 flex items-center justify-between">
+        {item.statusMessage ? (
+          <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50">
+            {t(item.statusMessage, translateToolkit(item.statusMessage))}
+          </span>
+        ) : <span />}
+        <span className="text-[11px] font-bold text-emerald-700 opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5 flex items-center gap-0.5 dark:text-emerald-400">
+          {item.externalUrl ? t('Open Portal', 'పోర్టల్') : t('Open', 'తెరవండి')}
+          <ChevronRight className="h-3 w-3" />
         </span>
-      )}
+      </div>
     </button>
   );
 }
@@ -470,15 +479,17 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
   }, []);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl animate-pulse" />
-        <div className="absolute top-40 right-20 h-96 w-96 rounded-full bg-teal-400/10 blur-3xl animate-pulse delay-1000" />
-        <div className="absolute bottom-20 left-1/3 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl animate-pulse delay-2000" />
-      </div>
+    <div className={isPublic ? "min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950" : "space-y-4"}>
+      {/* Animated Background Elements - Only shown for public standalone page */}
+      {isPublic && (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl animate-pulse" />
+          <div className="absolute top-40 right-20 h-96 w-96 rounded-full bg-teal-400/10 blur-3xl animate-pulse delay-1000" />
+          <div className="absolute bottom-20 left-1/3 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl animate-pulse delay-2000" />
+        </div>
+      )}
 
-      <div className="relative mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+      <div className={isPublic ? "relative mx-auto max-w-7xl p-4 sm:p-6 lg:p-8" : "relative"}>
         {/* Header Section - Only shown for public access */}
         {!shouldHideHeader && (
           <div className={`mb-5 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
@@ -549,7 +560,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
         {/* Section Switcher — Field Tools / Government Portals / Records & Cloud Archive */}
         {!fixedTab && activeTab !== 'records' && activeTab !== 'enforcement' && (
         <div className={`mb-5 transition duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="inline-flex w-full max-w-md items-stretch gap-1 rounded-2xl border border-emerald-900/10 bg-white/80 p-1 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/80">
+          <div className="inline-flex w-full max-w-md items-stretch gap-1 rounded-2xl border border-slate-200/90 bg-white/90 p-1 shadow-2xs backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/90">
             {[
               { id: 'tools' as const, label: 'Field Tools', te: 'ఫీల్డ్ టూల్స్', icon: Calculator, count: sortedToolkitItems.length },
               ...(canViewOfficerRecords
@@ -570,10 +581,10 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
                     setActiveTab(tab.id);
                   }
                 }}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-bold transition duration-200 sm:text-sm ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition duration-200 sm:text-sm ${
                   activeTab === tab.id
-                    ? 'bg-emerald-700 text-white shadow-sm hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
-                    : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-400 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300'
+                    ? 'bg-emerald-700 text-white shadow-2xs hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-emerald-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-emerald-300'
                 }`}
               >
                 <tab.icon className={`h-4 w-4 shrink-0 ${activeTab === tab.id ? 'text-gold-300' : ''}`} />
@@ -582,7 +593,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
                   <span
                     className={`hidden rounded-full px-1.5 py-0.5 text-[10px] font-black leading-none sm:inline-block ${
                       activeTab === tab.id
-                        ? 'bg-white/15 text-emerald-50'
+                        ? 'bg-white/20 text-emerald-50'
                         : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                     }`}
                   >

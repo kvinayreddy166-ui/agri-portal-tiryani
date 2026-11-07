@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
-import { FileText, ChevronRight, CheckCircle, ExternalLink, Copy, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, Store, ClipboardList, Sprout, ArrowUpRight, FileCheck, ReceiptText } from 'lucide-react';
+import { FileText, ChevronRight, CheckCircle, ExternalLink, Copy, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, Store, ClipboardList, Sprout, ArrowUpRight, FileCheck, ReceiptText, FlaskConical, Bug, SlidersHorizontal } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -173,11 +173,42 @@ const INSECTICIDE_AMENDMENT_TYPES: Record<InsecticideAmendmentType, string> = {
   extension_of_lease: 'Extension of Lease Agreement',
 };
 
+const LICENSE_CATEGORIES = [
+  {
+    id: 'fertilizer' as const,
+    label: 'Fertilizer',
+    telugu: 'ఎరువులు',
+    subtext: 'Retail / Wholesale / Mfg',
+    subtextTelugu: 'రిటైల్ / హోల్‌సేల్ / తయారీ',
+    icon: FlaskConical,
+    tone: 'sky',
+  },
+  {
+    id: 'seed' as const,
+    label: 'Seed',
+    telugu: 'విత్తనాలు',
+    subtext: 'Fresh / Renewal / Amendment',
+    subtextTelugu: 'కొత్తది / పునరుద్ధరణ / సవరణ',
+    icon: Sprout,
+    tone: 'emerald',
+  },
+  {
+    id: 'insecticide' as const,
+    label: 'Pesticide',
+    telugu: 'పురుగుమందులు',
+    subtext: 'Urban / Rural / Mfg / PC',
+    subtextTelugu: 'అర్బన్ / రూరల్ / తయారీ / PC',
+    icon: Bug,
+    tone: 'amber',
+  },
+] as const;
+
 export function LicenseServices() {
-  const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const isLoginUser = Boolean(user) || isAdminUser || isTestUser || isOfficerUser;
+  const showCompactHeader = isLoginUser;
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast] = useState<{ message: string; show: boolean } | null>(null);
@@ -433,6 +464,574 @@ export function LicenseServices() {
     window.open('https://ifmis.telangana.gov.in/manual_challan_entry', '_blank');
   };
 
+  // Authenticated Officer / Test / Admin view — impeccable AGRONIX styling
+  if (isLoginUser) {
+    return (
+      <div className="mx-auto w-full max-w-7xl space-y-4">
+        {/* Module Header */}
+        <ModulePageHeader
+          title={t('License Services', 'లైసెన్స్ సేవలు')}
+          subtitle={t('Statutory Treasury Challan Details & DDO Code Directory', 'చట్టబద్ధమైన ట్రెజరీ చలాన్ వివరాలు & DDO కోడ్ డైరెక్టరీ')}
+          icon={ReceiptText}
+        />
+
+        {/* Toast Notification */}
+        {toast && (
+          <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right">
+            <div className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-lg dark:bg-white dark:text-slate-900">
+              <CheckCircle className="h-4 w-4 text-emerald-400" />
+              {toast.message}
+            </div>
+          </div>
+        )}
+
+        {/* Category selector */}
+        <section className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="mb-3.5 flex items-center justify-between">
+            <div>
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                {t('Select Category', 'వర్గాన్ని ఎంచుకోండి')}
+              </h2>
+              <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                {t('Choose statutory category to calculate treasury challan fees & DDO codes', 'ట్రెజరీ చలాన్ ఫీజులు మరియు DDO కోడ్‌లను లెక్కించడానికి వర్గాన్ని ఎంచుకోండి')}
+              </p>
+            </div>
+            {licenseType && (
+              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60">
+                {licenseType === 'fertilizer' ? t('Fertilizer', 'ఎరువులు') : licenseType === 'seed' ? t('Seed', 'విత్తనాలు') : t('Pesticide', 'పురుగుమందులు')}
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3.5">
+            {LICENSE_CATEGORIES.map((cat) => {
+              const isSelected = licenseType === cat.id;
+              const CatIcon = cat.icon;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => handleLicenseTypeChange(cat.id as LicenseType)}
+                  className={`group relative flex min-h-[58px] items-center justify-between overflow-hidden rounded-xl border p-3 sm:p-3.5 text-left transition-all duration-200 ${
+                    isSelected
+                      ? 'border-emerald-700 bg-gradient-to-br from-emerald-800 to-emerald-900 text-white shadow-md shadow-emerald-950/20'
+                      : 'border-slate-200/90 bg-slate-50/60 text-slate-800 shadow-2xs hover:-translate-y-0.5 hover:border-emerald-500/40 hover:bg-white hover:shadow-xs dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800/80'
+                  }`}
+                >
+                  {isSelected && (
+                    <div className="pointer-events-none absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-gold-400 via-gold-300 to-gold-400" />
+                  )}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 ${
+                        isSelected
+                          ? 'bg-white/15 text-white ring-1 ring-white/20'
+                          : cat.tone === 'emerald'
+                          ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/50'
+                          : cat.tone === 'sky'
+                          ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-200/60 dark:bg-sky-950/50 dark:text-sky-300 dark:ring-sky-800/50'
+                          : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/60 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/50'
+                      }`}
+                    >
+                      <CatIcon className="h-4.5 w-4.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="block truncate text-sm font-black font-[var(--font-heading)]">
+                        {language === 'te' ? cat.telugu : cat.label}
+                      </span>
+                      <span className={`block text-[11px] font-semibold ${isSelected ? 'text-emerald-200' : 'text-slate-400 dark:text-slate-500'}`}>
+                        {language === 'te' ? cat.subtextTelugu : cat.subtext}
+                      </span>
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <span className="shrink-0 text-xs font-black text-gold-300">✓</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Parameters Card */}
+        {licenseType ? (
+          <section className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/50">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white font-[var(--font-heading)]">
+                    {t('License Parameters', 'లైసెన్స్ పారామితులు')}
+                  </h2>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {t('Select dealership classification, application type and jurisdiction', 'డీలర్‌షిప్ వర్గీకరణ, దరఖాస్తు రకం మరియు అధికార పరిధిని ఎంచుకోండి')}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Dealer Type (for Fertilizer) */}
+            {showDealerType && (
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  {t('Dealer Type', 'డీలర్ రకం')}
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { value: 'retailer', label: 'Retailer', telugu: 'రిటైలర్' },
+                    { value: 'wholesaler', label: 'Wholesaler', telugu: 'హోల్‌సేలర్' },
+                    { value: 'coop_societies', label: 'Coop. Societies', telugu: 'సహకార సంఘాలు' },
+                    { value: 'manufacturing_license', label: 'Manufacturing', telugu: 'తయారీ లైసెన్స్' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => handleDealerTypeChange(opt.value as DealerType)}
+                      className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition-all duration-150 ${
+                        dealerType === opt.value
+                          ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
+                          : 'border-slate-200/90 bg-slate-50/70 text-slate-700 hover:border-slate-300 hover:bg-white dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <Store className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{language === 'te' ? opt.telugu : opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Area Type (for Insecticide) */}
+            {showAreaType && (
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  {t('Area Classification', 'ప్రాంత వర్గీకరణ')}
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {[
+                    { value: 'municipal', label: 'Urban Areas', telugu: 'పట్టణ ప్రాంతాలు (Urban)' },
+                    { value: 'rural', label: 'Rural Areas', telugu: 'గ్రామీణ ప్రాంతాలు (Rural)' },
+                    { value: 'manufacturing_license', label: 'Manufacturing License', telugu: 'తయారీ లైసెన్స్ (Mfg)' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => handleAreaTypeChange(opt.value as AreaType)}
+                      className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition-all duration-150 ${
+                        areaType === opt.value
+                          ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
+                          : 'border-slate-200/90 bg-slate-50/70 text-slate-700 hover:border-slate-300 hover:bg-white dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <span className="truncate">{language === 'te' ? opt.telugu : opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Application Type */}
+            {licenseType && (
+              <div>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  {t('Application Type', 'దరఖాస్తు రకం')}
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                  {[
+                    { value: 'fresh', label: 'Fresh', telugu: 'కొత్తది' },
+                    { value: 'renewal', label: 'Renewal', telugu: 'పునరుద్ధరణ' },
+                    { value: 'renewal_grace_period', label: 'Grace Period', telugu: 'గ్రేస్ పీరియడ్' },
+                    { value: 'amendment', label: 'Amendment', telugu: 'సవరణ' },
+                    { value: 'duplicate', label: 'Duplicate', telugu: 'డూప్లికేట్' },
+                    { value: 'pc_inclusion', label: 'PC Inclusion', telugu: 'PC చేరిక' },
+                  ].filter(opt => {
+                    if (licenseType === 'insecticide') {
+                      return ['fresh', 'renewal', 'renewal_grace_period', 'amendment', 'duplicate', 'pc_inclusion'].includes(opt.value);
+                    }
+                    return ['fresh', 'renewal', 'renewal_grace_period', 'amendment', 'duplicate'].includes(opt.value);
+                  }).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => handleApplicationTypeChange(opt.value as ApplicationType)}
+                      className={`flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition-all duration-150 ${
+                        applicationType === opt.value
+                          ? 'border-emerald-600 bg-emerald-600 text-white shadow-xs'
+                          : 'border-slate-200/90 bg-slate-50/70 text-slate-700 hover:border-slate-300 hover:bg-white dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <ClipboardList className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{language === 'te' ? opt.telugu : opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Amendment Dropdowns */}
+            {showFertilizerAmendmentType && (
+              <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/40 p-3.5 dark:border-emerald-800/60 dark:bg-emerald-950/20">
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  {t('Fertilizer Amendment Type', 'ఎరువుల సవరణ రకం')}
+                </label>
+                <select
+                  value={fertilizerAmendmentType}
+                  onChange={(e) => handleFertilizerAmendmentTypeChange(e.target.value as FertilizerAmendmentType)}
+                  className="w-full rounded-xl border border-slate-200/90 bg-white py-2 px-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                >
+                  <option value="">{t('Select Amendment Type', 'సవరణ రకాన్ని ఎంచుకోండి')}</option>
+                  {Object.entries(FERTILIZER_AMENDMENT_TYPES).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {showSeedAmendmentType && (
+              <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/40 p-3.5 dark:border-emerald-800/60 dark:bg-emerald-950/20">
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  {t('Seed Amendment Type', 'విత్తన సవరణ రకం')}
+                </label>
+                <select
+                  value={seedAmendmentType}
+                  onChange={(e) => handleSeedAmendmentTypeChange(e.target.value as SeedAmendmentType)}
+                  className="w-full rounded-xl border border-slate-200/90 bg-white py-2 px-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                >
+                  <option value="">{t('Select Amendment Type', 'సవరణ రకాన్ని ఎంచుకోండి')}</option>
+                  {Object.entries(SEED_AMENDMENT_TYPES).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {showInsecticideAmendmentType && (
+              <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/40 p-3.5 dark:border-emerald-800/60 dark:bg-emerald-950/20">
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  {t('Insecticide Amendment Type', 'పురుగుమందుల సవరణ రకం')}
+                </label>
+                <select
+                  value={insecticideAmendmentType}
+                  onChange={(e) => handleInsecticideAmendmentTypeChange(e.target.value as InsecticideAmendmentType)}
+                  className="w-full rounded-xl border border-slate-200/90 bg-white py-2 px-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                >
+                  <option value="">{t('Select Amendment Type', 'సవరణ రకాన్ని ఎంచుకోండి')}</option>
+                  {Object.entries(INSECTICIDE_AMENDMENT_TYPES).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* District & Division */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              {/* District */}
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  {t('District', 'జిల్లా')}
+                </label>
+                <div className="relative">
+                  <select
+                    value={district}
+                    onChange={(e) => handleDistrictChange(e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-slate-200/90 bg-white py-2.5 pl-10 pr-8 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                  >
+                    <option value="">{t('Select District', 'జిల్లాను ఎంచుకోండి')}</option>
+                    {TELANGANA_DISTRICTS.map((dist) => (
+                      <option key={dist} value={dist}>{dist}</option>
+                    ))}
+                  </select>
+                  <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <ChevronRight className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-slate-400" />
+                </div>
+              </div>
+
+              {/* Division / Product count */}
+              {showDivision ? (
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                    {t('Division', 'డివిజన్')}
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={division}
+                      onChange={(e) => handleDivisionChange(e.target.value)}
+                      disabled={!district}
+                      className="w-full appearance-none rounded-xl border border-slate-200/90 bg-white py-2.5 pl-10 pr-8 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white disabled:opacity-50"
+                    >
+                      <option value="">{t('Select Division', 'డివిజన్ ఎంచుకోండి')}</option>
+                      {getDivisionsForDistrict(district).map((div) => (
+                        <option key={div} value={div}>{div}</option>
+                      ))}
+                    </select>
+                    <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <ChevronRight className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-slate-400" />
+                  </div>
+                </div>
+              ) : showNumberOfProducts ? (
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                    {t('Number of Products', 'ఉత్పత్తుల సంఖ్య')}
+                  </label>
+                  <input
+                    type="number"
+                    value={numberOfProducts}
+                    onChange={(e) => handleNumberOfProductsChange(e.target.value)}
+                    min="1"
+                    placeholder={t('Enter product count', 'ఉత్పత్తుల సంఖ్య నమోదు చేయండి')}
+                    className="w-full rounded-xl border border-slate-200/90 bg-white py-2.5 px-3.5 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                  />
+                </div>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
+
+        {/* Empty State Prompt */}
+        {!showChallanDetails && (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-6 sm:p-8 text-center dark:border-slate-800 dark:bg-slate-900/40">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+              <ClipboardList className="h-6 w-6" />
+            </div>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 font-[var(--font-heading)]">
+              {licenseType ? t('Complete License Parameters', 'లైసెన్స్ పారామితులను పూర్తి చేయండి') : t('Select a License Category Above', 'పైన లైసెన్స్ వర్గాన్ని ఎంచుకోండి')}
+            </h3>
+            <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+              {licenseType
+                ? t('Choose dealer classification, application type and jurisdiction to view Treasury Challan details and fee breakdown.', 'ట్రెజరీ చలాన్ వివరాలు మరియు రుసుమును చూడటానికి డీలర్ వర్గీకరణ, దరఖాస్తు రకం మరియు జిల్లాను ఎంచుకోండి.')
+                : t('Select Fertilizer, Seed, or Pesticide above to get started with automated challan computation.', 'ఆటోమేటెడ్ చలాన్ లెక్కింపును ప్రారంభించడానికి పైన ఎరువులు, విత్తనాలు లేదా పురుగుమందులను ఎంచుకోండి.')}
+            </p>
+          </div>
+        )}
+
+        {/* Challan Details */}
+        {showChallanDetails && (
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900 space-y-4">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/50">
+                  <ReceiptText className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-slate-900 dark:text-white font-[var(--font-heading)]">
+                    {t('Treasury Challan Details', 'ట్రెజరీ చలాన్ వివరాలు')}
+                  </h2>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {t('IFMIS Treasury portal entry parameters & auto-computed statutory fee', 'IFMIS ట్రెజరీ పోర్టల్ పారామితులు మరియు చట్టబద్ధమైన రుసుము')}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Challan Code & DDO Code Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Challan Code */}
+              <div className="rounded-xl border border-slate-200/90 bg-slate-50/60 p-3.5 sm:p-4 dark:border-slate-800 dark:bg-slate-800/50">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <KeyRound className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                      {t('Challan Code', 'చలాన్ కోడ్')}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(getChallanCodeOnly(), 'Challan Code')}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200/90 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  >
+                    {copiedField === 'Challan Code' ? (
+                      <>
+                        <CheckCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-emerald-600 dark:text-emerald-400">{t('Copied', 'కాపీ చేయబడింది')}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5 text-slate-500" />
+                        <span>{t('Copy Code', 'కాపీ చేయండి')}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="font-mono text-xs sm:text-sm font-bold text-slate-900 dark:text-white break-words">
+                  {getChallanCode()}
+                </p>
+              </div>
+
+              {/* DDO Code */}
+              <div className="rounded-xl border border-slate-200/90 bg-slate-50/60 p-3.5 sm:p-4 dark:border-slate-800 dark:bg-slate-800/50">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <Landmark className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                      {t('DDO Code', 'DDO కోడ్')} {division ? `(${division})` : district ? `(${district})` : ''}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(ddoCode, 'DDO Code')}
+                    disabled={!ddoCode}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200/90 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 disabled:opacity-50"
+                  >
+                    {copiedField === 'DDO Code' ? (
+                      <>
+                        <CheckCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-emerald-600 dark:text-emerald-400">{t('Copied', 'కాపీ చేయబడింది')}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5 text-slate-500" />
+                        <span>{t('Copy DDO', 'కాపీ చేయండి')}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="font-mono text-lg font-black text-slate-900 dark:text-white tracking-wider">
+                  {ddoCode || (
+                    <span className="font-sans text-xs font-medium text-slate-400">
+                      {division ? t('DDO code not available for this division', 'ఈ డివిజన్‌కు DDO కోడ్ అందుబాటులో లేదు') : t('Select district/division', 'జిల్లా/డివిజన్ ఎంచుకోండి')}
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Accounting Heads */}
+            <div>
+              <div className="mb-2.5 flex items-center gap-2">
+                <Landmark className="h-3.5 w-3.5 text-slate-500" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                  {t('Treasury Accounting Heads', 'ట్రెజరీ అకౌంటింగ్ హెడ్స్')}
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                {[
+                  { label: 'Major Head', val: getChallanHeads().majorHead.split(' ')[0], sub: getChallanHeads().majorHead.split(' ').slice(1).join(' ') },
+                  { label: 'Sub Major Head', val: getChallanHeads().subMajorHead },
+                  { label: 'Minor Head', val: getChallanHeads().minorHead.split(' ')[0], sub: getChallanHeads().minorHead.split(' ').slice(1).join(' ') },
+                  { label: 'Group Sub Head', val: getChallanHeads().groupSubHead },
+                  { label: 'Sub Head', val: getChallanHeads().subHead.split(' ')[0], sub: getChallanHeads().subHead.split(' ').slice(1).join(' ') },
+                  { label: 'Detailed Head', val: '000' },
+                  { label: 'Sub Detailed Head', val: '000' },
+                  { label: 'Non-Plan/Plan', val: 'N' },
+                  { label: 'Voted/Charged', val: 'V' },
+                  { label: 'Non-Contingency', val: 'N' },
+                ].map((item, idx) => (
+                  <div key={idx} className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-2.5 dark:border-slate-800 dark:bg-slate-800/40">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      {item.label}
+                    </span>
+                    <p className="mt-0.5 text-sm font-black text-slate-900 dark:text-white font-mono">
+                      {item.val}
+                    </p>
+                    {item.sub && (
+                      <p className="text-[10px] font-medium text-slate-400 truncate" title={item.sub}>
+                        {item.sub}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Applicable Fee Section */}
+            <div className="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/60 via-white to-emerald-50/30 p-4 sm:p-5 dark:border-emerald-800/60 dark:from-emerald-950/30 dark:via-slate-900 dark:to-emerald-950/20">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                    <IndianRupee className="h-4 w-4" />
+                    <span>{t('Statutory Treasury Fee', 'చట్టబద్ధమైన ట్రెజరీ ఫీజు')}</span>
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-3xl font-black text-emerald-700 dark:text-emerald-300 font-[var(--font-heading)]">
+                      ₹ {getAmount().toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-emerald-200/70 bg-white/80 p-2.5 text-xs dark:border-emerald-800/50 dark:bg-slate-800/70 sm:text-right">
+                  <span className="font-bold text-slate-900 dark:text-white capitalize">
+                    {licenseType === 'fertilizer' ? t('Fertilizer', 'ఎరువులు') : licenseType === 'seed' ? t('Seed', 'విత్తనాలు') : t('Pesticide', 'పురుగుమందులు')}
+                    {dealerType ? ` • ${dealerType.replace(/_/g, ' ')}` : ''}
+                    {applicationType ? ` • ${applicationType.replace(/_/g, ' ')}` : ''}
+                  </span>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    {t('Standard government challan fee for selected parameters', 'ఎంచుకున్న పారామితులకు వర్తించే ప్రభుత్వ చలాన్ రుసుము')}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Proceed CTA */}
+            <button
+              type="button"
+              onClick={handleProceedToChallan}
+              className="w-full min-h-[50px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-800 px-6 py-3.5 text-sm font-bold text-white shadow-xs transition hover:from-emerald-800 hover:to-emerald-900 hover:shadow-sm dark:from-emerald-600 dark:to-emerald-700"
+            >
+              <ExternalLink className="h-4.5 w-4.5" />
+              <span>{t('Proceed to Treasury Portal (IFMIS)', 'ట్రెజరీ పోర్టల్‌కు వెళ్లండి (IFMIS)')}</span>
+            </button>
+
+            {/* Info Message */}
+            <div className="flex items-start gap-2.5 rounded-xl border border-slate-200/90 bg-slate-50/70 p-3.5 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-300">
+              <Info className="h-4 w-4 shrink-0 text-slate-400 mt-0.5" />
+              <p>
+                {t(
+                  'You will be redirected to the Telangana IFMIS Treasury portal. Please keep the Challan Code and DDO Code copied above for input into the treasury portal form.',
+                  'మీరు తెలంగాణ IFMIS ట్రెజరీ పోర్టల్‌కు మళ్లించబడతారు. పోర్టల్ ఫారమ్‌లో నమోదు చేయడానికి పైన కాపీ చేసిన చలాన్ కోడ్ మరియు DDO కోడ్‌ను సిద్ధంగా ఉంచుకోండి.'
+                )}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Modal */}
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-md rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 ring-1 ring-emerald-200/60 dark:ring-emerald-800/50">
+                  <ExternalLink className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white font-[var(--font-heading)]">
+                    {t('Proceed to Challan Entry?', 'చలాన్ ఎంట్రీకి వెళ్లాలా?')}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {t('External Government Portal', 'బాహ్య ప్రభుత్వ పోర్టల్')}
+                  </p>
+                </div>
+              </div>
+              <p className="mb-5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                {t(
+                  'You will be redirected to the external IFMIS treasury portal in a new tab. Please use the challan and DDO codes displayed on this page.',
+                  'మీరు కొత్త ట్యాబ్‌లో బాహ్య IFMIS ట్రెజరీ పోర్టల్‌కు మళ్లించబడతారు. దయచేసి ఈ పేజీలో ప్రదర్శించబడిన చలాన్ మరియు DDO కోడ్‌లను ఉపయోగించండి.'
+                )}
+              </p>
+              <div className="flex gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100"
+                >
+                  {t('Cancel', 'రద్దు')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmProceed}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-800"
+                >
+                  <ArrowUpRight className="h-4 w-4" />
+                  <span>{t('Proceed', 'కొనసాగించు')}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Public Guest view — preserves original toolkit header and layout
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950 p-4 pb-28 sm:p-6 sm:pb-24">
       <div className="mx-auto w-full max-w-7xl">

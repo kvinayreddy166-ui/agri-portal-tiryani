@@ -14,6 +14,17 @@ import type {
 
 export const LOCAL_ARCHIVED_DOCS_KEY = 'agronix_officer_archived_documents';
 
+/**
+ * Normalizes file extensions/formats to valid statutory archive formats
+ */
+export function normalizeFileFormat(format: string | undefined, filename: string): FileFormat {
+  const ext = (filename.split('.').pop() || format || '').toLowerCase();
+  if (ext === 'docx' || ext === 'doc') return 'docx';
+  if (ext === 'xlsx' || ext === 'xls' || ext === 'csv') return 'xlsx';
+  if (ext === 'txt') return 'txt';
+  return 'pdf';
+}
+
 export interface DocumentArchiveInput {
   filename: string;
   documentCategory: DocumentCategory;
@@ -55,13 +66,27 @@ export class OfficerDocumentArchiveService {
   }
 
   /**
-   * Helper to get current authenticated user
+   * Helper to get current authenticated user with auto-refreshed session token
    */
   private static async getCurrentUser(): Promise<{ id: string; email: string; token: string } | null> {
     try {
       const { data } = await supabase.auth.getSession();
-      const session = data?.session;
+      let session = data?.session;
       if (!session?.user) return null;
+
+      // Proactively refresh JWT token if missing, expired, or expiring in less than 2 minutes
+      const now = Math.floor(Date.now() / 1000);
+      if (!session.access_token || (session.expires_at && session.expires_at - now < 120)) {
+        try {
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+          if (!refreshError && refreshData?.session) {
+            session = refreshData.session;
+          }
+        } catch {
+          // If refresh fails, proceed with current session token
+        }
+      }
+
       return {
         id: session.user.id,
         email: session.user.email || '',
@@ -117,6 +142,7 @@ export class OfficerDocumentArchiveService {
     const documentDate = input.documentDate || new Date().toISOString().slice(0, 10);
     const mimeType = input.mimeType || fileBlob.type || (input.fileFormat === 'pdf' ? 'application/pdf' : 'application/octet-stream');
     const originalSize = fileBlob.size;
+    const fileFormat = normalizeFileFormat(input.fileFormat, input.filename);
 
     // 1. Process File Bytes & Intelligent Reversible Compression
     const rawBuffer = await fileBlob.arrayBuffer();
@@ -135,7 +161,7 @@ export class OfficerDocumentArchiveService {
     const dateObj = new Date(documentDate);
     const year = !isNaN(dateObj.getFullYear()) ? String(dateObj.getFullYear()) : new Date().getFullYear().toString();
     const month = !isNaN(dateObj.getMonth()) ? String(dateObj.getMonth() + 1).padStart(2, '0') : String(new Date().getMonth() + 1).padStart(2, '0');
-    const ext = input.fileFormat || input.filename.split('.').pop() || 'pdf';
+    const ext = fileFormat;
     const objectKey = `officers/${userId}/${year}/${month}/${documentId}.${ext}`;
 
     // 2. Check for Duplicate Upload via Original SHA-256 Content Hash
@@ -236,14 +262,14 @@ export class OfficerDocumentArchiveService {
 
     const isOnline = typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' ? navigator.onLine : true;
 
+    const uploadBlob = new Blob([bytesToStore as unknown as BlobPart], {
+      type: compressionMethod === 'gzip' ? 'application/gzip' : mimeType,
+    });
+
     if (user && workerUrl && isOnline) {
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-        const uploadBlob = new Blob([bytesToStore as unknown as BlobPart], {
-          type: compressionMethod === 'gzip' ? 'application/gzip' : mimeType,
-        });
 
         const formData = new FormData();
         formData.append('file', uploadBlob, input.filename);
@@ -284,6 +310,27 @@ export class OfficerDocumentArchiveService {
       uploadError = !workerUrl ? 'Worker URL not configured' : 'Device is offline';
     }
 
+    // 4b. Secondary Cloud Storage Fallback: Supabase Storage if Cloudflare Worker was not successful
+    if (!uploadedToCloud && user && isOnline) {
+      try {
+        const { error: storageError } = await supabase.storage
+          .from('uploads')
+          .upload(objectKey, uploadBlob, {
+            upsert: true,
+            contentType: compressionMethod === 'gzip' ? 'application/gzip' : mimeType,
+          });
+
+        if (!storageError) {
+          uploadedToCloud = true;
+          uploadError = undefined;
+        } else {
+          console.warn('Supabase storage fallback upload error:', storageError.message);
+        }
+      } catch (storageErr) {
+        console.warn('Supabase storage fallback exception:', storageErr);
+      }
+    }
+
     // 5. Build Canonical Document Record (Authentication-Based Rule: R2 cloud upload only for logged-in users)
     let uploadStatus: UploadStatus;
     if (user) {
@@ -302,7 +349,7 @@ export class OfficerDocumentArchiveService {
       document_date: documentDate,
       source_module: input.sourceModule,
       object_key: user ? objectKey : `local/${documentId}/${input.filename}`,
-      file_format: input.fileFormat,
+      file_format: fileFormat,
       mime_type: mimeType,
       original_size: originalSize,
       stored_size: storedSize,
@@ -347,7 +394,7 @@ export class OfficerDocumentArchiveService {
         documentNumber: input.documentNumber,
         documentDate,
         sourceModule: input.sourceModule,
-        fileFormat: input.fileFormat,
+        fileFormat: fileFormat,
         mimeType,
         originalSize,
         storedSize,
@@ -390,7 +437,7 @@ export class OfficerDocumentArchiveService {
           document_date: documentDate,
           source_module: input.sourceModule,
           object_key: objectKey,
-          file_format: input.fileFormat,
+          file_format: fileFormat,
           mime_type: mimeType,
           original_size: originalSize,
           stored_size: storedSize,
@@ -408,9 +455,13 @@ export class OfficerDocumentArchiveService {
           metadata_json: input.metadata || {},
         };
 
-        const { error: dbError } = await supabase.from('officer_document_archive').insert(row);
+        const table = supabase.from('officer_document_archive');
+        const { error: dbError } = typeof (table as any).upsert === 'function'
+          ? await (table as any).upsert(row, { onConflict: 'id' })
+          : await table.insert(row);
+
         if (dbError) {
-          console.warn('Failed to insert metadata into Supabase:', dbError.message);
+          console.warn('Failed to upsert metadata into Supabase:', dbError.message);
         }
       } catch (err) {
         console.warn('Error recording document metadata:', err);
@@ -646,24 +697,56 @@ export class OfficerDocumentArchiveService {
       console.warn('Could not read from local queue for download:', err);
     }
 
-    // 2. Fetch from Cloudflare Worker
+    // 2. Fetch from Cloudflare Worker or Supabase Storage Fallback
     const user = await this.getCurrentUser();
     const workerUrl = this.getWorkerUrl();
-    if (!user || !workerUrl) {
-      throw new Error('Local copy not found and cloud storage worker is not connected. Document cannot be downloaded.');
+    let blob: Blob | null = null;
+
+    if (user && workerUrl && doc.object_key) {
+      try {
+        const res = await fetch(`${workerUrl}/api/documents/download?key=${encodeURIComponent(doc.object_key)}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (res.ok) {
+          blob = await res.blob();
+        }
+      } catch (err) {
+        console.warn('Cloudflare Worker download error, checking storage fallback:', err);
+      }
     }
 
-    const res = await fetch(`${workerUrl}/api/documents/download?key=${encodeURIComponent(doc.object_key)}`, {
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to download document: HTTP ${res.status}`);
+    // 3. Fallback to Supabase Storage if worker failed or unavailable
+    if (!blob && doc.object_key) {
+      try {
+        const { data, error } = await supabase.storage.from('uploads').download(doc.object_key);
+        if (!error && data) {
+          blob = data;
+        }
+      } catch (err) {
+        console.warn('Supabase storage fallback download error:', err);
+      }
     }
 
-    const blob = await res.blob();
+    if (!blob) {
+      throw new Error('Local copy not found and cloud storage worker/storage is not connected. Document cannot be downloaded.');
+    }
+
+    // Restore gzip stream if stored in compressed form
+    if (doc.compression_method === 'gzip') {
+      const rawBuffer = await blob.arrayBuffer();
+      const { restoredBytes } = await restoreArchivedDocument(
+        new Uint8Array(rawBuffer),
+        'gzip',
+        doc.original_sha256
+      );
+      blob = new Blob([restoredBytes as unknown as BlobPart], {
+        type: doc.mime_type || 'application/pdf',
+      });
+    }
+
     const url = URL.createObjectURL(blob);
     triggerBrowserDownload(url, downloadFilename);
   }
@@ -693,24 +776,56 @@ export class OfficerDocumentArchiveService {
       console.warn('Could not read from local queue for preview:', err);
     }
 
-    // 2. Otherwise fetch restored preview stream from Cloudflare Worker
+    // 2. Fetch restored preview stream from Cloudflare Worker
     const user = await this.getCurrentUser();
     const workerUrl = this.getWorkerUrl();
-    if (!user || !workerUrl) {
+    let blob: Blob | null = null;
+
+    if (user && workerUrl && doc.object_key) {
+      try {
+        const res = await fetch(`${workerUrl}/api/documents/preview?key=${encodeURIComponent(doc.object_key)}`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+        if (res.ok) {
+          blob = await res.blob();
+        }
+      } catch (err) {
+        console.warn('Cloudflare Worker preview error, checking storage fallback:', err);
+      }
+    }
+
+    // 3. Fallback to Supabase Storage if worker failed or unavailable
+    if (!blob && doc.object_key) {
+      try {
+        const { data, error } = await supabase.storage.from('uploads').download(doc.object_key);
+        if (!error && data) {
+          blob = data;
+        }
+      } catch (err) {
+        console.warn('Supabase storage fallback preview error:', err);
+      }
+    }
+
+    if (!blob) {
       throw new Error('Storage service unavailable for preview and no local copy found.');
     }
 
-    const res = await fetch(`${workerUrl}/api/documents/preview?key=${encodeURIComponent(doc.object_key)}`, {
-      headers: {
-        Authorization: `Bearer ${user.token}`,
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to load document preview: HTTP ${res.status}`);
+    // Restore gzip stream if stored in compressed form
+    if (doc.compression_method === 'gzip') {
+      const rawBuffer = await blob.arrayBuffer();
+      const { restoredBytes } = await restoreArchivedDocument(
+        new Uint8Array(rawBuffer),
+        'gzip',
+        doc.original_sha256
+      );
+      blob = new Blob([restoredBytes as unknown as BlobPart], {
+        type: doc.mime_type || 'application/pdf',
+      });
     }
 
-    const blob = await res.blob();
     return URL.createObjectURL(blob);
   }
 
@@ -815,7 +930,7 @@ export class OfficerDocumentArchiveService {
   static async retryFailedUploads(): Promise<{ total: number; succeeded: number; failed: number }> {
     const user = await this.getCurrentUser();
     const workerUrl = this.getWorkerUrl();
-    if (!user || !workerUrl) {
+    if (!user) {
       return { total: 0, succeeded: 0, failed: 0 };
     }
 
@@ -828,36 +943,66 @@ export class OfficerDocumentArchiveService {
         const dateObj = new Date(doc.documentDate);
         const year = !isNaN(dateObj.getFullYear()) ? String(dateObj.getFullYear()) : new Date().getFullYear().toString();
         const month = !isNaN(dateObj.getMonth()) ? String(dateObj.getMonth() + 1).padStart(2, '0') : String(new Date().getMonth() + 1).padStart(2, '0');
+        const ext = normalizeFileFormat(doc.fileFormat, doc.documentName);
+        const objectKey = doc.objectKey || `officers/${user.id}/${year}/${month}/${doc.id}.${ext}`;
 
-        const formData = new FormData();
-        formData.append('file', doc.fileBlob, doc.documentName);
-        formData.append('filename', doc.documentName);
-        formData.append('documentId', doc.id);
-        if (doc.documentNumber) formData.append('documentNumber', doc.documentNumber);
-        formData.append('category', doc.documentCategory);
-        formData.append('sourceModule', doc.sourceModule);
-        formData.append('mimeType', doc.mimeType);
-        formData.append('originalSize', String(doc.originalSize));
-        formData.append('compressionMethod', doc.compressionMethod || 'none');
-        formData.append('compressionStatus', doc.compressionStatus);
-        if (doc.originalSha256) formData.append('originalSha256', doc.originalSha256);
-        if (doc.storedSha256) formData.append('storedSha256', doc.storedSha256);
-        formData.append('year', year);
-        formData.append('month', month);
+        let uploaded = false;
 
-        const res = await fetch(`${workerUrl}/api/documents/upload`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-          body: formData,
-        });
+        // 1. Try Cloudflare Worker upload if workerUrl configured
+        if (workerUrl) {
+          try {
+            const formData = new FormData();
+            formData.append('file', doc.fileBlob, doc.documentName);
+            formData.append('filename', doc.documentName);
+            formData.append('documentId', doc.id);
+            if (doc.documentNumber) formData.append('documentNumber', doc.documentNumber);
+            formData.append('category', doc.documentCategory);
+            formData.append('sourceModule', doc.sourceModule);
+            formData.append('mimeType', doc.mimeType);
+            formData.append('originalSize', String(doc.originalSize));
+            formData.append('compressionMethod', doc.compressionMethod || 'none');
+            formData.append('compressionStatus', doc.compressionStatus);
+            if (doc.originalSha256) formData.append('originalSha256', doc.originalSha256);
+            if (doc.storedSha256) formData.append('storedSha256', doc.storedSha256);
+            formData.append('year', year);
+            formData.append('month', month);
 
-        if (res.ok) {
-          const ext = doc.fileFormat || doc.documentName.split('.').pop() || 'pdf';
-          const objectKey = `officers/${user.id}/${year}/${month}/${doc.id}.${ext}`;
+            const res = await fetch(`${workerUrl}/api/documents/upload`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${user.token}`,
+              },
+              body: formData,
+            });
 
-          await supabase.from('officer_document_archive').upsert({
+            if (res.ok) {
+              uploaded = true;
+            }
+          } catch (workerErr) {
+            console.warn('Cloudflare Worker upload failed during retry:', workerErr);
+          }
+        }
+
+        // 2. Secondary Cloud Storage Fallback: Supabase Storage
+        if (!uploaded) {
+          try {
+            const { error: storageError } = await supabase.storage
+              .from('uploads')
+              .upload(objectKey, doc.fileBlob, {
+                upsert: true,
+                contentType: doc.compressionMethod === 'gzip' ? 'application/gzip' : doc.mimeType,
+              });
+
+            if (!storageError) {
+              uploaded = true;
+            }
+          } catch (storageErr) {
+            console.warn('Supabase storage fallback failed during retry:', storageErr);
+          }
+        }
+
+        if (uploaded) {
+          const retryRow = {
             id: doc.id,
             user_id: user.id,
             document_name: doc.documentName,
@@ -867,7 +1012,7 @@ export class OfficerDocumentArchiveService {
             document_date: doc.documentDate,
             source_module: doc.sourceModule,
             object_key: objectKey,
-            file_format: doc.fileFormat,
+            file_format: ext,
             mime_type: doc.mimeType,
             original_size: doc.originalSize,
             stored_size: doc.storedSize,
@@ -883,12 +1028,35 @@ export class OfficerDocumentArchiveService {
             version_number: doc.versionNumber,
             parent_document_id: doc.parentDocumentId || null,
             metadata_json: doc.metadata,
-          });
+          };
+
+          const retryTable = supabase.from('officer_document_archive');
+          if (typeof (retryTable as any).upsert === 'function') {
+            await (retryTable as any).upsert(retryRow, { onConflict: 'id' });
+          } else {
+            await retryTable.insert(retryRow);
+          }
+
+          // Update safeStorage if present
+          try {
+            const raw = safeStorage.getItem(LOCAL_ARCHIVED_DOCS_KEY);
+            if (raw) {
+              const list: OfficerDocumentArchiveRecord[] = JSON.parse(raw);
+              const target = list.find((item) => item.id === doc.id);
+              if (target) {
+                target.upload_status = 'saved_to_cloud';
+                target.object_key = objectKey;
+                safeStorage.setItem(LOCAL_ARCHIVED_DOCS_KEY, JSON.stringify(list));
+              }
+            }
+          } catch {
+            // ignore
+          }
 
           await OfficerDocumentQueue.remove(doc.id);
           succeeded++;
         } else {
-          await OfficerDocumentQueue.updateStatus(doc.id, 'upload_failed', `HTTP ${res.status}`);
+          await OfficerDocumentQueue.updateStatus(doc.id, 'upload_failed', 'Cloud upload and storage fallback failed');
           failed++;
         }
       } catch (err) {

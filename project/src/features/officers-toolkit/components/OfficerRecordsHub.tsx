@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   Smartphone,
   Trash2,
+  Upload,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -39,6 +40,8 @@ import {
   type ReportExportOptions,
 } from '../services/officerReportExportService';
 import type {
+  DocumentCategory,
+  FileFormat,
   OfficerDocumentArchiveRecord,
   StorageOverviewStats,
   UploadStatus,
@@ -102,6 +105,16 @@ export function OfficerRecordsHub() {
   const [exportingType, setExportingType] = useState<'excel' | 'pdf' | null>(null);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  // Manual Document Upload Modal State
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadDocName, setUploadDocName] = useState('');
+  const [uploadCategory, setUploadCategory] = useState<DocumentCategory>('order');
+  const [uploadDocNumber, setUploadDocNumber] = useState('');
+  const [uploadDocDate, setUploadDocDate] = useState(new Date().toISOString().slice(0, 10));
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const uploadFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -260,6 +273,69 @@ export function OfficerRecordsHub() {
       }
     } finally {
       setRecordToDelete(null);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadFile(file);
+      if (!uploadDocName.trim()) {
+        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+        setUploadDocName(nameWithoutExt.replace(/[_-]/g, ' '));
+      }
+    }
+  };
+
+  const handleManualUploadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!uploadFile) {
+      alert(t('Please select a file to upload.', 'దయచేసి అప్‌లోడ్ చేయడానికి ఒక ఫైల్‌ను ఎంచుకోండి.'));
+      return;
+    }
+
+    setIsUploadingFile(true);
+    try {
+      const ext = (uploadFile.name.split('.').pop() || 'pdf').toLowerCase();
+      const fileFormat: FileFormat = ext === 'docx' || ext === 'doc' ? 'docx'
+        : ext === 'xlsx' || ext === 'xls' || ext === 'csv' ? 'xlsx'
+        : ext === 'txt' ? 'txt'
+        : 'pdf';
+
+      const finalFilename = uploadDocName.trim()
+        ? (uploadDocName.trim().toLowerCase().endsWith(`.${ext}`) ? uploadDocName.trim() : `${uploadDocName.trim()}.${ext}`)
+        : uploadFile.name;
+
+      const res = await OfficerDocumentArchiveService.archiveGeneratedDocument(uploadFile, {
+        filename: finalFilename,
+        documentCategory: uploadCategory,
+        documentNumber: uploadDocNumber.trim() || undefined,
+        documentDate: uploadDocDate,
+        sourceModule: 'manual_upload',
+        fileFormat,
+        mimeType: uploadFile.type,
+      });
+
+      if (res.success) {
+        setIsUploadModalOpen(false);
+        setUploadFile(null);
+        setUploadDocName('');
+        setUploadDocNumber('');
+        setUploadDocDate(new Date().toISOString().slice(0, 10));
+        setUploadCategory('order');
+        await loadAllData(true);
+        alert(
+          res.duplicate
+            ? t('Document already exists in cloud records (matching SHA-256 fingerprint).', 'ఈ పత్రం ఇప్పటికే రికార్డులలో ఉంది (SHA-256 సరిపోలింది).')
+            : t('Document successfully uploaded to Cloud Records!', 'పత్రం క్లౌడ్ రికార్డులకు విజయవంతంగా అప్‌లోడ్ చేయబడింది!')
+        );
+      } else {
+        alert(t(`Upload failed: ${res.error || 'Unknown error'}`, `అప్‌లోడ్ విఫలమైంది: ${res.error || 'తెలియని లోపం'}`));
+      }
+    } catch (err) {
+      alert(t(`Upload error: ${err instanceof Error ? err.message : String(err)}`, `అప్‌లోడ్ లోపం: ${err instanceof Error ? err.message : String(err)}`));
+    } finally {
+      setIsUploadingFile(false);
     }
   };
 
@@ -437,11 +513,12 @@ export function OfficerRecordsHub() {
   return (
     <div className="space-y-6">
       {/* Header and Officer Jurisdiction Banner */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-600 via-gold-400 to-emerald-600" />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-700 text-gold-300 shadow-xs ring-1 ring-emerald-800">
                 <Archive className="h-5 w-5" />
               </span>
               <div>
@@ -483,6 +560,15 @@ export function OfficerRecordsHub() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsUploadModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-600 bg-emerald-600 px-3.5 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 dark:border-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+            >
+              <Upload className="h-4 w-4" />
+              <span>{t('Upload File', 'ఫైల్ అప్‌లోడ్')}</span>
+            </button>
+
             {storageStats.pendingUploads > 0 && (
               <button
                 type="button"
@@ -507,61 +593,105 @@ export function OfficerRecordsHub() {
           </div>
         </div>
 
-        {/* Comprehensive Storage Overview (Requirements items 5, 9, 10) */}
-        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8 sm:gap-3">
-          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-center dark:border-slate-800 dark:bg-slate-800/40">
-            <div className="text-xl font-black text-slate-900 dark:text-white">{storageStats.totalDocuments}</div>
-            <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t('Total Documents', 'మొత్తం పత్రాలు')}</div>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-center dark:border-slate-800 dark:bg-slate-800/40">
-            <div className="text-xl font-black text-slate-800 dark:text-slate-200">
-              {formatBytes(storageStats.totalOriginalBytes || storageStats.totalStorageBytes)}
-            </div>
-            <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t('Original Storage', 'అసలు నిల్వ')}</div>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-center dark:border-slate-800 dark:bg-slate-800/40">
-            <div className="text-xl font-black text-emerald-700 dark:text-emerald-400">
-              {formatBytes(storageStats.totalStoredBytes || storageStats.totalStorageBytes)}
-            </div>
-            <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t('Total Storage Used', 'మొత్తం నిల్వ')}</div>
-          </div>
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 text-center dark:border-emerald-950/40 dark:bg-emerald-950/20">
-            <div className="text-xl font-black text-emerald-700 dark:text-emerald-300">
-              {formatBytes(storageStats.storageSavedBytes || 0)}
-              {storageStats.compressionPercentage > 0 && (
-                <span className="ml-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                  (-{storageStats.compressionPercentage}%)
+        {/* Comprehensive Storage Overview — Structured KPI Cards & File Pipeline Status */}
+        <div className="mt-5 space-y-3">
+          {/* Primary 4-card metric row */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-600 to-teal-600" />
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('Total Documents', 'మొత్తం పత్రాలు')}</span>
+                <span className="rounded-lg bg-emerald-50 p-1.5 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                  <FileText className="h-4 w-4" />
                 </span>
-              )}
+              </div>
+              <div className="mt-2 text-2xl font-black tracking-tight text-slate-950 dark:text-white">{storageStats.totalDocuments}</div>
+              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">{t('Archived officer files', 'భద్రపరిచిన రికార్డులు')}</p>
             </div>
-            <div className="text-[11px] font-semibold text-emerald-700/80 dark:text-emerald-400">{t('Storage Saved', 'ఆదా చేసిన నిల్వ')}</div>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-center dark:border-slate-800 dark:bg-slate-800/40">
-            <div className="text-xl font-black text-blue-700 dark:text-blue-400">{storageStats.totalPdfs}</div>
-            <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t('Total PDFs', 'మొత్తం పీడీఎఫ్')}</div>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-center dark:border-slate-800 dark:bg-slate-800/40">
-            <div className="text-xl font-black text-indigo-700 dark:text-indigo-400">{storageStats.totalDocx}</div>
-            <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t('Total DOCX', 'మొత్తం వర్డ్')}</div>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-center dark:border-slate-800 dark:bg-slate-800/40">
-            <div className="text-xl font-black text-emerald-700 dark:text-emerald-400">{storageStats.successfullyUploaded}</div>
-            <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t('Saved to Cloud', 'క్లౌడ్ లో భద్రపరిచినవి')}</div>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-center dark:border-slate-800 dark:bg-slate-800/40">
-            <div className="text-xl font-black text-amber-600 dark:text-amber-400">
-              {storageStats.pendingUploads}
+
+            <div className="relative overflow-hidden rounded-xl border border-emerald-200/80 bg-emerald-50/30 p-3.5 shadow-2xs dark:border-emerald-900/60 dark:bg-emerald-950/20">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-emerald-600" />
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">{t('Saved to Cloud', 'క్లౌడ్ లో భద్రపరిచినవి')}</span>
+                <span className="rounded-lg bg-emerald-100 p-1.5 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200">
+                  <Cloud className="h-4 w-4" />
+                </span>
+              </div>
+              <div className="mt-2 text-2xl font-black tracking-tight text-emerald-700 dark:text-emerald-300">{storageStats.successfullyUploaded}</div>
+              <p className="mt-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400">{t('Synced with R2 repository', 'R2 లో భద్రపరచబడింది')}</p>
             </div>
-            <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-              {t('Pending Uploads', 'పెండింగ్ అప్‌లోడ్లు')}
+
+            <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-sky-600 to-blue-600" />
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t('Total Storage Used', 'మొత్తం నిల్వ')}</span>
+                <span className="rounded-lg bg-sky-50 p-1.5 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300">
+                  <Archive className="h-4 w-4" />
+                </span>
+              </div>
+              <div className="mt-2 text-2xl font-black tracking-tight text-slate-950 dark:text-white">
+                {formatBytes(storageStats.totalStoredBytes || storageStats.totalStorageBytes)}
+              </div>
+              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                {t('Compressed cloud footprint', 'కంప్రెస్డ్ నిల్వ')}
+              </p>
+            </div>
+
+            <div className="relative overflow-hidden rounded-xl border border-emerald-200/80 bg-emerald-50/40 p-3.5 shadow-2xs dark:border-emerald-900/60 dark:bg-emerald-950/20">
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-600 via-gold-400 to-emerald-600" />
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">{t('Storage Saved', 'ఆదా చేసిన నిల్వ')}</span>
+                <span className="rounded-lg bg-emerald-100 p-1.5 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200">
+                  <CheckCircle2 className="h-4 w-4" />
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline gap-1.5 text-2xl font-black tracking-tight text-emerald-700 dark:text-emerald-300">
+                <span>{formatBytes(storageStats.storageSavedBytes || 0)}</span>
+                {storageStats.compressionPercentage > 0 && (
+                  <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400">
+                    (-{storageStats.compressionPercentage}%)
+                  </span>
+                )}
+              </div>
+              <p className="mt-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400">{t('GZIP lossless optimization', 'నష్టం లేని ఆప్టిమైజేషన్')}</p>
             </div>
           </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-center dark:border-slate-800 dark:bg-slate-800/40">
-            <div className="text-xl font-black text-rose-600 dark:text-rose-400">
-              {storageStats.failedUploads}
+
+          {/* Secondary 5-metric row */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+            <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-2.5 text-center dark:border-slate-800 dark:bg-slate-800/40">
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Original Storage', 'అసలు నిల్వ')}</div>
+              <div className="mt-1 text-base font-black text-slate-800 dark:text-slate-200">
+                {formatBytes(storageStats.totalOriginalBytes || storageStats.totalStorageBytes)}
+              </div>
             </div>
-            <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-              {t('Failed Uploads', 'విఫలమైన అప్‌లోడ్లు')}
+
+            <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-2.5 text-center dark:border-slate-800 dark:bg-slate-800/40">
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Total PDFs', 'మొత్తం పీడీఎఫ్')}</div>
+              <div className="mt-1 text-base font-black text-slate-800 dark:text-slate-200">{storageStats.totalPdfs}</div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-2.5 text-center dark:border-slate-800 dark:bg-slate-800/40">
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Total DOCX', 'మొత్తం వర్డ్')}</div>
+              <div className="mt-1 text-base font-black text-slate-800 dark:text-slate-200">{storageStats.totalDocx}</div>
+            </div>
+
+            <div className={`rounded-xl border p-2.5 text-center ${
+              storageStats.pendingUploads > 0
+                ? 'border-amber-200 bg-amber-50/70 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
+                : 'border-slate-200/80 bg-slate-50/60 text-slate-600 dark:border-slate-800 dark:bg-slate-800/40'
+            }`}>
+              <div className="text-xs font-semibold">{t('Pending Uploads', 'పెండింగ్ అప్‌లోడ్లు')}</div>
+              <div className="mt-1 text-base font-black">{storageStats.pendingUploads}</div>
+            </div>
+
+            <div className={`rounded-xl border p-2.5 text-center ${
+              storageStats.failedUploads > 0
+                ? 'border-rose-200 bg-rose-50/70 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300'
+                : 'border-slate-200/80 bg-slate-50/60 text-slate-600 dark:border-slate-800 dark:bg-slate-800/40'
+            }`}>
+              <div className="text-xs font-semibold">{t('Failed Uploads', 'విఫలమైన అప్‌లోడ్లు')}</div>
+              <div className="mt-1 text-base font-black">{storageStats.failedUploads}</div>
             </div>
           </div>
         </div>
@@ -1808,6 +1938,195 @@ export function OfficerRecordsHub() {
                 {t('Save Changes', 'భద్రపరచు')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Document Modal */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="rounded-lg bg-emerald-100 p-2 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
+                  <Upload className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    {t('Upload Document to Cloud Records', 'క్లౌడ్ రికార్డులకు పత్రం అప్‌లోడ్')}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {t('Securely archives documents to Cloudflare R2 & Supabase with SHA-256 integrity.', 'SHA-256 సమగ్రతతో క్లౌడ్‌ఫ్లేర్ R2 మరియు డేటాబేస్ కు పత్రాలు భద్రపరుస్తుంది.')}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isUploadingFile) {
+                    setIsUploadModalOpen(false);
+                    setUploadFile(null);
+                  }
+                }}
+                disabled={isUploadingFile}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => void handleManualUploadSubmit(e)} className="mt-4 space-y-4">
+              {/* File Drop / Selection Area */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  {t('Select Document / File *', 'ఫైల్‌ను ఎంచుకోండి *')}
+                </label>
+                <input
+                  ref={uploadFileInputRef}
+                  type="file"
+                  accept=".pdf,.docx,.doc,.xlsx,.xls,.txt,.csv"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                {uploadFile ? (
+                  <div className="flex items-center justify-between rounded-xl border border-emerald-300 bg-emerald-50/50 p-3.5 dark:border-emerald-800 dark:bg-emerald-950/30">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="rounded-lg bg-emerald-100 p-2 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-bold text-slate-900 dark:text-white">
+                          {uploadFile.name}
+                        </p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                          {formatBytes(uploadFile.size)} &middot; {uploadFile.type || 'Document'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => uploadFileInputRef.current?.click()}
+                      disabled={isUploadingFile}
+                      className="ml-2 shrink-0 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                    >
+                      {t('Change', 'మార్చండి')}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => uploadFileInputRef.current?.click()}
+                    className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 p-6 text-center transition hover:border-emerald-500 hover:bg-emerald-50/20 dark:border-slate-700 dark:hover:border-emerald-500 dark:hover:bg-emerald-950/10"
+                  >
+                    <Upload className="h-8 w-8 text-slate-400 dark:text-slate-500 mb-2" />
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                      {t('Click to choose document', 'పత్రాన్ని ఎంచుకోవడానికి ఇక్కడ క్లిక్ చేయండి')}
+                    </p>
+                    <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                      {t('Supports PDF, Word (.docx), Excel (.xlsx), Text (up to 50 MB)', 'PDF, Word (.docx), Excel (.xlsx), Text మద్దతు (50 MB వరకు)')}
+                    </p>
+                  </button>
+                )}
+              </div>
+
+              {/* Document Title / Name */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  {t('Document Title / Name *', 'పత్రం పేరు / శీర్షిక *')}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={uploadDocName}
+                  onChange={(e) => setUploadDocName(e.target.value)}
+                  placeholder={t('e.g. Stop Sale Order - Srinivasa Traders', 'ఉదా. స్టాప్ సేల్ ఆర్డర్ - శ్రీనివాస ట్రేడర్స్')}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+
+              {/* Category & Date in 2 columns */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    {t('Category *', 'వర్గం *')}
+                  </label>
+                  <select
+                    value={uploadCategory}
+                    onChange={(e) => setUploadCategory(e.target.value as DocumentCategory)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  >
+                    <option value="order">{t('Order / Seizure', 'ఆర్డర్ / సీజర్')}</option>
+                    <option value="notice">{t('Notice / Show Cause', 'నోటీసు / వివరణ')}</option>
+                    <option value="inspection_report">{t('Inspection Report', 'తనిఖీ నివేదిక')}</option>
+                    <option value="inspection">{t('Inspection Details', 'తనిఖీ వివరాలు')}</option>
+                    <option value="sample">{t('Sample Memo / Form', 'నమూనా మెమో / ఫారం')}</option>
+                    <option value="tour_diary">{t('Tour Diary / Note', 'పర్యటన డైరీ / నోట్')}</option>
+                    <option value="advisory">{t('Advisory / Circular', 'సలహా / సర్క్యులర్')}</option>
+                    <option value="other">{t('Other Statutory Record', 'ఇతర చట్టబద్ధ రికార్డు')}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    {t('Document Date *', 'పత్రం తేదీ *')}
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={uploadDocDate}
+                    onChange={(e) => setUploadDocDate(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Document Reference Number */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  {t('Reference / Document No. (Optional)', 'రిఫరెన్స్ / మెమో నెంబర్ (ఐచ్ఛికం)')}
+                </label>
+                <input
+                  type="text"
+                  value={uploadDocNumber}
+                  onChange={(e) => setUploadDocNumber(e.target.value)}
+                  placeholder={t('e.g. Roc No. 124/2026/AO', 'ఉదా. Roc నెం. 124/2026/AO')}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="mt-5 flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUploadModalOpen(false);
+                    setUploadFile(null);
+                  }}
+                  disabled={isUploadingFile}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                >
+                  {t('Cancel', 'రద్దు')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={!uploadFile || !uploadDocName.trim() || isUploadingFile}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {isUploadingFile ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>{t('Uploading...', 'అప్‌లోడ్ అవుతోంది...')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4" />
+                      <span>{t('Upload & Archive', 'అప్‌లోడ్ చేయండి')}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

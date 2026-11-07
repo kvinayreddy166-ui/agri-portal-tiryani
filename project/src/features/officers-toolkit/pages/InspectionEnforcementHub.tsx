@@ -27,28 +27,10 @@ const LazySubLoader = () => (
   </div>
 );
 
-const INSPECTION_TYPES = [
-  { label: 'Seed', path: '/officer-toolkit/seed-dealer-inspection', icon: Sprout, tone: 'emerald' },
-  { label: 'Fertilizer', path: '/officer-toolkit/fertilizer-dealer-inspection', icon: FlaskConical, tone: 'sky' },
-  { label: 'Pesticide', path: '/officer-toolkit/insecticide-dealer-inspection', icon: Bug, tone: 'rose' },
-] as const;
-
 const NOTICE_TYPES: { label: string; category: NoticeCategory; icon: typeof Sprout; tone: string }[] = [
   { label: 'Seed', category: 'seed', icon: Sprout, tone: 'emerald' },
   { label: 'Fertilizer', category: 'fertiliser', icon: FlaskConical, tone: 'sky' },
   { label: 'Pesticide', category: 'pesticide', icon: Bug, tone: 'amber' },
-];
-
-const STOP_SALE_TYPES: { label: string; icon: typeof Sprout; tone: string }[] = [
-  { label: 'Seed', icon: Sprout, tone: 'emerald' },
-  { label: 'Fertilizer', icon: FlaskConical, tone: 'sky' },
-  { label: 'Pesticide', icon: Bug, tone: 'amber' },
-];
-
-const SEIZURE_TYPES: { label: string; icon: typeof Sprout; tone: string }[] = [
-  { label: 'Seed', icon: Sprout, tone: 'emerald' },
-  { label: 'Fertilizer', icon: FlaskConical, tone: 'sky' },
-  { label: 'Pesticide', icon: Bug, tone: 'amber' },
 ];
 
 const chipClasses: Record<string, string> = {

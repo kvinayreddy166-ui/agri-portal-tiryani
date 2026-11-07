@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Download, Edit2, Eye, FileText, FolderOpen, Layers, Link, Loader2, Plus, Scale, Trash2, Upload, X } from 'lucide-react';
+import { BookOpen, Download, Edit2, Eye, FileText, FolderOpen, Layers, Link, Loader2, Plus, Scale, Trash2, Upload, X, FlaskConical, Sprout, Bug, Search } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { FilePreviewModal } from '../../../shared/components/ui/FilePreviewModal';
 import { supabase } from '../../../shared/lib/supabase';
@@ -16,9 +16,9 @@ import { classifyPublicForm, comparePublicForms, PUBLIC_FORM_SUBGROUPS, type Pub
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 const folders = [
-  { id: 'fertilizers', label: 'Fertilizer', telugu: 'ఎరువులు' },
-  { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు' },
-  { id: 'pesticides', label: 'Pesticide', telugu: 'పురుగుమందులు' },
+  { id: 'fertilizers', label: 'Fertilizer', telugu: 'ఎరువులు', icon: FlaskConical, tone: 'sky' },
+  { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు', icon: Sprout, tone: 'emerald' },
+  { id: 'pesticides', label: 'Pesticide', telugu: 'పురుగుమందులు', icon: Bug, tone: 'amber' },
 ];
 
 const FORMS_PAGE_SIZE = 100;
@@ -429,23 +429,23 @@ export function FormsLibrary() {
     return (
       <div
         key={form.id}
-        className="group flex items-center justify-between gap-2.5 sm:gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2.5 sm:p-3.5 transition duration-150 hover:border-emerald-300 hover:shadow-sm dark:hover:border-emerald-700/60"
+        className="group flex items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white p-3 sm:p-4 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900"
       >
-        <div className="flex items-start gap-2.5 sm:gap-3 min-w-0 flex-1">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-200/50 dark:ring-slate-700/50">
+        <div className="flex items-start gap-3 min-w-0 flex-1">
+          <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800/80 ring-1 ring-slate-200/60 dark:ring-slate-700/60 shadow-2xs transition-transform duration-200 group-hover:scale-105">
             <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5 mb-1">
-              <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold border ${badgeClassesFor(subGroup)}`}>
+              <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${badgeClassesFor(subGroup)}`}>
                 {language === 'te' ? meta.badgeTelugu : meta.badge}
               </span>
             </div>
-            <h3 className="text-sm font-black text-slate-900 dark:text-white leading-snug break-words">
+            <h3 className="text-sm font-black text-slate-900 dark:text-white leading-snug break-words font-[var(--font-heading)]">
               {form.title}
             </h3>
             {form.description && (
-              <p className="mt-0.5 text-xs font-semibold text-slate-500 dark:text-slate-400 line-clamp-2">
+              <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400 line-clamp-2">
                 {form.description}
               </p>
             )}
@@ -458,7 +458,7 @@ export function FormsLibrary() {
                 type="button"
                 onClick={() => void openPreview(form)}
                 disabled={previewLoadingId === form.id}
-                className="inline-flex h-9 w-9 sm:w-auto items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 px-0 sm:px-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 disabled:opacity-50"
+                className="inline-flex h-9 sm:w-auto items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 px-2.5 sm:px-3 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 disabled:opacity-50"
                 aria-label={t('Preview file', 'ఫైల్‌ను ప్రివ్యూ చేయండి')}
                 title={t('Preview', 'ప్రివ్యూ')}
               >
@@ -473,7 +473,7 @@ export function FormsLibrary() {
                 type="button"
                 onClick={() => void handleDownload(form)}
                 disabled={downloadingFormId === form.id}
-                className="inline-flex h-9 w-9 sm:w-auto items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-0 sm:px-3 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-700 disabled:opacity-50"
+                className="inline-flex h-9 sm:w-auto items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-800 px-3 sm:px-3.5 text-xs font-bold text-white shadow-xs transition hover:from-emerald-800 hover:to-emerald-900 hover:shadow-sm disabled:opacity-50"
                 aria-label={t('Download file', 'ఫైల్‌ను డౌన్‌లోడ్ చేయండి')}
                 title={t('Download', 'డౌన్‌లోడ్')}
               >
@@ -491,7 +491,7 @@ export function FormsLibrary() {
               <button
                 type="button"
                 onClick={() => openEditForm(form)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-blue-600 dark:text-blue-300 transition hover:bg-blue-50 dark:hover:bg-blue-950/40"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-blue-600 dark:text-blue-300 transition hover:bg-blue-50 dark:hover:bg-blue-950/40"
                 aria-label={t('Edit form', 'ఫారం సవరించండి')}
                 title={t('Edit', 'సవరించు')}
               >
@@ -500,7 +500,7 @@ export function FormsLibrary() {
               <button
                 type="button"
                 onClick={() => setFormToDelete(form)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/40"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/40"
                 aria-label={t('Delete form', 'ఫారం తొలగించు')}
                 title={t('Delete', 'తొలగించు')}
               >
@@ -513,7 +513,7 @@ export function FormsLibrary() {
     );
   };
 
-  if (loading) {
+    if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
@@ -568,37 +568,71 @@ export function FormsLibrary() {
         </div>
       )}
 
-      {/* Category selector — same style as the public Forms & Library */}
-      <section className="rounded-2xl border border-emerald-100 dark:border-emerald-900/60 bg-gradient-to-br from-emerald-100 dark:from-emerald-900 via-lime-50 dark:via-lime-950/60 to-cyan-100 dark:to-cyan-900 p-4 sm:p-5 shadow-md">
-        <div className="mb-4">
-          <h2 className="text-sm font-black uppercase tracking-wide text-slate-700 dark:text-slate-200">
-            {t('Select Category', 'వర్గాన్ని ఎంచుకోండి')}
-          </h2>
+      {/* Category selector — cohesive with AGRONIX dashboard & toolkit */}
+      <section className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-3.5 flex items-center justify-between">
+          <div>
+            <h2 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
+              {t('Select Category', 'వర్గాన్ని ఎంచుకోండి')}
+            </h2>
+            <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+              {t('Browse statutory proforma, circulars and reference materials', 'చట్టబద్ధమైన ఫారాలు, సర్క్యులర్లు మరియు రిఫరెన్స్ డాక్యుమెంట్లు')}
+            </p>
+          </div>
+          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+            {folderCounts[selectedFolder] || 0} {t('forms', 'ఫారాలు')}
+          </span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
-          {folders.map((folder) => (
-            <button
-              key={folder.id}
-              type="button"
-              onClick={() => setSelectedFolder(folder.id)}
-              className={`flex min-h-[48px] sm:h-[52px] items-center justify-between rounded-xl border px-4 py-2.5 text-left transition duration-200 ${
-                selectedFolder === folder.id
-                  ? 'border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-900/15'
-                  : 'border-emerald-200/90 bg-white text-slate-800 shadow-xs hover:border-emerald-400 hover:bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-slate-900 dark:text-slate-100'
-              }`}
-            >
-              <span className="text-sm font-black">
-                {language === 'te' ? folder.telugu : folder.label}
-              </span>
-              {selectedFolder === folder.id && (
-                <span className="shrink-0 text-xs font-black text-emerald-100">✓</span>
-              )}
-            </button>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3.5">
+          {folders.map((folder) => {
+            const isSelected = selectedFolder === folder.id;
+            const count = folderCounts[folder.id] || 0;
+            const FolderIcon = folder.icon;
+
+            return (
+              <button
+                key={folder.id}
+                type="button"
+                onClick={() => setSelectedFolder(folder.id)}
+                className={`group relative flex min-h-[56px] items-center justify-between overflow-hidden rounded-xl border p-3 sm:p-3.5 text-left transition-all duration-200 ${
+                  isSelected
+                    ? 'border-emerald-700 bg-gradient-to-br from-emerald-800 to-emerald-900 text-white shadow-md shadow-emerald-950/20'
+                    : 'border-slate-200/90 bg-slate-50/60 text-slate-800 shadow-2xs hover:-translate-y-0.5 hover:border-emerald-500/40 hover:bg-white hover:shadow-xs dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800/80'
+                }`}
+              >
+                {isSelected && (
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-[2.5px] bg-gradient-to-r from-gold-400 via-gold-300 to-gold-400" />
+                )}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 ${
+                      isSelected
+                        ? 'bg-white/15 text-white ring-1 ring-white/20'
+                        : folder.tone === 'emerald'
+                        ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/50'
+                        : folder.tone === 'sky'
+                        ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-200/60 dark:bg-sky-950/50 dark:text-sky-300 dark:ring-sky-800/50'
+                        : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/60 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/50'
+                    }`}
+                  >
+                    <FolderIcon className="h-4.5 w-4.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block truncate text-sm font-black font-[var(--font-heading)]">
+                      {language === 'te' ? folder.telugu : folder.label}
+                    </span>
+                    <span className={`block text-[11px] font-semibold ${isSelected ? 'text-emerald-200' : 'text-slate-400 dark:text-slate-500'}`}>
+                      {count} {t(count === 1 ? 'file' : 'files', count === 1 ? 'ఫైల్' : 'ఫైళ్లు')}
+                    </span>
+                  </div>
+                </div>
+                {isSelected && (
+                  <span className="shrink-0 text-xs font-black text-gold-300">✓</span>
+                )}
+              </button>
+            );
+          })}
         </div>
-        <p className="mt-3 text-right text-xs font-bold text-slate-500 dark:text-slate-400">
-          {folderCounts[selectedFolder] || 0} {t('items', 'అంశాలు')}
-        </p>
       </section>
 
       {showAddForm && (
@@ -700,13 +734,14 @@ export function FormsLibrary() {
 
       {/* Search, subgroup filters and grouped form cards — same style as public Forms & Library */}
       <div className="space-y-3">
-        <div>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t('Search forms, acts, orders & manuals...', 'ఫారాలు, చట్టాలు, ఆర్డర్లు & మాన్యువల్స్ వెతకండి...')}
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-950 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+            className="w-full rounded-xl border border-slate-200/90 bg-white dark:bg-slate-900 dark:border-slate-800 py-2.5 pl-10 pr-4 text-sm font-semibold text-slate-950 dark:text-white outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
           />
         </div>
 
