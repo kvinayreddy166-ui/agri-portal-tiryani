@@ -24,7 +24,7 @@ const adminMenuItems = [
   // Overview
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'stock-analytics', label: 'Command Center', icon: PackageCheck, adminOnly: true },
-  { id: 'analytics', label: 'Reports', icon: BarChart3 },
+  { id: 'analytics', label: 'Reports', icon: BarChart3, adminOnly: true },
 
   // Statutory & Enforcement (Separate Field Tools Modules)
   { id: 'inspection-enforcement', label: 'Inspection & Enforcement', icon: ClipboardCheck },
@@ -43,11 +43,11 @@ const adminMenuItems = [
   // Field Operations & Officer Administration (Separate Field Tools Modules + Operations)
   { id: 'tour-diary', label: 'Tour Diary', icon: CalendarDays },
   { id: 'officer-contacts', label: 'Officer Contacts', icon: Phone },
-  { id: 'farmer-database', label: 'Farmer Database', icon: Database },
-  { id: 'dealers', label: 'Dealers Directory', icon: UsersRound },
-  { id: 'quality', label: 'Quality Control', icon: ShieldCheck },
-  { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark },
-  { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor },
+  { id: 'farmer-database', label: 'Farmer Database', icon: Database, adminOnly: true },
+  { id: 'dealers', label: 'Dealers Directory', icon: UsersRound, adminOnly: true },
+  { id: 'quality', label: 'Quality Control', icon: ShieldCheck, adminOnly: true },
+  { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark, adminOnly: true },
+  { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor, adminOnly: true },
 
   // Knowledge & Portals
   { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },

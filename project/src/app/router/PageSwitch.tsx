@@ -93,23 +93,27 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
     case 'dashboard':
       return <Dashboard />;
     case 'stock-analytics':
-      return (
+      return isAdminUser ? (
         <SafeSuspense fallback={<PageLoader />}>
           <StockAnalytics />
         </SafeSuspense>
+      ) : (
+        <Dashboard />
       );
     case 'stock-receipts-sales':
-      return (
+      return isAdminUser ? (
         <SafeSuspense fallback={<PageLoader />}>
           <StockReceiptsSales />
         </SafeSuspense>
+      ) : (
+        <Dashboard />
       );
     case 'dealer-portal':
       return <DealerStockPortal />;
     case 'dealers':
-      return <DealerManagement />;
+      return isAdminUser ? <DealerManagement /> : <Dashboard />;
     case 'farmer-database':
-      return <FarmerDatabase />;
+      return isAdminUser ? <FarmerDatabase /> : <Dashboard />;
     case 'crops':
       return <CropManagement />;
     case 'crop-admin':
@@ -131,15 +135,15 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
     case 'gos-circulars':
       return <GosCirculars />;
     case 'quality':
-      return <QualityControlHub />;
+      return isAdminUser ? <QualityControlHub /> : <Dashboard />;
     case 'quality-seeds':
-      return <QualityControl category="seeds" />;
+      return isAdminUser ? <QualityControl category="seeds" /> : <Dashboard />;
     case 'quality-pesticides':
-      return <QualityControl category="pesticides" />;
+      return isAdminUser ? <QualityControl category="pesticides" /> : <Dashboard />;
     case 'quality-fertilizers':
-      return <QualityControl category="fertilizers" />;
+      return isAdminUser ? <QualityControl category="fertilizers" /> : <Dashboard />;
     case 'farm-mechanization':
-      return <FarmMechanization />;
+      return isAdminUser ? <FarmMechanization /> : <Dashboard />;
     case 'excel':
       return isAdminUser ? <ExcelUploads /> : <Dashboard />;
     case 'file-directory':
@@ -147,10 +151,12 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
     case 'subsidy':
     case 'subsidy-nfsm':
     case 'subsidy-state-seed':
-      return (
+      return isAdminUser ? (
         <SubsidyTracking
           initialProgram={currentPage === 'subsidy-state-seed' ? 'state_seed_cell' : 'nfsm'}
         />
+      ) : (
+        <Dashboard />
       );
     case 'officer-toolkit':
       return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} isPublic={false} />;
@@ -218,7 +224,7 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       }
       return <FieldDiagnosis />;
     case 'analytics':
-      return <Analytics />;
+      return isAdminUser ? <Analytics /> : <Dashboard />;
     case 'settings':
       return <Settings />;
     case 'knowledge':

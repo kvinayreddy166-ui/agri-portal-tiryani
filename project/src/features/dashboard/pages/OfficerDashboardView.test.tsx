@@ -184,10 +184,67 @@ describe('Dashboard — Officer vs Admin view isolation', () => {
     expect(html).toContain('Records &amp; Cloud Archive');
     expect(html).toContain('Knowledge Base');
     expect(html).toContain('GOs &amp; Circulars');
+    expect(html).toContain('Tour Diary');
+    expect(html).toContain('Officer Contacts');
+    expect(html).toContain('Smart Sampling');
+    expect(html).toContain('Inspection &amp; Enforcement');
 
-    // Admin-only items not present
+    // Admin-only items not present for officer login
     expect(html).not.toContain('Command Center');
     expect(html).not.toContain('Office Records');
     expect(html).not.toContain('Document Repository');
+    expect(html).not.toContain('Dealers Directory');
+    expect(html).not.toContain('Quality Control');
+    expect(html).not.toContain('Farmer Database');
+    expect(html).not.toContain('Reports');
+    expect(html).not.toContain('Farm Mechanization');
+    expect(html).not.toContain('Subsidy &amp; Schemes');
+  });
+
+  it('renders all admin-exclusive modules for admin login', () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: 'admin-1', email: 'k.vinayreddy166@gmail.com', user_metadata: { role: 'admin' } },
+      session: null,
+      loading: false,
+      authChecked: true,
+      appReady: true,
+      isAdminUser: true,
+      isTestUser: false,
+      isDealerUser: false,
+      isOfficerUser: false,
+      officerProfile: null,
+      dealerId: null,
+      dealerName: null,
+      signIn: vi.fn(),
+      signInOfficerOtp: vi.fn(),
+      verifyOfficerOtp: vi.fn(),
+      registerOfficer: vi.fn(),
+      refreshOfficerProfile: vi.fn(),
+      signInDealer: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    const html = renderToString(
+      <MemoryRouter>
+        <ThemeProvider>
+          <LanguageProvider>
+            <Layout currentPage="dashboard" onNavigate={vi.fn()} onBack={vi.fn()}>
+              <div>Admin Content</div>
+            </Layout>
+          </LanguageProvider>
+        </ThemeProvider>
+      </MemoryRouter>
+    );
+
+    // Admin-exclusive items are present
+    expect(html).toContain('Command Center');
+    expect(html).toContain('Office Records');
+    expect(html).toContain('Document Repository');
+    expect(html).toContain('Dealers Directory');
+    expect(html).toContain('Quality Control');
+    expect(html).toContain('Farmer Database');
+    expect(html).toContain('Reports');
+    expect(html).toContain('Farm Mechanization');
+    expect(html).toContain('Subsidy &amp; Schemes');
   });
 });
