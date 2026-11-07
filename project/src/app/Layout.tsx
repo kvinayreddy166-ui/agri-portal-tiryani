@@ -22,43 +22,43 @@ interface LayoutProps {
 
 const adminMenuItems = [
   // Overview
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'stock-analytics', label: 'Command Center', icon: PackageCheck, adminOnly: true },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'analytics', label: 'Reports', icon: BarChart3, adminOnly: true },
 
   // Statutory & Enforcement (Separate Field Tools Modules)
-  { id: 'inspection-enforcement', label: 'Inspection & Enforcement', icon: ClipboardCheck },
-  { id: 'enforcement-tracker', label: 'Enforcement Tracker', icon: Gavel },
-  { id: 'forms', label: 'Smart Sampling', icon: Files },
-  { id: 'forms-library', label: 'Forms & Library', icon: FolderOpen },
-  { id: 'license-services', label: 'License Services', icon: FileCheck },
   { id: 'acts-and-orders', label: 'Acts & Orders', icon: Scale },
+  { id: 'enforcement-tracker', label: 'Enforcement Tracker', icon: Gavel },
+  { id: 'forms-library', label: 'Forms & Library', icon: FolderOpen },
+  { id: 'inspection-enforcement', label: 'Inspection & Enforcement', icon: ClipboardCheck },
+  { id: 'license-services', label: 'License Services', icon: FileCheck },
+  { id: 'forms', label: 'Smart Sampling', icon: Files },
 
   // Field Advisory & Diagnostics (Separate Field Tools Modules)
-  { id: 'crop-doctor', label: 'Crop Doctor', icon: Stethoscope },
-  { id: 'field-diagnosis', label: 'Field Diagnosis', icon: Microscope },
-  { id: 'farm-calculators', label: 'Farm Calculators', icon: Calculator },
   { id: 'agrochemicals', label: 'Agrochemicals Database', icon: FlaskConical },
+  { id: 'crop-doctor', label: 'Crop Doctor', icon: Stethoscope },
+  { id: 'farm-calculators', label: 'Farm Calculators', icon: Calculator },
+  { id: 'field-diagnosis', label: 'Field Diagnosis', icon: Microscope },
 
   // Field Operations & Officer Administration (Separate Field Tools Modules + Operations)
-  { id: 'tour-diary', label: 'Tour Diary', icon: CalendarDays },
-  { id: 'officer-contacts', label: 'Officer Contacts', icon: Phone },
-  { id: 'farmer-database', label: 'Farmer Database', icon: Database, adminOnly: true },
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound, adminOnly: true },
+  { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor, adminOnly: true },
+  { id: 'farmer-database', label: 'Farmer Database', icon: Database, adminOnly: true },
+  { id: 'officer-contacts', label: 'Officer Contacts', icon: Phone },
   { id: 'quality', label: 'Quality Control', icon: ShieldCheck, adminOnly: true },
   { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark, adminOnly: true },
-  { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor, adminOnly: true },
+  { id: 'tour-diary', label: 'Tour Diary', icon: CalendarDays },
 
   // Knowledge & Portals
-  { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },
   { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText },
   { id: 'government-portals', label: 'Government Portals', icon: Globe },
+  { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },
 
   // Records & Admin
-  { id: 'officer-records', label: 'Records & Cloud Archive', icon: Archive },
-  { id: 'field-tools', label: 'Field Tools Hub', icon: Sprout },
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
+  { id: 'field-tools', label: 'Field Tools Hub', icon: Sprout },
   { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true },
+  { id: 'officer-records', label: 'Records & Cloud Archive', icon: Archive },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
@@ -463,27 +463,27 @@ function menuSections(items: typeof adminMenuItems, t: (key: string, telugu: str
   const sections = [
     {
       title: t('Overview', 'అవలోకనం'),
-      ids: ['dashboard', 'stock-analytics', 'analytics'],
+      ids: ['stock-analytics', 'dashboard', 'analytics'],
     },
     {
       title: t('Statutory & Enforcement', 'చట్టబద్ధమైన & అమలు'),
-      ids: ['inspection-enforcement', 'enforcement-tracker', 'forms', 'forms-library', 'license-services', 'acts-and-orders'],
+      ids: ['acts-and-orders', 'enforcement-tracker', 'forms-library', 'inspection-enforcement', 'license-services', 'forms'],
     },
     {
       title: t('Field Advisory & Diagnostics', 'ఫీల్డ్ అడ్వైజరీ & నిర్ధారణ'),
-      ids: ['crop-doctor', 'field-diagnosis', 'farm-calculators', 'agrochemicals'],
+      ids: ['agrochemicals', 'crop-doctor', 'farm-calculators', 'field-diagnosis'],
     },
     {
       title: t('Field Operations & Duties', 'ఫీల్డ్ విధులు & కార్యకలాపాలు'),
-      ids: ['tour-diary', 'officer-contacts', 'farmer-database', 'dealers', 'quality', 'subsidy', 'farm-mechanization'],
+      ids: ['dealers', 'farm-mechanization', 'farmer-database', 'officer-contacts', 'quality', 'subsidy', 'tour-diary'],
     },
     {
       title: t('Knowledge & Portals', 'జ్ఞాన భాండాగారం & పోర్టల్స్'),
-      ids: ['knowledge', 'gos-circulars', 'government-portals'],
+      ids: ['gos-circulars', 'government-portals', 'knowledge'],
     },
     {
       title: t('Records & Archives', 'రికార్డులు & ఆర్కైవ్'),
-      ids: ['officer-records', 'field-tools', 'file-directory', 'excel', 'settings'],
+      ids: ['file-directory', 'field-tools', 'excel', 'officer-records', 'settings'],
     },
   ];
 
@@ -493,13 +493,16 @@ function menuSections(items: typeof adminMenuItems, t: (key: string, telugu: str
     .map((section) => {
       const sectionItems = section.ids
         .map((id) => itemById.get(id))
-        .filter((item): item is (typeof adminMenuItems)[number] => Boolean(item));
+        .filter((item): item is (typeof adminMenuItems)[number] => Boolean(item))
+        .sort((a, b) => a.label.localeCompare(b.label));
       sectionItems.forEach((item) => used.add(item.id));
       return { title: section.title, items: sectionItems };
     })
     .filter((section) => section.items.length > 0);
 
-  const remaining = items.filter((item) => !used.has(item.id));
+  const remaining = items
+    .filter((item) => !used.has(item.id))
+    .sort((a, b) => a.label.localeCompare(b.label));
   if (remaining.length) grouped.push({ title: t('More', 'మరిన్ని'), items: remaining });
   return grouped;
 }

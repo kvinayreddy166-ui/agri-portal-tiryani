@@ -4,6 +4,7 @@ import { Ban, Bug, ChevronDown, ChevronRight, ClipboardCheck, FileText, FlaskCon
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import type { SavedPestStopSaleOrder } from '../components/PesticideStopSaleEntry';
 import type { SavedFertStopSaleOrder } from '../components/FertilizerStopSaleEntry';
 import type { SavedSeedStopSaleOrder } from '../components/SeedStopSaleEntry';
@@ -62,111 +63,97 @@ type HubCardKey = 'inspections' | 'notices' | 'stopSale' | 'seizure';
 const cardThemes: Record<
   string,
   {
-    bar: string;
-    gradientTop: string;
     iconBg: string;
-    iconShadow: string;
     borderActive: string;
     borderIdle: string;
     borderHover: string;
-    bgTint: string;
     badgeBg: string;
     badgeText: string;
+    badgeTeText: string;
     chevronOpen: string;
     itemHoverBorder: string;
     itemHoverBg: string;
+    accentGlow: string;
   }
 > = {
   teal: {
-    bar: 'from-emerald-500 to-emerald-600',
-    gradientTop: 'from-emerald-500 via-teal-500 to-emerald-600',
-    iconBg: 'bg-gradient-to-br from-emerald-600 to-teal-700',
-    iconShadow: 'shadow-emerald-900/15',
-    borderActive: 'border-emerald-500/60 ring-2 ring-emerald-500/10 dark:border-emerald-500',
-    borderIdle: 'border-emerald-200/80 dark:border-emerald-900/50',
-    borderHover: 'hover:border-emerald-300 dark:hover:border-emerald-700',
-    bgTint: 'from-white via-emerald-50/20 to-teal-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20',
-    badgeBg: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/60',
+    iconBg: 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white shadow-md shadow-emerald-900/10',
+    borderActive: 'border-emerald-600/50 ring-2 ring-emerald-500/15 dark:border-emerald-500',
+    borderIdle: 'border-slate-200/90 dark:border-slate-800',
+    borderHover: 'hover:border-emerald-500/40 hover:shadow-md hover:shadow-emerald-950/5',
+    badgeBg: 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:ring-emerald-800/60',
     badgeText: '3 Checklists',
-    chevronOpen: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200',
+    badgeTeText: '3 చెక్‌లిస్టులు',
+    chevronOpen: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
     itemHoverBorder: 'hover:border-emerald-300 dark:hover:border-emerald-700',
     itemHoverBg: 'hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30',
+    accentGlow: 'from-emerald-600 via-teal-500 to-emerald-700',
   },
   amber: {
-    bar: 'from-amber-500 to-orange-500',
-    gradientTop: 'from-amber-400 via-orange-400 to-amber-500',
-    iconBg: 'bg-gradient-to-br from-amber-500 to-orange-600',
-    iconShadow: 'shadow-amber-900/15',
-    borderActive: 'border-amber-500/60 ring-2 ring-amber-500/10 dark:border-amber-500',
-    borderIdle: 'border-amber-200/80 dark:border-amber-900/50',
-    borderHover: 'hover:border-amber-300 dark:hover:border-amber-700',
-    bgTint: 'from-white via-amber-50/20 to-orange-50/25 dark:from-slate-900 dark:via-slate-900 dark:to-amber-950/20',
-    badgeBg: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/60',
+    iconBg: 'bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-md shadow-amber-900/10',
+    borderActive: 'border-amber-600/50 ring-2 ring-amber-500/15 dark:border-amber-500',
+    borderIdle: 'border-slate-200/90 dark:border-slate-800',
+    borderHover: 'hover:border-amber-500/40 hover:shadow-md hover:shadow-amber-950/5',
+    badgeBg: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200/80 dark:bg-amber-950/60 dark:text-amber-300 dark:ring-amber-800/60',
     badgeText: '3 Notices',
-    chevronOpen: 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200',
+    badgeTeText: '3 నోటీసులు',
+    chevronOpen: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
     itemHoverBorder: 'hover:border-amber-300 dark:hover:border-amber-700',
     itemHoverBg: 'hover:bg-amber-50/40 dark:hover:bg-amber-950/30',
+    accentGlow: 'from-amber-500 via-orange-500 to-amber-600',
   },
   rose: {
-    bar: 'from-rose-500 to-red-600',
-    gradientTop: 'from-rose-500 via-red-500 to-rose-600',
-    iconBg: 'bg-gradient-to-br from-rose-500 to-red-600',
-    iconShadow: 'shadow-rose-900/15',
-    borderActive: 'border-rose-500/60 ring-2 ring-rose-500/10 dark:border-rose-500',
-    borderIdle: 'border-rose-200/80 dark:border-rose-900/50',
-    borderHover: 'hover:border-rose-300 dark:hover:border-rose-700',
-    bgTint: 'from-white via-rose-50/20 to-red-50/25 dark:from-slate-900 dark:via-slate-900 dark:to-rose-950/20',
-    badgeBg: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200/80 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-800/60',
+    iconBg: 'bg-gradient-to-br from-rose-600 to-red-700 text-white shadow-md shadow-rose-900/10',
+    borderActive: 'border-rose-600/50 ring-2 ring-rose-500/15 dark:border-rose-500',
+    borderIdle: 'border-slate-200/90 dark:border-slate-800',
+    borderHover: 'hover:border-rose-500/40 hover:shadow-md hover:shadow-rose-950/5',
+    badgeBg: 'bg-rose-50 text-rose-800 ring-1 ring-rose-200/80 dark:bg-rose-950/60 dark:text-rose-300 dark:ring-rose-800/60',
     badgeText: '3 Orders',
-    chevronOpen: 'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200',
+    badgeTeText: '3 ఆర్డర్లు',
+    chevronOpen: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
     itemHoverBorder: 'hover:border-rose-300 dark:hover:border-rose-700',
     itemHoverBg: 'hover:bg-rose-50/40 dark:hover:bg-rose-950/30',
+    accentGlow: 'from-rose-500 via-red-500 to-rose-600',
   },
   indigo: {
-    bar: 'from-slate-700 to-blue-800',
-    gradientTop: 'from-slate-700 via-blue-800 to-slate-900',
-    iconBg: 'bg-gradient-to-br from-slate-800 to-blue-900',
-    iconShadow: 'shadow-slate-900/15',
-    borderActive: 'border-blue-500/60 ring-2 ring-blue-500/10 dark:border-blue-500',
-    borderIdle: 'border-slate-200/80 dark:border-slate-800',
-    borderHover: 'hover:border-blue-400 dark:hover:border-blue-600',
-    bgTint: 'from-white via-slate-50/20 to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/40',
-    badgeBg: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
+    iconBg: 'bg-gradient-to-br from-indigo-700 to-slate-800 text-white shadow-md shadow-indigo-900/10',
+    borderActive: 'border-indigo-600/50 ring-2 ring-indigo-500/15 dark:border-indigo-500',
+    borderIdle: 'border-slate-200/90 dark:border-slate-800',
+    borderHover: 'hover:border-indigo-500/40 hover:shadow-md hover:shadow-indigo-950/5',
+    badgeBg: 'bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200/80 dark:bg-indigo-950/60 dark:text-indigo-300 dark:ring-indigo-800/60',
     badgeText: '3 Seizures',
-    chevronOpen: 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200',
-    itemHoverBorder: 'hover:border-blue-300 dark:hover:border-blue-700',
-    itemHoverBg: 'hover:bg-slate-50/40 dark:hover:bg-slate-800/30',
+    badgeTeText: '3 జప్తులు',
+    chevronOpen: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
+    itemHoverBorder: 'hover:border-indigo-300 dark:hover:border-indigo-700',
+    itemHoverBg: 'hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30',
+    accentGlow: 'from-indigo-600 via-blue-600 to-indigo-700',
   },
   // Backward compatibility aliases
   cyan: {
-    bar: 'from-amber-500 to-orange-500',
-    gradientTop: 'from-amber-400 via-orange-400 to-amber-500',
-    iconBg: 'bg-gradient-to-br from-amber-500 to-orange-600',
-    iconShadow: 'shadow-amber-900/15',
-    borderActive: 'border-amber-500/60 ring-2 ring-amber-500/10 dark:border-amber-500',
-    borderIdle: 'border-amber-200/80 dark:border-amber-900/50',
-    borderHover: 'hover:border-amber-300 dark:hover:border-amber-700',
-    bgTint: 'from-white via-amber-50/20 to-orange-50/25 dark:from-slate-900 dark:via-slate-900 dark:to-amber-950/20',
-    badgeBg: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/80 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/60',
+    iconBg: 'bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-md shadow-amber-900/10',
+    borderActive: 'border-amber-600/50 ring-2 ring-amber-500/15 dark:border-amber-500',
+    borderIdle: 'border-slate-200/90 dark:border-slate-800',
+    borderHover: 'hover:border-amber-500/40 hover:shadow-md hover:shadow-amber-950/5',
+    badgeBg: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200/80 dark:bg-amber-950/60 dark:text-amber-300 dark:ring-amber-800/60',
     badgeText: '3 Notices',
-    chevronOpen: 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200',
+    badgeTeText: '3 నోటీసులు',
+    chevronOpen: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
     itemHoverBorder: 'hover:border-amber-300 dark:hover:border-amber-700',
     itemHoverBg: 'hover:bg-amber-50/40 dark:hover:bg-amber-950/30',
+    accentGlow: 'from-amber-500 via-orange-500 to-amber-600',
   },
   sky: {
-    bar: 'from-rose-500 to-red-600',
-    gradientTop: 'from-rose-500 via-red-500 to-rose-600',
-    iconBg: 'bg-gradient-to-br from-rose-500 to-red-600',
-    iconShadow: 'shadow-rose-900/15',
-    borderActive: 'border-rose-500/60 ring-2 ring-rose-500/10 dark:border-rose-500',
-    borderIdle: 'border-rose-200/80 dark:border-rose-900/50',
-    borderHover: 'hover:border-rose-300 dark:hover:border-rose-700',
-    bgTint: 'from-white via-rose-50/20 to-red-50/25 dark:from-slate-900 dark:via-slate-900 dark:to-rose-950/20',
-    badgeBg: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200/80 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-800/60',
+    iconBg: 'bg-gradient-to-br from-rose-600 to-red-700 text-white shadow-md shadow-rose-900/10',
+    borderActive: 'border-rose-600/50 ring-2 ring-rose-500/15 dark:border-rose-500',
+    borderIdle: 'border-slate-200/90 dark:border-slate-800',
+    borderHover: 'hover:border-rose-500/40 hover:shadow-md hover:shadow-rose-950/5',
+    badgeBg: 'bg-rose-50 text-rose-800 ring-1 ring-rose-200/80 dark:bg-rose-950/60 dark:text-rose-300 dark:ring-rose-800/60',
     badgeText: '3 Orders',
-    chevronOpen: 'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200',
+    badgeTeText: '3 ఆర్డర్లు',
+    chevronOpen: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
     itemHoverBorder: 'hover:border-rose-300 dark:hover:border-rose-700',
     itemHoverBg: 'hover:bg-rose-50/40 dark:hover:bg-rose-950/30',
+    accentGlow: 'from-rose-500 via-red-500 to-rose-600',
   },
 };
 
@@ -190,6 +177,7 @@ const noticeModalThemes: Record<NoticeCategory, { header: string; icon: string; 
 
 export function InspectionEnforcementHub() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { isAdminUser, isTestUser, isOfficerUser } = useAuth();
   const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const [openCard, setOpenCard] = useState<HubCardKey | null>(null);
@@ -210,67 +198,86 @@ export function InspectionEnforcementHub() {
   const toggleCard = (card: HubCardKey) =>
     setOpenCard((current) => (current === card ? null : card));
 
-  const hubCards: {
-    key: HubCardKey;
-    title: string;
-    subtitle: string;
-    icon: typeof Sprout;
-    theme: string;
-    items: { label: string; icon: typeof Sprout; tone: string; onClick: () => void }[];
-  }[] = [
+  const hubCards = [
     {
-      key: 'inspections',
+      key: 'inspections' as const,
       title: 'Inspections',
+      teTitle: 'తనిఖీలు',
       subtitle: 'Dealer inspection checklists',
+      teSubtitle: 'విత్తనం, ఎరువు & పురుగుమందు డీలర్ల తనిఖీ చెక్‌లిస్టులు',
       icon: ClipboardCheck,
       theme: 'teal',
-
-      items: INSPECTION_TYPES.map((item) => ({ label: `${item.label} Inspection`, icon: item.icon, tone: item.tone, onClick: () => navigate(item.path) })),
+      items: [
+        { label: 'Seed Inspection', teLabel: 'విత్తన డీలర్ తనిఖీ', desc: 'Seeds Act, 1966 & Seeds Rules', teDesc: 'విత్తన చట్టం ప్రకారం డీలర్ తనిఖీ', icon: Sprout, tone: 'emerald', onClick: () => navigate('/officer-toolkit/seed-dealer-inspection') },
+        { label: 'Fertilizer Inspection', teLabel: 'ఎరువుల డీలర్ తనిఖీ', desc: 'FCO 1985 & Clause 28/35', teDesc: 'ఎఫ్.సి.ఒ 1985 ప్రకారం తనిఖీ', icon: FlaskConical, tone: 'sky', onClick: () => navigate('/officer-toolkit/fertilizer-dealer-inspection') },
+        { label: 'Pesticide Inspection', teLabel: 'పురుగుమందుల డీలర్ తనిఖీ', desc: 'Insecticides Act, 1968 & Rules', teDesc: 'పురుగుమందు చట్టం ప్రకారం తనిఖీ', icon: Bug, tone: 'rose', onClick: () => navigate('/officer-toolkit/insecticide-dealer-inspection') },
+      ],
     },
     {
-      key: 'notices',
+      key: 'notices' as const,
       title: 'Memo & Show Cause Notice',
+      teTitle: 'మెమో & షోకాజ్ నోటీసు',
       subtitle: 'Notices and memos',
+      teSubtitle: 'నోటీసులు, మెమోలు & వివరణ ఉత్తర్వులు',
       icon: FileText,
-      theme: 'cyan',
-
-      items: NOTICE_TYPES.map((item) => ({ label: `${item.label} Notice`, icon: item.icon, tone: item.tone, onClick: () => setSelectedNoticeCategory(item.category) })),
+      theme: 'amber',
+      items: [
+        { label: 'Seed Notice', teLabel: 'విత్తన షోకాజ్ నోటీసు', desc: 'Seeds Act statutory notice & memo', teDesc: 'విత్తన ఉల్లంఘనలపై చట్టబద్ధమైన నోటీసు', icon: Sprout, tone: 'emerald', onClick: () => setSelectedNoticeCategory('seed') },
+        { label: 'Fertilizer Notice', teLabel: 'ఎరువుల షోకాజ్ నోటీసు', desc: 'FCO 1985 statutory notice & memo', teDesc: 'ఎఫ్.సి.ఒ నిబంధనల ఉల్లంఘన నోటీసు', icon: FlaskConical, tone: 'sky', onClick: () => setSelectedNoticeCategory('fertiliser') },
+        { label: 'Pesticide Notice', teLabel: 'పురుగుమందుల షోకాజ్ నోటీసు', desc: 'Insecticides Act statutory notice & memo', teDesc: 'పురుగుమందుల చట్ట ఉల్లంఘన నోటీసు', icon: Bug, tone: 'amber', onClick: () => setSelectedNoticeCategory('pesticide') },
+      ],
     },
     {
-      key: 'stopSale',
+      key: 'stopSale' as const,
       title: 'Stop Sale Order',
+      teTitle: 'స్టాప్ సేల్ ఆర్డర్',
       subtitle: 'Stop sale orders & revocations',
+      teSubtitle: 'అమ్మకం నిలిపివేత & ఉపసంహరణ ఉత్తర్వులు',
       icon: Ban,
-      theme: 'sky',
-
-      items: STOP_SALE_TYPES.map((item) => ({
-        label: `${item.label} Stop Sale`,
-        icon: item.icon,
-        tone: item.tone,
-        onClick: () => {
-          if (item.label === 'Pesticide') { setPestStopSaleTab('issue'); setShowPesticideStopSale(true); }
-          if (item.label === 'Fertilizer') { setFertStopSaleTab('issue'); setShowFertilizerStopSale(true); }
-          if (item.label === 'Seed') { setSeedStopSaleTab('issue'); setShowSeedStopSale(true); }
+      theme: 'rose',
+      items: [
+        {
+          label: 'Pesticide Stop Sale',
+          teLabel: 'పురుగుమందుల స్టాప్ సేల్',
+          desc: 'Form XIV / Rule 28 stop sale & revocation',
+          teDesc: 'ఫారం XIV / నిబంధన 28 ప్రకారం అమ్మకం నిలిపివేత',
+          icon: Bug,
+          tone: 'amber',
+          onClick: () => { setPestStopSaleTab('issue'); setShowPesticideStopSale(true); },
         },
-      })),
+        {
+          label: 'Fertilizer Stop Sale',
+          teLabel: 'ఎరువుల స్టాప్ సేల్',
+          desc: 'Form L / Clause 28 stop sale & revocation',
+          teDesc: 'ఫారం L / క్లాజ్ 28 ప్రకారం అమ్మకం నిలిపివేత',
+          icon: FlaskConical,
+          tone: 'sky',
+          onClick: () => { setFertStopSaleTab('issue'); setShowFertilizerStopSale(true); },
+        },
+        {
+          label: 'Seed Stop Sale',
+          teLabel: 'విత్తనాల స్టాప్ సేల్',
+          desc: 'Form III / Section 14(1)(c) stop sale & revocation',
+          teDesc: 'ఫారం III / సెక్షన్ 14(1)(c) ప్రకారం నిలిపివేత',
+          icon: Sprout,
+          tone: 'emerald',
+          onClick: () => { setSeedStopSaleTab('issue'); setShowSeedStopSale(true); },
+        },
+      ],
     },
     {
-      key: 'seizure',
+      key: 'seizure' as const,
       title: 'Seizure Order',
+      teTitle: 'జప్తి ఆర్డర్',
       subtitle: 'Stock seizure orders',
+      teSubtitle: 'స్టాక్ జప్తి ఉత్తర్వులు & భద్రతా రికార్డులు',
       icon: PackageX,
       theme: 'indigo',
-
-      items: SEIZURE_TYPES.map((item) => ({
-        label: `${item.label} Seizure`,
-        icon: item.icon,
-        tone: item.tone,
-        onClick: () => {
-          if (item.label === 'Fertilizer') setShowFertilizerSeizure(true);
-          if (item.label === 'Seed') setShowSeedSeizure(true);
-          if (item.label === 'Pesticide') setShowPesticideSeizure(true);
-        },
-      })),
+      items: [
+        { label: 'Fertilizer Seizure', teLabel: 'ఎరువుల జప్తి ఆర్డర్', desc: 'Form M / Clause 28(1)(d) stock seizure', teDesc: 'ఫారం M / క్లాజ్ 28(1)(d) ప్రకారం జప్తి', icon: FlaskConical, tone: 'sky', onClick: () => setShowFertilizerSeizure(true) },
+        { label: 'Seed Seizure', teLabel: 'విత్తనాల జప్తి ఆర్డర్', desc: 'Form IV / Section 14(1)(b) stock seizure', teDesc: 'ఫారం IV / సెక్షన్ 14(1)(b) ప్రకారం జప్తి', icon: Sprout, tone: 'emerald', onClick: () => setShowSeedSeizure(true) },
+        { label: 'Pesticide Seizure', teLabel: 'పురుగుమందుల జప్తి ఆర్డర్', desc: 'Form XV / Rule 29 stock seizure', teDesc: 'ఫారం XV / రూల్ 29 ప్రకారం జప్తి', icon: Bug, tone: 'amber', onClick: () => setShowPesticideSeizure(true) },
+      ],
     },
   ];
 
@@ -279,16 +286,16 @@ export function InspectionEnforcementHub() {
       {showCompactHeader ? (
         <ModulePageHeader
           className="mb-4"
-          title="Inspection & Enforcement"
-          subtitle="Inspection proforma, memo & show cause notice, stop sale & seizure orders"
+          title={t('Inspection & Enforcement', 'తనిఖీ & అమలు')}
+          subtitle={t('Inspection proforma, memo & show cause notice, stop sale & seizure orders', 'విత్తనం, ఎరువు & పురుగుమందు తనిఖీ ప్రొఫార్మా, మెమోలు, షోకాజ్ నోటీసులు & జప్తి ఉత్తర్వులు')}
           icon={ClipboardCheck}
         />
       ) : (
         <ToolkitPageHeader
           icon={ClipboardCheck}
           tone="teal-indigo"
-          eyebrow="Officer Toolkit"
-          title="Inspection & Enforcement"
+          eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
+          title={t('Inspection & Enforcement', 'తనిఖీ & అమలు')}
           fallbackPath="/officer-toolkit"
           onBack={() => navigate('/officer-toolkit')}
           className="mb-4"
@@ -298,44 +305,50 @@ export function InspectionEnforcementHub() {
       <div className="grid items-start gap-4 sm:grid-cols-2">
         {hubCards.map((card) => {
           const isOpen = openCard === card.key;
-          const theme = cardThemes[card.theme];
+          const theme = cardThemes[card.theme] || cardThemes.teal;
           return (
             <div
               key={card.key}
-              className={`group relative overflow-hidden rounded-2xl border transition duration-300 bg-gradient-to-br ${theme.bgTint} ${
+              className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 ${
                 isOpen
-                  ? `${theme.borderActive} shadow-lg shadow-slate-900/5`
-                  : `${theme.borderIdle} shadow-sm hover:-translate-y-0.5 hover:shadow-md ${theme.borderHover}`
+                  ? `${theme.borderActive} bg-white shadow-md dark:bg-slate-900`
+                  : `${theme.borderIdle} bg-white shadow-xs hover:-translate-y-0.5 hover:shadow-md ${theme.borderHover} dark:bg-slate-900`
               }`}
             >
-              {/* Left Accent Vertical Bar */}
-              <div className={`absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b ${theme.bar}`} />
+              {/* Subtle top hairline indicator when open */}
+              {isOpen && (
+                <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${theme.accentGlow}`} />
+              )}
 
               <button
                 type="button"
                 onClick={() => toggleCard(card.key)}
                 aria-expanded={isOpen}
-                className="flex w-full items-center gap-4 py-4 pl-6 pr-4 sm:py-5 sm:pl-7 sm:pr-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
+                className="flex w-full items-center gap-3.5 p-4 sm:p-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
               >
                 <div
-                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white shadow-md transition-all duration-300 group-hover:scale-105 ${theme.iconBg} ${theme.iconShadow}`}
+                  className={`flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-105 ${theme.iconBg}`}
                 >
-                  <card.icon className="h-6 w-6" />
+                  <card.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-[15px] font-black leading-tight text-slate-900 dark:text-white">{card.title}</p>
-                    <span className={`hidden sm:inline-flex rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${theme.badgeBg}`}>
-                      {theme.badgeText}
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate text-sm sm:text-base font-black leading-tight text-slate-900 dark:text-white font-[var(--font-heading)]">
+                      {t(card.title, card.teTitle)}
+                    </p>
+                    <span className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${theme.badgeBg}`}>
+                      {t(theme.badgeText, theme.badgeTeText)}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs font-medium leading-snug text-slate-500 dark:text-slate-400">{card.subtitle}</p>
+                  <p className="mt-1 line-clamp-1 text-xs font-medium leading-snug text-slate-500 dark:text-slate-400">
+                    {t(card.subtitle, card.teSubtitle)}
+                  </p>
                 </div>
                 <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all duration-300 ${
+                  className={`ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all duration-300 ${
                     isOpen
                       ? `rotate-180 ${theme.chevronOpen}`
-                      : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200/70 dark:bg-slate-800 dark:text-slate-400 dark:group-hover:bg-slate-700/60'
+                      : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200/80 dark:bg-slate-800 dark:text-slate-400 dark:group-hover:bg-slate-700/80'
                   }`}
                   aria-hidden="true"
                 >
@@ -345,19 +358,26 @@ export function InspectionEnforcementHub() {
 
               {/* Sub-item Labels / Action Cards */}
               {isOpen && (
-                <div className="grid gap-2 border-t border-slate-100/90 bg-slate-50/60 p-3 sm:p-4 backdrop-blur-xs dark:border-slate-800/80 dark:bg-slate-950/50">
+                <div className="grid gap-2 border-t border-slate-100 bg-slate-50/70 p-3 sm:p-4 backdrop-blur-xs dark:border-slate-800/80 dark:bg-slate-950/50">
                   {card.items.map((item) => (
                     <button
                       key={item.label}
                       type="button"
                       onClick={item.onClick}
-                      className={`group/item flex items-center gap-3.5 rounded-xl border border-slate-200/80 bg-white px-3.5 py-3 text-left shadow-xs transition duration-200 hover:-translate-y-px hover:shadow-sm ${theme.itemHoverBorder} ${theme.itemHoverBg} dark:border-slate-800 dark:bg-slate-900`}
+                      className={`group/item flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white p-3 text-left shadow-2xs transition-all duration-200 hover:-translate-y-px hover:shadow-xs ${theme.itemHoverBorder} ${theme.itemHoverBg} dark:border-slate-800 dark:bg-slate-900`}
                     >
-                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg shadow-xs transition-transform duration-200 group-hover/item:scale-105 ${chipClasses[item.tone]}`}>
-                        <item.icon className="h-5 w-5" />
+                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-2xs transition-transform duration-200 group-hover/item:scale-105 ${chipClasses[item.tone]}`}>
+                        <item.icon className="h-4 w-4 sm:h-5 sm:w-5" />
                       </span>
-                      <span className="flex-1 text-sm font-black text-slate-800 dark:text-slate-100">{item.label}</span>
-                      <ChevronRight className="h-4 w-4 text-slate-400 transition-transform duration-200 group-hover/item:translate-x-1 group-hover/item:text-slate-700 dark:text-slate-500 dark:group-hover/item:text-slate-200" strokeWidth={2.5} />
+                      <div className="min-w-0 flex-1">
+                        <span className="block text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
+                          {t(item.label, item.teLabel)}
+                        </span>
+                        <span className="block truncate text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                          {t(item.desc, item.teDesc)}
+                        </span>
+                      </div>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 group-hover/item:translate-x-0.5 group-hover/item:text-slate-700 dark:text-slate-500 dark:group-hover/item:text-slate-200" strokeWidth={2.5} />
                     </button>
                   ))}
                 </div>

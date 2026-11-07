@@ -53,7 +53,7 @@ export function MandiPricesWidget() {
   const [commodityFilter, setCommodityFilter] = useState('');
   const [localOnly, setLocalOnly] = useState(false);
   const [liveOnly, setLiveOnly] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(100);
+  const [visibleCount, setVisibleCount] = useState(10);
 
   // Officer Update Modal
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -240,6 +240,11 @@ export function MandiPricesWidget() {
   const visibleRecords = useMemo(() => {
     return filteredRecords.slice(0, visibleCount);
   }, [filteredRecords, visibleCount]);
+
+  // Reset visibleCount back to top 10 when any filter or query changes
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [liveOnly, localOnly, districtFilter, commodityFilter, searchQuery, selectedState]);
 
   const isPillActive = (pillFilter: string) => {
     if (!commodityFilter) return false;
@@ -793,27 +798,45 @@ export function MandiPricesWidget() {
         </div>
 
         {/* Show More / Show Less Button */}
-        {filteredRecords.length > 15 && (
-          <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+        {filteredRecords.length > 10 && (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
             <span>
-              {t('Showing', 'చూపిస్తున్నాం')} {visibleRecords.length} {t('of', 'మొత్తం')} {filteredRecords.length} {t('records', 'రికార్డులు')}
+              {t('Showing', 'చూపిస్తున్నాం')}{' '}
+              <span className="font-bold text-slate-700 dark:text-slate-200">{visibleRecords.length}</span>{' '}
+              {t('of', 'మొత్తం')}{' '}
+              <span className="font-bold text-slate-700 dark:text-slate-200">{filteredRecords.length}</span>{' '}
+              {t('crops / commodities', 'పంటలు / వస్తువులు')}
             </span>
-            <button
-              onClick={() => setVisibleCount(visibleCount >= filteredRecords.length ? 15 : 100)}
-              className="inline-flex items-center gap-1 font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400"
-            >
-              {visibleCount >= filteredRecords.length ? (
+            <div className="flex items-center gap-2">
+              {visibleCount < filteredRecords.length ? (
                 <>
-                  <ChevronUp className="h-4 w-4" />
-                  <span>{t('Show Top 15', 'టాప్ 15 చూపించు')}</span>
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((prev) => Math.min(prev + 10, filteredRecords.length))}
+                    className="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-2xs transition hover:border-emerald-400 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+                  >
+                    <ChevronDown className="h-3.5 w-3.5" />
+                    <span>{t('Show More', 'మరిన్ని చూపించు')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount(filteredRecords.length)}
+                    className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                  >
+                    <span>{t('Show All', 'అన్నీ చూపించు')} ({filteredRecords.length})</span>
+                  </button>
                 </>
               ) : (
-                <>
-                  <ChevronDown className="h-4 w-4" />
-                  <span>{t('Show All Markets', 'అన్ని మార్కెట్లు చూపించు')}</span>
-                </>
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount(10)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  <ChevronUp className="h-3.5 w-3.5" />
+                  <span>{t('Show Top 10', 'టాప్ 10 చూపించు')}</span>
+                </button>
               )}
-            </button>
+            </div>
           </div>
         )}
       </div>
