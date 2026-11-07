@@ -111,14 +111,37 @@ describe('OfficersToolkit — Public vs Authenticated Visibility', () => {
 
     const html = renderToString(
       <MemoryRouter initialEntries={['/officer-toolkit/my-records']}>
-        <OfficersToolkit isAdmin={false} isTestUser={false} isPublic={false} initialTab="records" />
+        <OfficersToolkit isAdmin={false} isTestUser={false} isPublic={false} initialTab="records" fixedTab="records" />
       </MemoryRouter>
     );
 
-    // General toolkit content should render
-    expect(html).toContain('Field Tools');
+    // Records & Cloud Archive should NOT show the Field Tools or Government Portals switcher buttons
+    expect(html).not.toContain('Field Tools');
+    expect(html).not.toContain('Government Portals');
 
     // Authenticated officer sees their records & cloud archive
     expect(html).toContain('Records &amp; Cloud Archive');
+    expect(html).toContain('Secure Cloudflare R2 repository');
+  });
+
+  it('renders Field Tools module without disturbing cards', () => {
+    const html = renderToString(
+      <MemoryRouter initialEntries={['/field-tools']}>
+        <OfficersToolkit isPublic={false} fixedTab="tools" />
+      </MemoryRouter>
+    );
+    expect(html).toContain('Field Tools');
+    expect(html).toContain('Tour Diary');
+    expect(html).not.toContain('Records &amp; Cloud Archive');
+  });
+
+  it('renders Government Portals module without disturbing cards', () => {
+    const html = renderToString(
+      <MemoryRouter initialEntries={['/government-portals']}>
+        <OfficersToolkit isPublic={false} fixedTab="portals" />
+      </MemoryRouter>
+    );
+    expect(html).toContain('Government Portals');
+    expect(html).not.toContain('Records &amp; Cloud Archive');
   });
 });

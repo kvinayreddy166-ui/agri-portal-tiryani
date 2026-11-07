@@ -28,6 +28,8 @@ import {
 import { effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, withOthersOption, getAssistantDirectorLocationError } from '../../../shared/data/assistantDirectorLocation';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { useAuth } from '../../../shared/context/AuthContext';
+import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 type FieldConfig = {
   key: keyof PesticidePdfValues;
@@ -194,6 +196,8 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
 ];
 
 export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) {
+  const { user } = useAuth();
+  const draftsKey = user ? `${DRAFTS_KEY}_${user.id}` : DRAFTS_KEY;
   const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
     try {
       const stored = safeStorage.getItem('tiryani-watermark-enabled');
@@ -259,7 +263,12 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     setPdfPreview(null);
   };
   const isSavingDraft = useRef(false);
-  const [savedDrafts, setSavedDrafts] = useState<SavedPesticideDraft[]>(() => loadDrafts());
+  const [savedDrafts, setSavedDrafts] = useState<SavedPesticideDraft[]>(() => loadDrafts(draftsKey));
+
+  useEffect(() => {
+    setSavedDrafts(loadDrafts(draftsKey));
+    setSelectedDraftName('');
+  }, [draftsKey]);
   const [selectedDraftName, setSelectedDraftName] = useState('');
   const [busy, setBusy] = useState(false);
   const [showDownloadAllDialog, setShowDownloadAllDialog] = useState(false);
@@ -650,7 +659,17 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     try {
       const doc = await generatePesticideStatutoryPdf(formType, documentValues, watermarkEnabled);
       const fileName = getPesticidePdfFileName(formType, documentValues);
-      downloadDoc(doc, fileName);
+      downloadDoc(doc, fileName, {
+        type: 'pesticide_statutory_form',
+        commodity: 'pesticide',
+        formType,
+        productName: documentValues.insecticideCommonName || documentValues.tradeName || '',
+        firmName: documentValues.dealerName || '',
+        firmAddress: documentValues.dealerAddress || documentValues.place || '',
+        codeNo: documentValues.cdaCode || documentValues.sampleSerialNumber || '',
+        samplingDate: documentValues.sampleDrawnDate || documentValues.date || '',
+        officerName: documentValues.officerName || '',
+      });
       showSuccess('PDF Downloaded Successfully', fileName, 4000);
     } catch (error) {
       console.error('Unable to download pesticide PDF:', error);
@@ -737,7 +756,16 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     try {
       const doc = await generateAllPesticideStatutoryPdf(values, watermarkEnabled);
       const fileName = getAllPesticidePdfFileName(values);
-      downloadDoc(doc, fileName);
+      downloadDoc(doc, fileName, {
+        type: 'pesticide_statutory_all_forms',
+        commodity: 'pesticide',
+        productName: values.insecticideCommonName || values.tradeName || '',
+        firmName: values.dealerName || '',
+        firmAddress: values.dealerAddress || values.place || '',
+        codeNo: values.cdaCode || values.sampleSerialNumber || '',
+        samplingDate: values.sampleDrawnDate || values.date || '',
+        officerName: values.officerName || '',
+      });
       showSuccess('All Forms PDF Downloaded Successfully', fileName, 4000);
     } catch (error) {
       console.error('Unable to download all pesticide PDFs:', error);
@@ -1326,9 +1354,9 @@ function PesticidePdfAction({ label, onPreview, onDownload, busy, primary = fals
   );
 }
 
-function loadDrafts(): SavedPesticideDraft[] {
+function loadDrafts(key: string = DRAFTS_KEY): SavedPesticideDraft[] {
   try {
-    const raw = safeStorage.getItem(DRAFTS_KEY);
+    const raw = safeStorage.getItem(key);
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {
@@ -1341,7 +1369,11 @@ function upsertDraft(drafts: SavedPesticideDraft[], draft: SavedPesticideDraft) 
   return [draft, ...drafts.filter((item) => item.name.trim().toLowerCase() !== draft.name.trim().toLowerCase())].slice(0, 30);
 }
 
-function downloadDoc(doc: { output: (type: 'blob') => Blob }, fileName: string) {
+function downloadDoc(
+  doc: { output: (type: 'blob') => Blob },
+  fileName: string,
+  metadata?: Record<string, unknown>
+) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -1352,4 +1384,17 @@ function downloadDoc(doc: { output: (type: 'blob') => Blob }, fileName: string) 
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+
+  // Auto-archive statutory pesticide document
+  void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+    filename: fileName,
+    documentCategory: 'sample',
+    sourceModule: 'pesticide_statutory',
+    fileFormat: 'pdf',
+    mimeType: 'application/pdf',
+    metadata: {
+      type: 'pesticide_statutory_form',
+      ...metadata,
+    },
+  });
 }

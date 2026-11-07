@@ -32,6 +32,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
+import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 import { fcoOffenceEntries, type FcoOffenceEntry } from '../data/fcoOffencesData';
 import { type LegalCategory } from '../data/actsAndOrdersData';
 import { fcoClauseCards, validateFcoClauseCoverage, type FcoClause, type FcoClauseCard, type FcoTabId, type FcoVariationNote } from '../data/fcoClauses';
@@ -1171,6 +1172,14 @@ async function exportOffencesPdf(entries: FcoOffenceEntry[], meta: { filename: s
     columnStyles: { 0: { cellWidth: 14 }, 1: { cellWidth: 95 }, 2: { cellWidth: 75 } },
   });
   doc.save(meta.filename);
+  void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+    filename: meta.filename,
+    documentCategory: 'order',
+    documentDate: new Date().toISOString().slice(0, 10),
+    sourceModule: 'acts_and_orders',
+    fileFormat: 'pdf',
+    metadata: { title: meta.title },
+  });
 }
 
 function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => void }) {

@@ -29,8 +29,10 @@ import {
 import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../../shared/data/assistantDirectorLocation';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 const showCoveringLetter = true;
+import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 
 
 type FieldConfig = {
@@ -617,6 +619,8 @@ const fertilizerFieldSections: SectionConfig[] = [
 ];
 
 export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void }) {
+  const { user } = useAuth();
+  const draftsKey = user ? `${DRAFTS_KEY}_${user.id}` : DRAFTS_KEY;
   const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
     try {
       const stored = safeStorage.getItem('tiryani-watermark-enabled');
@@ -703,12 +707,17 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const isSavingDraft = useRef(false);
   const [savedDrafts, setSavedDrafts] = useState<SavedFertilizerDraft[]>(() => {
     try {
-      return loadFertilizerDrafts();
+      return loadFertilizerDrafts(draftsKey);
     } catch (error) {
       console.error('Error loading fertilizer drafts:', error);
       return [];
     }
   });
+
+  useEffect(() => {
+    setSavedDrafts(loadFertilizerDrafts(draftsKey));
+    setSelectedDraftName('');
+  }, [draftsKey]);
   const [selectedDraftName, setSelectedDraftName] = useState('');
   const [busyAction, setBusyAction] = useState<'preview' | 'download' | 'downloadAll' | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(showCoveringLetter ? ['COVERING LETTER DETAILS'] : []));
@@ -1064,11 +1073,11 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       return;
     }
     
-    // Use Inspector Name as the draft identifier
-    const name = values.officerName.trim();
+    // Use CODE NO. OF SAMPLE as the draft identifier
+    const code = (values.sampleCode || values.codeNumber || '').trim();
     
-    if (!name) {
-      showInfo('Please enter Inspector Name', 'Inspector Name is required to save draft.', 4000);
+    if (!code) {
+      showInfo('Please enter CODE NO. OF SAMPLE', 'CODE NO. OF SAMPLE is required to save draft.', 4000);
       return;
     }
     
@@ -1077,10 +1086,16 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       // Exclude covering letter fields from draft - they are independently persisted
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftValues } = values;
-      const nextDrafts = upsertFertilizerDraft(savedDrafts, { name, values: draftValues, updatedAt: String(Date.now()) });
-      safeStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+      const isExisting = savedDrafts.some((item) => item.name.trim().toLowerCase() === code.toLowerCase());
+      const nextDrafts = upsertFertilizerDraft(savedDrafts, { name: code, values: draftValues, updatedAt: String(Date.now()) });
+      safeStorage.setItem(draftsKey, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
-      showSaved('Draft Saved Successfully', `Draft saved as ${name}`, 4000);
+      setSelectedDraftName(code);
+      if (isExisting) {
+        showSaved('Draft Updated Successfully', `Draft updated for sample code ${code}`, 4000);
+      } else {
+        showSaved('Draft Saved Successfully', `Draft saved as ${code}`, 4000);
+      }
     } finally {
       isSavingDraft.current = false;
     }
@@ -1118,7 +1133,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const deleteDraft = () => {
-    const name = values.officerName.trim();
+    const name = (selectedDraftName || values.sampleCode || values.codeNumber || '').trim();
     if (!name) {
       showInfo('No Draft Found', 'There is no saved draft to delete.', 4000);
       return;
@@ -1129,7 +1144,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       action: () => {
         // Use case-insensitive comparison for deletion
         const nextDrafts = savedDrafts.filter((item) => item.name.trim().toLowerCase() !== name.toLowerCase());
-        safeStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+        safeStorage.setItem(draftsKey, JSON.stringify(nextDrafts));
         setSavedDrafts(nextDrafts);
         // Clear auto-save storage to prevent the deleted draft from reappearing
         safeStorage.removeItem(STORAGE_KEY);
@@ -1259,7 +1274,17 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     try {
       const doc = await generateFertilizerStatutoryPdf(type, documentValues, watermarkEnabled);
       const fileName = getFertilizerPdfFileName(type, documentValues);
-      downloadFertilizerDoc(doc, fileName);
+      downloadFertilizerDoc(doc, fileName, {
+        type: 'fertilizer_statutory_form',
+        commodity: 'fertilizer',
+        formType: type,
+        productName: resolveFertilizerTypeGrade(documentValues) || documentValues.nameGrade || '',
+        firmName: documentValues.dealerName || '',
+        firmAddress: documentValues.dealerAddress || documentValues.place || documentValues.premisesLocation || '',
+        codeNo: documentValues.sampleCode || documentValues.codeNumber || documentValues.no || '',
+        samplingDate: documentValues.samplingDate || documentValues.date || '',
+        officerName: documentValues.officerName || '',
+      });
       showSuccess('PDF Downloaded Successfully', fileName, 4000);
     } catch (error) {
       console.error('Unable to download fertilizer PDF:', error);
@@ -1298,7 +1323,16 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     try {
       const doc = await generateAllFertilizerStatutoryPdf(documentValues, watermarkEnabled);
       const fileName = getAllFertilizerPdfFileName(documentValues);
-      downloadFertilizerDoc(doc, fileName);
+      downloadFertilizerDoc(doc, fileName, {
+        type: 'fertilizer_statutory_all_forms',
+        commodity: 'fertilizer',
+        productName: resolveFertilizerTypeGrade(documentValues) || documentValues.nameGrade || '',
+        firmName: documentValues.dealerName || '',
+        firmAddress: documentValues.dealerAddress || documentValues.place || documentValues.premisesLocation || '',
+        codeNo: documentValues.sampleCode || documentValues.codeNumber || documentValues.no || '',
+        samplingDate: documentValues.samplingDate || documentValues.date || '',
+        officerName: documentValues.officerName || '',
+      });
       showSuccess('All Forms PDF Downloaded Successfully', fileName, 4000);
     } catch (error) {
       console.error('Unable to download all fertilizer PDFs:', error);
@@ -1985,9 +2019,9 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   );
 }
 
-function loadFertilizerDrafts(): SavedFertilizerDraft[] {
+function loadFertilizerDrafts(key: string = DRAFTS_KEY): SavedFertilizerDraft[] {
   try {
-    const raw = safeStorage.getItem(DRAFTS_KEY);
+    const raw = safeStorage.getItem(key);
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {
@@ -2517,7 +2551,11 @@ function PdfInput({
   );
 }
 
-function downloadFertilizerDoc(doc: { output: (type: 'blob') => Blob }, fileName: string) {
+function downloadFertilizerDoc(
+  doc: { output: (type: 'blob') => Blob },
+  fileName: string,
+  metadata?: Record<string, unknown>
+) {
   try {
     const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
     const blobUrl = URL.createObjectURL(blob);
@@ -2531,6 +2569,19 @@ function downloadFertilizerDoc(doc: { output: (type: 'blob') => Blob }, fileName
     link.remove();
 
     window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+
+    // Auto-archive statutory fertilizer document
+    void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+      filename: fileName,
+      documentCategory: 'sample',
+      sourceModule: 'fertilizer_statutory',
+      fileFormat: 'pdf',
+      mimeType: 'application/pdf',
+      metadata: {
+        type: 'fertilizer_statutory_form',
+        ...metadata,
+      },
+    });
   } catch (error) {
     console.error('PDF download failed:', error);
     // Fallback: try opening in new tab
@@ -2539,6 +2590,19 @@ function downloadFertilizerDoc(doc: { output: (type: 'blob') => Blob }, fileName
       const blobUrl = URL.createObjectURL(blob);
       window.open(blobUrl, '_blank', 'noopener,noreferrer');
       window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+
+      // Auto-archive statutory fertilizer document
+      void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+        filename: fileName,
+        documentCategory: 'sample',
+        sourceModule: 'fertilizer_statutory',
+        fileFormat: 'pdf',
+        mimeType: 'application/pdf',
+        metadata: {
+          type: 'fertilizer_statutory_form',
+          ...metadata,
+        },
+      });
     } catch (fallbackError) {
       console.error('Fallback also failed:', fallbackError);
       throw error;

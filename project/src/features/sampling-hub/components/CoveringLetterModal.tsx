@@ -9,6 +9,7 @@ import { useCoveringLetterMetadata, COVERING_LETTER_FINANCIAL_YEARS, getDefaultC
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../../officers-toolkit/services/officerCloudSyncService';
+import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 const COVERING_LETTER_DETAILS_KEY = 'tiryani-covering-letter-details';
 
@@ -385,7 +386,21 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
         : `Covering_Letter_Quality_Analysis_${letterNumber || 'draft'}.pdf`;
       if (wordRecorder) {
         const { downloadBlob } = await import('../lib/coveringLetterDocx');
-        downloadBlob(await wordRecorder.buildDocx(), fileName.replace(/\.pdf$/, '.docx'));
+        const docxBlob = await wordRecorder.buildDocx();
+        const docxName = fileName.replace(/\.pdf$/, '.docx');
+        downloadBlob(docxBlob, docxName);
+
+        // Auto-archive in background (non-blocking)
+        void OfficerDocumentArchiveService.archiveGeneratedDocument(docxBlob, {
+          filename: docxName,
+          documentCategory: 'sample',
+          documentNumber: letterNumber || undefined,
+          documentDate: metadataForPdf.letterDate || new Date().toISOString().slice(0, 10),
+          sourceModule: 'covering_letter',
+          fileFormat: 'docx',
+          metadata: { letterType, officerDetails, metadataForPdf },
+        });
+
         setMessage('Covering Letter downloaded successfully.');
         return;
       }
@@ -401,6 +416,17 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       link.remove();
       setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
       
+      // Auto-archive in background (non-blocking)
+      void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+        filename: fileName,
+        documentCategory: 'sample',
+        documentNumber: letterNumber || undefined,
+        documentDate: metadataForPdf.letterDate || new Date().toISOString().slice(0, 10),
+        sourceModule: 'covering_letter',
+        fileFormat: 'pdf',
+        metadata: { letterType, officerDetails, metadataForPdf },
+      });
+
       setMessage('Covering Letter downloaded successfully.');
     } catch (error) {
       console.error('Error downloading covering letter PDF:', error);

@@ -28,6 +28,7 @@ import {
 } from './ShowCauseNoticeEntry';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 interface PestSeizureProductRow {
   id: string;
   name: string;
@@ -429,8 +430,20 @@ export function PesticideSeizureOrderEntry() {
 
   const downloadPdf = async () => {
     const doc = await renderNoticePdfDocument(noticeBlocks, form.refNumber || 'Receipt for Seized Insecticides', 'times');
-    doc.save(`${fileBase()}.pdf`);
-    showSuccess('PDF downloaded', `${fileBase()}.pdf`);
+    const filename = `${fileBase()}.pdf`;
+    doc.save(filename);
+    showSuccess('PDF downloaded', filename);
+
+    // Auto-archive in background (non-blocking)
+    void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+      filename,
+      documentCategory: 'order',
+      documentNumber: form.refNumber || undefined,
+      documentDate: form.seizureDate,
+      sourceModule: 'seizure',
+      fileFormat: 'pdf',
+      metadata: { ...form, commodity: 'pesticide' },
+    });
   };
 
   const printPreview = async () => {
@@ -458,14 +471,26 @@ export function PesticideSeizureOrderEntry() {
     try {
       const blob = await buildNoticeWordDocument(noticeBlocks, 'times');
       const url = URL.createObjectURL(blob);
+      const filename = `${fileBase()}.docx`;
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${fileBase()}.docx`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      showSuccess('Word downloaded', `${fileBase()}.docx`);
+      showSuccess('Word downloaded', filename);
+
+      // Auto-archive in background (non-blocking)
+      void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+        filename,
+        documentCategory: 'order',
+        documentNumber: form.refNumber || undefined,
+        documentDate: form.seizureDate,
+        sourceModule: 'seizure',
+        fileFormat: 'docx',
+        metadata: { ...form, commodity: 'pesticide' },
+      });
     } catch (error) {
       console.error('Unable to generate seizure receipt Word document:', error);
       showWarning('Word export failed', 'Please try again.');

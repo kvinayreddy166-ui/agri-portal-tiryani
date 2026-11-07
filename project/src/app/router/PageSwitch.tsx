@@ -155,7 +155,7 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
     case 'officer-toolkit':
       return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} isPublic={false} />;
     case 'officer-records':
-      return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} isPublic={false} initialTab="records" />;
+      return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} isPublic={false} initialTab="records" fixedTab="records" />;
     case 'field-tools':
       return <FieldToolsPage />;
     case 'government-portals':

@@ -31,6 +31,7 @@ import {
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
+import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 interface SeedStopSaleProductRow {
   id: string;
   crop: string;
@@ -407,8 +408,20 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
 
   const downloadPdf = async () => {
     const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'times');
-    doc.save(`${fileBase()}.pdf`);
-    showSuccess('PDF downloaded', `${fileBase()}.pdf`);
+    const filename = `${fileBase()}.pdf`;
+    doc.save(filename);
+    showSuccess('PDF downloaded', filename);
+
+    // Auto-archive in background (non-blocking)
+    void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+      filename,
+      documentCategory: 'order',
+      documentNumber: form.orderNumber || undefined,
+      documentDate: form.noticeDate,
+      sourceModule: 'stop_sale',
+      fileFormat: 'pdf',
+      metadata: { ...form, commodity: 'seed' },
+    });
   };
 
   const printOrder = async () => {
@@ -436,14 +449,26 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
     try {
       const blob = await buildNoticeWordDocument(noticeBlocks, 'times');
       const url = URL.createObjectURL(blob);
+      const filename = `${fileBase()}.docx`;
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${fileBase()}.docx`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      showSuccess('Word downloaded', `${fileBase()}.docx`);
+      showSuccess('Word downloaded', filename);
+
+      // Auto-archive in background (non-blocking)
+      void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+        filename,
+        documentCategory: 'order',
+        documentNumber: form.orderNumber || undefined,
+        documentDate: form.noticeDate,
+        sourceModule: 'stop_sale',
+        fileFormat: 'docx',
+        metadata: { ...form, commodity: 'seed' },
+      });
     } catch (error) {
       console.error('Unable to generate stop sale Word document:', error);
       showWarning('Word export failed', 'Please try again.');

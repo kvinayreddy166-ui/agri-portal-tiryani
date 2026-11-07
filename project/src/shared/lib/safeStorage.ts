@@ -1,59 +1,79 @@
+const memoryFallback = new Map<string, string>();
+
 /**
  * localStorage access that never throws.
  *
  * Raw `localStorage` can throw SecurityError (disabled storage, Safari private
  * mode on some versions) or QuotaExceededError (setItem when full). Every call
- * here is wrapped so a storage failure degrades to null/false instead of
- * crashing the page.
+ * here is wrapped so a storage failure degrades safely to an in-memory store
+ * instead of crashing the page or failing in non-browser/SSR environments.
  */
 export const safeStorage = {
   getItem(key: string): string | null {
     try {
-      return window.localStorage.getItem(key);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
     } catch {
-      return null;
+      // Fall through to memory store
     }
+    return memoryFallback.get(key) ?? null;
   },
 
   setItem(key: string, value: string): boolean {
     try {
-      window.localStorage.setItem(key, value);
-      return true;
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, value);
+      }
     } catch {
-      return false;
+      // Fall through to memory store
     }
+    memoryFallback.set(key, value);
+    return true;
   },
 
   removeItem(key: string): void {
     try {
-      window.localStorage.removeItem(key);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
+      }
     } catch {
       // Best effort only.
     }
+    memoryFallback.delete(key);
   },
 
   key(index: number): string | null {
     try {
-      return window.localStorage.key(index);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.key(index);
+      }
     } catch {
-      return null;
+      // Fall through to memory store
     }
+    return Array.from(memoryFallback.keys())[index] ?? null;
   },
 
   get length(): number {
     try {
-      return window.localStorage.length;
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.length;
+      }
     } catch {
-      return 0;
+      // Fall through to memory store
     }
+    return memoryFallback.size;
   },
 
   clear(): void {
     try {
-      window.localStorage.clear();
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.clear();
+      }
     } catch {
       // Best effort only.
     }
+    memoryFallback.clear();
   },
 };
 

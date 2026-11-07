@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import {
   AlertCircle,
   Calendar,
@@ -1829,7 +1830,16 @@ export function FertilizerCalculator() {
       doc.setFontSize(7);
       doc.setTextColor(71, 85, 105);
       doc.text('Page 1 of 1', pageWidth / 2, pageHeight - 7, { align: 'center' });
-      doc.save(generatePdfFilename(farmerDetails));
+      const pdfFilename = generatePdfFilename(farmerDetails);
+      doc.save(pdfFilename);
+      void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+        filename: pdfFilename,
+        documentCategory: 'advisory',
+        documentDate: new Date().toISOString().slice(0, 10),
+        sourceModule: 'fertilizer_calculator',
+        fileFormat: 'pdf',
+        metadata: { farmerName: farmerDetails.farmerName, village: farmerDetails.village },
+      });
     } catch (error) {
       console.error('PDF export error:', error);
       alert('Failed to export PDF. Please try again.');

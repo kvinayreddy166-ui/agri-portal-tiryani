@@ -1,0 +1,19 @@
+name = "agronix-storage-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare R2 Bucket Binding
+[[r2_buckets]]
+binding = "OFFICER_RECORDS_BUCKET"
+bucket_name = "agronix-officer-records"
+
+# Environment Variables
+[vars]
+ENVIRONMENT = "production"
+ALLOWED_ORIGINS = "https://agronix.vercel.app,http://localhost:5173,http://localhost:4173"
+ADMIN_EMAIL = "k.vinayreddy166@gmail.com"
+
+# Secrets to be configured via `wrangler secret put`:
+# - SUPABASE_JWT_SECRET
+# - SUPABASE_URL

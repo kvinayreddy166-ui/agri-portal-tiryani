@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useLocation } from 'react-router-dom';
 import { OfficerRecordsHub } from '../components/OfficerRecordsHub';
-import { Calculator, ShieldCheck, FlaskConical, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, FolderOpen, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, Bug, Microscope, type LucideIcon } from 'lucide-react';
+import { Calculator, ShieldCheck, FlaskConical, ExternalLink, Leaf, Globe2, PackageCheck, Database, Sprout, Scale, Phone, CalendarDays, FileCheck, Files, FolderOpen, Stethoscope, HandCoins, BarChart3, Landmark, CloudSunRain, Gavel, IndianRupee, Wheat, UserRound, UsersRound, ClipboardCheck, MapPin, Bug, Microscope, Archive, type LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -26,7 +26,7 @@ interface OfficersToolkitProps {
   isTestUser?: boolean;
   isPublic?: boolean;
   initialTab?: 'tools' | 'records' | 'portals';
-  fixedTab?: 'tools' | 'portals';
+  fixedTab?: 'tools' | 'portals' | 'records';
 }
 
 const toolkitItems: ToolkitItem[] = [
@@ -541,12 +541,15 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
           />
         )}
 
-        {/* Section Switcher — Field Tools / Government Portals */}
+        {/* Section Switcher — Field Tools / Government Portals / Records & Cloud Archive */}
         {!fixedTab && activeTab !== 'records' && (
         <div className={`mb-5 transition duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="inline-flex w-full max-w-md items-stretch gap-1 rounded-2xl border border-emerald-900/10 bg-white/80 p-1 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-slate-900/80">
             {[
               { id: 'tools' as const, label: 'Field Tools', te: 'ఫీల్డ్ టూల్స్', icon: Calculator, count: sortedToolkitItems.length },
+              ...(canViewOfficerRecords
+                ? [{ id: 'records' as const, label: 'Records & Cloud Archive', te: 'రికార్డులు & క్లౌడ్ ఆర్కైవ్', icon: Archive, count: undefined }]
+                : []),
               { id: 'portals' as const, label: 'Government Portals', te: 'ప్రభుత్వ పోర్టల్స్', icon: Globe2, count: sortedExternalPortals.length },
             ].map((tab) => (
               <button

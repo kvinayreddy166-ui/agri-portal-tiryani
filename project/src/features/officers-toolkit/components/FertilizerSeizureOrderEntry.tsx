@@ -30,6 +30,7 @@ import {
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
+import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 interface FertSeizureProductRow {
   id: string;
   name: string;
@@ -414,8 +415,20 @@ export function FertilizerSeizureOrderEntry() {
 
   const downloadPdf = async () => {
     const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Seizure of Stock Notice', 'times');
-    doc.save(`${fileBase()}.pdf`);
-    showSuccess('PDF downloaded', `${fileBase()}.pdf`);
+    const filename = `${fileBase()}.pdf`;
+    doc.save(filename);
+    showSuccess('PDF downloaded', filename);
+
+    // Auto-archive in background (non-blocking)
+    void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+      filename,
+      documentCategory: 'order',
+      documentNumber: form.orderNumber || undefined,
+      documentDate: form.seizureDate,
+      sourceModule: 'seizure',
+      fileFormat: 'pdf',
+      metadata: { ...form, commodity: 'fertilizer' },
+    });
   };
 
   const printPreview = async () => {
@@ -443,14 +456,26 @@ export function FertilizerSeizureOrderEntry() {
     try {
       const blob = await buildNoticeWordDocument(noticeBlocks, 'times');
       const url = URL.createObjectURL(blob);
+      const filename = `${fileBase()}.docx`;
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${fileBase()}.docx`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      showSuccess('Word downloaded', `${fileBase()}.docx`);
+      showSuccess('Word downloaded', filename);
+
+      // Auto-archive in background (non-blocking)
+      void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+        filename,
+        documentCategory: 'order',
+        documentNumber: form.orderNumber || undefined,
+        documentDate: form.seizureDate,
+        sourceModule: 'seizure',
+        fileFormat: 'docx',
+        metadata: { ...form, commodity: 'fertilizer' },
+      });
     } catch (error) {
       console.error('Unable to generate seizure notice Word document:', error);
       showWarning('Word export failed', 'Please try again.');

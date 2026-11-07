@@ -14,6 +14,7 @@ import { emptyStatus, formatDate, listOrNil, statusText } from '../inspection/ty
 import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField } from '../inspection/types';
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../inspection/persistence';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../inspection/useDirtyGuard';
+import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 
 
 type GroundBalanceRow = { crop: string; variety: string; lotNo: string; registerQuantity: string; groundStock: string; difference: string; unit: string };
@@ -323,7 +324,25 @@ export function SeedDealerInspection() {
     try {
       const doc = await buildPdf(form);
       await addEmblemImageWatermark(doc);
-      doc.save(`Seed_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate || localTodayDate()}.pdf`);
+      const filename = `Seed_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate || localTodayDate()}.pdf`;
+      doc.save(filename);
+
+      void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+        filename,
+        documentCategory: 'inspection',
+        documentNumber: form.licenceNo || undefined,
+        documentDate: form.inspectionDate || localTodayDate(),
+        sourceModule: 'seed_dealer_inspection',
+        fileFormat: 'pdf',
+        metadata: {
+          dealerName: form.dealerName,
+          licenceNo: form.licenceNo,
+          inspectionDate: form.inspectionDate,
+          storagePlace: form.storagePlace,
+          salePlace: form.salePlace,
+        },
+      });
+
       showSuccess('PDF downloaded');
     } catch (error) {
       console.error('PDF generation failed:', error);

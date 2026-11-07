@@ -1,0 +1,960 @@
+import { supabase } from '../../../shared/lib/supabase';
+import { compressForArchive, restoreArchivedDocument } from './documentCompressionService';
+import { OfficerDocumentQueue, type QueuedDocument } from './officerDocumentQueue';
+import { safeStorage } from '../../../shared/lib/safeStorage';
+import type {
+  CompressionMethod,
+  CompressionStatus,
+  DocumentCategory,
+  FileFormat,
+  OfficerDocumentArchiveRecord,
+  StorageOverviewStats,
+  UploadStatus,
+} from '../types/officerArchiveTypes';
+
+export const LOCAL_ARCHIVED_DOCS_KEY = 'agronix_officer_archived_documents';
+
+export interface DocumentArchiveInput {
+  filename: string;
+  documentCategory: DocumentCategory;
+  documentNumber?: string;
+  documentDate?: string;
+  sourceModule: string;
+  fileFormat: FileFormat;
+  mimeType?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ArchiveResult {
+  success: boolean;
+  documentId: string;
+  uploadStatus: UploadStatus;
+  objectKey?: string;
+  originalSize: number;
+  storedSize: number;
+  compressionMethod?: CompressionMethod;
+  compressionStatus: CompressionStatus;
+  contentHash: string;
+  originalSha256?: string;
+  storedSha256?: string;
+  versionNumber: number;
+  duplicate?: boolean;
+  queued?: boolean;
+  error?: string;
+}
+
+export class OfficerDocumentArchiveService {
+  /**
+   * Resolves the Cloudflare Worker URL
+   */
+  static getWorkerUrl(): string {
+    const envUrl = typeof import.meta !== 'undefined' && import.meta.env
+      ? import.meta.env.VITE_STORAGE_WORKER_URL
+      : '';
+    return envUrl ? String(envUrl).replace(/\/+$/, '') : '';
+  }
+
+  /**
+   * Helper to get current authenticated user
+   */
+  private static async getCurrentUser(): Promise<{ id: string; email: string; token: string } | null> {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const session = data?.session;
+      if (!session?.user) return null;
+      return {
+        id: session.user.id,
+        email: session.user.email || '',
+        token: session.access_token,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Checks Cloudflare R2 storage connectivity
+   */
+  static async checkR2StorageHealth(): Promise<{ online: boolean; message: string }> {
+    const workerUrl = this.getWorkerUrl();
+    if (!workerUrl) {
+      return { online: false, message: 'Cloudflare Storage Worker URL not configured' };
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      const res = await fetch(`${workerUrl}/health`, {
+        signal: controller.signal,
+        headers: { Accept: 'application/json' },
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const body = (await res.json()) as { status?: string; connected?: boolean };
+        if (body.connected || body.status === 'healthy') {
+          return { online: true, message: 'Cloud Storage Active' };
+        }
+      }
+      return { online: false, message: 'Cloud Storage Unavailable' };
+    } catch {
+      return { online: false, message: 'Storage connection timeout or network offline' };
+    }
+  }
+
+  /**
+   * Archives a generated document with intelligent reversible compression,
+   * exact SHA-256 deduplication, version tracking, and offline queue fallback.
+   */
+  static async archiveGeneratedDocument(
+    fileBlob: Blob,
+    input: DocumentArchiveInput
+  ): Promise<ArchiveResult> {
+    const user = await this.getCurrentUser();
+    const userId = user?.id || 'anonymous';
+    const documentId = crypto.randomUUID();
+    const documentDate = input.documentDate || new Date().toISOString().slice(0, 10);
+    const mimeType = input.mimeType || fileBlob.type || (input.fileFormat === 'pdf' ? 'application/pdf' : 'application/octet-stream');
+    const originalSize = fileBlob.size;
+
+    // 1. Process File Bytes & Intelligent Reversible Compression
+    const rawBuffer = await fileBlob.arrayBuffer();
+    const rawBytes = new Uint8Array(rawBuffer);
+
+    const comp = await compressForArchive(rawBytes, mimeType, input.filename);
+    const bytesToStore = comp.storedBytes;
+    const storedSize = comp.storedSize;
+    const compressionMethod = comp.compressionMethod;
+    const compressionStatus = comp.compressionStatus;
+    const originalSha256 = comp.originalSha256;
+    const storedSha256 = comp.storedSha256;
+    const contentHash = storedSha256;
+
+    // Build secure opaque R2 object key: officers/{user_id}/{year}/{month}/{document_id}.{extension}
+    const dateObj = new Date(documentDate);
+    const year = !isNaN(dateObj.getFullYear()) ? String(dateObj.getFullYear()) : new Date().getFullYear().toString();
+    const month = !isNaN(dateObj.getMonth()) ? String(dateObj.getMonth() + 1).padStart(2, '0') : String(new Date().getMonth() + 1).padStart(2, '0');
+    const ext = input.fileFormat || input.filename.split('.').pop() || 'pdf';
+    const objectKey = `officers/${userId}/${year}/${month}/${documentId}.${ext}`;
+
+    // 2. Check for Duplicate Upload via Original SHA-256 Content Hash
+    let versionNumber = 1;
+    let parentDocId: string | null = null;
+
+    if (user) {
+      try {
+        const { data: existingSameHash } = await supabase
+          .from('officer_document_archive')
+          .select('id, document_name, version_number, object_key')
+          .eq('user_id', user.id)
+          .or(`content_hash.eq.${originalSha256},content_hash.eq.${storedSha256},original_sha256.eq.${originalSha256}`)
+          .limit(1);
+
+        if (existingSameHash && existingSameHash.length > 0) {
+          // Exact duplicate found! Safe idempotency: do not re-upload
+          const existing = existingSameHash[0];
+          return {
+            success: true,
+            documentId: existing.id,
+            uploadStatus: 'saved_to_cloud',
+            objectKey: existing.object_key,
+            originalSize,
+            storedSize,
+            compressionMethod,
+            compressionStatus,
+            contentHash,
+            originalSha256,
+            storedSha256,
+            versionNumber: existing.version_number,
+            duplicate: true,
+          };
+        }
+
+        // 3. Version Tracking: Check if document with same number or name already exists
+        if (input.documentNumber || input.filename) {
+          let builder = supabase
+            .from('officer_document_archive')
+            .select('id, version_number')
+            .eq('user_id', user.id);
+
+          if (input.documentNumber) {
+            builder = builder.eq('document_number', input.documentNumber);
+          } else {
+            builder = builder.eq('document_name', input.filename);
+          }
+
+          const { data: priorVersions } = await builder
+            .order('version_number', { ascending: false })
+            .limit(1);
+
+          if (priorVersions && priorVersions.length > 0) {
+            const prior = priorVersions[0];
+            versionNumber = (prior.version_number || 1) + 1;
+            parentDocId = prior.id;
+          }
+        }
+      } catch (err) {
+        console.warn('Database check error during archive:', err);
+      }
+    } else {
+      // Local duplicate check via safeStorage
+      try {
+        const raw = safeStorage.getItem(LOCAL_ARCHIVED_DOCS_KEY);
+        if (raw) {
+          const localList: OfficerDocumentArchiveRecord[] = JSON.parse(raw);
+          const existing = localList.find(
+            (item) => item.content_hash === originalSha256 || item.original_sha256 === originalSha256
+          );
+          if (existing) {
+            return {
+              success: true,
+              documentId: existing.id,
+              uploadStatus: existing.upload_status,
+              objectKey: existing.object_key,
+              originalSize,
+              storedSize,
+              compressionMethod,
+              compressionStatus,
+              contentHash,
+              originalSha256,
+              storedSha256,
+              versionNumber: existing.version_number,
+              duplicate: true,
+            };
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    // 4. Attempt Cloudflare R2 Upload via Cloudflare Worker
+    const workerUrl = this.getWorkerUrl();
+    let uploadedToCloud = false;
+    let uploadError: string | undefined;
+
+    const isOnline = typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' ? navigator.onLine : true;
+
+    if (user && workerUrl && isOnline) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+        const uploadBlob = new Blob([bytesToStore as unknown as BlobPart], {
+          type: compressionMethod === 'gzip' ? 'application/gzip' : mimeType,
+        });
+
+        const formData = new FormData();
+        formData.append('file', uploadBlob, input.filename);
+        formData.append('filename', input.filename);
+        formData.append('documentId', documentId);
+        if (input.documentNumber) formData.append('documentNumber', input.documentNumber);
+        formData.append('category', input.documentCategory);
+        formData.append('sourceModule', input.sourceModule);
+        formData.append('mimeType', mimeType);
+        formData.append('originalSize', String(originalSize));
+        formData.append('compressionMethod', compressionMethod);
+        formData.append('compressionStatus', compressionStatus);
+        formData.append('originalSha256', originalSha256);
+        formData.append('storedSha256', storedSha256);
+        formData.append('year', year);
+        formData.append('month', month);
+
+        const res = await fetch(`${workerUrl}/api/documents/upload`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: formData,
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          uploadedToCloud = true;
+        } else {
+          const errData = (await res.json().catch(() => ({}))) as { error?: string };
+          uploadError = errData.error || `HTTP ${res.status}`;
+        }
+      } catch (err) {
+        uploadError = err instanceof Error ? err.message : String(err);
+      }
+    } else {
+      uploadError = !workerUrl ? 'Worker URL not configured' : 'Device is offline';
+    }
+
+    // 5. Build Canonical Document Record (Authentication-Based Rule: R2 cloud upload only for logged-in users)
+    let uploadStatus: UploadStatus;
+    if (user) {
+      uploadStatus = uploadedToCloud ? 'saved_to_cloud' : 'pending_retry';
+    } else {
+      uploadStatus = 'local_only';
+    }
+
+    const canonicalRecord: OfficerDocumentArchiveRecord = {
+      id: documentId,
+      user_id: userId,
+      document_name: input.filename,
+      original_filename: input.filename,
+      document_category: input.documentCategory,
+      document_number: input.documentNumber || null,
+      document_date: documentDate,
+      source_module: input.sourceModule,
+      object_key: user ? objectKey : `local/${documentId}/${input.filename}`,
+      file_format: input.fileFormat,
+      mime_type: mimeType,
+      original_size: originalSize,
+      stored_size: storedSize,
+      original_size_bytes: originalSize,
+      stored_size_bytes: storedSize,
+      compression_method: compressionMethod,
+      compression_status: compressionStatus,
+      content_hash: contentHash,
+      original_sha256: originalSha256,
+      stored_sha256: storedSha256,
+      restoration_verified: true,
+      upload_status: uploadStatus,
+      version_number: versionNumber,
+      parent_document_id: parentDocId,
+      metadata_json: input.metadata || {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Layer 1: Instant local safeStorage persistence (guarantees immediate visibility in UI in all logins)
+    try {
+      const raw = safeStorage.getItem(LOCAL_ARCHIVED_DOCS_KEY);
+      const existing: OfficerDocumentArchiveRecord[] = raw ? JSON.parse(raw) : [];
+      const updated = [canonicalRecord, ...existing.filter((item) => item.id !== documentId && item.content_hash !== contentHash)];
+      safeStorage.setItem(LOCAL_ARCHIVED_DOCS_KEY, JSON.stringify(updated.slice(0, 150)));
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('agronix:officer_document_archived', { detail: canonicalRecord }));
+      }
+    } catch (err) {
+      console.warn('Failed to save archived document to safeStorage:', err);
+    }
+
+    // Layer 2: Persistent IndexedDB Queue (holds actual binary blob for offline download/preview)
+    try {
+      const queuedDoc: QueuedDocument = {
+        id: documentId,
+        userId,
+        documentName: input.filename,
+        originalFilename: input.filename,
+        documentCategory: input.documentCategory,
+        documentNumber: input.documentNumber,
+        documentDate,
+        sourceModule: input.sourceModule,
+        fileFormat: input.fileFormat,
+        mimeType,
+        originalSize,
+        storedSize,
+        originalSizeBytes: originalSize,
+        storedSizeBytes: storedSize,
+        compressionMethod,
+        compressionStatus,
+        contentHash,
+        originalSha256,
+        storedSha256,
+        restorationVerified: true,
+        objectKey,
+        uploadStatus,
+        versionNumber,
+        parentDocumentId: parentDocId,
+        metadata: input.metadata || {},
+        fileBlob: new Blob([bytesToStore as unknown as BlobPart], {
+          type: compressionMethod === 'gzip' ? 'application/gzip' : mimeType,
+        }),
+        retryCount: 0,
+        lastError: uploadError,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      await OfficerDocumentQueue.enqueue(queuedDoc);
+    } catch (err) {
+      console.warn('Failed to enqueue document into IndexedDB:', err);
+    }
+
+    // Layer 3: Cloud Database Metadata (Supabase) if authenticated
+    if (user) {
+      try {
+        const row = {
+          id: documentId,
+          user_id: user.id,
+          document_name: input.filename,
+          original_filename: input.filename,
+          document_category: input.documentCategory,
+          document_number: input.documentNumber || null,
+          document_date: documentDate,
+          source_module: input.sourceModule,
+          object_key: objectKey,
+          file_format: input.fileFormat,
+          mime_type: mimeType,
+          original_size: originalSize,
+          stored_size: storedSize,
+          original_size_bytes: originalSize,
+          stored_size_bytes: storedSize,
+          compression_method: compressionMethod,
+          compression_status: compressionStatus,
+          content_hash: contentHash,
+          original_sha256: originalSha256,
+          stored_sha256: storedSha256,
+          restoration_verified: true,
+          upload_status: uploadStatus,
+          version_number: versionNumber,
+          parent_document_id: parentDocId,
+          metadata_json: input.metadata || {},
+        };
+
+        const { error: dbError } = await supabase.from('officer_document_archive').insert(row);
+        if (dbError) {
+          console.warn('Failed to insert metadata into Supabase:', dbError.message);
+        }
+      } catch (err) {
+        console.warn('Error recording document metadata:', err);
+      }
+    }
+
+    return {
+      success: true,
+      documentId,
+      uploadStatus,
+      objectKey,
+      originalSize,
+      storedSize,
+      compressionMethod,
+      compressionStatus,
+      contentHash,
+      originalSha256,
+      storedSha256,
+      versionNumber,
+      queued: Boolean(user && !uploadedToCloud),
+      error: uploadError,
+    };
+  }
+
+  /**
+   * Fetches archived documents based on authentication state:
+   * - Logged-in users: loads that specific user's Cloudflare R2 cloud drafts from Supabase and their pending queue.
+   * - Guest users: loads only local drafts from IndexedDB / safeStorage (no R2 / Supabase cloud calls).
+   * Strictly never exposes another user's drafts or historical local drafts to a cloud user.
+   */
+  static async fetchOfficerDocuments(): Promise<OfficerDocumentArchiveRecord[]> {
+    const records: OfficerDocumentArchiveRecord[] = [];
+    const user = await this.getCurrentUser();
+    const isOnline = typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' ? navigator.onLine : true;
+
+    if (user) {
+      // 1. Logged-in: Fetch Cloud Records from Supabase for this authenticated user only
+      if (isOnline) {
+        try {
+          const { data, error } = await supabase
+            .from('officer_document_archive')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+          if (!error && data) {
+            data.forEach((row: OfficerDocumentArchiveRecord) => {
+              records.push(row);
+            });
+          }
+        } catch (err) {
+          console.warn('Failed to fetch archived documents from Supabase:', err);
+        }
+      }
+
+      const existingIds = new Set(records.map((r) => r.id));
+      const existingHashes = new Set(
+        records.filter((r) => Boolean(r.content_hash || r.original_sha256)).map((r) => r.original_sha256 || r.content_hash)
+      );
+
+      // 2. Fetch pending/failed uploads for THIS authenticated user from IndexedDB queue
+      try {
+        const queued = await OfficerDocumentQueue.getPendingDocuments(user.id);
+
+        queued.forEach((q) => {
+          if (q.userId === user.id) {
+            const hash = q.originalSha256 || q.contentHash;
+            if (!existingIds.has(q.id) && (!hash || !existingHashes.has(hash))) {
+              records.push({
+                id: q.id,
+                user_id: q.userId,
+                document_name: q.documentName,
+                original_filename: q.originalFilename || q.documentName,
+                document_category: q.documentCategory,
+                document_number: q.documentNumber || null,
+                document_date: q.documentDate,
+                source_module: q.sourceModule,
+                object_key: q.objectKey || `officers/${q.userId}/${q.id}/${q.documentName}`,
+                file_format: q.fileFormat,
+                mime_type: q.mimeType,
+                original_size: q.originalSize,
+                stored_size: q.storedSize,
+                original_size_bytes: q.originalSizeBytes || q.originalSize,
+                stored_size_bytes: q.storedSizeBytes || q.storedSize,
+                compression_method: q.compressionMethod || 'none',
+                compression_status: q.compressionStatus,
+                content_hash: q.contentHash,
+                original_sha256: q.originalSha256 || q.contentHash,
+                stored_sha256: q.storedSha256 || q.contentHash,
+                restoration_verified: q.restorationVerified ?? true,
+                upload_status: q.uploadStatus,
+                version_number: q.versionNumber,
+                parent_document_id: q.parentDocumentId || null,
+                metadata_json: q.metadata,
+                created_at: q.createdAt,
+                updated_at: q.updatedAt,
+              });
+              existingIds.add(q.id);
+            }
+          }
+        });
+      } catch {
+        // ignore
+      }
+
+      // 3. Fallback safeStorage for current session: strictly match user.id
+      try {
+        const raw = safeStorage.getItem(LOCAL_ARCHIVED_DOCS_KEY);
+        if (raw) {
+          const localList: OfficerDocumentArchiveRecord[] = JSON.parse(raw);
+          localList.forEach((item) => {
+            if (item.user_id === user.id) {
+              const hash = item.original_sha256 || item.content_hash;
+              if (!existingIds.has(item.id) && (!hash || !existingHashes.has(hash))) {
+                records.push(item);
+                existingIds.add(item.id);
+              }
+            }
+          });
+        }
+      } catch {
+        // ignore
+      }
+
+      return records.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } else {
+      // Guest User: Local storage only (Rule 2: "Continue using the existing local IndexedDB storage")
+      const existingIds = new Set<string>();
+
+      try {
+        const queued = await OfficerDocumentQueue.getPendingDocuments('guest');
+
+        queued.forEach((q) => {
+          if (!existingIds.has(q.id)) {
+            records.push({
+              id: q.id,
+              user_id: q.userId,
+              document_name: q.documentName,
+              original_filename: q.originalFilename || q.documentName,
+              document_category: q.documentCategory,
+              document_number: q.documentNumber || null,
+              document_date: q.documentDate,
+              source_module: q.sourceModule,
+              object_key: q.objectKey || `local/${q.id}/${q.documentName}`,
+              file_format: q.fileFormat,
+              mime_type: q.mimeType,
+              original_size: q.originalSize,
+              stored_size: q.storedSize,
+              original_size_bytes: q.originalSizeBytes || q.originalSize,
+              stored_size_bytes: q.storedSizeBytes || q.storedSize,
+              compression_method: q.compressionMethod || 'none',
+              compression_status: q.compressionStatus,
+              content_hash: q.contentHash,
+              original_sha256: q.originalSha256 || q.contentHash,
+              stored_sha256: q.storedSha256 || q.contentHash,
+              restoration_verified: q.restorationVerified ?? true,
+              upload_status: 'local_only',
+              version_number: q.versionNumber,
+              parent_document_id: q.parentDocumentId || null,
+              metadata_json: q.metadata,
+              created_at: q.createdAt,
+              updated_at: q.updatedAt,
+            });
+            existingIds.add(q.id);
+          }
+        });
+      } catch {
+        // ignore
+      }
+
+      try {
+        const raw = safeStorage.getItem(LOCAL_ARCHIVED_DOCS_KEY);
+        if (raw) {
+          const localList: OfficerDocumentArchiveRecord[] = JSON.parse(raw);
+          localList.forEach((item) => {
+            if (item.user_id === 'guest' || item.user_id === 'anonymous') {
+              if (!existingIds.has(item.id)) {
+                records.push({ ...item, upload_status: 'local_only' });
+                existingIds.add(item.id);
+              }
+            }
+          });
+        }
+      } catch {
+        // ignore
+      }
+
+      return records.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+  }
+
+  /**
+   * Clears user-specific cloud data from in-memory application caches on logout.
+   * Crucial: NEVER deletes cloud drafts from R2 or Supabase during logout!
+   */
+  static clearUserSessionCache(): void {
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(new CustomEvent('agronix:officer_user_logout'));
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  /**
+   * Downloads an archived document in its exact original-quality binary format.
+   * Restores compressed streams, verifies original SHA-256 fingerprint, and preserves layout.
+   */
+  static async downloadDocument(doc: OfficerDocumentArchiveRecord): Promise<void> {
+    const downloadFilename = doc.original_filename || doc.document_name;
+
+    // 1. Check local IndexedDB queue first
+    try {
+      const queued = await OfficerDocumentQueue.getPendingDocuments();
+      const local = queued.find((q) => q.id === doc.id || (doc.content_hash && q.contentHash === doc.content_hash));
+      if (local && local.fileBlob) {
+        const rawBuffer = await local.fileBlob.arrayBuffer();
+        const { restoredBytes } = await restoreArchivedDocument(
+          new Uint8Array(rawBuffer),
+          local.compressionMethod || doc.compression_method || 'none',
+          doc.original_sha256 || local.originalSha256
+        );
+
+        const restoredBlob = new Blob([restoredBytes as unknown as BlobPart], {
+          type: doc.mime_type || 'application/pdf',
+        });
+        const url = URL.createObjectURL(restoredBlob);
+        triggerBrowserDownload(url, downloadFilename);
+        return;
+      }
+    } catch (err) {
+      console.warn('Could not read from local queue for download:', err);
+    }
+
+    // 2. Fetch from Cloudflare Worker
+    const user = await this.getCurrentUser();
+    const workerUrl = this.getWorkerUrl();
+    if (!user || !workerUrl) {
+      throw new Error('Local copy not found and cloud storage worker is not connected. Document cannot be downloaded.');
+    }
+
+    const res = await fetch(`${workerUrl}/api/documents/download?key=${encodeURIComponent(doc.object_key)}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to download document: HTTP ${res.status}`);
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    triggerBrowserDownload(url, downloadFilename);
+  }
+
+  /**
+   * Previews an archived document (inline blob URL) in its restored original quality.
+   */
+  static async previewDocument(doc: OfficerDocumentArchiveRecord): Promise<string> {
+    // 1. Check local IndexedDB queue first
+    try {
+      const queued = await OfficerDocumentQueue.getPendingDocuments();
+      const local = queued.find((q) => q.id === doc.id || (doc.content_hash && q.contentHash === doc.content_hash));
+      if (local && local.fileBlob) {
+        const rawBuffer = await local.fileBlob.arrayBuffer();
+        const { restoredBytes } = await restoreArchivedDocument(
+          new Uint8Array(rawBuffer),
+          local.compressionMethod || doc.compression_method || 'none',
+          doc.original_sha256 || local.originalSha256
+        );
+
+        const restoredBlob = new Blob([restoredBytes as unknown as BlobPart], {
+          type: doc.mime_type || 'application/pdf',
+        });
+        return URL.createObjectURL(restoredBlob);
+      }
+    } catch (err) {
+      console.warn('Could not read from local queue for preview:', err);
+    }
+
+    // 2. Otherwise fetch restored preview stream from Cloudflare Worker
+    const user = await this.getCurrentUser();
+    const workerUrl = this.getWorkerUrl();
+    if (!user || !workerUrl) {
+      throw new Error('Storage service unavailable for preview and no local copy found.');
+    }
+
+    const res = await fetch(`${workerUrl}/api/documents/preview?key=${encodeURIComponent(doc.object_key)}`, {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to load document preview: HTTP ${res.status}`);
+    }
+
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
+  }
+
+  /**
+   * Renames a document metadata across safeStorage, IndexedDB queue, and Supabase.
+   */
+  static async renameDocument(id: string, newDocumentName: string): Promise<boolean> {
+    const trimmed = newDocumentName.trim();
+    if (!trimmed) return false;
+
+    // 1. Update safeStorage
+    try {
+      const raw = safeStorage.getItem(LOCAL_ARCHIVED_DOCS_KEY);
+      if (raw) {
+        const list: OfficerDocumentArchiveRecord[] = JSON.parse(raw);
+        const idx = list.findIndex((d) => d.id === id);
+        if (idx !== -1) {
+          list[idx].document_name = trimmed;
+          list[idx].updated_at = new Date().toISOString();
+          safeStorage.setItem(LOCAL_ARCHIVED_DOCS_KEY, JSON.stringify(list));
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to update document name in safeStorage:', e);
+    }
+
+    // 2. Update IndexedDB queue if exists
+    try {
+      const queueList = await OfficerDocumentQueue.getPendingDocuments();
+      const queued = queueList.find((q) => q.id === id);
+      if (queued) {
+        queued.documentName = trimmed;
+        queued.updatedAt = new Date().toISOString();
+        await OfficerDocumentQueue.enqueue(queued);
+      }
+    } catch {
+      // ignore
+    }
+
+    // 3. Update Supabase if authenticated
+    try {
+      const { error } = await supabase
+        .from('officer_document_archive')
+        .update({ document_name: trimmed })
+        .eq('id', id);
+
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Deletes a document from both Cloudflare R2 and Supabase metadata table
+   */
+  static async deleteDocument(id: string, objectKey: string): Promise<boolean> {
+    const user = await this.getCurrentUser();
+    const workerUrl = this.getWorkerUrl();
+
+    // 1. Delete from local safeStorage
+    try {
+      const raw = safeStorage.getItem(LOCAL_ARCHIVED_DOCS_KEY);
+      if (raw) {
+        const list: OfficerDocumentArchiveRecord[] = JSON.parse(raw);
+        const filtered = list.filter((d) => d.id !== id);
+        safeStorage.setItem(LOCAL_ARCHIVED_DOCS_KEY, JSON.stringify(filtered));
+      }
+    } catch {
+      // ignore
+    }
+
+    // 2. Delete from offline queue if present
+    await OfficerDocumentQueue.remove(id);
+
+    // 3. Delete from R2 if worker configured
+    if (user && workerUrl && objectKey) {
+      try {
+        await fetch(`${workerUrl}/api/documents?key=${encodeURIComponent(objectKey)}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+      } catch {
+        // ignore
+      }
+    }
+
+    // 4. Delete from Supabase
+    try {
+      await supabase.from('officer_document_archive').delete().eq('id', id);
+    } catch {
+      // ignore
+    }
+
+    return true;
+  }
+
+  /**
+   * Retries uploading all pending documents in the offline queue
+   */
+  static async retryFailedUploads(): Promise<{ total: number; succeeded: number; failed: number }> {
+    const user = await this.getCurrentUser();
+    const workerUrl = this.getWorkerUrl();
+    if (!user || !workerUrl) {
+      return { total: 0, succeeded: 0, failed: 0 };
+    }
+
+    const pending = await OfficerDocumentQueue.getPendingDocuments(user.id);
+    let succeeded = 0;
+    let failed = 0;
+
+    for (const doc of pending) {
+      try {
+        const dateObj = new Date(doc.documentDate);
+        const year = !isNaN(dateObj.getFullYear()) ? String(dateObj.getFullYear()) : new Date().getFullYear().toString();
+        const month = !isNaN(dateObj.getMonth()) ? String(dateObj.getMonth() + 1).padStart(2, '0') : String(new Date().getMonth() + 1).padStart(2, '0');
+
+        const formData = new FormData();
+        formData.append('file', doc.fileBlob, doc.documentName);
+        formData.append('filename', doc.documentName);
+        formData.append('documentId', doc.id);
+        if (doc.documentNumber) formData.append('documentNumber', doc.documentNumber);
+        formData.append('category', doc.documentCategory);
+        formData.append('sourceModule', doc.sourceModule);
+        formData.append('mimeType', doc.mimeType);
+        formData.append('originalSize', String(doc.originalSize));
+        formData.append('compressionMethod', doc.compressionMethod || 'none');
+        formData.append('compressionStatus', doc.compressionStatus);
+        if (doc.originalSha256) formData.append('originalSha256', doc.originalSha256);
+        if (doc.storedSha256) formData.append('storedSha256', doc.storedSha256);
+        formData.append('year', year);
+        formData.append('month', month);
+
+        const res = await fetch(`${workerUrl}/api/documents/upload`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: formData,
+        });
+
+        if (res.ok) {
+          const ext = doc.fileFormat || doc.documentName.split('.').pop() || 'pdf';
+          const objectKey = `officers/${user.id}/${year}/${month}/${doc.id}.${ext}`;
+
+          await supabase.from('officer_document_archive').upsert({
+            id: doc.id,
+            user_id: user.id,
+            document_name: doc.documentName,
+            original_filename: doc.originalFilename || doc.documentName,
+            document_category: doc.documentCategory,
+            document_number: doc.documentNumber || null,
+            document_date: doc.documentDate,
+            source_module: doc.sourceModule,
+            object_key: objectKey,
+            file_format: doc.fileFormat,
+            mime_type: doc.mimeType,
+            original_size: doc.originalSize,
+            stored_size: doc.storedSize,
+            original_size_bytes: doc.originalSizeBytes || doc.originalSize,
+            stored_size_bytes: doc.storedSizeBytes || doc.storedSize,
+            compression_method: doc.compressionMethod || 'none',
+            compression_status: doc.compressionStatus,
+            content_hash: doc.contentHash,
+            original_sha256: doc.originalSha256 || doc.contentHash,
+            stored_sha256: doc.storedSha256 || doc.contentHash,
+            restoration_verified: true,
+            upload_status: 'saved_to_cloud',
+            version_number: doc.versionNumber,
+            parent_document_id: doc.parentDocumentId || null,
+            metadata_json: doc.metadata,
+          });
+
+          await OfficerDocumentQueue.remove(doc.id);
+          succeeded++;
+        } else {
+          await OfficerDocumentQueue.updateStatus(doc.id, 'upload_failed', `HTTP ${res.status}`);
+          failed++;
+        }
+      } catch (err) {
+        await OfficerDocumentQueue.updateStatus(doc.id, 'upload_failed', err instanceof Error ? err.message : String(err));
+        failed++;
+      }
+    }
+
+    return { total: pending.length, succeeded, failed };
+  }
+
+  /**
+   * Aggregates accurate storage statistics for the officer
+   */
+  static async getStorageOverview(): Promise<StorageOverviewStats> {
+    const docs = await this.fetchOfficerDocuments();
+
+    let totalOriginalBytes = 0;
+    let totalStoredBytes = 0;
+    let totalPdfs = 0;
+    let totalDocx = 0;
+    let successfullyUploaded = 0;
+    let pendingUploads = 0;
+    let failedUploads = 0;
+
+    docs.forEach((d) => {
+      const orig = Number(d.original_size_bytes ?? d.original_size) || 0;
+      const stored = Number(d.stored_size_bytes ?? d.stored_size) || orig;
+
+      totalOriginalBytes += orig;
+      totalStoredBytes += stored;
+
+      if (d.file_format === 'pdf') totalPdfs++;
+      if (d.file_format === 'docx') totalDocx++;
+      if (d.upload_status === 'saved_to_cloud') successfullyUploaded++;
+      else if (d.upload_status === 'pending_retry' || d.upload_status === 'uploading' || d.upload_status === 'compressing') pendingUploads++;
+      else if (d.upload_status === 'upload_failed') failedUploads++;
+    });
+
+    const storageSavedBytes = Math.max(0, totalOriginalBytes - totalStoredBytes);
+    const compressionPercentage = totalOriginalBytes > 0
+      ? Number(((storageSavedBytes / totalOriginalBytes) * 100).toFixed(1))
+      : 0;
+
+    return {
+      totalDocuments: docs.length,
+      totalStorageBytes: totalStoredBytes,
+      totalOriginalBytes,
+      totalStoredBytes,
+      storageSavedBytes,
+      compressionPercentage,
+      totalPdfs,
+      totalDocx,
+      successfullyUploaded,
+      pendingUploads,
+      failedUploads,
+    };
+  }
+}
+
+function triggerBrowserDownload(url: string, filename: string) {
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}

@@ -26,6 +26,7 @@ import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 
 import {
   FD_CROPS,
@@ -407,7 +408,23 @@ export function FieldDiagnosis() {
         doc.text(l, 14, y);
         y += 4;
       });
-      doc.save(`Field_Diagnosis_${crop?.name?.replace(/[^a-z0-9]+/gi, '_') || 'report'}.pdf`);
+      const reportFilename = `Field_Diagnosis_${crop?.name?.replace(/[^a-z0-9]+/gi, '_') || 'report'}.pdf`;
+      doc.save(reportFilename);
+      void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+        filename: reportFilename,
+        documentCategory: 'inspection',
+        sourceModule: 'field_diagnosis',
+        fileFormat: 'pdf',
+        mimeType: 'application/pdf',
+        metadata: {
+          crop: crop?.name,
+          productName: crop?.name ? `${crop.name} Crop Diagnosis` : 'Field Diagnosis',
+          firmName: 'Farmer Field Inspection',
+          codeNo: `FD-${Date.now().toString().slice(-6)}`,
+          samplingDate: new Date().toLocaleDateString('en-IN'),
+          resultRemarks: results[0]?.disease?.name ? `Top Diagnosis: ${results[0].disease.name}` : 'Field Observations',
+        },
+      });
       showSuccess('Report downloaded');
     } catch (error) {
       console.error('Report generation failed:', error);

@@ -10,6 +10,7 @@ import { useCoveringLetterMetadata, COVERING_LETTER_FINANCIAL_YEARS, getDefaultC
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../../officers-toolkit/services/officerCloudSyncService';
+import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
 const PESTICIDE_COVERING_LETTER_DETAILS_KEY = 'tiryani-pesticide-covering-letter-details';
 
@@ -367,9 +368,31 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
       const fileName = `Pesticide_Covering_Letter_${metadata.letterNumber || 'Draft'}.pdf`;
       if (wordRecorder) {
         const { downloadBlob } = await import('../lib/coveringLetterDocx');
-        downloadBlob(await wordRecorder.buildDocx(), fileName.replace(/\.pdf$/, '.docx'));
+        const docxBlob = await wordRecorder.buildDocx();
+        const docxName = fileName.replace(/\.pdf$/, '.docx');
+        downloadBlob(docxBlob, docxName);
+
+        void OfficerDocumentArchiveService.archiveGeneratedDocument(docxBlob, {
+          filename: docxName,
+          documentCategory: 'sample',
+          documentNumber: metadata.letterNumber || undefined,
+          documentDate: metadata.letterDate || localTodayDate(),
+          sourceModule: 'pesticide_covering_letter',
+          fileFormat: 'docx',
+          metadata: { metadata, officerDetails },
+        });
       } else {
         doc.save(fileName);
+
+        void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+          filename: fileName,
+          documentCategory: 'sample',
+          documentNumber: metadata.letterNumber || undefined,
+          documentDate: metadata.letterDate || localTodayDate(),
+          sourceModule: 'pesticide_covering_letter',
+          fileFormat: 'pdf',
+          metadata: { metadata, officerDetails },
+        });
       }
       
       showMessage('Covering letter downloaded successfully.');

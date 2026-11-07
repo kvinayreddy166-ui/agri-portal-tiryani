@@ -42,6 +42,7 @@ import {
 } from '../lib/tourDiaryData';
 import { generateTourDiaryPdf } from '../lib/tourDiaryPdf';
 import { exportTourDiaryExcel } from '../lib/tourDiaryExcel';
+import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 
 function formatOptionalTime(time?: string | null): string {
   return time ? formatTime(time) : '';
@@ -1624,7 +1625,7 @@ export function TourDiary() {
       const tableData = customTableData || generateTourDiaryData();
       const specialPdfRowStatuses = tableData.map(row => getSpecialDateStatusForRow(row));
 
-      await generateTourDiaryPdf({
+      const pdfResult = await generateTourDiaryPdf({
         currentYear,
         currentMonth,
         displayName: officerName || officerInfo?.name || '....................',
@@ -1640,6 +1641,20 @@ export function TourDiary() {
         specialPdfRowStatuses,
         forPrint: false,
       });
+
+      if (pdfResult?.blob) {
+        void OfficerDocumentArchiveService.archiveGeneratedDocument(pdfResult.blob, {
+          filename: pdfResult.fileName,
+          documentCategory: 'tour_diary',
+          sourceModule: 'tour_diary',
+          fileFormat: 'pdf',
+          metadata: {
+            currentYear,
+            currentMonth,
+            officerName: officerName || officerInfo?.name,
+          },
+        });
+      }
     } catch (error) {
       console.error('Error generating PDF:', error);
       showToast(`Failed to generate PDF. ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');

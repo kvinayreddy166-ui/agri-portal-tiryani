@@ -15,6 +15,7 @@ import { emptyStatus, formatDate, listOrNil, statusText } from '../inspection/ty
 import type { DraftRecord as DraftRecordBase, PdfSubTable, StatusField } from '../inspection/types';
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../inspection/persistence';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../inspection/useDirtyGuard';
+import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 
 type DiscrepancyRow = { product: string; registerBalance: string; eposBalance: string; physicalBalance: string; difference: string; remarks: string };
 type SampleRow = { product: string; company: string; batchNo: string; quantity: string; sampleDetails: string };
@@ -327,7 +328,24 @@ export function FertilizerDealerInspection() {
     try {
       const doc = await buildPdf(form);
       await addEmblemImageWatermark(doc);
-      doc.save(`Fertilizer_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate || localTodayDate()}.pdf`);
+      const filename = `Fertilizer_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate || localTodayDate()}.pdf`;
+      doc.save(filename);
+
+      void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+        filename,
+        documentCategory: 'inspection',
+        documentNumber: form.licenceNo || undefined,
+        documentDate: form.inspectionDate || localTodayDate(),
+        sourceModule: 'fertilizer_dealer_inspection',
+        fileFormat: 'pdf',
+        metadata: {
+          dealerName: form.dealerName,
+          licenceNo: form.licenceNo,
+          mfmsId: form.mfmsId,
+          inspectionDate: form.inspectionDate,
+        },
+      });
+
       showSuccess('PDF downloaded');
     } catch (error) {
       console.error('PDF generation failed:', error);

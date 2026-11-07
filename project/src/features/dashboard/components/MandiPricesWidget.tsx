@@ -19,6 +19,9 @@ import {
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useAuth } from '../../../shared/context/AuthContext';
 import {
+  ALL_ANDHRA_PRADESH_DISTRICTS,
+  ALL_INDIAN_STATES,
+  ALL_TELANGANA_DISTRICTS,
   buildMandiWhatsAppText,
   deleteCustomMandiPrice,
   fetchMandiPrices,
@@ -35,6 +38,7 @@ export function MandiPricesWidget() {
   const { t } = useLanguage();
   const { isAdminUser } = useAuth();
 
+  const [selectedState, setSelectedState] = useState<string>('Telangana');
   const [records, setRecords] = useState<MandiPriceRecord[]>([]);
   const [source, setSource] = useState<'ogd-live' | 'agmarknet-verified'>('agmarknet-verified');
   const [loading, setLoading] = useState(true);
@@ -48,7 +52,8 @@ export function MandiPricesWidget() {
   const [districtFilter, setDistrictFilter] = useState('');
   const [commodityFilter, setCommodityFilter] = useState('');
   const [localOnly, setLocalOnly] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [liveOnly, setLiveOnly] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(100);
 
   // Officer Update Modal
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -64,19 +69,17 @@ export function MandiPricesWidget() {
     arrival_date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
   });
 
-  const loadPrices = useCallback(async (isManual = false, locOverride?: UserLocation) => {
+  const loadPrices = useCallback(async (isManual = false, stateOverride?: string) => {
     if (isManual) {
       setRefreshing(true);
       invalidateMandiPricesCache();
     }
-    const loc = locOverride ?? locationRef.current;
+    const stateToFetch = stateOverride ?? selectedState;
     try {
       const result = await fetchMandiPrices({
-        state: 'Telangana',
-        limit: 120,
-        // Only narrow to a district when we have a real GPS fix; the
-        // Tiryani default keeps the state-wide view.
-        ...(loc.source === 'gps' && loc.district ? { district: loc.district } : {}),
+        state: stateToFetch,
+        limit: 250,
+        bypass_cache: isManual,
       });
       setRecords(result?.records ?? []);
       setSource(result?.source ?? 'agmarknet-verified');
@@ -86,23 +89,47 @@ export function MandiPricesWidget() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedState]);
+
+  const handleStateChange = (newState: string) => {
+    setSelectedState(newState);
+    setDistrictFilter('');
+    setCommodityFilter('');
+    setLocalOnly(false);
+    setLiveOnly(false);
+    setLoading(true);
+    loadPrices(false, newState);
+  };
 
   useEffect(() => {
     loadPrices();
     detectUserLocation().then((loc) => {
       setLocation(loc);
-      loadPrices(false, loc);
     });
     const interval = setInterval(() => loadPrices(false), REFRESH_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [loadPrices]);
 
-  // Unique lists for dropdowns
+  // Comprehensive District List for selected State
   const districts = useMemo(() => {
-    const list = [...new Set(records.map((r) => r.district).filter(Boolean))].sort();
-    return list;
-  }, [records]);
+    let officialList: string[] = [];
+    if (selectedState === 'Telangana') {
+      officialList = ALL_TELANGANA_DISTRICTS;
+    } else if (selectedState === 'Andhra Pradesh') {
+      officialList = ALL_ANDHRA_PRADESH_DISTRICTS;
+    }
+
+    const fromRecords = records
+      .filter((r) => r.state.toLowerCase() === selectedState.toLowerCase())
+      .map((r) => r.district)
+      .filter(Boolean);
+
+    // Merge official state districts and any active district names from live records
+    const combined = [...new Set([...officialList, ...fromRecords])].sort((a, b) =>
+      a.localeCompare(b)
+    );
+    return combined;
+  }, [selectedState, records]);
 
   const commodities = useMemo(() => {
     const list = [...new Set(records.map((r) => r.commodity).filter(Boolean))].sort();
@@ -126,9 +153,15 @@ export function MandiPricesWidget() {
         r.commodity.toLowerCase().includes(cropName.toLowerCase())
       );
       if (!matches.length) return null;
-      // Prefer local mandi if available
+      // Prefer:
+      // 1. Local live arrival
+      // 2. Any live arrival in the state (e.g. Bhadrachalam Cotton today)
+      // 3. Local indicative benchmark (e.g. Asifabad Cotton)
+      // 4. Any match
+      const localLive = matches.find((m) => m.isLocal && !m.isIndicative && m.arrival_date);
+      const anyLive = matches.find((m) => !m.isIndicative && m.arrival_date);
       const local = matches.find((m) => m.isLocal);
-      const chosen = local || matches[0];
+      const chosen = localLive || anyLive || local || matches[0];
       const mspInfo = getCommodityMSP(chosen.commodity);
       return {
         ...chosen,
@@ -137,20 +170,59 @@ export function MandiPricesWidget() {
       };
     };
 
-    return [
+    const cards = [
       { key: 'cotton', title: t('Cotton (Kapas)', 'పత్తి (కపాస్)'), data: findTopModal('Cotton'), emoji: '🌱' },
       { key: 'paddy', title: t('Paddy (Grade A)', 'వరి (గ్రేడ్-ఎ)'), data: findTopModal('Paddy'), emoji: '🌾' },
+      { key: 'jowar', title: t('Jowar (Sorghum)', 'జొన్నలు'), data: findTopModal('Jowar'), emoji: '🌾' },
       { key: 'redgram', title: t('Red Gram (Tur)', 'కంది (తూర్)'), data: findTopModal('Red Gram'), emoji: '🫘' },
       { key: 'soyabean', title: t('Soya Bean', 'సోయాబీన్'), data: findTopModal('Soya'), emoji: '🟡' },
+      { key: 'maize', title: t('Maize', 'మక్కజొన్న'), data: findTopModal('Maize'), emoji: '🌽' },
     ];
+    return cards.filter((c) => c.data !== null);
   }, [records, t]);
+
+  const liveCount = useMemo(() => records.filter((r) => !r.isIndicative && !!r.arrival_date).length, [records]);
 
   // Filtered and searched records
   const filteredRecords = useMemo(() => {
     return records.filter((r) => {
+      if (liveOnly && (r.isIndicative || !r.arrival_date)) return false;
       if (localOnly && !r.isLocal) return false;
-      if (districtFilter && r.district !== districtFilter) return false;
-      if (commodityFilter && !r.commodity.toLowerCase().includes(commodityFilter.toLowerCase())) return false;
+      if (districtFilter) {
+        const q = districtFilter.toLowerCase();
+        const d = r.district.toLowerCase();
+        const matchesDistrict =
+          d.includes(q) ||
+          q.includes(d) ||
+          (q.includes('asifabad') && d.includes('asifabad')) ||
+          (q.includes('kadapa') && (d.includes('kadapa') || d.includes('cuddapah'))) ||
+          (q.includes('nellore') && d.includes('nellore')) ||
+          (q.includes('ananthapur') && d.includes('ananthapur')) ||
+          (q.includes('konaseema') && (d.includes('konaseema') || d.includes('ambajipeta') || d.includes('amalapuram'))) ||
+          (q.includes('kothagudem') && d.includes('kothagudem')) ||
+          (q.includes('warangal') && (d.includes('warangal') || d.includes('hanumakonda') || d.includes('hanamkonda')));
+        if (!matchesDistrict) return false;
+      }
+      if (commodityFilter) {
+        const cf = commodityFilter.toLowerCase();
+        const rc = r.commodity.toLowerCase();
+        if (
+          cf.includes('bengal gram') ||
+          cf.includes('chana') ||
+          (cf.includes('gram') && !cf.includes('red gram') && !cf.includes('green gram') && !cf.includes('black gram'))
+        ) {
+          const isChana =
+            rc.includes('bengal gram') ||
+            rc.includes('chana') ||
+            (rc.includes('gram') && !rc.includes('red gram') && !rc.includes('green gram') && !rc.includes('black gram'));
+          if (!isChana) return false;
+        } else if (cf.includes('red gram')) {
+          const isRedGram = rc.includes('red gram') || rc.includes('tur') || rc.includes('arhar');
+          if (!isRedGram) return false;
+        } else {
+          if (!rc.includes(cf)) return false;
+        }
+      }
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const matchesCommodity = r.commodity.toLowerCase().includes(q);
@@ -163,15 +235,53 @@ export function MandiPricesWidget() {
       }
       return true;
     });
-  }, [records, localOnly, districtFilter, commodityFilter, searchQuery]);
+  }, [records, liveOnly, localOnly, districtFilter, commodityFilter, searchQuery]);
 
   const visibleRecords = useMemo(() => {
     return filteredRecords.slice(0, visibleCount);
   }, [filteredRecords, visibleCount]);
 
+  const isPillActive = (pillFilter: string) => {
+    if (!commodityFilter) return false;
+    const cf = commodityFilter.toLowerCase();
+    const pf = pillFilter.toLowerCase();
+    if (pf === 'bengal gram' || pf === 'chana' || pf === 'gram') {
+      return (
+        cf.includes('bengal gram') ||
+        cf.includes('chana') ||
+        (cf.includes('gram') && !cf.includes('red gram') && !cf.includes('green gram') && !cf.includes('black gram'))
+      );
+    }
+    if (pf === 'red gram') return cf.includes('red gram') || cf.includes('tur') || cf.includes('arhar');
+    if (pf === 'paddy') return cf.includes('paddy') || cf.includes('dhan');
+    if (pf === 'soya') return cf.includes('soya') || cf.includes('soybean');
+    return cf.includes(pf);
+  };
+
+  const handlePillClick = (filterKey: string) => {
+    setLiveOnly(false);
+    if (isPillActive(filterKey)) {
+      setCommodityFilter('');
+      return;
+    }
+    const exactMatch = commodities.find((c) => {
+      const cl = c.toLowerCase();
+      const fl = filterKey.toLowerCase();
+      if (fl === 'bengal gram' || fl === 'chana' || fl === 'gram') {
+        return (
+          cl.includes('bengal gram') ||
+          cl.includes('chana') ||
+          (cl.includes('gram') && !cl.includes('red gram') && !cl.includes('green gram'))
+        );
+      }
+      return cl.includes(fl);
+    });
+    setCommodityFilter(exactMatch || filterKey);
+  };
+
   // WhatsApp Share handler
   const handleShareWhatsApp = () => {
-    const text = buildMandiWhatsAppText(filteredRecords.length > 0 ? filteredRecords : records, t);
+    const text = buildMandiWhatsAppText(filteredRecords.length > 0 ? filteredRecords : records, t, selectedState);
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -189,7 +299,7 @@ export function MandiPricesWidget() {
     }
 
     saveCustomMandiPrice({
-      state: 'Telangana',
+      state: selectedState,
       district: modalForm.district,
       market: modalForm.market,
       commodity: modalForm.commodity,
@@ -222,7 +332,11 @@ export function MandiPricesWidget() {
         <div className="flex flex-col items-center gap-3">
           <div className="h-9 w-9 animate-spin rounded-full border-3 border-emerald-200 border-t-emerald-600" />
           <p className="text-xs font-semibold text-slate-500">
-            {t('Loading Telangana Mandi Prices...', 'తెలంగాణ మండి ధరలు లోడ్ అవుతున్నాయి...')}
+            {selectedState === 'Telangana'
+              ? t('Loading Telangana Mandi Prices...', 'తెలంగాణ మండి ధరలు లోడ్ అవుతున్నాయి...')
+              : selectedState === 'Andhra Pradesh'
+                ? t('Loading Andhra Pradesh Mandi Prices...', 'ఆంధ్రప్రదేశ్ మండి ధరలు లోడ్ అవుతున్నాయి...')
+                : t(`Loading ${selectedState} Mandi Prices...`, `${selectedState} మండి ధరలు లోడ్ అవుతున్నాయి...`)}
           </p>
         </div>
       </div>
@@ -242,7 +356,11 @@ export function MandiPricesWidget() {
             </div>
             <div>
               <h3 className="text-base font-black tracking-tight sm:text-lg">
-                {t('Mandi Prices — Telangana & Local Markets', 'మండి ధరలు — తెలంగాణ & స్థానిక మార్కెట్లు')}
+                {selectedState === 'Telangana'
+                  ? t('Mandi Prices — Telangana & Local Markets', 'మండి ధరలు — తెలంగాణ & స్థానిక మార్కెట్లు')
+                  : selectedState === 'Andhra Pradesh'
+                    ? t('Mandi Prices — Andhra Pradesh Markets', 'మండి ధరలు — ఆంధ్రప్రదేశ్ మార్కెట్లు')
+                    : t(`Mandi Prices — ${selectedState} Markets`, `మండి ధరలు — ${selectedState} మార్కెట్లు`)}
               </h3>
               <p className="text-xs text-emerald-100/90">
                 {t(
@@ -250,7 +368,7 @@ export function MandiPricesWidget() {
                   'రోజువారీ టోకు ధరలు (₹/క్వింటాల్)'
                 )}
               </p>
-              {location.source === 'gps' && location.name && (
+              {selectedState === 'Telangana' && location.source === 'gps' && location.name && (
                 <p className="mt-0.5 text-[11px] font-semibold text-gold-200/90">
                   {t('Near', 'దగ్గర')}: {location.name}
                 </p>
@@ -307,24 +425,30 @@ export function MandiPricesWidget() {
         </div>
       </div>
 
-      {/* Top Commodity Highlights Cards (Cotton, Paddy, Red Gram, Soya) */}
-      <div className="grid grid-cols-2 gap-2.5 border-b border-slate-100 bg-slate-50/70 p-3.5 sm:grid-cols-4 dark:border-slate-800 dark:bg-slate-900/50">
+      {/* Top Commodity Highlights Cards */}
+      <div className="grid grid-cols-2 gap-2.5 border-b border-slate-100 bg-slate-50/70 p-3.5 sm:grid-cols-3 lg:grid-cols-6 dark:border-slate-800 dark:bg-slate-900/50">
         {highlights.map((h) => {
           if (!h.data) return null;
           const isAboveMsp = h.data.msp && h.data.modal_price >= h.data.msp;
           const diff = h.data.msp ? h.data.modal_price - h.data.msp : null;
+          const isLive = !h.data.isIndicative && !!h.data.arrival_date;
 
           return (
             <div
               key={h.key}
-              onClick={() => setCommodityFilter(h.key === 'cotton' ? 'Cotton' : h.key === 'paddy' ? 'Paddy' : h.key === 'redgram' ? 'Red Gram' : 'Soya')}
+              onClick={() => setCommodityFilter(h.data?.commodity || '')}
               className="cursor-pointer rounded-xl border border-slate-200/80 bg-white p-3 shadow-xs transition hover:border-emerald-500/50 hover:shadow-sm dark:border-slate-800 dark:bg-slate-800/80"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span className="truncate text-xs font-bold text-slate-700 dark:text-slate-300">
                   {h.emoji} {h.title}
                 </span>
-                {diff !== null && diff !== 0 && (
+                {isLive && (
+                  <span className="rounded bg-emerald-500/20 px-1 py-0.2 text-[9px] font-black text-emerald-700 dark:text-emerald-300">
+                    Live
+                  </span>
+                )}
+                {diff !== null && diff !== 0 && !isLive && (
                   <span
                     className={`inline-flex items-center text-[10px] font-black ${
                       isAboveMsp ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
@@ -337,16 +461,16 @@ export function MandiPricesWidget() {
               </div>
 
               <div className="mt-1 flex items-baseline gap-1">
-                <span className="text-xl font-black text-slate-900 dark:text-white">
+                <span className="text-lg font-black text-slate-900 sm:text-xl dark:text-white">
                   ₹{h.data.modal_price.toLocaleString('en-IN')}
                 </span>
                 <span className="text-[10px] text-slate-400">/ qtl</span>
               </div>
 
               <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                <span className="truncate">{h.data.market}</span>
+                <span className="truncate max-w-[90px]">{h.data.market}</span>
                 {h.data.msp && (
-                  <span className="font-semibold text-slate-400">
+                  <span className="font-semibold text-slate-400 text-[10px]">
                     MSP ₹{h.data.msp.toLocaleString('en-IN')}
                   </span>
                 )}
@@ -360,40 +484,65 @@ export function MandiPricesWidget() {
         {/* Quick Crop Pills */}
         <div className="mb-3.5 flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
           <button
-            onClick={() => setCommodityFilter('')}
+            onClick={() => {
+              setCommodityFilter('');
+              setLiveOnly(false);
+            }}
             className={`rounded-full px-3 py-1 text-xs font-bold transition ${
-              commodityFilter === ''
+              commodityFilter === '' && !liveOnly
                 ? 'bg-emerald-700 text-white shadow-xs'
                 : 'border border-slate-200 bg-slate-100/80 text-slate-700 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
             }`}
           >
-            {t('All Crops', 'అన్ని పంటలు')}
+            {t('All Crops', 'అన్ని పంటలు')} ({records.length})
           </button>
+
+          {liveCount > 0 && (
+            <button
+              onClick={() => {
+                setLiveOnly(!liveOnly);
+                setCommodityFilter('');
+              }}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition ${
+                liveOnly
+                  ? 'bg-emerald-600 text-white shadow-xs ring-1 ring-emerald-400'
+                  : 'border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+              }`}
+            >
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>{t('Live Today', 'ఈరోజు లైవ్')} ({liveCount})</span>
+            </button>
+          )}
+
           {[
             { label: t('🌱 Cotton', '🌱 పత్తి'), filter: 'Cotton' },
             { label: t('🌾 Paddy', '🌾 వరి'), filter: 'Paddy' },
+            { label: t('Jowar', 'జొన్నలు'), filter: 'Jowar' },
             { label: t('🫘 Red Gram', '🫘 కంది'), filter: 'Red Gram' },
             { label: t('🟡 Soya Bean', '🟡 సోయాబీన్'), filter: 'Soya' },
             { label: t('🌽 Maize', '🌽 మక్కజొన్న'), filter: 'Maize' },
-            { label: t('Chana', 'శనగలు'), filter: 'Gram' },
+            { label: t('🌰 Chana (Gram)', '🌰 శనగలు (చనా)'), filter: 'Bengal Gram' },
             { label: t('🌶️ Chilli', '🌶️ మిర్చి'), filter: 'Chilli' },
             { label: t('Turmeric', 'పసుపు'), filter: 'Turmeric' },
-          ].map((pill) => (
-            <button
-              key={pill.filter}
-              onClick={() => setCommodityFilter(commodityFilter === pill.filter ? '' : pill.filter)}
-              className={`rounded-full px-2.5 py-1 text-xs font-bold transition ${
-                commodityFilter === pill.filter
-                  ? 'bg-emerald-700 text-white shadow-xs'
-                  : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
-              }`}
-            >
-              {pill.label}
-            </button>
-          ))}
+          ].map((pill) => {
+            const active = isPillActive(pill.filter);
+            return (
+              <button
+                key={pill.filter}
+                onClick={() => handlePillClick(pill.filter)}
+                className={`rounded-full px-2.5 py-1 text-xs font-bold transition ${
+                  active
+                    ? 'bg-emerald-700 text-white shadow-xs'
+                    : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                }`}
+              >
+                {pill.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Filter Bar (Search, District, Local Toggle, Date) */}
+        {/* Filter Bar (Search, State, District, Local Toggle, Date) */}
         <div className="mb-3.5 flex flex-wrap items-center gap-2.5">
           <div className="relative min-w-[140px] flex-1 sm:max-w-xs">
             <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -405,6 +554,24 @@ export function MandiPricesWidget() {
               className="w-full rounded-xl border border-slate-300 bg-white py-2 pl-9 pr-3 text-xs text-slate-900 shadow-xs focus:border-emerald-600 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             />
           </div>
+
+          {/* State Selector Dropdown (beside All Districts) in alphabetical order */}
+          <select
+            value={selectedState}
+            onChange={(e) => handleStateChange(e.target.value)}
+            aria-label={t('Select State', 'రాష్ట్రం ఎంచుకోండి')}
+            className="filter-select max-w-[13rem] rounded-xl text-xs font-bold border-emerald-300 dark:border-emerald-700"
+          >
+            {ALL_INDIAN_STATES.slice().sort((a, b) => a.localeCompare(b)).map((st) => (
+              <option key={st} value={st}>
+                {st === 'Telangana'
+                  ? t('Telangana (తెలంగాణ)', 'తెలంగాణ (Telangana)')
+                  : st === 'Andhra Pradesh'
+                    ? t('Andhra Pradesh (ఆంధ్రప్రదేశ్)', 'ఆంధ్రప్రదేశ్ (Andhra Pradesh)')
+                    : st}
+              </option>
+            ))}
+          </select>
 
           <select
             value={districtFilter}
@@ -469,7 +636,14 @@ export function MandiPricesWidget() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {visibleRecords.map((r, i) => {
-                const diff = r.mspDifference;
+                const mspInfo = getCommodityMSP(r.commodity);
+                const effectiveMsp = r.msp ?? (mspInfo?.msp && mspInfo.msp > 0 ? mspInfo.msp : undefined);
+                const diff =
+                  r.mspDifference !== undefined
+                    ? r.mspDifference
+                    : effectiveMsp && r.modal_price > 0
+                      ? r.modal_price - effectiveMsp
+                      : undefined;
                 const isAbove = diff !== undefined && diff >= 0;
 
                 return (
@@ -488,6 +662,16 @@ export function MandiPricesWidget() {
                         {r.isCustom && (
                           <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-black text-amber-800 dark:text-amber-300">
                             {t('Officer Verified', 'అధికారి ధర')}
+                          </span>
+                        )}
+                        {!r.isCustom && !r.isIndicative && r.arrival_date && (
+                          <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-black text-emerald-800 dark:text-emerald-300">
+                            {t('Live', 'లైవ్')}
+                          </span>
+                        )}
+                        {r.isIndicative && (
+                          <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                            {t('Indicative', 'సూచిక')}
                           </span>
                         )}
                       </div>
@@ -533,7 +717,7 @@ export function MandiPricesWidget() {
 
                     {/* MSP Comparison Status */}
                     <td className="py-3 pr-3 text-center">
-                      {r.msp ? (
+                      {effectiveMsp ? (
                         <div className="inline-flex flex-col items-center">
                           <span
                             className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-black ${
@@ -545,11 +729,11 @@ export function MandiPricesWidget() {
                             {isAbove ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
                             {diff !== undefined
                               ? isAbove
-                                ? `+₹${diff}`
-                                : `-₹${Math.abs(diff)}`
+                                ? `+₹${diff.toLocaleString('en-IN')}`
+                                : `-₹${Math.abs(diff).toLocaleString('en-IN')}`
                               : 'MSP Active'}
                           </span>
-                          <span className="text-[10px] text-slate-400">MSP: ₹{r.msp}</span>
+                          <span className="text-[10px] text-slate-400">MSP: ₹{effectiveMsp.toLocaleString('en-IN')}</span>
                         </div>
                       ) : (
                         <span className="text-[11px] text-slate-400">—</span>
@@ -582,7 +766,14 @@ export function MandiPricesWidget() {
               {visibleRecords.length === 0 && (
                 <tr>
                   <td colSpan={8} className="py-8 text-center font-semibold text-slate-500">
-                    <p>{t('No mandi prices found for this filter.', 'ఈ ఫిల్టర్‌కు సంబంధించిన మండి ధరలు లభించలేదు.')}</p>
+                    <p>
+                      {districtFilter
+                        ? t(
+                            `No mandi prices reported for ${districtFilter} yet.`,
+                            `${districtFilter} జిల్లాకు సంబంధించి ఇంకా మండి ధరలు అందలేదు.`
+                          )
+                        : t('No mandi prices found for this filter.', 'ఈ ఫిల్టర్‌కు సంబంధించిన మండి ధరలు లభించలేదు.')}
+                    </p>
                     <button
                       onClick={() => {
                         setSearchQuery('');
@@ -602,24 +793,24 @@ export function MandiPricesWidget() {
         </div>
 
         {/* Show More / Show Less Button */}
-        {filteredRecords.length > 10 && (
+        {filteredRecords.length > 15 && (
           <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
             <span>
               {t('Showing', 'చూపిస్తున్నాం')} {visibleRecords.length} {t('of', 'మొత్తం')} {filteredRecords.length} {t('records', 'రికార్డులు')}
             </span>
             <button
-              onClick={() => setVisibleCount(visibleCount >= filteredRecords.length ? 10 : visibleCount + 15)}
+              onClick={() => setVisibleCount(visibleCount >= filteredRecords.length ? 15 : 100)}
               className="inline-flex items-center gap-1 font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400"
             >
               {visibleCount >= filteredRecords.length ? (
                 <>
                   <ChevronUp className="h-4 w-4" />
-                  <span>{t('Show Less', 'తక్కువగా చూపించు')}</span>
+                  <span>{t('Show Top 15', 'టాప్ 15 చూపించు')}</span>
                 </>
               ) : (
                 <>
                   <ChevronDown className="h-4 w-4" />
-                  <span>{t('Show More Markets', 'మరిన్ని మార్కెట్లు')}</span>
+                  <span>{t('Show All Markets', 'అన్ని మార్కెట్లు చూపించు')}</span>
                 </>
               )}
             </button>
@@ -700,6 +891,7 @@ export function MandiPricesWidget() {
                     <option value="Cotton">Cotton / పత్తి</option>
                     <option value="Paddy(Dhan)(Grade A)">Paddy (Grade A) / వరి (గ్రేడ్-ఎ)</option>
                     <option value="Paddy(Dhan)(Common)">Paddy (Common) / వరి (సాధారణ)</option>
+                    <option value="Jowar(Sorghum)">Jowar (Sorghum) / జొన్నలు</option>
                     <option value="Red Gram">Red Gram / కంది</option>
                     <option value="Soya Bean">Soya Bean / సోయాబీన్</option>
                     <option value="Maize">Maize / మక్కజొన్న</option>

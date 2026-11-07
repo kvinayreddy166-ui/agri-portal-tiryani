@@ -131,7 +131,7 @@ export function splitTitleSegments(
   return lines;
 }
 
-export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions): Promise<void> {
+export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions): Promise<{ fileName: string; blob: Blob }> {
   const {
     currentYear,
     currentMonth,
@@ -397,4 +397,6 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
   } else {
     doc.save(fileName);
   }
+
+  return { fileName, blob: doc.output('blob') as Blob };
 }

@@ -17,6 +17,8 @@ import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgricult
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { useAuth } from '../../../shared/context/AuthContext';
+import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
@@ -133,6 +135,8 @@ export function SeedForms({
   showInstructionModal: externalShowInstructionModal,
   setShowInstructionModal: externalSetShowInstructionModal,
 }: SeedFormsProps = {}) {
+  const { user } = useAuth();
+  const draftsKey = user ? `${DRAFTS_KEY}_${user.id}` : DRAFTS_KEY;
   const [pdfPreview, setPdfPreview] = useState<{ url: string; name: string } | null>(null);
   const closePdfPreview = () => {
     if (pdfPreview?.url.startsWith('blob:')) URL.revokeObjectURL(pdfPreview.url);
@@ -190,7 +194,12 @@ export function SeedForms({
   const [message, setMessage] = useState('');
   const [placeOfCollectionMandals, setPlaceOfCollectionMandals] = useState<any[]>([]);
   const isSavingDraft = useRef(false);
-  const [savedDrafts, setSavedDrafts] = useState(() => loadSeedDrafts());
+  const [savedDrafts, setSavedDrafts] = useState<any[]>(() => loadSeedDrafts(draftsKey));
+
+  useEffect(() => {
+    setSavedDrafts(loadSeedDrafts(draftsKey));
+    setSelectedDraftName('');
+  }, [draftsKey]);
   const [selectedDraftName, setSelectedDraftName] = useState('');
   const sampleDetailsRef = useRef(null);
   const dealerDetailsRef = useRef(null);
@@ -336,11 +345,11 @@ export function SeedForms({
       return;
     }
     
-    // Use Inspector Name as the draft identifier
-    const name = form.officerName.trim();
+    // Use Code No. of sample as the draft identifier
+    const code = (form.codeNo || '').trim();
     
-    if (!name) {
-      showInfo('Please enter Inspector Name', 'Inspector Name is required to save draft.', 4000);
+    if (!code) {
+      showInfo('Please enter Code No. of sample', 'Code No. of sample is required to save draft.', 4000);
       return;
     }
     
@@ -348,10 +357,16 @@ export function SeedForms({
     try {
       // Exclude covering letter fields from draft - they are independently persisted
       const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftForm } = form;
-      const nextDrafts = upsertSeedDraft(savedDrafts, { name, form: draftForm, updatedAt: Date.now() });
-      safeStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+      const isExisting = savedDrafts.some((item: any) => item.name.trim().toLowerCase() === code.toLowerCase());
+      const nextDrafts = upsertSeedDraft(savedDrafts, { name: code, form: draftForm, updatedAt: Date.now() });
+      safeStorage.setItem(draftsKey, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
-      showSaved('Draft Saved Successfully', `Draft saved as ${name}`, 4000);
+      setSelectedDraftName(code);
+      if (isExisting) {
+        showSaved('Draft Updated Successfully', `Draft updated for sample code ${code}`, 4000);
+      } else {
+        showSaved('Draft Saved Successfully', `Draft saved as ${code}`, 4000);
+      }
     } finally {
       isSavingDraft.current = false;
     }
@@ -388,7 +403,7 @@ export function SeedForms({
   };
 
   const deleteDraft = () => {
-    const name = form.officerName.trim();
+    const name = (selectedDraftName || form.codeNo || '').trim();
     if (!name) {
       showInfo('No Draft Found', 'There is no saved draft to delete.', 4000);
       return;
@@ -398,8 +413,8 @@ export function SeedForms({
       message: 'The saved draft will be removed permanently.',
       action: () => {
         // Use case-insensitive comparison for deletion
-        const nextDrafts = savedDrafts.filter((item) => item.name.trim().toLowerCase() !== name.toLowerCase());
-        safeStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
+        const nextDrafts = savedDrafts.filter((item: any) => item.name.trim().toLowerCase() !== name.toLowerCase());
+        safeStorage.setItem(draftsKey, JSON.stringify(nextDrafts));
         setSavedDrafts(nextDrafts);
         // Clear auto-save storage to prevent the deleted draft from reappearing
         safeStorage.removeItem(STORAGE_KEY);
@@ -430,14 +445,25 @@ export function SeedForms({
   const completeGenerate = async (kind: any) => {
     const doc = await buildValidatedPdf(kind);
     if (!doc) return;
+    const metadata = {
+      type: 'seed_statutory_form',
+      commodity: 'seed',
+      kind,
+      productName: form.variety || form.kindVariety || form.crop || form.seedName || `Seed Form ${kind}`,
+      firmName: form.dealerName || form.vendorName || form.firmName || '',
+      firmAddress: form.dealerAddress || form.place || form.premisesLocation || '',
+      codeNo: form.codeNo || form.sampleCode || '',
+      samplingDate: form.date || form.collectionDate || '',
+      officerName: form.officerName || form.inspectorName || '',
+    };
     try {
-      downloadSeedDoc(doc, seedFileName(kind, form));
+      downloadSeedDoc(doc, seedFileName(kind, form), metadata);
       rememberSeedGeneratedData(form);
       showSuccess('PDF Downloaded Successfully', seedFileName(kind, form), 4000);
     } catch (error) {
       console.error('Download failed, opening in new tab:', error);
       const targetWindow = openBlankSeedPdfTab();
-      openSeedDocInTab(doc, seedFileName(kind, form), targetWindow);
+      openSeedDocInTab(doc, seedFileName(kind, form), targetWindow, metadata);
       rememberSeedGeneratedData(form);
       showInfo('Preview Opened', 'PDF opened in a new tab (download failed).', 4000);
     }
@@ -1637,7 +1663,7 @@ function openBlankSeedPdfTab() {
   return targetWindow;
 }
 
-function openSeedDocInTab(doc: any, fileName: any, targetWindow: any) {
+function openSeedDocInTab(doc: any, fileName: any, targetWindow: any, metadata?: Record<string, unknown>) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   if (targetWindow && !targetWindow.closed) {
@@ -1646,9 +1672,22 @@ function openSeedDocInTab(doc: any, fileName: any, targetWindow: any) {
     window.open(blobUrl, '_blank', 'noopener,noreferrer');
   }
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+
+  // Auto-archive statutory seed document
+  void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+    filename: fileName,
+    documentCategory: 'sample',
+    sourceModule: 'seed_statutory',
+    fileFormat: 'pdf',
+    mimeType: 'application/pdf',
+    metadata: {
+      type: 'seed_statutory_form',
+      ...metadata,
+    },
+  });
 }
 
-function downloadSeedDoc(doc: any, fileName: any) {
+function downloadSeedDoc(doc: any, fileName: any, metadata?: Record<string, unknown>) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -1661,6 +1700,19 @@ function downloadSeedDoc(doc: any, fileName: any) {
   link.remove();
 
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+
+  // Auto-archive statutory seed document
+  void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+    filename: fileName,
+    documentCategory: 'sample',
+    sourceModule: 'seed_statutory',
+    fileFormat: 'pdf',
+    mimeType: 'application/pdf',
+    metadata: {
+      type: 'seed_statutory_form',
+      ...metadata,
+    },
+  });
 }
 
 function seedFileName(kind: any, form: any) {
@@ -1668,9 +1720,9 @@ function seedFileName(kind: any, form: any) {
   return `Seed_Form_${kind}_${form.codeNo || 'CodeNo'}_${date || 'Date'}.pdf`;
 }
 
-function loadSeedDrafts() {
+function loadSeedDrafts(key: string = DRAFTS_KEY) {
   try {
-    const raw = safeStorage.getItem(DRAFTS_KEY);
+    const raw = safeStorage.getItem(key);
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch {

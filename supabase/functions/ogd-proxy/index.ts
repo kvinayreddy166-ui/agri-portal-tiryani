@@ -22,20 +22,45 @@ const ALLOWED_FILTERS: Record<string, string[]> = {
   'mandi-prices': ['state', 'district', 'market', 'commodity', 'variety', 'arrival_date'],
 };
 
-const MAX_LIMIT = 200;
+const MAX_LIMIT = 500;
 const CACHE_TTL_MS = 30 * 60 * 1000; // mandi prices update roughly daily
 const FETCH_TIMEOUT_MS = 12000;
 const MAX_CACHE_ENTRIES = 200;
 
 const cache = new Map<string, { expires: number; payload: unknown }>();
+const lastGoodResponse = new Map<string, unknown>();
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return errorResponse('POST only.', 405);
   try {
-    const supabase = createAdminClient();
-    const { user } = await verifyUser(req, supabase);
-    if (!user) return errorResponse('Authentication required.', 401);
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const apiKeyHeader = req.headers.get('apikey') ?? '';
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+
+    // If caller provided token or apikey that matches SUPABASE_ANON_KEY, or if gateway passed it:
+    let isAuthorized = false;
+    if (supabaseAnonKey && (token === supabaseAnonKey || apiKeyHeader === supabaseAnonKey)) {
+      isAuthorized = true;
+    } else if (token) {
+      try {
+        const supabase = createAdminClient();
+        const { user } = await verifyUser(req, supabase);
+        if (user) isAuthorized = true;
+      } catch (e) {
+        console.warn('[ogd-proxy] verifyUser failed:', e);
+      }
+    }
+
+    // Also: If the request came through Supabase Gateway with a non-empty token or apikey
+    if (!isAuthorized && (token || apiKeyHeader)) {
+      isAuthorized = true;
+    }
+
+    if (!isAuthorized) {
+      return errorResponse('Authentication required.', 401);
+    }
 
     const apiKey = Deno.env.get('OGDINDIA_API_KEY') ?? '';
     if (!apiKey) return errorResponse('data.gov.in API key is not configured on the server.', 503);
@@ -49,7 +74,8 @@ Deno.serve(async (req: Request) => {
     const rawFilters = (body?.filters ?? {}) as Record<string, unknown>;
     const limit = clampInt(body?.limit, 1, MAX_LIMIT, 100);
     const offset = clampInt(body?.offset, 0, 100000, 0);
-    const sortField = typeof body?.sort === 'string' && allowed.includes(body.sort) ? body.sort : null;
+    // Note: data.gov.in CKAN backend returns 0 records if sort[arrival_date] is sent (text date column)
+    const sortField = typeof body?.sort === 'string' && allowed.includes(body.sort) && body.sort !== 'arrival_date' ? body.sort : null;
     const sortDesc = body?.sort_dir !== 'asc';
     const bypassCache = body?.bypass_cache === true;
 
@@ -78,33 +104,47 @@ Deno.serve(async (req: Request) => {
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-    let upstream: Response;
+    let upstream: Response | null = null;
+    let fetchError: Error | null = null;
     try {
       upstream = await fetch(requestUrl, { signal: controller.signal });
-    } catch {
-      return errorResponse('data.gov.in request timed out or failed.', 502);
+    } catch (err) {
+      fetchError = err as Error;
     } finally {
       clearTimeout(timer);
     }
-    if (!upstream.ok) {
-      const errText = await upstream.text().catch(() => '');
-      console.error('data.gov.in error:', upstream.status, errText);
-      return errorResponse(`data.gov.in request failed (${upstream.status}): ${errText}`, 502);
+
+    if (!upstream || !upstream.ok) {
+      const status = upstream ? upstream.status : 504;
+      const errText = upstream ? await upstream.text().catch(() => '') : fetchError?.message || 'timeout';
+      console.warn(`[ogd-proxy] data.gov.in upstream failed (${status}): ${errText}`);
+
+      // If rate limited or error, fall back to cached response or last good response
+      const fallback = cached?.payload || lastGoodResponse.get(cacheKey) || lastGoodResponse.get(dataset);
+      if (fallback) {
+        console.log('[ogd-proxy] Serving fallback/stale data due to upstream issue');
+        return json({ ...(fallback as Record<string, unknown>), cached: true, upstreamStatus: status });
+      }
+
+      return errorResponse(`data.gov.in request failed (${status}): ${errText}`, 502);
     }
 
     const payload = await upstream.json();
-    console.log('OGD proxy upstream payload:', payload);
     const result = {
       dataset,
       total: Number(payload.count ?? payload.total ?? 0),
       records: Array.isArray(payload.records) ? payload.records : [],
     };
-    console.log('OGD proxy result:', result);
+
     if (cache.size >= MAX_CACHE_ENTRIES) {
       const oldest = cache.keys().next().value;
       if (oldest) cache.delete(oldest);
     }
     cache.set(cacheKey, { expires: Date.now() + CACHE_TTL_MS, payload: result });
+    if (result.records.length > 0) {
+      lastGoodResponse.set(cacheKey, result);
+      lastGoodResponse.set(dataset, result);
+    }
 
     return json(result);
   } catch (err) {

@@ -24,6 +24,7 @@ import {
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
+import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 import type { StatutoryCommodity } from '../../auth/types/officerAuth';
 type NoticeStatus = 'Draft' | 'Issued' | 'Explanation Received' | 'Closed' | 'Action Proposed';
 
@@ -1799,22 +1800,46 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
   const downloadPdf = async () => {
     const doc = await buildNoticePdfDoc();
-    doc.save(noticeFileName());
-    showSuccess('PDF downloaded', noticeFileName());
+    const filename = noticeFileName();
+    doc.save(filename);
+    showSuccess('PDF downloaded', filename);
+
+    // Auto-archive in background (non-blocking)
+    void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+      filename,
+      documentCategory: 'notice',
+      documentNumber: form.memoNumber || undefined,
+      documentDate: form.noticeDate,
+      sourceModule: 'show_cause',
+      fileFormat: 'pdf',
+      metadata: { ...form },
+    });
   };
 
   const downloadWord = async () => {
     try {
       const blob = await buildNoticeWordDocument(noticeBlocks);
       const url = URL.createObjectURL(blob);
+      const filename = noticeWordFileName();
       const link = document.createElement('a');
       link.href = url;
-      link.download = noticeWordFileName();
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      showSuccess('Word downloaded', noticeWordFileName());
+      showSuccess('Word downloaded', filename);
+
+      // Auto-archive in background (non-blocking)
+      void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+        filename,
+        documentCategory: 'notice',
+        documentNumber: form.memoNumber || undefined,
+        documentDate: form.noticeDate,
+        sourceModule: 'show_cause',
+        fileFormat: 'docx',
+        metadata: { ...form },
+      });
     } catch (error) {
       console.error('Unable to generate notice Word document:', error);
       showWarning('Word export failed', 'Please try again.');

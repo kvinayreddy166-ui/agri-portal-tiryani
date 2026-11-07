@@ -416,14 +416,6 @@ export const Dashboard = React.memo(function Dashboard() {
                 {t('Notices, inspection memos, smart sampling, calculators & cloud archive', 'నోటీసులు, తనిఖీ మెమోలు, స్మార్ట్ సాంప్లింగ్, కాలిక్యులేటర్లు & క్లౌడ్ నిల్వ')}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate('/officer-toolkit')}
-              className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs font-bold text-emerald-800 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 shrink-0 shadow-2xs"
-            >
-              <span>{t('Full Toolkit & Portals', 'పూర్తి టూల్‌కిట్ & పోర్టల్స్')}</span>
-              <ChevronRight className="h-3.5 w-3.5" />
-            </button>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">

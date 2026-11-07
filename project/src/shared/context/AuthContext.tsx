@@ -472,6 +472,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     clearPersistedSupabaseAuth();
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(new CustomEvent('agronix:officer_user_logout'));
+      } catch {
+        // ignore
+      }
+    }
     setSession(null);
     setUser(null);
     setIsAdminUser(false);
