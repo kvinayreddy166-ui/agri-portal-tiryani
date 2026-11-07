@@ -331,7 +331,7 @@ export function FertilizerDealerInspection() {
       const filename = `Fertilizer_Dealer_Inspection_${(form.dealerName || 'Dealer').replace(/[^a-z0-9]+/gi, '_')}_${form.inspectionDate || localTodayDate()}.pdf`;
       doc.save(filename);
 
-      void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+      await OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
         filename,
         documentCategory: 'inspection',
         documentNumber: form.licenceNo || undefined,

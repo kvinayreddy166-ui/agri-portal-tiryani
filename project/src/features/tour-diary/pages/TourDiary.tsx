@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { supabase } from '../../../shared/lib/supabase';
-import { BackButton } from '../../../shared/components/ui/BackButton';
 import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, Clock, ChevronRight as ArrowRight, X, ClipboardList, Download, Printer } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
@@ -287,9 +286,8 @@ function DiaryDialog({ dialog, onResolve }: { dialog: DialogState; onResolve: (v
 }
 
 export function TourDiary() {
-  const navigate = useNavigate();
-  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
+  const { user } = useAuth();
+  const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
   
   // State
@@ -1643,7 +1641,7 @@ export function TourDiary() {
       });
 
       if (pdfResult?.blob) {
-        void OfficerDocumentArchiveService.archiveGeneratedDocument(pdfResult.blob, {
+        await OfficerDocumentArchiveService.archiveGeneratedDocument(pdfResult.blob, {
           filename: pdfResult.fileName,
           documentCategory: 'tour_diary',
           sourceModule: 'tour_diary',
@@ -1820,49 +1818,16 @@ export function TourDiary() {
   // Landing Page
   if (showLandingPage) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-950">
-        {/* Header */}
-        <div className="sticky top-0 z-40 border-b border-emerald-200/50 bg-white/80 backdrop-blur-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
-          <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-            <div className="flex-1">
-              {showCompactHeader ? (
-                <ModulePageHeader
-                  className="mb-4"
-                  title="Tour Diary"
-                  subtitle="Manage your monthly tour diaries"
-                  icon={NotebookPen}
-                />
-              ) : (
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-emerald-700 to-teal-800 p-4 shadow-lg">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
-                <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
-                  <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" className="mt-1 shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
-                        <NotebookPen className="h-6 w-6 text-white" aria-label="Tour Diary" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
-                          Officer Toolkit
-                        </p>
-                        <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
-                          Tour Diary
-                        </h1>
-                        <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
-                          Manage your monthly tour diaries
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              )}
-            </div>
-          </div>
-        </div>
-
+      <>
         <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+          {/* Header */}
+          <ModulePageHeader
+            className="mb-4"
+            title={t('Tour Diary', 'టూర్ డైరీ')}
+            subtitle={t('Manage your monthly tour diaries', 'మీ నెలవారీ టూర్ డైరీలను నిర్వహించండి')}
+            icon={NotebookPen}
+          />
+
           {/* Action Cards - Modern Mobile-First Design */}
           <div className="mb-8 flex flex-col gap-4">
             {/* Continue Draft Card - Only show latest draft */}
@@ -2219,54 +2184,21 @@ export function TourDiary() {
 
         {/* Confirm / prompt dialog */}
         {dialogState && <DiaryDialog dialog={dialogState} onResolve={resolveDialog} />}
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-950">
-      {/* Header */}
-      <div className="sticky top-0 z-40 border-b border-emerald-200/50 bg-white/80 backdrop-blur-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
-        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex-1">
-            {showCompactHeader ? (
-              <ModulePageHeader
-                className="mb-4"
-                title="Tour Diary"
-                subtitle="Monthly Tour Diary with Journey Tracking"
-                icon={NotebookPen}
-              />
-            ) : (
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-700 via-emerald-700 to-teal-800 p-4 shadow-lg">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
-              <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
-                <BackButton onClick={() => setShowLandingPage(true)} tone="solid" className="mt-1 shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
-                      <NotebookPen className="h-6 w-6 text-white" aria-label="Tour Diary" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-emerald-100 mb-0.5">
-                        Officer Toolkit
-                      </p>
-                      <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-snug tracking-tight">
-                        Tour Diary
-                      </h1>
-                      <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
-                        Monthly Tour Diary with Journey Tracking
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            )}
-          </div>
-        </div>
-      </div>
-
+    <>
       <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+        {/* Header */}
+        <ModulePageHeader
+          className="mb-4"
+          title={t('Tour Diary', 'టూర్ డైరీ')}
+          subtitle={t('Monthly Tour Diary with Journey Tracking', 'ప్రయాణ ట్రాకింగ్‌తో నెలవారీ టూర్ డైరీ')}
+          icon={NotebookPen}
+        />
+
         {/* Officer Details */}
         <div className={`mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h2 className="mb-4 text-sm font-bold text-slate-900 dark:text-white">Officer Details</h2>
@@ -2411,7 +2343,7 @@ export function TourDiary() {
               <button
                 onClick={() => navigateMonth('prev')}
                 aria-label="Previous month"
-                className="rounded-lg bg-emerald-100 p-2 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
+                className="rounded-lg bg-emerald-100 p-2.5 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
               >
                 <ChevronLeft className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -2440,7 +2372,7 @@ export function TourDiary() {
               <button
                 onClick={() => navigateMonth('next')}
                 aria-label="Next month"
-                className="rounded-lg bg-emerald-100 p-2 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
+                className="rounded-lg bg-emerald-100 p-2.5 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
               >
                 <ChevronRight className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -2676,7 +2608,7 @@ export function TourDiary() {
                   role="gridcell"
                   onClick={() => scrollToDay(date)}
                   aria-label={`${date} ${getDayName(currentYear, currentMonth, day)}: ${statusLabels[status]}${isToday ? ', today' : ''}`}
-                  className={`flex h-8 w-full items-center justify-center rounded-md text-xs font-semibold transition-transform hover:scale-105 sm:h-9 ${cellStyles[status]} ${isToday ? 'ring-2 ring-amber-500 ring-offset-1 dark:ring-offset-slate-900' : ''}`}
+                  className={`flex h-9 w-full items-center justify-center rounded-md text-xs font-semibold transition-transform hover:scale-105 sm:h-10 ${cellStyles[status]} ${isToday ? 'ring-2 ring-amber-500 ring-offset-1 dark:ring-offset-slate-900' : ''}`}
                 >
                   {day}
                 </button>
@@ -2710,14 +2642,14 @@ export function TourDiary() {
               <button
                 type="button"
                 onClick={() => setAllDaysExpanded(true)}
-                className="rounded-lg px-2 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
               >
                 Expand all
               </button>
               <button
                 type="button"
                 onClick={() => setAllDaysExpanded(false)}
-                className="rounded-lg px-2 py-1 text-xs font-bold text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800"
               >
                 Collapse all
               </button>
@@ -2798,7 +2730,7 @@ export function TourDiary() {
                     <button
                       type="button"
                       onClick={() => openJourneyForm(date)}
-                      className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
+                      className="flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-100 px-3.5 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-800"
                     >
                       <Plus className="h-3 w-3" aria-hidden="true" />
                       Add Journey
@@ -2844,7 +2776,7 @@ export function TourDiary() {
                                   type="button"
                                   onClick={() => editJourney(journey)}
                                   aria-label={`Edit journey from ${journey.from_place} to ${journey.to_place}`}
-                                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800"
+                                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800"
                                 >
                                   <Edit className="h-4 w-4" aria-hidden="true" />
                                 </button>
@@ -2852,7 +2784,7 @@ export function TourDiary() {
                                   type="button"
                                   onClick={() => deleteJourney(journey.id)}
                                   aria-label={`Delete journey from ${journey.from_place} to ${journey.to_place}`}
-                                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
+                                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
                                 >
                                   <Trash2 className="h-4 w-4" aria-hidden="true" />
                                 </button>
@@ -2878,28 +2810,28 @@ export function TourDiary() {
 
                 <div className="mt-3 flex flex-wrap items-center justify-end gap-1.5 border-t border-emerald-100 pt-3 dark:border-emerald-900/60">
                   {dateOverride?.status === 'WORKING' && getDateLeaveType(date) !== 'NONE' && (
-                    <button type="button" onClick={() => cancelLeave(date)} className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Leave</button>
+                    <button type="button" onClick={() => cancelLeave(date)} className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1.5 text-[11px] font-black uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Leave</button>
                   )}
                   {dateOverride?.status === 'WORKING' && getDateLeaveType(date) === 'NONE' && (
-                    <button type="button" onClick={() => restoreDefaultStatus(date)} className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">Restore Default</button>
+                    <button type="button" onClick={() => restoreDefaultStatus(date)} className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-black uppercase text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">Restore Default</button>
                   )}
                   {dateOverride?.status !== 'WORKING' && (isSundayDay || isSecondSaturdayDay || displayedHolidays.some(h => h.holiday_type === 'GENERAL')) && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && (
-                    <button type="button" onClick={() => markAsWorkingDay(date)} className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">Mark Working Day</button>
+                    <button type="button" onClick={() => markAsWorkingDay(date)} className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-black uppercase text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">Mark Working Day</button>
                   )}
                   {dateOverride?.status !== 'WORKING' && !isSundayDay && !isSecondSaturdayDay && !displayedHolidays.some(h => h.holiday_type === 'GENERAL') && !displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'NONE' && (
-                    <button type="button" onClick={() => availLeave(date)} className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-black uppercase text-rose-800 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-200">Avail Leave</button>
+                    <button type="button" onClick={() => availLeave(date)} className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black uppercase text-rose-800 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-200">Avail Leave</button>
                   )}
                   {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'NONE' && (
                     <>
-                      <button type="button" onClick={() => availOptionalHoliday(date)} className="rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-[10px] font-black uppercase text-purple-800 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-200">Avail Optional Holiday</button>
-                      <button type="button" onClick={() => availLeaveOnOptionalHoliday(date)} className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-black uppercase text-rose-800 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-200">Avail Leave</button>
+                      <button type="button" onClick={() => availOptionalHoliday(date)} className="rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-[11px] font-black uppercase text-purple-800 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-950/30 dark:text-purple-200">Avail Optional Holiday</button>
+                      <button type="button" onClick={() => availLeaveOnOptionalHoliday(date)} className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-[11px] font-black uppercase text-rose-800 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/30 dark:text-rose-200">Avail Leave</button>
                     </>
                   )}
                   {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'OPTIONAL_HOLIDAY' && (
-                    <button type="button" onClick={() => cancelOptionalHoliday(date)} className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Optional Holiday</button>
+                    <button type="button" onClick={() => cancelOptionalHoliday(date)} className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1.5 text-[11px] font-black uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Optional Holiday</button>
                   )}
                   {dateOverride?.status !== 'WORKING' && displayedHolidays.some(h => h.holiday_type === 'OPTIONAL') && getDateLeaveType(date) === 'OPTIONAL_HOLIDAY_LEAVE' && (
-                    <button type="button" onClick={() => cancelLeave(date)} className="rounded-full border border-slate-300 bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Leave</button>
+                    <button type="button" onClick={() => cancelLeave(date)} className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1.5 text-[11px] font-black uppercase text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">Cancel Leave</button>
                   )}
                 </div>
               </div>
@@ -3066,7 +2998,7 @@ export function TourDiary() {
                               type="button"
                               onClick={() => setFormData({ ...formData, purposes: formData.purposes.filter(p => p !== purpose) })}
                               aria-label={`Remove purpose ${purpose}`}
-                              className="ml-1 hover:text-emerald-600 dark:hover:text-emerald-300"
+                              className="ml-1 rounded p-1 hover:text-emerald-600 dark:hover:text-emerald-300"
                             >
                               <X className="h-3 w-3" aria-hidden="true" />
                             </button>
@@ -3432,6 +3364,6 @@ export function TourDiary() {
       {/* Confirm / prompt dialog */}
       {dialogState && <DiaryDialog dialog={dialogState} onResolve={resolveDialog} />}
 
-    </div>
+    </>
   );
 }

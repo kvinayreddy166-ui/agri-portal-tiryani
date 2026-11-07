@@ -70,8 +70,8 @@ export function TermsConditions() {
               <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('4. Intellectual Property', '4. Intellectual Property')}</h2>
               <p>
                 {t(
-                  'All content, features, and functionality of AGRONIX are owned by the Mandal Agricultural Office, Tiryani, and are protected by intellectual property laws. You may not copy, modify, distribute, or create derivative works without permission.',
-                  'All content, features, and functionality of AGRONIX are owned by the Mandal Agricultural Office, Tiryani, and are protected by intellectual property laws. You may not copy, modify, distribute, or create derivative works without permission.'
+                  'All content, features, and functionality of AGRONIX are owned by K. Vinay Reddy, M.Sc (Ag), and are protected by intellectual property laws. You may not copy, modify, distribute, or create derivative works without permission.',
+                  'All content, features, and functionality of AGRONIX are owned by K. Vinay Reddy, M.Sc (Ag), and are protected by intellectual property laws. You may not copy, modify, distribute, or create derivative works without permission.'
                 )}
               </p>
             </section>
@@ -120,8 +120,8 @@ export function TermsConditions() {
               <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('9. Governing Law', '9. Governing Law')}</h2>
               <p>
                 {t(
-                  'These Terms & Conditions shall be governed by and construed in accordance with the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts in Tiryani, Kumram Bheem Asifabad District, Telangana.',
-                  'These Terms & Conditions shall be governed by and construed in accordance with the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts in Tiryani, Kumram Bheem Asifabad District, Telangana.'
+                  'These Terms & Conditions shall be governed by and construed in accordance with the laws of India.',
+                  'These Terms & Conditions shall be governed by and construed in accordance with the laws of India.'
                 )}
               </p>
             </section>
@@ -130,10 +130,27 @@ export function TermsConditions() {
               <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('10. Contact', '10. Contact')}</h2>
               <p>
                 {t(
-                  'For questions about these Terms & Conditions, please contact the Mandal Agricultural Office, Tiryani through the official channels provided on this platform.',
-                  'For questions about these Terms & Conditions, please contact the Mandal Agricultural Office, Tiryani through the official channels provided on this platform.'
+                  'For questions about these Terms & Conditions, please contact:',
+                  'For questions about these Terms & Conditions, please contact:'
                 )}
               </p>
+              <ul className="mt-2 list-disc space-y-1 pl-5">
+                <li>
+                  <span className="font-semibold text-slate-900 dark:text-white">K. Vinay Reddy, M.Sc (Ag)</span>
+                </li>
+                <li>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{t('Email:', 'ఇమెయిల్:')}</span>{' '}
+                  <a href="mailto:k.vinayreddy166@gmail.com" className="font-semibold text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                    k.vinayreddy166@gmail.com
+                  </a>
+                </li>
+                <li>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{t('Phone:', 'ఫోన్:')}</span>{' '}
+                  <a href="tel:+918308487046" className="font-semibold text-blue-600 underline decoration-blue-300 underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                    +91 8308487046
+                  </a>
+                </li>
+              </ul>
             </section>
           </div>
         </div>

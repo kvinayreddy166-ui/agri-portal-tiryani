@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
-  KeyRound,
   Loader2,
   LockKeyhole,
   LogIn,
@@ -24,7 +23,10 @@ import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { ResendOtpService } from '../services/resendOtpService';
-import { getMandalsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
+import { getMandalsForDistrict, getDivisionsForDistrict, QUALIFICATION_OPTIONS } from '../../../shared/data/telanganaDistrictMandalData';
+import { canonicalDistrictKey } from '../lib/officerInspectorDefaults';
+import { AuthStepper } from '../components/AuthStepper';
+import { OtpInput } from '../components/OtpInput';
 
 const TELANGANA_DISTRICTS = [
   'Adilabad',
@@ -77,6 +79,7 @@ export function OfficerSignUp() {
   const { registerOfficer, signIn } = useAuth();
 
   const [step, setStep] = useState<SignUpStep>('details');
+  const stepIndex = step === 'details' ? 0 : step === 'otp' ? 1 : 2;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -85,10 +88,14 @@ export function OfficerSignUp() {
   const [form, setForm] = useState({
     fullName: '',
     designation: 'AEO',
+    qualification: '',
+    qualificationOther: '',
     hrmsId: '',
     phone: '',
     district: 'Kumuram Bheem Asifabad',
     mandal: 'Tiryani',
+    division: '',
+    divisionOther: '',
     email: '',
   });
 
@@ -103,6 +110,16 @@ export function OfficerSignUp() {
   const [confirmRevealed, setConfirmRevealed] = useState(false);
 
   const mandals = getMandalsForDistrict(DISTRICT_TO_MANDAL_KEY[form.district] || form.district);
+
+  const isAdaDesignation = form.designation === 'ADA';
+  const districtKey = canonicalDistrictKey(form.district);
+  const divisionOptions = isAdaDesignation
+    ? getDivisionsForDistrict(districtKey).length
+      ? getDivisionsForDistrict(districtKey)
+      : getDivisionsForDistrict(districtKey.replace('–', '-'))
+    : [];
+  const resolvedQualification = form.qualification === 'Others' ? form.qualificationOther.trim() : form.qualification;
+  const resolvedDivision = form.division === 'Others' ? form.divisionOther.trim() : form.division;
 
   // Cooldown countdown timer
   useEffect(() => {
@@ -123,8 +140,13 @@ export function OfficerSignUp() {
     const email = form.email.trim().toLowerCase();
     const phone = form.phone.trim().replace(/\D/g, '');
 
-    if (!fullName || !email || !phone || !form.district || !form.mandal) {
+    if (!fullName || !email || !phone || !form.district || !form.mandal || !resolvedQualification) {
       setError(t('Please fill in all mandatory fields.', 'దయచేసి అన్ని తప్పనిసరి వివరాలను పూరించండి.'));
+      return;
+    }
+
+    if (isAdaDesignation && !resolvedDivision) {
+      setError(t('Please select your division.', 'దయచేసి మీ డివిజన్‌ను ఎంచుకోండి.'));
       return;
     }
 
@@ -147,9 +169,11 @@ export function OfficerSignUp() {
       payload: {
         fullName,
         designation: form.designation,
+        qualification: resolvedQualification,
         hrmsId: form.hrmsId.trim(),
         district: form.district,
         mandal: form.mandal,
+        division: isAdaDesignation ? resolvedDivision : '',
         phone,
       },
     });
@@ -230,8 +254,10 @@ export function OfficerSignUp() {
       full_name: form.fullName.trim(),
       designation: form.designation.trim(),
       hrms_id: form.hrmsId.trim(),
+      qualification: resolvedQualification,
       district: form.district.trim(),
       mandal: form.mandal.trim(),
+      division: isAdaDesignation ? resolvedDivision : '',
       phone: form.phone.trim(),
       email: form.email.trim().toLowerCase(),
       password: trimmedPassword,
@@ -252,7 +278,7 @@ export function OfficerSignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50/60 via-slate-50 to-slate-100 py-8 px-4 sm:px-6 lg:px-8 dark:from-emerald-950/20 dark:via-slate-950 dark:to-slate-950">
       <div className="mx-auto max-w-xl">
         {/* Top Header */}
         <div className="mb-6 flex items-center justify-between">
@@ -282,42 +308,29 @@ export function OfficerSignUp() {
               </div>
             </div>
 
-            {/* Stepper Progress Bar */}
-            <div className="mt-6 flex items-center justify-between border-t border-emerald-700/60 pt-4 text-xs font-semibold">
-              <div className={`flex items-center gap-2 ${step === 'details' ? 'text-gold-300 font-bold' : 'text-emerald-300'}`}>
-                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${step === 'details' ? 'bg-gold-400 text-emerald-950' : 'bg-emerald-500 text-white'}`}>
-                  {step === 'details' ? '1' : '✓'}
-                </span>
-                <span className="hidden sm:inline">{t('1. Details', '1. వివరాలు')}</span>
-              </div>
-              <div className="h-0.5 w-6 sm:w-12 bg-emerald-700" />
-              <div className={`flex items-center gap-2 ${step === 'otp' ? 'text-gold-300 font-bold' : step === 'password' || step === 'completed' ? 'text-emerald-300' : 'text-emerald-400/60'}`}>
-                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${step === 'otp' ? 'bg-gold-400 text-emerald-950' : step === 'password' || step === 'completed' ? 'bg-emerald-500 text-white' : 'bg-emerald-800/80 text-emerald-300'}`}>
-                  {step === 'password' || step === 'completed' ? '✓' : '2'}
-                </span>
-                <span className="hidden sm:inline">{t('2. Email OTP', '2. ఇమెయిల్ OTP')}</span>
-              </div>
-              <div className="h-0.5 w-6 sm:w-12 bg-emerald-700" />
-              <div className={`flex items-center gap-2 ${step === 'password' ? 'text-gold-300 font-bold' : step === 'completed' ? 'text-emerald-300' : 'text-emerald-400/60'}`}>
-                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${step === 'password' ? 'bg-gold-400 text-emerald-950' : step === 'completed' ? 'bg-emerald-500 text-white' : 'bg-emerald-800/80 text-emerald-300'}`}>
-                  {step === 'completed' ? '✓' : '3'}
-                </span>
-                <span className="hidden sm:inline">{t('3. Password', '3. పాస్‌వర్డ్')}</span>
-              </div>
-            </div>
+            {/* Stepper Progress */}
+            <AuthStepper
+              steps={[
+                t('Details', 'వివరాలు'),
+                t('Email OTP', 'ఇమెయిల్ OTP'),
+                t('Password', 'పాస్‌వర్డ్'),
+              ]}
+              currentIndex={stepIndex}
+              finished={step === 'completed'}
+            />
           </div>
 
           <div className="p-6 sm:p-8">
             {/* Feedback Alerts */}
             {error && (
-              <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50/80 p-3.5 text-xs sm:text-sm text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200">
+              <div role="alert" className="mb-5 flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50/80 p-3.5 text-xs sm:text-sm text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200 animate-shake">
                 <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
                 <span className="font-medium leading-relaxed">{error}</span>
               </div>
             )}
 
             {successMessage && (
-              <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs sm:text-sm text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
+              <div role="status" className="mb-5 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs sm:text-sm text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200 animate-fadeIn">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
                 <span className="font-medium leading-relaxed">{successMessage}</span>
               </div>
@@ -348,7 +361,7 @@ export function OfficerSignUp() {
                         value={form.fullName}
                         onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                         placeholder={t('e.g. K. Vinay Reddy', 'ఉదా. కె. వినయ్ రెడ్డి')}
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                       />
                     </div>
                   </div>
@@ -360,7 +373,7 @@ export function OfficerSignUp() {
                     <select
                       value={form.designation}
                       onChange={(e) => setForm({ ...form, designation: e.target.value })}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     >
                       <option value="AEO">AEO (Agricultural Extension Officer)</option>
                       <option value="MAO">MAO (Mandal Agriculture Officer)</option>
@@ -373,6 +386,61 @@ export function OfficerSignUp() {
                 <div className="grid gap-3.5 sm:grid-cols-2">
                   <div>
                     <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                      {t('Qualification', 'అర్హత')} *
+                    </label>
+                    <select
+                      value={form.qualification}
+                      onChange={(e) => setForm({ ...form, qualification: e.target.value, qualificationOther: '' })}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                    >
+                      <option value="">{t('Select qualification', 'హోదా ఎంచుకోండి')}</option>
+                      {QUALIFICATION_OPTIONS.map((q) => (
+                        <option key={q.value} value={q.value}>{q.label}</option>
+                      ))}
+                    </select>
+                    {form.qualification === 'Others' && (
+                      <input
+                        type="text"
+                        value={form.qualificationOther}
+                        onChange={(e) => setForm({ ...form, qualificationOther: e.target.value })}
+                        placeholder={t('Enter qualification', 'హోదా నమోదు చేయండి')}
+                        className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      />
+                    )}
+                  </div>
+
+                  {isAdaDesignation && (
+                    <div>
+                      <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                        {t('Division', 'డివిజన్')} *
+                      </label>
+                      <select
+                        value={form.division}
+                        onChange={(e) => setForm({ ...form, division: e.target.value, divisionOther: '' })}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      >
+                        <option value="">{t('Select division', 'డివిజన్ ఎంచుకోండి')}</option>
+                        {divisionOptions.map((d) => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                        <option value="Others">{t('Others', 'ఇతరులు')}</option>
+                      </select>
+                      {form.division === 'Others' && (
+                        <input
+                          type="text"
+                          value={form.divisionOther}
+                          onChange={(e) => setForm({ ...form, divisionOther: e.target.value })}
+                          placeholder={t('Enter division name', 'డివిజన్ పేరు నమోదు చేయండి')}
+                          className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid gap-3.5 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
                       {t('Employee ID', 'ఉద్యోగి ID')}
                     </label>
                     <input
@@ -380,7 +448,7 @@ export function OfficerSignUp() {
                       value={form.hrmsId}
                       onChange={(e) => setForm({ ...form, hrmsId: e.target.value })}
                       placeholder={t('e.g. 1029384 (Optional)', 'ఉదా. 1029384')}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     />
                   </div>
 
@@ -397,7 +465,7 @@ export function OfficerSignUp() {
                         value={form.phone}
                         onChange={(e) => setForm({ ...form, phone: e.target.value })}
                         placeholder="9949497506"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                       />
                     </div>
                   </div>
@@ -415,7 +483,7 @@ export function OfficerSignUp() {
                         const distMandals = getMandalsForDistrict(DISTRICT_TO_MANDAL_KEY[dist] || dist);
                         setForm({ ...form, district: dist, mandal: distMandals[0] || '' });
                       }}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     >
                       {TELANGANA_DISTRICTS.map((d) => (
                         <option key={d} value={d}>{d}</option>
@@ -430,7 +498,7 @@ export function OfficerSignUp() {
                     <select
                       value={form.mandal}
                       onChange={(e) => setForm({ ...form, mandal: e.target.value })}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     >
                       {mandals.map((m) => (
                         <option key={m} value={m}>{m}</option>
@@ -453,7 +521,7 @@ export function OfficerSignUp() {
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       placeholder="officer@email.com / gmail.com"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     />
                   </div>
                   <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
@@ -464,7 +532,7 @@ export function OfficerSignUp() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <Send className="h-4 w-4 shrink-0" />}
                   <span>{loading ? t('Sending OTP via Resend...', 'Resend ద్వారా OTP పంపుతోంది...') : t('Send Verification OTP & Continue', 'ధృవీకరణ OTP పంపి కొనసాగించండి')}</span>
@@ -513,24 +581,15 @@ export function OfficerSignUp() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  <label htmlFor="signup-otp" className="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
                     {t('Enter 6-Digit Email OTP', '6-అంకెల ఇమెయిల్ OTP నమోదు చేయండి')} *
                   </label>
-                  <div className="relative">
-                    <KeyRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      maxLength={6}
-                      autoFocus
-                      required
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="123456"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-3 pl-10 pr-4 text-center font-mono text-xl font-bold tracking-[0.35em] text-slate-900 shadow-sm outline-none transition placeholder:tracking-normal placeholder:font-normal placeholder:text-sm placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
-                    />
-                  </div>
+                  <OtpInput
+                    inputId="signup-otp"
+                    value={otp}
+                    onChange={setOtp}
+                    autoFocus
+                  />
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     {t('Please check your inbox or spam folder. The code expires in 10 minutes.', 'దయచేసి మీ ఇన్బాక్స్ లేదా స్పామ్ ఫోల్డర్ చూడండి. కోడ్ 10 నిమిషాల్లో ముగుస్తుంది.')}
                   </p>
@@ -559,7 +618,7 @@ export function OfficerSignUp() {
                 <button
                   type="submit"
                   disabled={loading || otp.length < 6}
-                  className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <ShieldCheck className="h-4 w-4 shrink-0" />}
                   <span>{loading ? t('Verifying OTP...', 'ధృవీకరిస్తోంది...') : t('Verify Email & Set Password →', 'ఇమెయిల్ ధృవీకరించి పాస్‌వర్డ్ సెట్ చేయండి →')}</span>
@@ -606,7 +665,7 @@ export function OfficerSignUp() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder={t('Min 6 characters (e.g. Agri#2026)', 'కనీసం 6 అక్షరాలు')}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-9 pr-10 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-9 pr-10 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     />
                     <button
                       type="button"
@@ -631,7 +690,7 @@ export function OfficerSignUp() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder={t('Re-enter password', 'పాస్‌వర్డ్‌ను మళ్లీ నమోదు చేయండి')}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-9 pr-10 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-9 pr-10 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     />
                     <button
                       type="button"
@@ -663,7 +722,7 @@ export function OfficerSignUp() {
                 <button
                   type="submit"
                   disabled={loading || password.length < 6 || password !== confirmPassword}
-                  className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <UserCheck className="h-4 w-4 shrink-0" />}
                   <span>{loading ? t('Setting Password & Saving...', 'పాస్‌వర్డ్ సెట్ చేస్తోంది...') : t('Set Password & Complete Registration', 'పాస్‌వర్డ్ సెట్ చేసి నమోదు పూర్తి చేయండి')}</span>

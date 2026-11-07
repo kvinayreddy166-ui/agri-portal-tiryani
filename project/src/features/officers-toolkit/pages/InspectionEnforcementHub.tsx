@@ -278,8 +278,8 @@ export function InspectionEnforcementHub() {
           tone="teal-indigo"
           eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
           title={t('Inspection & Enforcement', 'తనిఖీ & అమలు')}
-          fallbackPath="/officer-toolkit"
-          onBack={() => navigate('/officer-toolkit')}
+          fallbackPath="/dashboard"
+          onBack={() => navigate('/dashboard')}
           className="mb-4"
         />
       )}

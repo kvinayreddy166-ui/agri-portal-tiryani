@@ -5,6 +5,7 @@ export interface Env {
   ADMIN_EMAIL?: string;
   SUPABASE_JWT_SECRET?: string;
   SUPABASE_URL?: string;
+  SUPABASE_ANON_KEY?: string;
 }
 
 export interface AuthenticatedUser {

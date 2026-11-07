@@ -60,8 +60,8 @@ export function Disclaimer() {
               <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('3. Limitation of Liability', '3. Limitation of Liability')}</h2>
               <p>
                 {t(
-                  'The Mandal Agricultural Office, Tiryani, and its developers shall not be liable for any direct, indirect, incidental, special, or consequential damages arising from the use of this system or reliance on its information.',
-                  'The Mandal Agricultural Office, Tiryani, and its developers shall not be liable for any direct, indirect, incidental, special, or consequential damages arising from the use of this system or reliance on its information.'
+                  'The developers of this system shall not be liable for any direct, indirect, incidental, special, or consequential damages arising from the use of this system or reliance on its information.',
+                  'The developers of this system shall not be liable for any direct, indirect, incidental, special, or consequential damages arising from the use of this system or reliance on its information.'
                 )}
               </p>
             </section>

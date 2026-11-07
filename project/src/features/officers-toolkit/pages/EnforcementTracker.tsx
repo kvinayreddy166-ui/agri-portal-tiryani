@@ -17,6 +17,7 @@ import {
   Scale,
   Search,
   ShieldAlert,
+  Trash2,
   X,
 } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
@@ -97,6 +98,7 @@ export function EnforcementTracker() {
   const [stageFilter, setStageFilter] = useState<'all' | CaseStage>('all');
   const [selectedCase, setSelectedCase] = useState<OfficerCase | null>(null);
   const [caseToClose, setCaseToClose] = useState<OfficerCase | null>(null);
+  const [caseToDelete, setCaseToDelete] = useState<OfficerCase | null>(null);
   const [suggestionToOpen, setSuggestionToOpen] = useState<CaseSuggestion | null>(null);
   const [newCaseOpen, setNewCaseOpen] = useState(false);
   const [newCaseForm, setNewCaseForm] = useState({ dealerName: '', commodity: 'fertilizer' as StatutoryCommodity, priority: 'NORMAL' as CasePriority, notes: '' });
@@ -234,6 +236,14 @@ export function EnforcementTracker() {
     if (!caseToClose) return;
     await EnforcementTrackerService.updateCaseStage(caseToClose.id, 'CLOSED');
     setCaseToClose(null);
+    setSelectedCase(null);
+    void load(true);
+  };
+
+  const handleDeleteCase = async () => {
+    if (!caseToDelete) return;
+    await EnforcementTrackerService.deleteCase(caseToDelete.id);
+    setCaseToDelete(null);
     setSelectedCase(null);
     void load(true);
   };
@@ -960,6 +970,15 @@ export function EnforcementTracker() {
               </button>
             )}
 
+            <button
+              type="button"
+              onClick={() => setCaseToDelete(selectedCase)}
+              className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-50 dark:border-rose-800/60 dark:text-rose-400 dark:hover:bg-rose-950/30"
+            >
+              <Trash2 className="h-4 w-4" />
+              {t('Delete Case', 'కేసు తొలగించండి')}
+            </button>
+
             {/* Notes */}
             <div className="mb-2">
               <p className="mb-1 text-[11px] font-black uppercase tracking-wide text-slate-400">{t('Notes', 'గమనికలు')}</p>
@@ -1077,6 +1096,16 @@ export function EnforcementTracker() {
         cancelLabel={t('Cancel', 'రద్దు చేయండి')}
         onConfirm={() => void handleCloseCase()}
         onCancel={() => setCaseToClose(null)}
+      />
+
+      <ConfirmDialog
+        open={Boolean(caseToDelete)}
+        title={t('Delete this case?', 'ఈ కేసు తొలగించాలా?')}
+        message={caseToDelete ? `${caseToDelete.case_number} — ${caseToDelete.dealer_name}` : ''}
+        confirmLabel={t('Delete Permanently', 'శాశ్వతంగా తొలగించు')}
+        cancelLabel={t('Cancel', 'రద్దు చేయండి')}
+        onConfirm={() => void handleDeleteCase()}
+        onCancel={() => setCaseToDelete(null)}
       />
     </div>
   );

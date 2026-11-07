@@ -1832,7 +1832,7 @@ export function FertilizerCalculator() {
       doc.text('Page 1 of 1', pageWidth / 2, pageHeight - 7, { align: 'center' });
       const pdfFilename = generatePdfFilename(farmerDetails);
       doc.save(pdfFilename);
-      void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+      await OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
         filename: pdfFilename,
         documentCategory: 'advisory',
         documentDate: new Date().toISOString().slice(0, 10),

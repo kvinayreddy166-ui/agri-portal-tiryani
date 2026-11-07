@@ -425,7 +425,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
         const docxName = fileName.replace(/\.pdf$/, '.docx');
         downloadBlob(docxBlob, docxName);
 
-        void OfficerDocumentArchiveService.archiveGeneratedDocument(docxBlob, {
+        await OfficerDocumentArchiveService.archiveGeneratedDocument(docxBlob, {
           filename: docxName,
           documentCategory: 'sample',
           documentNumber: metadata.letterNumber || undefined,
@@ -437,7 +437,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
       } else {
         doc.save(fileName);
 
-        void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+        await OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
           filename: fileName,
           documentCategory: 'sample',
           documentNumber: metadata.letterNumber || undefined,

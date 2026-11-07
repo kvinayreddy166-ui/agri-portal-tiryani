@@ -15,6 +15,7 @@ import {
   Send,
   ShieldCheck,
   Smartphone,
+  Sparkles,
   Store,
   UserPlus,
   X,
@@ -395,7 +396,7 @@ export function Login() {
                   onClick={() => { setLoginMode('staff'); setError(null); setSuccessMessage(null); }}
                   className={`rounded-lg px-2 py-2 transition font-bold ${loginMode === 'staff' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
                 >
-                  {t('Admin / Staff', 'అడ్మిన్ / సిబ్బంది')}
+                  {t('Admin', 'అడ్మిన్')}
                 </button>
                 <button
                   type="button"
@@ -481,20 +482,23 @@ export function Login() {
                     </span>
                   </div>
 
-                  {/* Officer Sign Up — same flat style as admin/staff section */}
-                  <div className="animate-slide-up">
-                    <div className="mb-4">
-                      <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                  {/* Officer Sign Up — distinctive card style */}
+                  <div className="animate-slide-up rounded-2xl border-2 border-dashed border-gold-300/50 bg-gradient-to-br from-gold-50/50 to-amber-50/30 p-4 dark:border-gold-700/40 dark:from-gold-950/20 dark:to-amber-950/10">
+                    <div className="mb-3 flex items-center gap-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-100 text-gold-700 dark:bg-gold-900/40 dark:text-gold-300">
+                        <Sparkles className="h-4 w-4" />
+                      </div>
+                      <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
                         {t('New Agriculture Officer', 'కొత్త వ్యవసాయ అధికారి')}
                       </h3>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                        {t('Register with email verification to create your officer account', 'ఇమెయిల్ ధృవీకరణతో మీ అధికారి ఖాతాను సృష్టించండి')}
-                      </p>
                     </div>
+                    <p className="mb-3 text-xs text-slate-600 dark:text-slate-400">
+                      {t('Register with email verification to create your officer account', 'ఇమెయిల్ ధృవీకరణతో మీ అధికారి ఖాతాను సృష్టించండి')}
+                    </p>
                     <button
                       type="button"
                       onClick={() => navigate('/register')}
-                      className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow transition active:scale-[0.99]"
+                      className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-gold-600 to-amber-600 hover:from-gold-500 hover:to-amber-500 active:from-gold-700 active:to-amber-700 px-4 text-sm font-semibold text-white shadow-md shadow-gold-900/20 transition active:scale-[0.99]"
                     >
                       <UserPlus className="h-4 w-4 shrink-0" />
                       <span>{t('Sign Up as Officer', 'అధికారిగా సైన్ అప్ అవ్వండి')}</span>
@@ -503,17 +507,17 @@ export function Login() {
                 </div>
               )}
 
-              {/* ===================== ADMIN / STAFF / DEALER PORTAL ===================== */}
+              {/* ===================== ADMIN / DEALER PORTAL ===================== */}
               {loginMode !== 'officer' && (
                 <>
                   <div className="mb-4 animate-slide-up">
                     <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-                      {loginMode === 'dealer' ? t('Dealer Sign In', 'డీలర్ సైన్ ఇన్') : t('Admin / Staff Sign In', 'అడ్మిన్ / సిబ్బంది సైన్ ఇన్')}
+                      {loginMode === 'dealer' ? t('Dealer Sign In', 'డీలర్ సైన్ ఇన్') : t('Admin Sign In', 'అడ్మిన్ సైన్ ఇన్')}
                     </h3>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                       {loginMode === 'dealer'
                         ? t('Access stock reports and allocations with registered phone', 'నమోదైన ఫోన్ నంబర్‌తో స్టాక్ రిపోర్టులు పొందండి')
-                        : t('Administrative access for staff and reviewers', 'సిబ్బంది మరియు సమీక్షకుల అధికారిక యాక్సెస్')}
+                        : t('Administrative access', 'అధికారిక యాక్సెస్')}
                     </p>
                   </div>
 
@@ -554,7 +558,7 @@ export function Login() {
             </div>
           </section>
 
-          <div className="mt-5 text-center text-xs leading-5 text-slate-400 dark:text-slate-500">
+          <div className="mt-5 pb-24 text-center text-xs leading-5 text-slate-400 dark:text-slate-500">
             <p className="font-medium">version-1.0.1</p>
             <p>&copy; 2026 {t('Agronix - Information Management System', 'అగ్రోనిక్స్ - సమాచార నిర్వహణ వ్యవస్థ')}</p>
             <p>{t('Developed and maintained by K.Vinay Reddy, MAO, Tiryani', 'రూపకల్పన & నిర్వహణ: కె.వినయ్ రెడ్డి, ఎం.ఎ.ఓ, తిర్యాని')}</p>

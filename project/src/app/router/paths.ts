@@ -32,7 +32,6 @@ export const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/fertilizer-dealer-inspection',
   '/officer-toolkit/insecticide-dealer-inspection',
   '/officer-toolkit/inspection-enforcement',
-  '/officer-toolkit/field-diagnosis',
 ]);
 
 // Page keys renderable without authentication (handled by PublicPageSwitch).
@@ -65,7 +64,6 @@ export const PUBLIC_PAGES = new Set([
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
   'inspection-enforcement',
-  'field-diagnosis',
 ]);
 
 export const PAGE_PATHS: Record<string, string> = {
@@ -117,7 +115,6 @@ export const PAGE_PATHS: Record<string, string> = {
   'insecticide-dealer-inspection': '/officer-toolkit/insecticide-dealer-inspection',
   'inspection-enforcement': '/officer-toolkit/inspection-enforcement',
   'enforcement-tracker': '/officer-toolkit/enforcement-tracker',
-  'field-diagnosis': '/officer-toolkit/field-diagnosis',
   analytics: '/analytics',
   settings: '/settings',
   knowledge: '/knowledge',
@@ -172,10 +169,10 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
     return '/officer-toolkit/inspection-enforcement';
   }
   if (pathname.startsWith('/officer-toolkit/')) {
-    return '/field-tools';
+    return '/dashboard';
   }
   if (pathname === '/forms' || pathname === '/acreage-calculator' || pathname === '/agrochemicals') {
-    return '/field-tools';
+    return '/dashboard';
   }
   if (isAuthenticated && pathname !== '/dashboard' && pathname !== '/' && pathname !== '/login') {
     return '/dashboard';
@@ -196,9 +193,8 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
     page === 'acts-and-orders' ||
     page === 'inspection-enforcement' ||
     page === 'tour-diary' ||
-    page === 'officer-contacts' ||
-    page === 'field-diagnosis'
-  ) return 'field-tools';
+    page === 'officer-contacts'
+  ) return 'dashboard';
   if (
     page === 'acreage-calculator' ||
     page === 'fertilizer-calculator' ||
@@ -217,7 +213,7 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
   if (page === 'officer-contacts-admin') return 'officer-contacts';
   if (page.startsWith('knowledge-')) return 'knowledge';
   if (page === 'knowledge') return 'dashboard';
-  if (page === 'officer-toolkit') return 'field-tools';
+  if (page === 'officer-toolkit') return 'dashboard';
   if (page.startsWith('quality-')) return 'quality';
   if (page.startsWith('subsidy-')) return 'subsidy';
   return isDealerUser ? 'dealer-portal' : 'dashboard';
@@ -276,7 +272,6 @@ export const VALID_PAGES = new Set([
   'insecticide-dealer-inspection',
   'inspection-enforcement',
   'enforcement-tracker',
-  'field-diagnosis',
   'analytics',
   'settings',
   'knowledge',
@@ -322,7 +317,6 @@ const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'insecticide-dealer-inspection',
   'inspection-enforcement',
   'enforcement-tracker',
-  'field-diagnosis',
 ]);
 const SUBPAGE_ALIASES: Record<string, string> = { 'smart-sampling': 'forms', 'sampling-hub': 'forms', 'statutory-forms': 'forms', 'legal-ready-reckoner': 'acts-and-orders', 'license-application-generator': 'license-services', 'crop-protection': 'crop-doctor', 'agrochemical-database': 'agrochemicals' };
 
@@ -337,7 +331,7 @@ export function resolvePageFromLocation(location: { pathname: string; search: st
     if (page.startsWith(OFFICER_TOOLKIT_PAGE_PREFIX)) {
       const sub = page.slice(OFFICER_TOOLKIT_PAGE_PREFIX.length);
       const base = sub.split('/')[0];
-      // Records & Cloud Archive lives at /officer-toolkit/my-records
+      // Records & Cloud Storage lives at /officer-toolkit/my-records
       if (base === 'my-records') {
         page = 'officer-records';
       } else if (OFFICER_TOOLKIT_SUBPAGES.has(base)) {

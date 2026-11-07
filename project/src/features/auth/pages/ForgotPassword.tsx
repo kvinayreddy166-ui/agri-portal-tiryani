@@ -18,6 +18,8 @@ import { useLanguage } from '../../../shared/context/LanguageContext';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { ResendOtpService } from '../services/resendOtpService';
+import { AuthStepper } from '../components/AuthStepper';
+import { OtpInput } from '../components/OtpInput';
 
 type ResetStep = 'email' | 'otp' | 'password' | 'completed';
 
@@ -26,6 +28,7 @@ export function ForgotPassword() {
   const navigate = useNavigate();
 
   const [step, setStep] = useState<ResetStep>('email');
+  const stepIndex = step === 'email' ? 0 : step === 'otp' ? 1 : 2;
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
@@ -162,7 +165,7 @@ export function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50/60 via-slate-50 to-slate-100 py-8 px-4 sm:px-6 lg:px-8 dark:from-emerald-950/20 dark:via-slate-950 dark:to-slate-950">
       <div className="mx-auto max-w-lg">
         {/* Navigation & Language Top Bar */}
         <div className="flex items-center justify-between mb-6">
@@ -196,41 +199,28 @@ export function ForgotPassword() {
             </div>
 
             {/* Stepper Progress */}
-            <div className="mt-6 flex items-center justify-between border-t border-emerald-700/60 pt-4 text-xs font-semibold">
-              <div className={`flex items-center gap-2 ${step === 'email' ? 'text-amber-300 font-bold' : 'text-emerald-300'}`}>
-                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${step === 'email' ? 'bg-amber-400 text-emerald-950' : 'bg-emerald-500 text-white'}`}>
-                  {step === 'email' ? '1' : '✓'}
-                </span>
-                <span className="hidden sm:inline">{t('1. Email', '1. ఇమెయిల్')}</span>
-              </div>
-              <div className="h-0.5 w-6 sm:w-12 bg-emerald-700" />
-              <div className={`flex items-center gap-2 ${step === 'otp' ? 'text-amber-300 font-bold' : step === 'password' || step === 'completed' ? 'text-emerald-300' : 'text-emerald-400/60'}`}>
-                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${step === 'otp' ? 'bg-amber-400 text-emerald-950' : step === 'password' || step === 'completed' ? 'bg-emerald-500 text-white' : 'bg-emerald-800/80 text-emerald-300'}`}>
-                  {step === 'password' || step === 'completed' ? '✓' : '2'}
-                </span>
-                <span className="hidden sm:inline">{t('2. OTP', '2. OTP')}</span>
-              </div>
-              <div className="h-0.5 w-6 sm:w-12 bg-emerald-700" />
-              <div className={`flex items-center gap-2 ${step === 'password' ? 'text-amber-300 font-bold' : step === 'completed' ? 'text-emerald-300' : 'text-emerald-400/60'}`}>
-                <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-black ${step === 'password' ? 'bg-amber-400 text-emerald-950' : step === 'completed' ? 'bg-emerald-500 text-white' : 'bg-emerald-800/80 text-emerald-300'}`}>
-                  {step === 'completed' ? '✓' : '3'}
-                </span>
-                <span className="hidden sm:inline">{t('3. New Password', '3. కొత్త పాస్‌వర్డ్')}</span>
-              </div>
-            </div>
+            <AuthStepper
+              steps={[
+                t('Email', 'ఇమెయిల్'),
+                t('OTP', 'OTP'),
+                t('New Password', 'కొత్త పాస్‌వర్డ్'),
+              ]}
+              currentIndex={stepIndex}
+              finished={step === 'completed'}
+            />
           </div>
 
           {/* Form Body */}
           <div className="p-6 sm:p-8">
             {error && (
-              <div className="mb-5 flex gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs sm:text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300 animate-shake">
+              <div role="alert" className="mb-5 flex gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs sm:text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300 animate-shake">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400" />
                 <span>{error}</span>
               </div>
             )}
 
             {successMessage && (
-              <div className="mb-5 flex gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs sm:text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200 animate-fadeIn">
+              <div role="status" className="mb-5 flex gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs sm:text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200 animate-fadeIn">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500 dark:text-emerald-400" />
                 <span>{successMessage}</span>
               </div>
@@ -278,7 +268,7 @@ export function ForgotPassword() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <ArrowRight className="h-4 w-4 shrink-0" />}
                   <span>{loading ? t('Sending OTP Code...', 'OTP పంపుతోంది...') : t('Send Verification OTP', 'ధృవీకరణ OTP పంపండి')}</span>
@@ -301,26 +291,21 @@ export function ForgotPassword() {
                   <button
                     type="button"
                     onClick={() => { setStep('email'); setError(null); }}
-                    className="text-xs font-semibold text-amber-400 hover:underline"
+                    className="text-xs font-semibold text-emerald-200 hover:text-white hover:underline"
                   >
                     {t('Change', 'మార్చండి')}
                   </button>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <label htmlFor="reset-otp" className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-300">
                     {t('6-Digit Verification Code', '6-అంకెల ధృవీకరణ కోడ్')} *
                   </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={6}
-                    required
+                  <OtpInput
+                    inputId="reset-otp"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    placeholder="123456"
-                    className="w-full text-center tracking-[12px] font-mono text-xl py-3 rounded-xl border border-slate-200 bg-white text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800/80 dark:text-white"
+                    onChange={setOtp}
+                    autoFocus
                   />
                 </div>
 
@@ -329,7 +314,7 @@ export function ForgotPassword() {
                     type="button"
                     disabled={otpCooldown > 0 || loading}
                     onClick={() => handleSendOtp()}
-                    className="flex items-center gap-1.5 font-semibold text-amber-600 hover:underline disabled:text-slate-400 dark:text-amber-400 dark:disabled:text-slate-500"
+                    className="flex items-center gap-1.5 font-semibold text-emerald-700 hover:underline disabled:text-slate-400 dark:text-emerald-400 dark:disabled:text-slate-500"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                     <span>
@@ -343,7 +328,7 @@ export function ForgotPassword() {
                 <button
                   type="submit"
                   disabled={loading || otp.length < 6}
-                  className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <CheckCircle2 className="h-4 w-4 shrink-0" />}
                   <span>{loading ? t('Verifying OTP...', 'ధృవీకరిస్తోంది...') : t('Verify OTP & Continue', 'ధృవీకరించి కొనసాగించండి')}</span>
@@ -411,10 +396,21 @@ export function ForgotPassword() {
                   </div>
                 </div>
 
+                <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-[11px] text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300 space-y-1">
+                  <div className={`flex items-center gap-1.5 ${password.length >= 6 ? 'text-emerald-700 dark:text-emerald-400 font-bold' : ''}`}>
+                    <span>{password.length >= 6 ? '✓' : '•'}</span>
+                    <span>{t('At least 6 characters', 'కనీసం 6 అక్షరాలు')}</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${password && confirmPassword && password === confirmPassword ? 'text-emerald-700 dark:text-emerald-400 font-bold' : ''}`}>
+                    <span>{password && confirmPassword && password === confirmPassword ? '✓' : '•'}</span>
+                    <span>{t('Both passwords match', 'రెండు పాస్‌వర్డ్‌లు సరిపోలుతున్నాయి')}</span>
+                  </div>
+                </div>
+
                 <button
                   type="submit"
                   disabled={loading || password.length < 6 || password !== confirmPassword}
-                  className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <KeyRound className="h-4 w-4 shrink-0" />}
                   <span>{loading ? t('Updating Password...', 'పాస్‌వర్డ్ నవీకరిస్తోంది...') : t('Reset Password & Complete', 'పాస్‌వర్డ్ రీసెట్ పూర్తి చేయండి')}</span>
@@ -442,7 +438,7 @@ export function ForgotPassword() {
                 <button
                   type="button"
                   onClick={() => navigate('/login')}
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition"
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition"
                 >
                   <ArrowRight className="h-4 w-4 shrink-0" />
                   <span>{t('Proceed to Sign In', 'లాగిన్‌కు కొనసాగండి')}</span>

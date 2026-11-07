@@ -514,7 +514,7 @@ export function ActsAndOrders() {
       closeLegalArea();
       return;
     }
-    navigate('/officer-toolkit');
+    navigate('/dashboard');
   };
 
   const activeAreaCard = selectedLegalArea ? legalAreaCards.find((item) => item.id === selectedLegalArea) : null;
@@ -1172,7 +1172,7 @@ async function exportOffencesPdf(entries: FcoOffenceEntry[], meta: { filename: s
     columnStyles: { 0: { cellWidth: 14 }, 1: { cellWidth: 95 }, 2: { cellWidth: 75 } },
   });
   doc.save(meta.filename);
-  void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+  await OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
     filename: meta.filename,
     documentCategory: 'order',
     documentDate: new Date().toISOString().slice(0, 10),

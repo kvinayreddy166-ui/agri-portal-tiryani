@@ -1052,8 +1052,8 @@ export function LicenseServices() {
             eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
             title={t('License Services', 'లైసెన్స్ సేవలు')}
             subtitle={t('Challan Details', 'చలాన్ వివరాలు')}
-            fallbackPath="/officer-toolkit"
-            onBack={() => navigate('/officer-toolkit')}
+            fallbackPath="/dashboard"
+            onBack={() => navigate('/dashboard')}
             className="mb-0"
           />
         )}

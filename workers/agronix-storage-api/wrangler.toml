@@ -14,6 +14,8 @@ ENVIRONMENT = "production"
 ALLOWED_ORIGINS = "https://agronix.vercel.app,http://localhost:5173,http://localhost:4173"
 ADMIN_EMAIL = "k.vinayreddy166@gmail.com"
 
-# Secrets to be configured via `wrangler secret put`:
-# - SUPABASE_JWT_SECRET
-# - SUPABASE_URL
+# Secrets/vars to be configured via `wrangler secret put` or [vars]:
+# - SUPABASE_URL         (e.g. https://<project>.supabase.co) — enables authoritative
+#                         token verification via /auth/v1/user (supports ES256 keys)
+# - SUPABASE_ANON_KEY    (public anon key, required together with SUPABASE_URL)
+# - SUPABASE_JWT_SECRET  (legacy HS256 fallback, only needed if SUPABASE_URL is unset)

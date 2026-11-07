@@ -5,8 +5,10 @@ export interface OfficerProfile {
   full_name: string;
   designation: OfficerDesignation | string;
   hrms_id?: string;
+  qualification?: string;
   district: string;
   mandal: string;
+  division?: string;
   phone: string;
   email: string;
   role: 'officer' | 'admin';
@@ -19,8 +21,10 @@ export interface OfficerRegistrationData {
   full_name: string;
   designation: string;
   hrms_id?: string;
+  qualification?: string;
   district: string;
   mandal: string;
+  division?: string;
   phone: string;
   email: string;
   password?: string;

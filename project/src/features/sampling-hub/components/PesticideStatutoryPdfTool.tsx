@@ -31,6 +31,7 @@ import { safeStorage } from '../../../shared/lib/safeStorage';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
+import { missingRequiredFields, requiredFieldsErrorMessage } from '../lib/statutoryRequiredFields';
 type FieldConfig = {
   key: keyof PesticidePdfValues;
   label: string;
@@ -285,6 +286,18 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     return { ...values, district, manualDistrict: '', division, manualDivision: division, sampleDrawingMandal: placeOfCollection, manualPlaceOfCollection: '', mandal: division, manualMandal: '', place: placeOfCollection || values.place, premisesLocation: placeOfCollection || values.premisesLocation };
   }, [values]);
 
+  const getMissingRequiredFields = () => {
+    const formulationType = values.formulationType === 'Others' ? values.manualFormulationType : values.formulationType;
+    return missingRequiredFields([
+      ['C & DA CODE', values.cdaCode || values.sampleSerialNumber],
+      ['TRADE NAME', values.tradeName],
+      ['TECHNICAL NAME', values.technicalName],
+      ['ACTIVE INGREDIENT', values.activeIngredient],
+      ['FORMULATION TYPE', formulationType],
+      ['DEALER / LICENSEE NAME', values.dealerName],
+    ]);
+  };
+
   // Fetch mandals for Place of Collection when ADA and district changes (for ADA, load based on District like MAO)
   useEffect(() => {
     if (isAssistantDirectorOfAgriculture(values.designation) && values.district && values.district !== 'Others') {
@@ -487,11 +500,11 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       return;
     }
     
-    // Use Inspector Name as the draft identifier
-    const name = values.officerName.trim();
-    
+    // Use the sample code (C & DA CODE, falling back to serial number) as the draft identifier
+    const name = (values.cdaCode || values.sampleSerialNumber || '').trim();
+
     if (!name) {
-      showInfo('Please enter Inspector Name', 'Inspector Name is required to save draft.', 4000);
+      showInfo('Please enter the sample code', 'C & DA CODE (or sample serial number) is required to save draft.', 4000);
       return;
     }
     
@@ -606,20 +619,45 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       setMessage(locationError);
       return;
     }
-    
-    // Validation removed - users can preview PDFs even with empty fields
+
+    const missingFields = getMissingRequiredFields();
+    if (missingFields.length) {
+      setMessage(requiredFieldsErrorMessage(missingFields));
+      return;
+    }
+
     setBusy(true);
     const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
     try {
       const doc = await generatePesticideStatutoryPdf(formType, documentValues, watermarkEnabled);
       const fileName = getPesticidePdfFileName(formType, documentValues);
-      const blobUrl = URL.createObjectURL(doc.output('blob'));
+      const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
       if (mobileTab) {
         mobileTab.opener = null;
         mobileTab.location.href = blobUrl;
       } else {
         setPdfPreview({ url: blobUrl, name: fileName });
       }
+      await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+        filename: fileName,
+        documentCategory: 'sample',
+        sourceModule: 'pesticide_statutory',
+        fileFormat: 'pdf',
+        mimeType: 'application/pdf',
+        metadata: {
+          type: 'pesticide_statutory_form',
+          viaPreview: true,
+          formType,
+          productName: documentValues.insecticideCommonName || documentValues.tradeName || '',
+          firmName: documentValues.dealerName || '',
+          firmAddress: documentValues.dealerAddress || documentValues.place || '',
+          codeNo: documentValues.cdaCode || documentValues.sampleSerialNumber || '',
+          samplingDate: documentValues.sampleDrawnDate || documentValues.date || '',
+          officerName: documentValues.officerName || '',
+          payload: documentValues,
+        },
+      });
       showInfo('Preview Opened', mobileTab ? 'PDF preview opened in a new tab.' : 'PDF preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview pesticide PDF:', error);
@@ -653,13 +691,18 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       setMessage(locationError);
       return;
     }
-    
-    // Validation removed - users can download PDFs even with empty fields
+
+    const missingFields = getMissingRequiredFields();
+    if (missingFields.length) {
+      setMessage(requiredFieldsErrorMessage(missingFields));
+      return;
+    }
+
     setBusy(true);
     try {
       const doc = await generatePesticideStatutoryPdf(formType, documentValues, watermarkEnabled);
       const fileName = getPesticidePdfFileName(formType, documentValues);
-      downloadDoc(doc, fileName, {
+      const archiveResult = await downloadDoc(doc, fileName, {
         type: 'pesticide_statutory_form',
         commodity: 'pesticide',
         formType,
@@ -669,8 +712,9 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
         codeNo: documentValues.cdaCode || documentValues.sampleSerialNumber || '',
         samplingDate: documentValues.sampleDrawnDate || documentValues.date || '',
         officerName: documentValues.officerName || '',
+        payload: documentValues,
       });
-      showSuccess('PDF Downloaded Successfully', fileName, 4000);
+      showSuccess(`PDF Downloaded Successfully${archiveStatusNote(archiveResult)}`, fileName, 4000);
     } catch (error) {
       console.error('Unable to download pesticide PDF:', error);
       setPreviewError('PDF could not download. Please try again.');
@@ -703,20 +747,44 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       setMessage(locationError);
       return;
     }
-    
-    // Validation removed - users can preview PDFs even with empty fields
+
+    const missingFields = getMissingRequiredFields();
+    if (missingFields.length) {
+      setMessage(requiredFieldsErrorMessage(missingFields));
+      return;
+    }
+
     setBusy(true);
     const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
     try {
       const doc = await generateAllPesticideStatutoryPdf(values, watermarkEnabled);
       const fileName = getAllPesticidePdfFileName(values);
-      const blobUrl = URL.createObjectURL(doc.output('blob'));
+      const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
       if (mobileTab) {
         mobileTab.opener = null;
         mobileTab.location.href = blobUrl;
       } else {
         setPdfPreview({ url: blobUrl, name: fileName });
       }
+      await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+        filename: fileName,
+        documentCategory: 'sample',
+        sourceModule: 'pesticide_statutory',
+        fileFormat: 'pdf',
+        mimeType: 'application/pdf',
+        metadata: {
+          type: 'pesticide_statutory_all_forms',
+          viaPreview: true,
+          productName: values.insecticideCommonName || values.tradeName || '',
+          firmName: values.dealerName || '',
+          firmAddress: values.dealerAddress || values.place || '',
+          codeNo: values.cdaCode || values.sampleSerialNumber || '',
+          samplingDate: values.sampleDrawnDate || values.date || '',
+          officerName: values.officerName || '',
+          payload: values,
+        },
+      });
       showInfo('All Forms Previewed', mobileTab ? 'All pesticide forms preview opened in a new tab.' : 'All pesticide forms preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview all pesticide PDFs:', error);
@@ -750,13 +818,18 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       setMessage(locationError);
       return;
     }
-    
-    // Validation removed - users can download PDFs even with empty fields
+
+    const missingFields = getMissingRequiredFields();
+    if (missingFields.length) {
+      setMessage(requiredFieldsErrorMessage(missingFields));
+      return;
+    }
+
     setBusy(true);
     try {
       const doc = await generateAllPesticideStatutoryPdf(values, watermarkEnabled);
       const fileName = getAllPesticidePdfFileName(values);
-      downloadDoc(doc, fileName, {
+      const archiveResult = await downloadDoc(doc, fileName, {
         type: 'pesticide_statutory_all_forms',
         commodity: 'pesticide',
         productName: values.insecticideCommonName || values.tradeName || '',
@@ -765,8 +838,9 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
         codeNo: values.cdaCode || values.sampleSerialNumber || '',
         samplingDate: values.sampleDrawnDate || values.date || '',
         officerName: values.officerName || '',
+        payload: values,
       });
-      showSuccess('All Forms PDF Downloaded Successfully', fileName, 4000);
+      showSuccess(`All Forms PDF Downloaded Successfully${archiveStatusNote(archiveResult)}`, fileName, 4000);
     } catch (error) {
       console.error('Unable to download all pesticide PDFs:', error);
       setPreviewError('All forms PDF could not download. Please try again.');
@@ -780,8 +854,15 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const handleDownloadAllConfirm = async () => {
+    const missingFields = getMissingRequiredFields();
+    if (missingFields.length) {
+      setShowDownloadAllDialog(false);
+      setMessage(requiredFieldsErrorMessage(missingFields));
+      return;
+    }
+
     setShowDownloadAllDialog(false);
-    
+
     if (addToCoveringLetterChecked) {
       try {
         const queue = JSON.parse(safeStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
@@ -890,15 +971,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
 
         <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
             <div className="mb-2 flex justify-end gap-1">
-              <button
-                type="button"
-                onClick={saveDraft}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-800 bg-emerald-800 px-2.5 py-2 text-xs font-black text-white shadow-md hover:bg-emerald-900 hover:border-emerald-900"
-                title="Save draft"
-              >
-                <Save className="h-4 w-4" />
-                <span>Save Draft</span>
-              </button>
               <button
                 type="button"
                 onClick={resetDraft}
@@ -1116,6 +1188,19 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                         />
                       );
                     })}
+                    {section.title === 'DEALER DETAILS' && (
+                      <div className="flex justify-end border-t border-amber-200/70 pt-2 dark:border-amber-800/50">
+                        <button
+                          type="button"
+                          onClick={saveDraft}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-1.5 text-[11px] font-black text-white shadow-sm transition hover:bg-emerald-800"
+                          title="Save draft"
+                        >
+                          <Save className="h-3.5 w-3.5" />
+                          <span>Save Draft</span>
+                        </button>
+                      </div>
+                    )}
                   </FieldSection>
                 </div>
               );
@@ -1369,7 +1454,14 @@ function upsertDraft(drafts: SavedPesticideDraft[], draft: SavedPesticideDraft) 
   return [draft, ...drafts.filter((item) => item.name.trim().toLowerCase() !== draft.name.trim().toLowerCase())].slice(0, 30);
 }
 
-function downloadDoc(
+function archiveStatusNote(result?: { uploadStatus?: string } | null): string {
+  if (!result) return '';
+  return result.uploadStatus === 'saved_to_cloud'
+    ? ' — saved to Records'
+    : ' — saved locally, upload from Records';
+}
+
+async function downloadDoc(
   doc: { output: (type: 'blob') => Blob },
   fileName: string,
   metadata?: Record<string, unknown>
@@ -1386,7 +1478,7 @@ function downloadDoc(
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 
   // Auto-archive statutory pesticide document
-  void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+  return await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
     filename: fileName,
     documentCategory: 'sample',
     sourceModule: 'pesticide_statutory',

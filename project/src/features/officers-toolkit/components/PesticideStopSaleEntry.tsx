@@ -447,7 +447,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
     showSuccess('PDF downloaded', filename);
 
     // Auto-archive in background (non-blocking)
-    void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+    await OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
       filename,
       documentCategory: 'order',
       documentNumber: form.orderNumber || undefined,
@@ -494,7 +494,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
       showSuccess('Word downloaded', filename);
 
       // Auto-archive in background (non-blocking)
-      void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+      await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
         filename,
         documentCategory: 'order',
         documentNumber: form.orderNumber || undefined,

@@ -131,8 +131,8 @@ export function FarmCalculators() {
           eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
           title={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
           subtitle={t('Area, Plant, Seed and Fertilizer Calculations', 'విస్తీరణ, మొక్కలు, విత్తనం మరియు ఎరువుల లెక్కలు')}
-          fallbackPath="/officer-toolkit"
-          onBack={() => navigate('/officer-toolkit')}
+          fallbackPath="/dashboard"
+          onBack={() => navigate('/dashboard')}
           actions={
             <LanguageToggle
               language={language}

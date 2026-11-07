@@ -408,7 +408,7 @@ export function SeedSeizureOrderEntry() {
     showSuccess('PDF downloaded', filename);
 
     // Auto-archive in background (non-blocking)
-    void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+    await OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
       filename,
       documentCategory: 'order',
       documentNumber: form.refNumber || undefined,
@@ -455,7 +455,7 @@ export function SeedSeizureOrderEntry() {
       showSuccess('Word downloaded', filename);
 
       // Auto-archive in background (non-blocking)
-      void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+      await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
         filename,
         documentCategory: 'order',
         documentNumber: form.refNumber || undefined,

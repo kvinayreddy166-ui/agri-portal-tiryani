@@ -4,7 +4,7 @@ import {
   Archive, BarChart3, Settings, ShieldCheck, Tractor, ScrollText,
   FolderOpen, Moon, Sun, Landmark, Database, BookOpen, LogOut,
   Globe, Check, Gavel, CalendarDays, Phone, FileCheck, Files,
-  ClipboardCheck, FlaskConical, Calculator, Stethoscope, Microscope, Scale,
+  ClipboardCheck, FlaskConical, Calculator, Stethoscope, Scale,
 } from 'lucide-react';
 import { PortalLogo } from '../shared/components/ui/PortalLogo';
 import { ConfirmDialog } from '../shared/components/ui/ConfirmDialog';
@@ -12,6 +12,7 @@ import { useAuth } from '../shared/context/AuthContext';
 import { useLanguage } from '../shared/context/LanguageContext';
 import { useTheme } from '../shared/context/ThemeContext';
 import { useBackButtonOverlay } from '../shared/hooks/useBackButtonOverlay';
+import { OfficerProfileAutofill } from '../features/auth/components/OfficerProfileAutofill';
 
 interface LayoutProps {
   children: ReactNode;
@@ -38,7 +39,6 @@ const adminMenuItems = [
   { id: 'agrochemicals', label: 'Agrochemicals Database', icon: FlaskConical },
   { id: 'crop-doctor', label: 'Crop Doctor', icon: Stethoscope },
   { id: 'farm-calculators', label: 'Farm Calculators', icon: Calculator },
-  { id: 'field-diagnosis', label: 'Field Diagnosis', icon: Microscope },
 
   // Field Operations & Officer Administration (Separate Field Tools Modules + Operations)
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound, adminOnly: true },
@@ -57,7 +57,7 @@ const adminMenuItems = [
   // Records & Admin
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
   { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true },
-  { id: 'officer-records', label: 'Records & Cloud Archive', icon: Archive },
+  { id: 'officer-records', label: 'Records & Cloud Storage', icon: Archive },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
@@ -153,6 +153,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
 
   return (
     <div className="min-h-screen bg-[#f2f7f3] dark:bg-slate-950">
+      <OfficerProfileAutofill />
       <header className="sticky top-0 z-50 border-b border-emerald-900/30 bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-800 text-white shadow-lg">
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400/80 to-transparent" />
         <div className="relative flex min-w-0 items-center justify-between gap-2 px-4 pb-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] sm:px-5 lg:px-6">
@@ -470,7 +471,7 @@ function menuSections(items: typeof adminMenuItems, t: (key: string, telugu: str
     },
     {
       title: t('Field Advisory & Diagnostics', 'ఫీల్డ్ అడ్వైజరీ & నిర్ధారణ'),
-      ids: ['agrochemicals', 'crop-doctor', 'farm-calculators', 'field-diagnosis'],
+      ids: ['agrochemicals', 'crop-doctor', 'farm-calculators'],
     },
     {
       title: t('Field Operations & Duties', 'ఫీల్డ్ విధులు & కార్యకలాపాలు'),
@@ -554,7 +555,7 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'officer-toolkit': { title: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), breadcrumbs: [dashboard] },
     'field-tools': { title: t('Field Tools Hub', 'క్షేత్ర పరికరాల హబ్'), breadcrumbs: [dashboard] },
     'government-portals': { title: t('Government Portals', 'ప్రభుత్వ పోర్టల్స్'), breadcrumbs: [dashboard] },
-    'officer-records': { title: t('Records & Cloud Archive', 'రికార్డులు & క్లౌడ్ ఆర్కైవ్'), breadcrumbs: [dashboard] },
+    'officer-records': { title: t('Records & Cloud Storage', 'రికార్డులు & క్లౌడ్ నిల్వ'), breadcrumbs: [dashboard] },
     knowledge: { title: t('Knowledge Base', 'జ్ఞాన భాండాగారం'), breadcrumbs: [dashboard] },
     forms: { title: t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్'), breadcrumbs: [dashboard] },
     'forms-library': { title: t('Forms & Library', 'ఫారాలు & లైబ్రరీ'), breadcrumbs: [dashboard] },
@@ -579,7 +580,7 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'tour-diary': { title: t('Tour Diary', 'టూర్ డైరీ'), breadcrumbs: [dashboard] },
     'officer-contacts': { title: t('Officer Contacts', 'అధికారుల పరిచయాలు'), breadcrumbs: [dashboard] },
     'officer-contacts-admin': { title: t('Officer Contacts Admin', 'అధికారుల పరిచయాల నిర్వహణ'), breadcrumbs: [dashboard, { label: t('Officer Contacts', 'అధికారుల పరిచయాలు'), page: 'officer-contacts' }] },
-    'field-diagnosis': { title: t('Field Diagnosis', 'క్షేత్ర నిర్ధారణ'), breadcrumbs: [dashboard] },
+
     'gos-circulars': { title: t('GOs & Circulars', 'జి.ఓ.లు & సర్క్యులర్లు'), breadcrumbs: [dashboard] },
     quality: { title: t('Quality Control', 'నాణ్యత నియంత్రణ'), breadcrumbs: [dashboard] },
     'farm-mechanization': { title: t('Farm Mechanization', 'వ్యవసాయ యాంత్రీకరణ'), breadcrumbs: [dashboard] },
@@ -628,7 +629,7 @@ function translateMenu(label: string) {
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
     'Farmer Database': 'రైతుల డేటాబేస్',
     'Officer Toolkit': 'ఆఫీసర్ టూల్‌కిట్',
-    'Records & Cloud Archive': 'రికార్డులు & క్లౌడ్ ఆర్కైవ్',
+    'Records & Cloud Storage': 'రికార్డులు & క్లౌడ్ నిల్వ',
     'Field Tools': 'క్షేత్ర పరికరాలు',
     'Field Tools Hub': 'క్షేత్ర పరికరాల హబ్',
     'Government Portals': 'ప్రభుత్వ పోర్టల్స్',
@@ -654,7 +655,6 @@ function translateMenu(label: string) {
     'License Services': 'లైసెన్స్ సేవలు',
     'Inspection & Enforcement': 'తనిఖీ & అమలు',
     'Enforcement Tracker': 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్',
-    'Field Diagnosis': 'క్షేత్ర నిర్ధారణ',
     'Crop Doctor': 'పంట డాక్టర్',
     'Knowledge Base': 'జ్ఞాన భాండాగారం',
     Reports: 'నివేదికలు',

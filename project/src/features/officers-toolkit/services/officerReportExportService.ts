@@ -230,8 +230,8 @@ export class OfficerReportExportService {
 
     return {
       mainTitle: 'GOVERNMENT OF TELANGANA — DEPARTMENT OF AGRICULTURE',
-      subTitle: `OFFICIAL ${commodityPrefix}RECORDS & CLOUD ARCHIVE CONSOLIDATED REPORT`,
-      filenameBase: `Official_${commodityFilePrefix}Records_Archive_Report`,
+      subTitle: `OFFICIAL ${commodityPrefix}RECORDS & CLOUD STORAGE CONSOLIDATED REPORT`,
+      filenameBase: `Official_${commodityFilePrefix}Records_Cloud_Storage_Report`,
     };
   }
 

@@ -31,6 +31,43 @@ export async function authenticateRequest(
     return null;
   }
 
+  const adminEmail = (env.ADMIN_EMAIL || 'k.vinayreddy166@gmail.com').toLowerCase();
+
+  // 1. Authoritative verification via Supabase Auth (/auth/v1/user).
+  //    Works with both legacy HS256 and new asymmetric (ES256/RS256) signing
+  //    keys, unlike local HMAC verification which only supports the legacy secret.
+  if (env.SUPABASE_URL && env.SUPABASE_ANON_KEY) {
+    try {
+      const res = await fetch(`${env.SUPABASE_URL.replace(/\/+$/, '')}/auth/v1/user`, {
+        headers: {
+          apikey: env.SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        const supabaseUser = (await res.json()) as {
+          id?: string;
+          email?: string;
+          role?: string;
+        };
+        if (supabaseUser.id) {
+          const userEmail = (supabaseUser.email || '').toLowerCase();
+          return {
+            id: supabaseUser.id,
+            email: supabaseUser.email || '',
+            role: supabaseUser.role || 'authenticated',
+            isAdmin: userEmail === adminEmail,
+          };
+        }
+      }
+      // Token rejected by Supabase — do not fall back to weaker local checks
+      return null;
+    } catch (err) {
+      console.error('Supabase Auth verification error, falling back to local JWT check:', err);
+    }
+  }
+
   try {
     const [headerB64, payloadB64, signatureB64] = parts;
     const payloadJson = base64UrlDecode(payloadB64);
@@ -65,7 +102,6 @@ export async function authenticateRequest(
       }
     }
 
-    const adminEmail = (env.ADMIN_EMAIL || 'k.vinayreddy166@gmail.com').toLowerCase();
     const userEmail = (payload.email || '').toLowerCase();
     const isAdmin = userEmail === adminEmail;
 

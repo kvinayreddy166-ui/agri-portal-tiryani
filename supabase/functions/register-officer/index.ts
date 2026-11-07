@@ -22,8 +22,10 @@ Deno.serve(async (req: Request) => {
       full_name,
       designation,
       hrms_id,
+      qualification,
       district,
       mandal,
+      division,
       phone,
     } = body;
 
@@ -65,8 +67,10 @@ Deno.serve(async (req: Request) => {
         full_name: String(full_name).trim(),
         designation: String(designation).trim(),
         hrms_id: String(hrms_id || '').trim(),
+        qualification: String(qualification || '').trim(),
         district: String(district).trim(),
         mandal: String(mandal).trim(),
+        division: String(division || '').trim(),
         phone: String(phone).trim(),
       },
     });
@@ -86,8 +90,10 @@ Deno.serve(async (req: Request) => {
       full_name: String(full_name).trim(),
       designation: String(designation).trim(),
       hrms_id: String(hrms_id || '').trim(),
+      qualification: String(qualification || '').trim(),
       district: String(district).trim(),
       mandal: String(mandal).trim(),
+      division: String(division || '').trim(),
       phone: String(phone).trim(),
       email: normalizedEmail,
       role: 'officer',

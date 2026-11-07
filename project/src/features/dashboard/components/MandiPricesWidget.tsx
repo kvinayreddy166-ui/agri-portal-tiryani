@@ -286,7 +286,11 @@ export function MandiPricesWidget() {
 
   // WhatsApp Share handler
   const handleShareWhatsApp = () => {
-    const text = buildMandiWhatsAppText(filteredRecords.length > 0 ? filteredRecords : records, t, selectedState);
+    if (filteredRecords.length === 0) {
+      alert(t('No mandi price records match the current filters.', 'ప్రస్తుత ఫిల్టర్లకు సరిపోలే మండి ధర రికార్డులు లేవు.'));
+      return;
+    }
+    const text = buildMandiWhatsAppText(filteredRecords, t, selectedState);
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -431,7 +435,7 @@ export function MandiPricesWidget() {
       </div>
 
       {/* Top Commodity Highlights Cards */}
-      <div className="grid grid-cols-2 gap-2.5 border-b border-slate-100 bg-slate-50/70 p-3.5 sm:grid-cols-3 lg:grid-cols-6 dark:border-slate-800 dark:bg-slate-900/50">
+      <div className="grid grid-cols-2 gap-2.5 border-b border-slate-100 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-900/50">
         {highlights.map((h) => {
           if (!h.data) return null;
           const isAboveMsp = h.data.msp && h.data.modal_price >= h.data.msp;
@@ -442,10 +446,10 @@ export function MandiPricesWidget() {
             <div
               key={h.key}
               onClick={() => setCommodityFilter(h.data?.commodity || '')}
-              className="cursor-pointer rounded-xl border border-slate-200/80 bg-white p-3 shadow-xs transition hover:border-emerald-500/50 hover:shadow-sm dark:border-slate-800 dark:bg-slate-800/80"
+              className="w-full cursor-pointer rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs transition hover:border-emerald-500/50 hover:shadow-sm dark:border-slate-800 dark:bg-slate-800/80"
             >
               <div className="flex items-center justify-between">
-                <span className="truncate text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span className="min-w-0 truncate text-xs font-bold text-slate-700 dark:text-slate-300">
                   {h.emoji} {h.title}
                 </span>
                 {isLive && (
@@ -473,7 +477,7 @@ export function MandiPricesWidget() {
               </div>
 
               <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                <span className="truncate max-w-[90px]">{h.data.market}</span>
+                <span className="min-w-0 truncate">{h.data.market}</span>
                 {h.data.msp && (
                   <span className="font-semibold text-slate-400 text-[10px]">
                     MSP ₹{h.data.msp.toLocaleString('en-IN')}
@@ -569,11 +573,7 @@ export function MandiPricesWidget() {
           >
             {ALL_INDIAN_STATES.slice().sort((a, b) => a.localeCompare(b)).map((st) => (
               <option key={st} value={st}>
-                {st === 'Telangana'
-                  ? t('Telangana (తెలంగాణ)', 'తెలంగాణ (Telangana)')
-                  : st === 'Andhra Pradesh'
-                    ? t('Andhra Pradesh (ఆంధ్రప్రదేశ్)', 'ఆంధ్రప్రదేశ్ (Andhra Pradesh)')
-                    : st}
+                {st}
               </option>
             ))}
           </select>

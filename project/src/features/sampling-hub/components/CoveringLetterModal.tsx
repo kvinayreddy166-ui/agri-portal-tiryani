@@ -391,7 +391,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
         downloadBlob(docxBlob, docxName);
 
         // Auto-archive in background (non-blocking)
-        void OfficerDocumentArchiveService.archiveGeneratedDocument(docxBlob, {
+        await OfficerDocumentArchiveService.archiveGeneratedDocument(docxBlob, {
           filename: docxName,
           documentCategory: 'sample',
           documentNumber: letterNumber || undefined,
@@ -417,7 +417,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
       
       // Auto-archive in background (non-blocking)
-      void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+      await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
         filename: fileName,
         documentCategory: 'sample',
         documentNumber: letterNumber || undefined,

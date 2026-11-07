@@ -372,7 +372,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
         const docxName = fileName.replace(/\.pdf$/, '.docx');
         downloadBlob(docxBlob, docxName);
 
-        void OfficerDocumentArchiveService.archiveGeneratedDocument(docxBlob, {
+        await OfficerDocumentArchiveService.archiveGeneratedDocument(docxBlob, {
           filename: docxName,
           documentCategory: 'sample',
           documentNumber: metadata.letterNumber || undefined,
@@ -384,7 +384,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
       } else {
         doc.save(fileName);
 
-        void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+        await OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
           filename: fileName,
           documentCategory: 'sample',
           documentNumber: metadata.letterNumber || undefined,

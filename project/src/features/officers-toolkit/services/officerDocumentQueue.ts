@@ -103,7 +103,9 @@ export class OfficerDocumentQueue {
   }
 
   /**
-   * Get all pending or failed documents for an officer
+   * Get all queued documents (pending, failed, or already cloud-synced local
+   * copies retained for offline access), optionally filtered by userId.
+   * 'anonymous'/'guest' filter matches both guest identities.
    */
   static async getPendingDocuments(userId?: string): Promise<QueuedDocument[]> {
     try {

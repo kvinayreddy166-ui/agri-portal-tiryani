@@ -121,6 +121,28 @@ function compareProvisionKeys(a: ProvisionKey, b: ProvisionKey): number {
   return 0;
 }
 
+const NOTICE_INSPECTOR_LABELS: Record<NoticeCategory, string> = {
+  fertiliser: 'Fertilizer Inspector',
+  pesticide: 'Insecticide Inspector',
+  seed: 'Seed Inspector',
+};
+
+function baseNoticeDesignation(raw: string): string {
+  const cleaned = raw.replace(/\s*\((?:R|T)\)\s*/gi, '').replace(/\s*&.*$/i, '').trim();
+  if (/director/i.test(cleaned)) return 'Asst. Director of Agriculture';
+  if (/district/i.test(cleaned)) return 'District Agriculture Officer';
+  if (/mandal|\bmao\b|extension/i.test(cleaned)) return 'Mandal Agriculture Officer';
+  return 'Mandal Agriculture Officer';
+}
+
+/** Statutory drafts store plain designations; order entries need the combined "X & Inspector" form. */
+function combinedNoticeDesignation(raw: string, category: NoticeCategory): string {
+  const value = (raw || '').trim();
+  if (!value) return designationOptionsFor(category)[0].value;
+  if (value.includes('&')) return value;
+  return `${baseNoticeDesignation(value)} & ${NOTICE_INSPECTOR_LABELS[category]}`;
+}
+
 export function readStatutoryDetails(category: NoticeCategory) {
   const storageKey = category === 'fertiliser'
     ? 'tiryani-fertilizer-forms-draft'
@@ -129,9 +151,10 @@ export function readStatutoryDetails(category: NoticeCategory) {
       : 'tiryani-pesticide-forms-draft';
   try {
     const saved = JSON.parse(safeStorage.getItem(storageKey) || '{}') as Record<string, string>;
+    const rawDesignation = saved.designation || saved.officerDesignation || '';
     return {
       officerName: saved.officerName || '',
-      officerDesignation: saved.designation || saved.officerDesignation || 'Mandal Agriculture Officer',
+      officerDesignation: combinedNoticeDesignation(rawDesignation, category),
       mandal: saved.placeOfCollectionMandal || saved.sampleDrawingMandal || saved.mandal || 'Tiryani',
       district: saved.district || 'Kumuram Bheem Asifabad',
       manualMandal: saved.manualMandal || '',
@@ -1805,7 +1828,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     showSuccess('PDF downloaded', filename);
 
     // Auto-archive in background (non-blocking)
-    void OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+    await OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
       filename,
       documentCategory: 'notice',
       documentNumber: form.memoNumber || undefined,
@@ -1831,7 +1854,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       showSuccess('Word downloaded', filename);
 
       // Auto-archive in background (non-blocking)
-      void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+      await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
         filename,
         documentCategory: 'notice',
         documentNumber: form.memoNumber || undefined,

@@ -33,6 +33,7 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 const showCoveringLetter = true;
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
+import { missingRequiredFields, requiredFieldsErrorMessage } from '../lib/statutoryRequiredFields';
 
 
 type FieldConfig = {
@@ -745,6 +746,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     };
   }, [values]);
 
+  const getMissingRequiredFields = () => missingRequiredFields([
+    ['CODE NO. OF SAMPLE', documentValues.sampleCode || documentValues.codeNumber],
+    ['NAME AND GRADE OF FERTILIZER', (resolveFertilizerTypeGrade(documentValues) || documentValues.nameGrade || '').trim()],
+    ['DEALER / PARTY NAME', documentValues.dealerName],
+  ]);
+
   // Error boundary for rendering
   if (error) {
     console.error('FertilizerStatutoryPdfTool error:', error);
@@ -1174,15 +1181,21 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       setMessage(locationError);
       return;
     }
-    
-    // Validation removed - users can preview PDFs even with empty fields
+
+    const missingFields = getMissingRequiredFields();
+    if (missingFields.length) {
+      setMessage(requiredFieldsErrorMessage(missingFields));
+      return;
+    }
+
     setBusyAction('preview');
     setPreviewError(null);
     const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
     try {
       const doc = await generateFertilizerStatutoryPdf(type, documentValues, watermarkEnabled);
       const fileName = getFertilizerPdfFileName(type, documentValues);
-      const blobUrl = URL.createObjectURL(doc.output('blob'));
+      const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
       if (mobileTab) {
         mobileTab.opener = null;
         mobileTab.location.href = blobUrl;
@@ -1190,6 +1203,25 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         setPdfPreview({ url: blobUrl, name: fileName });
       }
       setFormType(type);
+      await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+        filename: fileName,
+        documentCategory: 'sample',
+        sourceModule: 'fertilizer_statutory',
+        fileFormat: 'pdf',
+        mimeType: 'application/pdf',
+        metadata: {
+          type: 'fertilizer_statutory_form',
+          viaPreview: true,
+          formType: type,
+          productName: resolveFertilizerTypeGrade(documentValues) || documentValues.nameGrade || '',
+          firmName: documentValues.dealerName || '',
+          firmAddress: documentValues.dealerAddress || documentValues.place || documentValues.premisesLocation || '',
+          codeNo: documentValues.sampleCode || documentValues.codeNumber || documentValues.no || '',
+          samplingDate: documentValues.samplingDate || documentValues.date || '',
+          officerName: documentValues.officerName || '',
+          payload: documentValues,
+        },
+      });
       showInfo('Preview Opened', mobileTab ? 'PDF preview opened in a new tab.' : 'PDF preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview fertilizer PDF:', error);
@@ -1221,21 +1253,45 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       setMessage(locationError);
       return;
     }
-    
-    // Validation removed - users can preview PDFs even with empty fields
+
+    const missingFields = getMissingRequiredFields();
+    if (missingFields.length) {
+      setMessage(requiredFieldsErrorMessage(missingFields));
+      return;
+    }
+
     setBusyAction('preview');
     setPreviewError(null);
     const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
     try {
       const doc = await generateAllFertilizerStatutoryPdf(documentValues, watermarkEnabled);
       const fileName = getAllFertilizerPdfFileName(documentValues);
-      const blobUrl = URL.createObjectURL(doc.output('blob'));
+      const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
       if (mobileTab) {
         mobileTab.opener = null;
         mobileTab.location.href = blobUrl;
       } else {
         setPdfPreview({ url: blobUrl, name: fileName });
       }
+      await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+        filename: fileName,
+        documentCategory: 'sample',
+        sourceModule: 'fertilizer_statutory',
+        fileFormat: 'pdf',
+        mimeType: 'application/pdf',
+        metadata: {
+          type: 'fertilizer_statutory_all_forms',
+          viaPreview: true,
+          productName: resolveFertilizerTypeGrade(documentValues) || documentValues.nameGrade || '',
+          firmName: documentValues.dealerName || '',
+          firmAddress: documentValues.dealerAddress || documentValues.place || documentValues.premisesLocation || '',
+          codeNo: documentValues.sampleCode || documentValues.codeNumber || documentValues.no || '',
+          samplingDate: documentValues.samplingDate || documentValues.date || '',
+          officerName: documentValues.officerName || '',
+          payload: documentValues,
+        },
+      });
       showInfo('Preview Opened', mobileTab ? 'All forms preview opened in a new tab.' : 'All forms preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview all fertilizer PDFs:', error);
@@ -1267,14 +1323,19 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       setMessage(locationError);
       return;
     }
-    
-    // Validation removed - users can download PDFs even with empty fields
+
+    const missingFields = getMissingRequiredFields();
+    if (missingFields.length) {
+      setMessage(requiredFieldsErrorMessage(missingFields));
+      return;
+    }
+
     setBusyAction('download');
     setPreviewError(null);
     try {
       const doc = await generateFertilizerStatutoryPdf(type, documentValues, watermarkEnabled);
       const fileName = getFertilizerPdfFileName(type, documentValues);
-      downloadFertilizerDoc(doc, fileName, {
+      const archiveResult = await downloadFertilizerDoc(doc, fileName, {
         type: 'fertilizer_statutory_form',
         commodity: 'fertilizer',
         formType: type,
@@ -1284,8 +1345,9 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         codeNo: documentValues.sampleCode || documentValues.codeNumber || documentValues.no || '',
         samplingDate: documentValues.samplingDate || documentValues.date || '',
         officerName: documentValues.officerName || '',
+        payload: documentValues,
       });
-      showSuccess('PDF Downloaded Successfully', fileName, 4000);
+      showSuccess(`PDF Downloaded Successfully${archiveStatusNote(archiveResult)}`, fileName, 4000);
     } catch (error) {
       console.error('Unable to download fertilizer PDF:', error);
       setPreviewError('PDF could not download. Please try again.');
@@ -1316,14 +1378,19 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       setMessage(locationError);
       return;
     }
-    
-    // Validation removed - users can download PDFs even with empty fields
+
+    const missingFields = getMissingRequiredFields();
+    if (missingFields.length) {
+      setMessage(requiredFieldsErrorMessage(missingFields));
+      return;
+    }
+
     setBusyAction('downloadAll');
     setPreviewError(null);
     try {
       const doc = await generateAllFertilizerStatutoryPdf(documentValues, watermarkEnabled);
       const fileName = getAllFertilizerPdfFileName(documentValues);
-      downloadFertilizerDoc(doc, fileName, {
+      const archiveResult = await downloadFertilizerDoc(doc, fileName, {
         type: 'fertilizer_statutory_all_forms',
         commodity: 'fertilizer',
         productName: resolveFertilizerTypeGrade(documentValues) || documentValues.nameGrade || '',
@@ -1332,8 +1399,9 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         codeNo: documentValues.sampleCode || documentValues.codeNumber || documentValues.no || '',
         samplingDate: documentValues.samplingDate || documentValues.date || '',
         officerName: documentValues.officerName || '',
+        payload: documentValues,
       });
-      showSuccess('All Forms PDF Downloaded Successfully', fileName, 4000);
+      showSuccess(`All Forms PDF Downloaded Successfully${archiveStatusNote(archiveResult)}`, fileName, 4000);
     } catch (error) {
       console.error('Unable to download all fertilizer PDFs:', error);
       setPreviewError('All forms PDF could not download. Please try again.');
@@ -1347,8 +1415,15 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const handleDownloadAllConfirm = async () => {
+    const missingFields = getMissingRequiredFields();
+    if (missingFields.length) {
+      setShowDownloadAllDialog(false);
+      setMessage(requiredFieldsErrorMessage(missingFields));
+      return;
+    }
+
     setShowDownloadAllDialog(false);
-    
+
     if (addToCoveringLetterChecked) {
       try {
         const queue: CoveringLetterQueueItem[] = JSON.parse(safeStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
@@ -1560,15 +1635,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
 
           <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
             <div className="mb-2 flex justify-end gap-1">
-              <button
-                type="button"
-                onClick={saveDraft}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-800 bg-emerald-800 px-2.5 py-2 text-xs font-black text-white shadow-md hover:bg-emerald-900 hover:border-emerald-900"
-                title="Save draft"
-              >
-                <Save className="h-4 w-4" />
-                <span>Save Draft</span>
-              </button>
               <button
                 type="button"
                 onClick={resetDraft}
@@ -1885,6 +1951,19 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                         />
                       );
                     })}
+                    {section.title === 'DEALER DETAILS' && (
+                      <div className="flex justify-end border-t border-blue-200/70 pt-2 dark:border-blue-800/50">
+                        <button
+                          type="button"
+                          onClick={saveDraft}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-1.5 text-[11px] font-black text-white shadow-sm transition hover:bg-emerald-800"
+                          title="Save draft"
+                        >
+                          <Save className="h-3.5 w-3.5" />
+                          <span>Save Draft</span>
+                        </button>
+                      </div>
+                    )}
                   </FieldSection>
                   </div>
                 );
@@ -2551,7 +2630,14 @@ function PdfInput({
   );
 }
 
-function downloadFertilizerDoc(
+function archiveStatusNote(result?: { uploadStatus?: string } | null): string {
+  if (!result) return '';
+  return result.uploadStatus === 'saved_to_cloud'
+    ? ' — saved to Records'
+    : ' — saved locally, upload from Records';
+}
+
+async function downloadFertilizerDoc(
   doc: { output: (type: 'blob') => Blob },
   fileName: string,
   metadata?: Record<string, unknown>
@@ -2571,7 +2657,7 @@ function downloadFertilizerDoc(
     window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 
     // Auto-archive statutory fertilizer document
-    void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+    return await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
       filename: fileName,
       documentCategory: 'sample',
       sourceModule: 'fertilizer_statutory',
@@ -2592,7 +2678,7 @@ function downloadFertilizerDoc(
       window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 
       // Auto-archive statutory fertilizer document
-      void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+      return await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
         filename: fileName,
         documentCategory: 'sample',
         sourceModule: 'fertilizer_statutory',

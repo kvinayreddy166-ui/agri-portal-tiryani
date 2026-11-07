@@ -114,16 +114,6 @@ const toolkitItems: ToolkitItem[] = [
     statusMessage: 'Under development',
   },
   {
-    title: 'Field Diagnosis',
-    description: 'Identify crop diseases by symptoms.',
-    path: '/officer-toolkit/field-diagnosis',
-    icon: Microscope,
-    category: 'internal',
-    gradient: 'from-lime-600 to-green-700',
-    bgGradient: 'from-lime-50 to-green-50 dark:from-lime-950/30 dark:to-green-950/30',
-    statusMessage: 'Under development',
-  },
-  {
     title: 'Acts & Orders',
     description: 'FCO, Seed Act, Insecticide Act, clauses, Rules.',
     path: '/officer-toolkit/acts-and-orders',
@@ -308,9 +298,9 @@ const externalPortals: ToolkitItem[] = [
 function translateToolkit(label?: string) {
   const labels: Record<string, string> = {
     'Enforcement Tracker': 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్',
-    'Records & Cloud Archive': 'రికార్డులు & క్లౌడ్ ఆర్కైవ్',
+    'Records & Cloud Storage': 'రికార్డులు & క్లౌడ్ నిల్వ',
     'My Saved Records': 'నా రికార్డులు',
-    'Cloud archive of notices, stop sale orders, inspections & memos.': 'నోటీసులు, స్టాప్ సేల్ ఆర్డర్లు, తనిఖీలు & మెమోల క్లౌడ్ నిల్వ.',
+    'Cloud storage of notices, stop sale orders, inspections & memos.': 'నోటీసులు, స్టాప్ సేల్ ఆర్డర్లు, తనిఖీలు & మెమోల క్లౌడ్ నిల్వ.',
     'Tour Diary': 'పర్యటన డైరీ',
     'Monthly tour diary with journey tracking.': 'ప్రయాణ ట్రాకింగ్‌తో నెలవారీ పర్యటన డైరీ.',
     'License Services': 'లైసెన్స్ సేవలు',
@@ -463,9 +453,6 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
   const shouldHideHeader = isAdmin || isTestUser || !isPublic;
 
   const visibleToolkitItems = toolkitItems.filter((item) => {
-    if (import.meta.env.PROD && item.path === '/officer-toolkit/field-diagnosis') {
-      return false;
-    }
     if (!canViewOfficerRecords && item.path === '/officer-toolkit/my-records') {
       return false;
     }
@@ -557,7 +544,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
           />
         )}
 
-        {/* Section Switcher — Field Tools / Government Portals / Records & Cloud Archive */}
+        {/* Section Switcher — Field Tools / Government Portals / Records & Cloud Storage */}
         {!fixedTab && activeTab !== 'records' && activeTab !== 'enforcement' && (
         <div className={`mb-5 transition duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="inline-flex w-full max-w-md items-stretch gap-1 rounded-2xl border border-slate-200/90 bg-white/90 p-1 shadow-2xs backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/90">
@@ -566,7 +553,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
               ...(canViewOfficerRecords
                 ? [
                     { id: 'enforcement' as const, label: 'Enforcement Tracker', te: 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్', icon: Gavel, count: undefined },
-                    { id: 'records' as const, label: 'Records & Cloud Archive', te: 'రికార్డులు & క్లౌడ్ ఆర్కైవ్', icon: Archive, count: undefined },
+                    { id: 'records' as const, label: 'Records & Cloud Storage', te: 'రికార్డులు & క్లౌడ్ నిల్వ', icon: Archive, count: undefined },
                   ]
                 : []),
               { id: 'portals' as const, label: 'Government Portals', te: 'ప్రభుత్వ పోర్టల్స్', icon: Globe2, count: sortedExternalPortals.length },

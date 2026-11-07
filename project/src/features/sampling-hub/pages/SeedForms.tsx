@@ -20,6 +20,7 @@ import { safeStorage } from '../../../shared/lib/safeStorage';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
+import { missingRequiredFields, requiredFieldsErrorMessage } from '../lib/statutoryRequiredFields';
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
 const LAST_GENERATED_KEY = 'tiryani-seed-forms-last-generated';
@@ -455,17 +456,18 @@ export function SeedForms({
       codeNo: form.codeNo || form.sampleCode || '',
       samplingDate: form.date || form.collectionDate || '',
       officerName: form.officerName || form.inspectorName || '',
+      payload: form,
     };
     try {
-      downloadSeedDoc(doc, seedFileName(kind, form), metadata);
+      const archiveResult = await downloadSeedDoc(doc, seedFileName(kind, form), metadata);
       rememberSeedGeneratedData(form);
-      showSuccess('PDF Downloaded Successfully', seedFileName(kind, form), 4000);
+      showSuccess(`PDF Downloaded Successfully${archiveStatusNote(archiveResult)}`, seedFileName(kind, form), 4000);
     } catch (error) {
       console.error('Download failed, opening in new tab:', error);
       const targetWindow = openBlankSeedPdfTab();
-      openSeedDocInTab(doc, seedFileName(kind, form), targetWindow, metadata);
+      const archiveResult = await openSeedDocInTab(doc, seedFileName(kind, form), targetWindow, metadata);
       rememberSeedGeneratedData(form);
-      showInfo('Preview Opened', 'PDF opened in a new tab (download failed).', 4000);
+      showInfo(`Preview Opened${archiveStatusNote(archiveResult)}`, 'PDF opened in a new tab (download failed).', 4000);
     }
   };
 
@@ -478,8 +480,15 @@ export function SeedForms({
   };
 
   const handleDownloadAllConfirm = async () => {
+    const validationError = validateSeedForm(form, 'ALL');
+    if (validationError) {
+      setShowDownloadAllDialog(false);
+      setMessage(validationError);
+      return;
+    }
+
     setShowDownloadAllDialog(false);
-    
+
     if (addToCoveringLetterChecked) {
       try {
         const queue = JSON.parse(safeStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
@@ -634,15 +643,6 @@ export function SeedForms({
       
       <div className="mb-2 flex justify-end gap-1">
         <button
-              type="button"
-              onClick={saveDraft}
-          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-800 bg-emerald-800 px-2.5 py-2 text-xs font-black text-white shadow-md hover:bg-emerald-900 hover:border-emerald-900"
-          title="Save draft"
-        >
-          <Save className="h-4 w-4" />
-          <span>Save Draft</span>
-        </button>
-        <button
           type="button"
           onClick={resetDraft}
           className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-600 bg-slate-600 px-2.5 py-2 text-xs font-black text-white shadow-md hover:bg-slate-700 hover:border-slate-700"
@@ -772,6 +772,17 @@ export function SeedForms({
           <div className="grid gap-2 sm:grid-cols-2">
             <Select label="Cost of sample demanded" value={form.costDemanded} onChange={(value: any) => setField('costDemanded', value)} options={['Yes', 'No'].map(toOption)} />
             <Select label="Cost paid" value={form.costPaid} onChange={(value: any) => setField('costPaid', value)} options={['Paid', 'Not Paid', 'Not Applicable'].map(toOption)} />
+          </div>
+          <div className="flex justify-end border-t border-red-700/20 pt-2">
+            <button
+              type="button"
+              onClick={saveDraft}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-1.5 text-[11px] font-black text-white shadow-sm transition hover:bg-emerald-800"
+              title="Save draft"
+            >
+              <Save className="h-3.5 w-3.5" />
+              <span>Save Draft</span>
+            </button>
           </div>
         </Card>
         </div>
@@ -1111,8 +1122,16 @@ function validateSeedForm(form: any, _kind: any) {
   
   // Validation for Mandal = Others for non-ADA designations
   if (!isAssistantDirectorOfAgriculture(form.designation) && form.mandal === 'Others' && !form.manualMandal.trim()) return 'Please enter MANDAL NAME.';
-  
-  // Validation removed - users can preview/download PDFs even with empty fields
+
+  // Mandatory product/dealer details required on every statutory seed form
+  const missing = missingRequiredFields([
+    ['CODE NO. OF SAMPLE', form.codeNo || form.sampleCode],
+    ['CROP', resolveSeedValues(form).crop],
+    ['VARIETY', form.variety],
+    ['DEALER / PARTY NAME', form.dealerName],
+  ]);
+  if (missing.length) return requiredFieldsErrorMessage(missing);
+
   return '';
 }
 
@@ -1663,7 +1682,14 @@ function openBlankSeedPdfTab() {
   return targetWindow;
 }
 
-function openSeedDocInTab(doc: any, fileName: any, targetWindow: any, metadata?: Record<string, unknown>) {
+function archiveStatusNote(result?: { uploadStatus?: string } | null): string {
+  if (!result) return '';
+  return result.uploadStatus === 'saved_to_cloud'
+    ? ' — saved to Records'
+    : ' — saved locally, upload from Records';
+}
+
+async function openSeedDocInTab(doc: any, fileName: any, targetWindow: any, metadata?: Record<string, unknown>) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   if (targetWindow && !targetWindow.closed) {
@@ -1674,7 +1700,7 @@ function openSeedDocInTab(doc: any, fileName: any, targetWindow: any, metadata?:
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 
   // Auto-archive statutory seed document
-  void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+  return await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
     filename: fileName,
     documentCategory: 'sample',
     sourceModule: 'seed_statutory',
@@ -1687,7 +1713,7 @@ function openSeedDocInTab(doc: any, fileName: any, targetWindow: any, metadata?:
   });
 }
 
-function downloadSeedDoc(doc: any, fileName: any, metadata?: Record<string, unknown>) {
+async function downloadSeedDoc(doc: any, fileName: any, metadata?: Record<string, unknown>) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -1702,7 +1728,7 @@ function downloadSeedDoc(doc: any, fileName: any, metadata?: Record<string, unkn
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 
   // Auto-archive statutory seed document
-  void OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
+  return await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
     filename: fileName,
     documentCategory: 'sample',
     sourceModule: 'seed_statutory',

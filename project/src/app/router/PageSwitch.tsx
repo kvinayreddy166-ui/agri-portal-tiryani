@@ -21,7 +21,6 @@ import {
   FarmerDatabase,
   FarmMechanization,
   FertilizerCalculator,
-  FieldDiagnosis,
   FertilizerDealerInspection,
   FileDirectory,
   GosCirculars,
@@ -42,7 +41,6 @@ import {
   OfficerContacts,
   OfficerContactsAdmin,
   OfficersToolkit,
-  FieldToolsPage,
   GovernmentPortalsPage,
   OfficerSignUp,
   ForgotPassword,
@@ -159,11 +157,12 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
         <Dashboard />
       );
     case 'officer-toolkit':
-      return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} isPublic={false} />;
+    case 'field-tools':
+      // Hub pages were removed from the authenticated menu — modules are top-level
+      // entries now. Redirect any stale/history/back-navigation landing here.
+      return <Navigate to="/dashboard" replace />;
     case 'officer-records':
       return <OfficersToolkit isAdmin={isAdminUser} isTestUser={isTestUser} isPublic={false} initialTab="records" fixedTab="records" />;
-    case 'field-tools':
-      return <FieldToolsPage />;
     case 'government-portals':
       return <GovernmentPortalsPage />;
     case 'license-services':
@@ -218,11 +217,6 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
           <EnforcementTracker />
         </SafeSuspense>
       );
-    case 'field-diagnosis':
-      if (import.meta.env.PROD) {
-        return <Navigate to="/officer-toolkit" replace />;
-      }
-      return <FieldDiagnosis />;
     case 'analytics':
       return isAdminUser ? <Analytics /> : <Dashboard />;
     case 'settings':
@@ -405,11 +399,6 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return <PublicToolkitPage><InsecticideDealerInspection /></PublicToolkitPage>;
     case 'inspection-enforcement':
       return <PublicToolkitPage><InspectionEnforcementHub /></PublicToolkitPage>;
-    case 'field-diagnosis':
-      if (import.meta.env.PROD) {
-        return <Navigate to="/officer-toolkit" replace />;
-      }
-      return <PublicToolkitPage><FieldDiagnosis /></PublicToolkitPage>;
     case 'disclaimer':
       return (
         <SafeSuspense fallback={<PageLoader />}>

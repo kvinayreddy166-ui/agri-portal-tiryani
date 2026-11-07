@@ -303,6 +303,14 @@ export class EnforcementTrackerService {
     return !error;
   }
 
+  static async deleteCase(caseId: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('officer_cases')
+      .delete()
+      .eq('id', caseId);
+    return !error;
+  }
+
   static async updateCasePriority(caseId: string, priority: CasePriority): Promise<boolean> {
     const { error } = await supabase
       .from('officer_cases')

@@ -1139,6 +1139,21 @@ function writeCache(key: string, value: MandiPricesResult): void {
   safeStorage.setItem(key, JSON.stringify({ expires: Date.now() + CACHE_TTL_MS, value }));
 }
 
+function cropHeaderFor(commodity: string, variety?: string): string {
+  const c = commodity.toLowerCase();
+  if (c.includes('cotton') || c.includes('kapas')) return '*🌱 COTTON / పత్తి*';
+  if (c.includes('paddy') || c.includes('dhan')) return `*🌾 PADDY / వరి (${variety || 'Grade A'})*`;
+  if (c.includes('jowar') || c.includes('sorghum') || c.includes('maldandi')) return '*🌾 JOWAR / జొన్నలు (Sorghum)*';
+  if (c.includes('red gram') || c.includes('tur') || c.includes('arhar')) return '*🫘 RED GRAM / కంది*';
+  if (c.includes('green gram') || c.includes('moong')) return `*GREEN GRAM / ${commodity.toUpperCase()}*`;
+  if (c.includes('black gram') || c.includes('urd')) return `*BLACK GRAM / ${commodity.toUpperCase()}*`;
+  if (c.includes('soya')) return '*🟡 SOYA BEAN / సోయాబీన్*';
+  if (c.includes('maize') || c.includes('corn')) return '*🌽 MAIZE / మక్కజొన్న*';
+  if (c.includes('chilli')) return '*🌶️ CHILLI / మిర్చి (Dry)*';
+  if (c.includes('turmeric')) return '*🌿 TURMERIC / పసుపు*';
+  return `*🌿 ${commodity.toUpperCase()}*`;
+}
+
 /**
  * Builds formatted WhatsApp broadcast message for Telangana, Andhra Pradesh, or any Indian State Mandi Prices.
  * Uses bold headers following the AGRONIX standard.
@@ -1172,33 +1187,26 @@ export function buildMandiWhatsAppText(
     '----------------------------------------',
   ];
 
-  // Group top records by commodity
-  const topCrops = ['Cotton', 'Paddy(Dhan)(Grade A)', 'Paddy(Dhan)(Common)', 'Jowar', 'Red Gram', 'Soya Bean', 'Maize', 'Chilli (Dry)', 'Turmeric'];
-  const processedCrops = new Set<string>();
+  // Group the provided records by commodity so filtered shares only contain
+  // matching data — no hardcoded crop list that can silently drop results.
+  const groups = new Map<string, MandiPriceRecord[]>();
+  for (const r of records) {
+    if (!r.commodity || !r.market || !(r.modal_price > 0)) continue;
+    const key = r.commodity.trim().toLowerCase();
+    const list = groups.get(key) ?? [];
+    list.push(r);
+    groups.set(key, list);
+  }
 
-  for (const cropKey of topCrops) {
-    const matches = records.filter((r) => r.commodity.toLowerCase().includes(cropKey.toLowerCase()) || cropKey.toLowerCase().includes(r.commodity.toLowerCase()));
-    if (matches.length === 0) continue;
+  const MAX_COMMODITIES = 12;
+  let rendered = 0;
+  for (const [, matches] of groups) {
+    if (rendered >= MAX_COMMODITIES) break;
+    rendered += 1;
 
-    processedCrops.add(cropKey);
-    const mspInfo = getCommodityMSP(cropKey);
-    const cropHeader = cropKey === 'Cotton'
-      ? `*🌱 COTTON / పత్తి*`
-      : cropKey.includes('Paddy')
-        ? `*🌾 PADDY / వరి (${matches[0].variety || 'Grade A'})*`
-        : cropKey.toLowerCase().includes('jowar') || cropKey.toLowerCase().includes('sorghum')
-          ? `*🌾 JOWAR / జొన్నలు (Sorghum)*`
-          : cropKey === 'Red Gram'
-            ? `*🫘 RED GRAM / కంది*`
-          : cropKey === 'Soya Bean'
-            ? `*🟡 SOYA BEAN / సోయాబీన్*`
-            : cropKey === 'Maize'
-              ? `*🌽 MAIZE / మక్కజొన్న*`
-              : cropKey.includes('Chilli')
-                ? `*🌶️ CHILLI / మిర్చి (Dry)*`
-                : `*🌿 ${cropKey.toUpperCase()}*`;
-
-    lines.push(cropHeader);
+    const commodity = matches[0].commodity;
+    const mspInfo = getCommodityMSP(commodity);
+    lines.push(cropHeaderFor(commodity, matches[0].variety));
     if (mspInfo?.msp) {
       const bonusText = mspInfo.bonus ? ` (+₹${mspInfo.bonus} Telangana Bonus)` : '';
       lines.push(`• *Govt MSP:* ₹${mspInfo.msp.toLocaleString('en-IN')}/qtl${bonusText}`);
@@ -1207,7 +1215,8 @@ export function buildMandiWhatsAppText(
     // Top 3 markets for this crop
     matches.slice(0, 3).forEach((m) => {
       const diffText = m.mspDifference && m.mspDifference > 0 ? ` (+₹${m.mspDifference})` : '';
-      lines.push(`• *${m.market} (${m.district}):* ₹${m.modal_price.toLocaleString('en-IN')} (Min: ₹${m.min_price} - Max: ₹${m.max_price})${diffText}`);
+      const place = m.district ? `${m.market} (${m.district})` : m.market;
+      lines.push(`• *${place}:* ₹${m.modal_price.toLocaleString('en-IN')} (Min: ₹${m.min_price} - Max: ₹${m.max_price})${diffText}`);
     });
     lines.push('');
   }

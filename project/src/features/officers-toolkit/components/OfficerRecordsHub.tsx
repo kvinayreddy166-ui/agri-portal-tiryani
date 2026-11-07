@@ -7,9 +7,9 @@ import {
   ChevronRight,
   ClipboardList,
   Cloud,
-  Copy,
   Download,
   Edit2,
+  ExternalLink,
   Eye,
   FileSpreadsheet,
   FileText,
@@ -21,6 +21,7 @@ import {
   Search,
   Smartphone,
   Trash2,
+  Upload,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -68,6 +69,7 @@ export function OfficerRecordsHub() {
     failedUploads: 0,
   });
   const [retryingQueue, setRetryingQueue] = useState(false);
+  const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
 
   // Form Records State (existing)
   const [records, setRecords] = useState<UnifiedOfficerRecord[]>([]);
@@ -86,12 +88,19 @@ export function OfficerRecordsHub() {
   const [selectedRecord, setSelectedRecord] = useState<UnifiedOfficerRecord | null>(null);
   const [selectedDocDetails, setSelectedDocDetails] = useState<OfficerDocumentArchiveRecord | null>(null);
   const [previewDoc, setPreviewDoc] = useState<{ doc: OfficerDocumentArchiveRecord; url: string } | null>(null);
+
+  // Mobile browsers (especially iOS Safari) cannot render PDFs/DOCX inside iframes
+  const isMobileDevice = useMemo(
+    () =>
+      typeof navigator !== 'undefined' &&
+      (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        (typeof window !== 'undefined' && window.innerWidth < 768)),
+    []
+  );
   const [renameDoc, setRenameDoc] = useState<OfficerDocumentArchiveRecord | null>(null);
   const [renameInput, setRenameInput] = useState('');
   const [recordToDelete, setRecordToDelete] = useState<UnifiedOfficerRecord | null>(null);
   const [docToDelete, setDocToDelete] = useState<OfficerDocumentArchiveRecord | null>(null);
-  const [hashCopied, setHashCopied] = useState(false);
-  const [storedHashCopied, setStoredHashCopied] = useState(false);
   const [exportingType, setExportingType] = useState<'excel' | 'pdf' | null>(null);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
@@ -185,7 +194,8 @@ export function OfficerRecordsHub() {
     try {
       const res = await OfficerDocumentArchiveService.retryFailedUploads();
       await loadAllData(true);
-      alert(t(`Retry finished: ${res.succeeded} uploaded, ${res.failed} remaining.`, `రీట్రై ముగిసింది: ${res.succeeded} అప్‌లోడ్ అయ్యాయి, ${res.failed} మిగిలి ఉన్నాయి.`));
+      const detail = res.errors && res.errors.length > 0 ? `\n\n${res.errors.slice(0, 3).join('\n')}` : '';
+      alert(t(`Retry finished: ${res.succeeded} uploaded, ${res.failed} remaining.${detail}`, `రీట్రై ముగిసింది: ${res.succeeded} అప్‌లోడ్ అయ్యాయి, ${res.failed} మిగిలి ఉన్నాయి.${detail}`));
     } catch (err) {
       console.error('Retry failed:', err);
     } finally {
@@ -208,6 +218,28 @@ export function OfficerRecordsHub() {
       await OfficerDocumentArchiveService.downloadDocument(doc);
     } catch (err) {
       alert(t('Download failed. Please check network connection.', 'డౌన్‌లోడ్ విఫలమైంది. దయచేసి నెట్‌వర్క్ తనిఖీ చేయండి.'));
+    }
+  };
+
+  // Upload a single locally stored document to the cloud on demand
+  const handleUploadToCloud = async (doc: OfficerDocumentArchiveRecord) => {
+    setUploadingDocId(doc.id);
+    try {
+      const res = await OfficerDocumentArchiveService.uploadDocumentToCloud(doc);
+      if (res.success) {
+        setDocuments((prev) =>
+          prev.map((d) => (d.id === doc.id ? { ...d, upload_status: 'saved_to_cloud' as UploadStatus } : d))
+        );
+        const newStats = await OfficerDocumentArchiveService.getStorageOverview();
+        setStorageStats(newStats);
+      } else {
+        alert(res.message || t('Upload to cloud failed. Please try again.', 'క్లౌడ్‌కు అప్‌లోడ్ విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి.'));
+      }
+    } catch (err) {
+      console.error('Upload to cloud failed:', err);
+      alert(t('Upload to cloud failed. Please try again.', 'క్లౌడ్‌కు అప్‌లోడ్ విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి.'));
+    } finally {
+      setUploadingDocId(null);
     }
   };
 
@@ -439,7 +471,7 @@ export function OfficerRecordsHub() {
               </span>
               <div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                  {t('Records & Cloud Archive', 'రికార్డులు & క్లౌడ్ భాండాగారం')}
+                  {t('Records & Cloud Storage', 'రికార్డులు & క్లౌడ్ నిల్వ')}
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   {t('Secure Cloudflare R2 repository and statutory records for agricultural officers.', 'అధికారుల పత్రాలు, చట్టబద్ధ నోటీసులు & నమూనాల క్లౌడ్‌ఫ్లేర్ R2 నిల్వ.')}
@@ -451,7 +483,7 @@ export function OfficerRecordsHub() {
 
           <div className="flex flex-wrap items-center gap-2">
 
-            {storageStats.pendingUploads > 0 && (
+            {storageStats.pendingUploads + storageStats.failedUploads > 0 && (
               <button
                 type="button"
                 onClick={() => void handleRetryFailedUploads()}
@@ -875,6 +907,23 @@ export function OfficerRecordsHub() {
                       <Download className="h-4 w-4" />
                     </button>
 
+                    {doc.upload_status !== 'saved_to_cloud' && (
+                      <button
+                        type="button"
+                        onClick={() => void handleUploadToCloud(doc)}
+                        disabled={uploadingDocId === doc.id}
+                        className="rounded-xl bg-sky-50 p-2 text-sky-700 transition hover:bg-sky-100 disabled:opacity-50 dark:bg-sky-950/40 dark:text-sky-300 dark:hover:bg-sky-900/40"
+                        title={t('Upload to Cloud', 'క్లౌడ్‌కు అప్‌లోడ్')}
+                        aria-label={t('Upload to Cloud', 'క్లౌడ్‌కు అప్‌లోడ్')}
+                      >
+                        {uploadingDocId === doc.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       onClick={() => {
@@ -982,6 +1031,23 @@ export function OfficerRecordsHub() {
                       >
                         <Download className="h-4 w-4" />
                       </button>
+
+                      {doc.upload_status !== 'saved_to_cloud' && (
+                        <button
+                          type="button"
+                          onClick={() => void handleUploadToCloud(doc)}
+                          disabled={uploadingDocId === doc.id}
+                          className="rounded-lg bg-sky-50 p-1.5 text-sky-700 transition hover:bg-sky-100 disabled:opacity-50 dark:bg-sky-950/40 dark:text-sky-300 dark:hover:bg-sky-900/40"
+                          title={t('Upload to Cloud', 'క్లౌడ్‌కు అప్‌లోడ్')}
+                          aria-label={t('Upload to Cloud', 'క్లౌడ్‌కు అప్‌లోడ్')}
+                        >
+                          {uploadingDocId === doc.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="h-4 w-4" />
+                          )}
+                        </button>
+                      )}
 
                       <button
                         type="button"
@@ -1571,64 +1637,6 @@ export function OfficerRecordsHub() {
                   </span>
                 </div>
               </div>
-
-              {/* Original Document SHA-256 Hash */}
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 text-xs">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-slate-400">{t('Original Document SHA-256', 'అసలు పత్రం SHA-256')}</span>
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                      <CheckCircle2 className="h-2.5 w-2.5" />
-                      100% Byte-Exact
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(selectedDocDetails.original_sha256 || selectedDocDetails.content_hash);
-                      setHashCopied(true);
-                      setTimeout(() => setHashCopied(false), 2000);
-                    }}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400"
-                  >
-                    <Copy className="h-3 w-3" />
-                    <span>{hashCopied ? t('Copied!', 'కాపీ చేయబడింది!') : t('Copy Hash', 'కాపీ')}</span>
-                  </button>
-                </div>
-                <p className="font-mono text-[11px] text-slate-700 dark:text-slate-300 break-all">
-                  {selectedDocDetails.original_sha256 || selectedDocDetails.content_hash}
-                </p>
-              </div>
-
-              {/* Stored Cloudflare R2 SHA-256 Hash */}
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 text-xs">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-semibold text-slate-400">{t('Archived R2 Object SHA-256', 'క్లౌడ్ నిల్వ ఆబ్జెక్ట్ SHA-256')}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(selectedDocDetails.stored_sha256 || selectedDocDetails.content_hash);
-                      setStoredHashCopied(true);
-                      setTimeout(() => setStoredHashCopied(false), 2000);
-                    }}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400"
-                  >
-                    <Copy className="h-3 w-3" />
-                    <span>{storedHashCopied ? t('Copied!', 'కాపీ చేయబడింది!') : t('Copy Hash', 'కాపీ')}</span>
-                  </button>
-                </div>
-                <p className="font-mono text-[11px] text-slate-700 dark:text-slate-300 break-all">
-                  {selectedDocDetails.stored_sha256 || selectedDocDetails.content_hash}
-                </p>
-              </div>
-
-              {/* R2 Object Key */}
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 text-xs">
-                <span className="block font-semibold text-slate-400 mb-1">{t('Cloudflare R2 Object Key', 'R2 ఆబ్జెక్ట్ కీ')}</span>
-                <p className="font-mono text-[11px] text-slate-700 dark:text-slate-300 break-all">
-                  {selectedDocDetails.object_key}
-                </p>
-              </div>
             </div>
 
             <div className="mt-5 flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
@@ -1680,6 +1688,15 @@ export function OfficerRecordsHub() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
+                  onClick={() => window.open(previewDoc.url, '_blank', 'noopener')}
+                  className="rounded-lg bg-slate-100 p-2 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
+                  title={t('Open in Browser', 'బ్రౌజర్‌లో తెరవండి')}
+                  aria-label={t('Open in Browser', 'బ్రౌజర్‌లో తెరవండి')}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
                   onClick={() => void handleDownload(previewDoc.doc)}
                   className="rounded-lg bg-emerald-600 p-2 text-white hover:bg-emerald-700"
                   title={t('Download Document', 'పత్రం డౌన్‌లోడ్')}
@@ -1701,11 +1718,58 @@ export function OfficerRecordsHub() {
             </div>
 
             <div className="flex-1 bg-slate-100 dark:bg-slate-950">
-              <iframe
-                src={previewDoc.url}
-                title="Document Preview"
-                className="h-full w-full border-none"
-              />
+              {(() => {
+                const mime = previewDoc.doc.mime_type || '';
+                const canInlinePreview =
+                  previewDoc.doc.file_format === 'pdf' ||
+                  mime === 'application/pdf' ||
+                  mime.startsWith('image/') ||
+                  previewDoc.doc.file_format === 'txt' ||
+                  mime.startsWith('text/');
+
+                // Mobile browsers (iOS Safari) cannot render PDFs in iframes —
+                // show a fallback card that opens the file in the browser viewer.
+                if (!canInlinePreview || (isMobileDevice && previewDoc.doc.file_format === 'pdf')) {
+                  return (
+                    <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        <FileText className="h-7 w-7" />
+                      </div>
+                      <p className="max-w-xs text-xs font-semibold text-slate-600 dark:text-slate-300">
+                        {isMobileDevice
+                          ? t('Inline preview is not supported on this device for this file type.', 'ఈ పరికరంలో ఈ ఫైల్ రకానికి ప్రివ్యూ మద్దతు లేదు.')
+                          : t('Preview is not supported for this file format.', 'ఈ ఫైల్ ఫార్మాట్‌కు ప్రివ్యూ మద్దతు లేదు.')}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => window.open(previewDoc.url, '_blank', 'noopener')}
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          <span>{t('Open in Browser', 'బ్రౌజర్‌లో తెరవండి')}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleDownload(previewDoc.doc)}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          <span>{t('Download', 'డౌన్‌లోడ్')}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <iframe
+                    src={previewDoc.url}
+                    title="Document Preview"
+                    className="h-full w-full border-none"
+                  />
+                );
+              })()}
             </div>
           </div>
         </div>

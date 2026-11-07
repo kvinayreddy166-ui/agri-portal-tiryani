@@ -270,7 +270,11 @@ function getCorsHeaders(origin: string, allowedOriginsConfig?: string): HeadersI
   const defaultAllowed = ['https://agronix.vercel.app', 'http://localhost:5173', 'http://localhost:4173'];
   const allowedList = allowedOriginsConfig ? allowedOriginsConfig.split(',').map((s) => s.trim()) : defaultAllowed;
 
-  const isAllowed = allowedList.includes(origin) || allowedList.includes('*') || origin.endsWith('.vercel.app');
+  // Allow any localhost / 127.0.0.1 origin on any port for local development
+  // and preview proxies (e.g. http://127.0.0.1:51888).
+  const isLocalOrigin = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(origin);
+
+  const isAllowed = allowedList.includes(origin) || allowedList.includes('*') || origin.endsWith('.vercel.app') || isLocalOrigin;
   const allowOrigin = isAllowed ? origin : allowedList[0] || '*';
 
   return {

@@ -72,9 +72,9 @@ const officerDashboardTools: OfficerToolItem[] = [
     tone: 'emerald',
   },
   {
-    title: 'Records & Cloud Archive',
-    teTitle: 'రికార్డులు & క్లౌడ్ ఆర్కైవ్',
-    description: 'Cloud archive of notices, stop sale orders, inspections & memos.',
+    title: 'Records & Cloud Storage',
+    teTitle: 'రికార్డులు & క్లౌడ్ నిల్వ',
+    description: 'Cloud storage of notices, stop sale orders, inspections & memos.',
     teDescription: 'నోటీసులు, స్టాప్ సేల్ ఆర్డర్లు, తనిఖీలు & మెమోల క్లౌడ్ నిల్వ.',
     path: '/officer-toolkit/my-records',
     icon: Archive,

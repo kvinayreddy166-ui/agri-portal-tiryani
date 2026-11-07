@@ -90,7 +90,7 @@ export function AgrochemicalDatabase() {
             <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
-                <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" className="mt-1 shrink-0" />
+                <BackButton onClick={() => navigate('/dashboard')} tone="solid" className="mt-1 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start gap-2.5 sm:gap-3">
                     <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white shadow-sm ring-1 ring-white/25 backdrop-blur-xs mt-0.5">

@@ -238,7 +238,7 @@ export function ToolkitPageHeader({
   iconSize = 'md',
   tone = 'emerald',
   variant = 'tinted',
-  fallbackPath = '/officer-toolkit',
+  fallbackPath = '/dashboard',
   onBack,
   actions,
   className = '',
