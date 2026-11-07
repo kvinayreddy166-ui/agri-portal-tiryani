@@ -91,13 +91,13 @@ describe('OfficerRecordsHub (Enhanced Cloudflare R2 Archive)', () => {
     vi.spyOn(OfficerCloudSyncService, 'fetchAllOfficerRecords').mockResolvedValue([]);
   });
 
-  it('renders the storage overview metric titles including compression savings', () => {
+  it('renders the storage overview metric titles without original storage or storage saved cards', () => {
     const html = renderToString(<OfficerRecordsHub />);
 
     expect(html).toContain('Total Documents');
-    expect(html).toContain('Original Storage');
+    expect(html).not.toContain('Original Storage');
     expect(html).toContain('Total Storage Used');
-    expect(html).toContain('Storage Saved');
+    expect(html).not.toContain('Storage Saved');
     expect(html).toContain('Total PDFs');
     expect(html).toContain('Total DOCX');
     expect(html).toContain('Saved to Cloud');
@@ -105,12 +105,11 @@ describe('OfficerRecordsHub (Enhanced Cloudflare R2 Archive)', () => {
     expect(html).toContain('Failed Uploads');
   });
 
-  it('renders officer jurisdiction and title correctly', () => {
+  it('renders records header correctly without redundant officer jurisdiction strip', () => {
     const html = renderToString(<OfficerRecordsHub />);
 
     expect(html).toContain('Records &amp; Cloud Archive');
-    expect(html).toContain('MAO');
-    expect(html).toContain('Tiryani');
+    expect(html).not.toContain('Cloudflare R2 Active');
   });
 
   it('renders the tab options for Archived Documents and Field Form Records', () => {

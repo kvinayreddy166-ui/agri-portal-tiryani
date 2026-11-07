@@ -561,8 +561,8 @@ export function OfficerRecordsHub() {
 
         {/* Comprehensive Storage Overview — Structured KPI Cards & File Pipeline Status */}
         <div className="mt-5 space-y-3">
-          {/* Primary 4-card metric row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Primary 3-card metric row */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-600 to-teal-600" />
               <div className="flex items-center justify-between">
@@ -602,36 +602,10 @@ export function OfficerRecordsHub() {
                 {t('Compressed cloud footprint', 'కంప్రెస్డ్ నిల్వ')}
               </p>
             </div>
-
-            <div className="relative overflow-hidden rounded-xl border border-emerald-200/80 bg-emerald-50/40 p-3.5 shadow-2xs dark:border-emerald-900/60 dark:bg-emerald-950/20">
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-600 via-gold-400 to-emerald-600" />
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">{t('Storage Saved', 'ఆదా చేసిన నిల్వ')}</span>
-                <span className="rounded-lg bg-emerald-100 p-1.5 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-200">
-                  <CheckCircle2 className="h-4 w-4" />
-                </span>
-              </div>
-              <div className="mt-2 flex items-baseline gap-1.5 text-2xl font-black tracking-tight text-emerald-700 dark:text-emerald-300">
-                <span>{formatBytes(storageStats.storageSavedBytes || 0)}</span>
-                {storageStats.compressionPercentage > 0 && (
-                  <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400">
-                    (-{storageStats.compressionPercentage}%)
-                  </span>
-                )}
-              </div>
-              <p className="mt-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400">{t('GZIP lossless optimization', 'నష్టం లేని ఆప్టిమైజేషన్')}</p>
-            </div>
           </div>
 
-          {/* Secondary 5-metric row */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-            <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-2.5 text-center dark:border-slate-800 dark:bg-slate-800/40">
-              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Original Storage', 'అసలు నిల్వ')}</div>
-              <div className="mt-1 text-base font-black text-slate-800 dark:text-slate-200">
-                {formatBytes(storageStats.totalOriginalBytes || storageStats.totalStorageBytes)}
-              </div>
-            </div>
-
+          {/* Secondary 4-metric row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-2.5 text-center dark:border-slate-800 dark:bg-slate-800/40">
               <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Total PDFs', 'మొత్తం పీడీఎఫ్')}</div>
               <div className="mt-1 text-base font-black text-slate-800 dark:text-slate-200">{storageStats.totalPdfs}</div>
