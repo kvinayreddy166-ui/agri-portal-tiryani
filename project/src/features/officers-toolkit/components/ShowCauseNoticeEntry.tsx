@@ -10,6 +10,7 @@ import {
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import {
   noticeCategoryConfigs,
@@ -59,6 +60,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const showCompactHeader = isAdminUser || isTestUser || isOfficerUser;
   const [form, setForm] = useState<NoticeFormState>(() => readFormDraft(lockedCategory ?? 'fertiliser') ?? makeInitialForm(lockedCategory ?? 'fertiliser'));
   const [savedNotices, setSavedNotices] = useState<SavedNotice[]>(() => readSavedNotices());
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [savedSearch, setSavedSearch] = useState('');
   const [showProductDetails, setShowProductDetails] = useState(false);
   const [showNoticePreview, setShowNoticePreview] = useState(false);
@@ -255,13 +257,32 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     );
   };
 
-  const saveNotice = () => {
+  const persistNotice = (notify = false, issue = false) => {
     const id = `${form.memoNumber || 'draft'}-${Date.now()}`;
-    const saved: SavedNotice = { ...form, id, savedAt: new Date().toISOString() };
+    const prevIssuedAt = savedNotices.find((item) => item.memoNumber === form.memoNumber)?.issuedAt;
+    const saved: SavedNotice = { ...form, id, savedAt: new Date().toISOString(), issuedAt: issue ? new Date().toISOString() : prevIssuedAt };
     setSavedNotices((current) => [saved, ...current.filter((item) => item.memoNumber !== form.memoNumber)]);
     const comm: StatutoryCommodity = form.category === 'fertiliser' ? 'fertilizer' : form.category;
-    void OfficerCloudSyncService.syncStatutoryOrder('show_cause', comm, saved as unknown as Record<string, unknown>);
-    showSaved('Draft saved', form.memoNumber || 'Untitled notice');
+    if (issue) void OfficerCloudSyncService.syncStatutoryOrder('show_cause', comm, saved as unknown as Record<string, unknown>);
+    if (notify) showSaved('Draft saved', form.memoNumber || 'Untitled notice');
+  };
+
+  const saveNotice = () => persistNotice(true);
+
+  // Persist the record when the document is actually issued (download),
+  // not merely when the form is filled in.
+  const persistNoticeForExport = async (): Promise<boolean> => {
+    const dealer = String(form.firmName ?? form.dealerName ?? '').trim();
+    if (!dealer) return false;
+    const ref = String(form.memoNumber || '').trim();
+    const ok = await askConfirm({
+      title: `Issue Show Cause Notice for ${dealer}${ref ? ` (${ref})` : ''}?`,
+      message: 'The record will be saved to cloud records.',
+      confirmLabel: 'Issue',
+    });
+    if (!ok) return false;
+    persistNotice(false, true);
+    return true;
   };
 
   const editSavedNotice = (notice: SavedNotice) => {
@@ -341,6 +362,9 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const confirmDeleteNotice = () => {
     if (noticeToDelete) {
       setSavedNotices((current) => current.filter((item) => item.id !== noticeToDelete.id));
+      const memoNumber = String(noticeToDelete.memoNumber || noticeToDelete.id || '');
+      const comm: StatutoryCommodity = noticeToDelete.category === 'fertiliser' ? 'fertilizer' : noticeToDelete.category;
+      if (memoNumber) void OfficerCloudSyncService.deleteStatutoryOrderRecord('show_cause', comm, memoNumber);
       showDeleted('Notice deleted', noticeToDelete.memoNumber || 'Untitled notice');
       setNoticeToDelete(null);
     }
@@ -353,6 +377,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const buildNoticePdfDoc = () => renderNoticePdfDocument(noticeBlocks, form.memoNumber || 'Show Cause Notice');
 
   const downloadPdf = async () => {
+    if (!(await persistNoticeForExport())) return;
     const doc = await buildNoticePdfDoc();
     const filename = noticeFileName();
     doc.save(filename);
@@ -372,6 +397,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
   const downloadWord = async () => {
     try {
+      if (!(await persistNoticeForExport())) return;
       const blob = await buildNoticeWordDocument(noticeBlocks);
       const url = URL.createObjectURL(blob);
       const filename = noticeWordFileName();
@@ -451,6 +477,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   return (
     <div className="space-y-4">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      {confirmDialog}
       <ConfirmDialog
         open={resetConfirmOpen}
         title="Reset form?"

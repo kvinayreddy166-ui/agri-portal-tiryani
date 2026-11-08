@@ -83,6 +83,7 @@ export interface SamplePipelineItem {
   sampleCode: string;
   dealerName: string;
   commodity: StatutoryCommodity;
+  productLabel: string;
   labStatus: LabStatus;
   sampledDate: string;
   dispatchedAt?: string | null;
@@ -159,6 +160,23 @@ function daysUntil(dateIso: string): number {
   return Math.ceil((target - now) / 86400000);
 }
 
+/** Human-readable product label for a sample's covering_letter_json payload. */
+function pipelineProductLabel(commodity: StatutoryCommodity, json: Record<string, unknown>): string {
+  const text = (value: unknown) => String(value ?? '').trim();
+  if (commodity === 'fertilizer') {
+    return text(json.fertilizerName) || text(json.productName) || text(json.nameGrade);
+  }
+  if (commodity === 'pesticide') {
+    const trade = text(json.tradeName);
+    const technical = text(json.technicalName);
+    if (trade && technical && trade !== technical) return `${trade} (${technical})`;
+    return trade || technical || text(json.productName) || text(json.insecticideName);
+  }
+  const crop = text(json.seedName) || text(json.crop);
+  const variety = text(json.variety);
+  return [crop, variety].filter(Boolean).join(' - ');
+}
+
 function normalizeName(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, ' ');
 }
@@ -190,6 +208,17 @@ export class EnforcementTrackerService {
     const cloudOrderNumbers = new Set(cloudOrders.map((o) => o.order_number).filter(Boolean));
     const localOrders = this.fetchLocalOrders(cloudOrderNumbers);
 
+    const cloudInspections = (inspRes.data ?? []) as InspectionRow[];
+    const cloudInspectionIds = new Set(
+      cloudInspections
+        .map((i) => {
+          const j = i.findings_json as Record<string, unknown> | undefined;
+          return j && typeof j === 'object' ? String(j.id ?? '') : '';
+        })
+        .filter(Boolean)
+    );
+    const localInspections = this.fetchLocalInspections(cloudInspectionIds);
+
     const cloudSamples = (samplesRes.data ?? []) as SampleRow[];
     const cloudSampleCodes = new Set(
       cloudSamples.map((s) => String(s.sample_code || '').toLowerCase()).filter(Boolean)
@@ -199,9 +228,49 @@ export class EnforcementTrackerService {
     return {
       cases: (casesRes.data ?? []) as OfficerCase[],
       orders: [...cloudOrders, ...localOrders],
-      inspections: (inspRes.data ?? []) as InspectionRow[],
+      inspections: [...cloudInspections, ...localInspections],
       samples: [...cloudSamples, ...localSamples],
     };
+  }
+
+  /**
+   * Reads issued inspection drafts (document generated) from local storage so
+   * inspections created offline still appear in the tracker. Deduped against
+   * cloud rows by the draft id stored in findings_json.
+   */
+  private static fetchLocalInspections(cloudInspectionIds: Set<string>): InspectionRow[] {
+    const rows: InspectionRow[] = [];
+    for (const [keyName, storageKey] of Object.entries(OFFICER_LOCAL_STORAGE_KEYS.INSPECTIONS)) {
+      try {
+        const raw = safeStorage.getItem(storageKey);
+        if (!raw) continue;
+        const items = JSON.parse(raw) as unknown;
+        if (!Array.isArray(items)) continue;
+
+        const commodity = keyName as StatutoryCommodity;
+        items.forEach((item) => {
+          if (!item || typeof item !== 'object') return;
+          const draft = item as Record<string, unknown>;
+          if (!draft.issuedAt) return;
+          const draftId = String(draft.id || '');
+          if (!draftId || cloudInspectionIds.has(draftId)) return;
+
+          const form = (draft.form && typeof draft.form === 'object' ? draft.form : {}) as Record<string, unknown>;
+          rows.push({
+            id: `local-insp-${commodity}-${draftId}`,
+            officer_id: '',
+            inspection_type: commodity,
+            firm_name: String(form.dealerName || form.firmName || 'Local inspection'),
+            license_number: String(form.licenceNo || form.licenseNumber || '') || undefined,
+            inspection_date: String(form.inspectionDate || draft.savedAt || new Date().toISOString().slice(0, 10)),
+            findings_json: { ...draft, id: draftId },
+          });
+        });
+      } catch {
+        // skip malformed local payloads
+      }
+    }
+    return rows;
   }
 
   /**
@@ -242,6 +311,7 @@ export class EnforcementTrackerService {
         items.forEach((item, idx) => {
           if (!item || typeof item !== 'object') return;
           const rec = item as Record<string, unknown>;
+          if (!rec.issuedAt) return; // unissued covering-letter queue drafts are not records
           const sampleCode = String(rec.sampleCode || rec.codeNumber || rec.codeNo || '').trim();
           if (!sampleCode) return;
           if (cloudSampleCodes.has(sampleCode.toLowerCase())) return;
@@ -296,6 +366,9 @@ export class EnforcementTrackerService {
         items.forEach((item) => {
           if (!item || typeof item !== 'object') return;
           const rec = item as Record<string, unknown>;
+          // Record-on-issue: only issued orders (document generated) count as
+          // records — saved drafts stay local working data.
+          if (!rec.issuedAt) return;
           const orderNumber = String(rec.orderNumber || rec.noticeNumber || rec.memoNumber || '');
           if (!orderNumber || cloudOrderNumbers.has(orderNumber)) return;
 
@@ -615,6 +688,7 @@ export class EnforcementTrackerService {
         sampleCode: s.sample_code,
         dealerName: s.firm_name,
         commodity: s.commodity,
+        productLabel: pipelineProductLabel(s.commodity, (s.covering_letter_json ?? {}) as Record<string, unknown>),
         labStatus: s.lab_status,
         sampledDate: s.date_of_sampling,
         dispatchedAt: s.dispatched_at,
@@ -702,8 +776,14 @@ export class EnforcementTrackerService {
         const items = raw ? (JSON.parse(raw) as unknown[]) : [];
         const idx = Number(match[2]);
         if (!Array.isArray(items) || idx < 0 || idx >= items.length) return false;
+        const removed = items[idx] as Record<string, unknown> | undefined;
+        const sampleCode = String(removed?.sampleCode || '').trim();
         items.splice(idx, 1);
         safeStorage.setItem(storageKey, JSON.stringify(items));
+        // Also remove the synced cloud row so the sample doesn't reappear.
+        if (sampleCode) {
+          void OfficerCloudSyncService.deleteSampleMemoRecord(match[1] as StatutoryCommodity, sampleCode);
+        }
         return true;
       } catch {
         return false;

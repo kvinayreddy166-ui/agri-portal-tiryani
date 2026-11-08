@@ -58,7 +58,14 @@ export function upsertCoveringLetterSample(
   if (!sampleCode) return 'unchanged';
 
   const queue = readCoveringLetterQueue(commodity);
-  const normalized: CoveringLetterQueueItem = { ...item, sampleCode };
+  // upsert is only invoked on document download/issue — stamp issuedAt so
+  // unissued covering-letter queue drafts are never synced or listed as records.
+  const issuedAt = String((queue[queue.findIndex((e) => String(e.sampleCode || '').trim() === sampleCode)]?.issuedAt) || '');
+  const normalized: CoveringLetterQueueItem = {
+    ...item,
+    sampleCode,
+    issuedAt: issuedAt || new Date().toISOString(),
+  };
   const existingIndex = queue.findIndex((entry) => String(entry.sampleCode || '').trim() === sampleCode);
 
   let result: CoveringLetterUpsertResult;
@@ -94,4 +101,42 @@ export function removeCoveringLetterSample(commodity: StatutoryCommodity, sample
   if (next.length === queue.length) return false;
   writeCoveringLetterQueue(commodity, next);
   return true;
+}
+
+export interface SampleProductBadge {
+  sampleCode: string;
+  label: string;
+}
+
+/**
+ * Human-readable product label for a queued sample, used for badges on
+ * archived sample documents in the Records Hub:
+ * - fertilizer → fertilizer name
+ * - pesticide  → technical name (fallback: trade name)
+ * - seed       → crop - variety
+ */
+export function describeSampleProduct(commodity: StatutoryCommodity, item: CoveringLetterQueueItem): string {
+  const text = (value: unknown) => String(value ?? '').trim();
+  if (commodity === 'fertilizer') {
+    return text(item.fertilizerName) || text(item.productName) || 'Sample';
+  }
+  if (commodity === 'pesticide') {
+    return text(item.technicalName) || text(item.tradeName) || text(item.productName) || 'Sample';
+  }
+  const crop = text(item.seedName) || text(item.crop);
+  const variety = text(item.variety);
+  return [crop, variety].filter(Boolean).join(' - ') || 'Sample';
+}
+
+/** Builds the product badge list stored in document archive metadata. */
+export function buildSampleProductBadges(
+  commodity: StatutoryCommodity,
+  items: CoveringLetterQueueItem[]
+): SampleProductBadge[] {
+  return items
+    .map((item) => ({
+      sampleCode: String(item.sampleCode || '').trim(),
+      label: describeSampleProduct(commodity, item),
+    }))
+    .filter((badge) => badge.sampleCode.length > 0);
 }

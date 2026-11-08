@@ -181,6 +181,36 @@ export class OfficerDocumentQueue {
   }
 
   /**
+   * Remove all queued documents matching a content hash.
+   * Used when deleting an archived document whose queue entry has a
+   * different id than the Supabase archive row id.
+   */
+  static async removeByHash(sha256: string): Promise<void> {
+    if (!sha256) return;
+    try {
+      const db = await this.getDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.getAll();
+        req.onsuccess = () => {
+          const docs = (req.result || []) as QueuedDocument[];
+          docs.forEach((doc) => {
+            if (doc.originalSha256 === sha256 || doc.contentHash === sha256 || doc.storedSha256 === sha256) {
+              store.delete(doc.id);
+            }
+          });
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        };
+        req.onerror = () => reject(req.error);
+      });
+    } catch (err) {
+      console.warn('Failed to remove documents by hash from queue:', err);
+    }
+  }
+
+  /**
    * Clear all documents from queue
    */
   static async clearQueue(): Promise<void> {

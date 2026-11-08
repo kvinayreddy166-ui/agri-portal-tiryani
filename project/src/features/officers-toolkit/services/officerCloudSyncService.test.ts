@@ -121,6 +121,7 @@ describe('OfficerCloudSyncService', () => {
         noticeDate: '2026-11-04',
         mandal: 'Tiryani',
         district: 'Kumuram Bheem Asifabad',
+        issuedAt: '2026-11-04T10:00:00.000Z',
       },
     ];
 

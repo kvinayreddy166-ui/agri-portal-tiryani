@@ -61,8 +61,10 @@ export function DealerProfileDrawer({ dealerName, data, onClose }: DealerProfile
     return { inspections, orders, samples, cases, scorecard };
   }, [data, key]);
 
+  // Cases group the raw records below — counting them here would double-count
+  // the same activity (a sample appears once as a sample and once via its case).
   const totalRecords =
-    profile.inspections.length + profile.orders.length + profile.samples.length + profile.cases.length;
+    profile.inspections.length + profile.orders.length + profile.samples.length;
 
   return (
     <div className="fixed inset-0 z-[96] flex justify-end bg-slate-950/60 backdrop-blur-sm" onClick={onClose}>

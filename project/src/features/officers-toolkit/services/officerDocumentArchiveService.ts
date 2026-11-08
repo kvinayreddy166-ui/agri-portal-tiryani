@@ -51,6 +51,7 @@ export interface ArchiveResult {
   versionNumber: number;
   duplicate?: boolean;
   queued?: boolean;
+  skipped?: boolean;
   error?: string;
 }
 
@@ -143,6 +144,23 @@ export class OfficerDocumentArchiveService {
     const mimeType = input.mimeType || fileBlob.type || (input.fileFormat === 'pdf' ? 'application/pdf' : 'application/octet-stream');
     const originalSize = fileBlob.size;
     const fileFormat = normalizeFileFormat(input.fileFormat, input.filename);
+
+    // PDF is the canonical archived format. DOCX/XLSX exports are alternate
+    // renderings of the same issued record — archiving them creates duplicate
+    // files in Records, so they are skipped here.
+    if (fileFormat === 'docx' || fileFormat === 'xlsx') {
+      return {
+        success: true,
+        documentId: '',
+        uploadStatus: 'local_only',
+        originalSize: fileBlob.size,
+        storedSize: fileBlob.size,
+        compressionStatus: 'skipped',
+        contentHash: '',
+        versionNumber: 0,
+        skipped: true,
+      };
+    }
 
     // 1. Process File Bytes & Intelligent Reversible Compression
     const rawBuffer = await fileBlob.arrayBuffer();
@@ -877,24 +895,33 @@ export class OfficerDocumentArchiveService {
   /**
    * Deletes a document from both Cloudflare R2 and Supabase metadata table
    */
-  static async deleteDocument(id: string, objectKey: string): Promise<boolean> {
+  static async deleteDocument(id: string, objectKey: string, contentHash?: string | null): Promise<boolean> {
     const user = await this.getCurrentUser();
     const workerUrl = this.getWorkerUrl();
 
-    // 1. Delete from local safeStorage
+    // 1. Delete from local safeStorage — by id and by content hash
+    const hash = contentHash || null;
     try {
       const raw = safeStorage.getItem(LOCAL_ARCHIVED_DOCS_KEY);
       if (raw) {
         const list: OfficerDocumentArchiveRecord[] = JSON.parse(raw);
-        const filtered = list.filter((d) => d.id !== id);
+        const filtered = list.filter((d) => {
+          if (d.id === id) return false;
+          if (hash && (d.original_sha256 === hash || d.content_hash === hash)) return false;
+          return true;
+        });
         safeStorage.setItem(LOCAL_ARCHIVED_DOCS_KEY, JSON.stringify(filtered));
       }
     } catch {
       // ignore
     }
 
-    // 2. Delete from offline queue if present
+    // 2. Delete from offline queue — by id AND by content hash, since queue
+    // entries for the same file can carry a different id than the archive row
     await OfficerDocumentQueue.remove(id);
+    if (hash) {
+      await OfficerDocumentQueue.removeByHash(hash);
+    }
 
     // 3. Delete from R2 if worker configured
     if (user && workerUrl && objectKey) {
@@ -932,23 +959,102 @@ export class OfficerDocumentArchiveService {
       return { success: false, message: 'Please sign in to upload documents to the cloud.' };
     }
 
+    // Already in cloud — no local file copy needed
+    if (doc.upload_status === 'saved_to_cloud') {
+      return { success: true, message: 'Document is already saved to the cloud.' };
+    }
+
     const queued = await OfficerDocumentQueue.getPendingDocuments();
-    const local = queued.find(
+    let local = queued.find(
       (q) => q.id === doc.id || (doc.content_hash && q.contentHash === doc.content_hash)
     );
 
-    if (!local || !local.fileBlob) {
-      return { success: false, message: 'File copy not found on this device. Download it once to store it locally, then retry.' };
+    if (local?.uploadStatus === 'saved_to_cloud') {
+      return { success: true, message: 'Document is already saved to the cloud.' };
     }
 
-    if (local.uploadStatus === 'saved_to_cloud' || doc.upload_status === 'saved_to_cloud') {
-      return { success: true, message: 'Document is already saved to the cloud.' };
+    // Local blob missing (IndexedDB cleared, different origin, or doc created on
+    // another device). Try to recover the bytes from Supabase Storage — a previous
+    // fallback upload may have stored them under the canonical cloud key.
+    if (!local || !local.fileBlob) {
+      const recovered = await this.recoverQueuedDocumentFromStorage(user.id, doc);
+      if (recovered) {
+        local = recovered;
+      } else {
+        return { success: false, message: 'File copy not found on this device. Download it once to store it locally, then retry.' };
+      }
     }
 
     const result = await this.uploadQueuedDocument(user, local);
     return result.uploaded
       ? { success: true }
       : { success: false, message: result.error || 'Cloud upload failed. Please try again.' };
+  }
+
+  /**
+   * Rebuilds a QueuedDocument for a metadata-only archive record by downloading
+   * the stored bytes from the Supabase 'uploads' bucket. Returns null when the
+   * file was never uploaded anywhere.
+   */
+  private static async recoverQueuedDocumentFromStorage(
+    userId: string,
+    doc: OfficerDocumentArchiveRecord
+  ): Promise<QueuedDocument | null> {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return null;
+
+    const candidateKeys = new Set<string>();
+    if (doc.object_key && !doc.object_key.startsWith('local/')) {
+      candidateKeys.add(doc.object_key);
+    }
+    // Canonical key used by uploadQueuedDocument: officers/{uid}/{year}/{month}/{id}.{ext}
+    const dateObj = new Date(doc.document_date);
+    const year = !isNaN(dateObj.getFullYear()) ? String(dateObj.getFullYear()) : new Date().getFullYear().toString();
+    const month = !isNaN(dateObj.getMonth()) ? String(dateObj.getMonth() + 1).padStart(2, '0') : String(new Date().getMonth() + 1).padStart(2, '0');
+    const ext = normalizeFileFormat(doc.file_format, doc.document_name);
+    candidateKeys.add(`officers/${userId}/${year}/${month}/${doc.id}.${ext}`);
+    candidateKeys.add(`officers/${doc.user_id}/${year}/${month}/${doc.id}.${ext}`);
+
+    for (const key of candidateKeys) {
+      try {
+        const { data, error } = await supabase.storage.from('uploads').download(key);
+        if (error || !data) continue;
+        const now = new Date().toISOString();
+        return {
+          id: doc.id,
+          userId: doc.user_id || userId,
+          documentName: doc.document_name,
+          originalFilename: doc.original_filename || doc.document_name,
+          documentCategory: doc.document_category,
+          documentNumber: doc.document_number || undefined,
+          documentDate: doc.document_date,
+          sourceModule: doc.source_module,
+          fileFormat: doc.file_format,
+          mimeType: doc.mime_type,
+          originalSize: doc.original_size_bytes ?? doc.original_size,
+          storedSize: doc.stored_size_bytes ?? doc.stored_size,
+          originalSizeBytes: doc.original_size_bytes,
+          storedSizeBytes: doc.stored_size_bytes,
+          compressionMethod: doc.compression_method,
+          compressionStatus: doc.compression_status,
+          contentHash: doc.content_hash,
+          originalSha256: doc.original_sha256 || undefined,
+          storedSha256: doc.stored_sha256 || undefined,
+          restorationVerified: doc.restoration_verified,
+          objectKey: key,
+          uploadStatus: 'pending_retry',
+          versionNumber: doc.version_number,
+          parentDocumentId: doc.parent_document_id,
+          metadata: doc.metadata_json || {},
+          fileBlob: data,
+          retryCount: 0,
+          createdAt: doc.created_at,
+          updatedAt: now,
+        };
+      } catch {
+        // try next candidate key
+      }
+    }
+    return null;
   }
 
   /**

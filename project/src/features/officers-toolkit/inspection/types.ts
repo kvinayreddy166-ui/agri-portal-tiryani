@@ -41,5 +41,7 @@ export interface DraftRecord<T = Record<string, unknown>> {
   name: string;
   savedAt: string;
   form: T;
+  /** Set when the inspection document was actually issued (PDF/print/Excel generated). */
+  issuedAt?: string;
   v?: number;
 }

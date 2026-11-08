@@ -75,12 +75,13 @@ export class OfficerCloudSyncService {
   static async syncStatutoryOrder(
     orderType: StatutoryOrderType,
     commodity: StatutoryCommodity,
-    data: Record<string, unknown>
+    data: Record<string, unknown>,
+    overrides?: { orderNumber?: string; orderDate?: string }
   ): Promise<SyncResult> {
     const officerId = await this.getCurrentOfficerId();
     const id = (data.id as string) || `ord-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const orderNumber = String(data.orderNumber || data.noticeNumber || id);
-    const orderDate = String(data.noticeDate || data.orderDate || new Date().toISOString().slice(0, 10));
+    const orderNumber = overrides?.orderNumber ?? String(data.orderNumber || data.noticeNumber || data.memoNumber || data.refNumber || id);
+    const orderDate = overrides?.orderDate ?? String(data.noticeDate || data.orderDate || data.seizureDate || data.revokeDate || new Date().toISOString().slice(0, 10));
     const firmName = String(data.firmName || 'Unknown Dealer');
     const mandal = String(data.mandal || data.manualMandal || '');
     const district = String(data.district || data.manualDistrict || '');
@@ -111,6 +112,17 @@ export class OfficerCloudSyncService {
 
         if (!error) {
           syncedToCloud = true;
+          const { stage, priority } = this.orderCaseStage(orderType);
+          await this.ensureEnforcementCase({
+            officerId,
+            dealerName: firmName,
+            commodity,
+            stage,
+            priority,
+            recordRef: orderNumber,
+            recordDate: orderDate,
+            recordKind: orderType,
+          });
         } else {
           cloudError = error.message;
         }
@@ -136,9 +148,12 @@ export class OfficerCloudSyncService {
   ): Promise<SyncResult> {
     const officerId = await this.getCurrentOfficerId();
     const id = (data.id as string) || `insp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const firmName = String(data.firmName || data.dealerName || 'Dealer Inspection');
-    const licenseNumber = String(data.licenseNumber || data.licenseNo || '');
-    const inspectionDate = String(data.inspectionDate || data.date || new Date().toISOString().slice(0, 10));
+    // DraftRecord payloads nest the form under `form` — resolve dealer fields
+    // from either the top level or the nested form object.
+    const nested = (data.form && typeof data.form === 'object' ? data.form : {}) as Record<string, unknown>;
+    const firmName = String(data.firmName || data.dealerName || nested.dealerName || nested.firmName || 'Dealer Inspection');
+    const licenseNumber = String(data.licenseNumber || data.licenseNo || data.licenceNo || nested.licenseNumber || nested.licenceNo || '');
+    const inspectionDate = String(data.inspectionDate || data.date || nested.inspectionDate || new Date().toISOString().slice(0, 10));
 
     const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
@@ -147,23 +162,78 @@ export class OfficerCloudSyncService {
 
     if (officerId && isOnline) {
       try {
-        const payload: OfficerInspectionDbRecord = {
-          officer_id: officerId,
-          inspection_type: commodity,
-          firm_name: firmName,
-          license_number: licenseNumber,
-          inspection_date: inspectionDate,
-          findings_json: { ...data, id },
-        };
-
-        const { error } = await supabase
+        // Dedupe by (officer_id, findings_json->>'id'): drafts carry a stable
+        // id, so re-saving the same draft updates the existing row instead of
+        // inserting duplicates on every save.
+        const { data: existing } = await supabase
           .from('officer_inspections')
-          .upsert(payload);
+          .select('id, findings_json')
+          .eq('officer_id', officerId)
+          .filter('findings_json->>id', 'eq', id)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
 
-        if (!error) {
-          syncedToCloud = true;
+        if (existing) {
+          const mergedJson = {
+            ...((existing.findings_json && typeof existing.findings_json === 'object'
+              ? existing.findings_json
+              : {}) as Record<string, unknown>),
+            ...data,
+            id,
+          };
+          const { error } = await supabase
+            .from('officer_inspections')
+            .update({
+              firm_name: firmName,
+              license_number: licenseNumber,
+              inspection_date: inspectionDate,
+              findings_json: mergedJson,
+            })
+            .eq('id', existing.id);
+
+          if (!error) {
+            syncedToCloud = true;
+            await this.ensureEnforcementCase({
+              officerId,
+              dealerName: firmName,
+              commodity,
+              stage: 'INSPECTION',
+              recordRef: String(data.inspectionId || data.id || id),
+              recordDate: inspectionDate,
+              recordKind: 'inspection',
+            });
+          } else {
+            cloudError = error.message;
+          }
         } else {
-          cloudError = error.message;
+          const payload: OfficerInspectionDbRecord = {
+            officer_id: officerId,
+            inspection_type: commodity,
+            firm_name: firmName,
+            license_number: licenseNumber,
+            inspection_date: inspectionDate,
+            findings_json: { ...data, id },
+          };
+
+          const { error } = await supabase
+            .from('officer_inspections')
+            .insert(payload);
+
+          if (!error) {
+            syncedToCloud = true;
+            await this.ensureEnforcementCase({
+              officerId,
+              dealerName: firmName,
+              commodity,
+              stage: 'INSPECTION',
+              recordRef: String(data.inspectionId || data.id || id),
+              recordDate: inspectionDate,
+              recordKind: 'inspection',
+            });
+          } else {
+            cloudError = error.message;
+          }
         }
       } catch (err) {
         cloudError = (err as Error).message;
@@ -237,6 +307,7 @@ export class OfficerCloudSyncService {
 
           if (!error) {
             syncedToCloud = true;
+            await this.ensureSampleCase(officerId, commodity, firmName, sampleCode, dateOfSampling, labStatus);
             return { success: true, syncedToCloud, id: existing.id };
           }
           cloudError = error.message;
@@ -258,6 +329,7 @@ export class OfficerCloudSyncService {
 
           if (!error) {
             syncedToCloud = true;
+            await this.ensureSampleCase(officerId, commodity, firmName, sampleCode, dateOfSampling, labStatus);
           } else {
             cloudError = error.message;
           }
@@ -283,6 +355,9 @@ export class OfficerCloudSyncService {
     const officerId = await this.getCurrentOfficerId();
 
     const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+    const cloudInspectionDraftIds = new Set<string>();
+    const cloudOrderRefs = new Set<string>();
+    const cloudSampleCodes = new Set<string>();
 
     // 1. Read Cloud Records if online
     if (officerId && isOnline) {
@@ -295,6 +370,7 @@ export class OfficerCloudSyncService {
 
         if (ordersRes.data) {
           ordersRes.data.forEach((row: OfficerStatutoryOrderDbRecord & { id: string }) => {
+            if (row.order_number) cloudOrderRefs.add(String(row.order_number));
             records.push({
               id: row.id,
               source: 'cloud',
@@ -315,6 +391,8 @@ export class OfficerCloudSyncService {
 
         if (inspRes.data) {
           inspRes.data.forEach((row: OfficerInspectionDbRecord & { id: string }) => {
+            const fj = row.findings_json as Record<string, unknown> | undefined;
+            if (fj && typeof fj === 'object' && fj.id) cloudInspectionDraftIds.add(String(fj.id));
             records.push({
               id: row.id,
               source: 'cloud',
@@ -335,6 +413,7 @@ export class OfficerCloudSyncService {
 
         if (samplesRes.data) {
           samplesRes.data.forEach((row: OfficerSampleDbRecord & { id: string }) => {
+            if (row.sample_code) cloudSampleCodes.add(String(row.sample_code));
             records.push({
               id: row.id,
               source: 'cloud',
@@ -358,7 +437,6 @@ export class OfficerCloudSyncService {
     }
 
     // 2. Read local records from safeStorage and include any that aren't already represented
-    const knownRefNumbers = new Set(records.map((r) => r.referenceNumber));
 
     // Scan Orders
     Object.entries(OFFICER_LOCAL_STORAGE_KEYS.ORDERS).forEach(([keyName, storageKey]) => {
@@ -378,8 +456,13 @@ export class OfficerCloudSyncService {
           : 'fertilizer';
 
         parsed.forEach((item: Record<string, unknown>) => {
-          const refNo = String(item.orderNumber || item.noticeNumber || item.id || '');
-          if (refNo && knownRefNumbers.has(refNo)) return; // already in cloud list
+          // Record-on-issue: saved drafts are local working data, not records.
+          if (!item.issuedAt) return;
+          // Must mirror the order_number fallback chain used by syncStatutoryOrder
+          // (orderNumber → noticeNumber → memoNumber → refNumber → id) or SCN and
+          // seizure orders never match their cloud row and appear duplicated.
+          const refNo = String(item.orderNumber || item.noticeNumber || item.memoNumber || item.refNumber || item.id || '');
+          if (refNo && cloudOrderRefs.has(refNo)) return; // already in cloud list
 
           records.push({
             id: String(item.id || `local-${Math.random().toString(36).slice(2, 7)}`),
@@ -395,6 +478,79 @@ export class OfficerCloudSyncService {
             details: item,
             synced: false,
             createdAt: String(item.savedAt || new Date().toISOString()),
+          });
+        });
+      } catch {
+        // skip malformed local keys
+      }
+    });
+
+    // Scan issued inspection drafts (record-on-issue: only drafts whose document
+    // was generated are official records)
+    Object.entries(OFFICER_LOCAL_STORAGE_KEYS.INSPECTIONS).forEach(([keyName, storageKey]) => {
+      try {
+        const raw = safeStorage.getItem(storageKey);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return;
+
+        const comm = keyName as StatutoryCommodity;
+        parsed.forEach((item: Record<string, unknown>) => {
+          if (!item.issuedAt) return;
+          const draftId = String(item.id || '');
+          if (draftId && cloudInspectionDraftIds.has(draftId)) return;
+
+          const form = (item.form && typeof item.form === 'object' ? item.form : {}) as Record<string, unknown>;
+          records.push({
+            id: `local-insp-${comm}-${draftId || 'draft'}`,
+            source: 'local',
+            category: 'inspection',
+            subType: comm,
+            commodity: comm,
+            title: `${comm.toUpperCase()} DEALER INSPECTION [Local]`,
+            referenceNumber: String(form.licenceNo || form.licenseNumber || draftId || 'Draft'),
+            entityName: String(form.dealerName || form.firmName || 'Local Draft'),
+            recordDate: String(form.inspectionDate || item.savedAt || new Date().toISOString().slice(0, 10)),
+            location: String(form.mandal || form.district || 'Local Storage'),
+            details: item,
+            synced: false,
+            createdAt: String(item.issuedAt || item.savedAt || new Date().toISOString()),
+          });
+        });
+      } catch {
+        // skip malformed local keys
+      }
+    });
+
+    // Scan covering-letter queue samples (record-on-issue: queue items are
+    // registered samples; dedupe against cloud by sample_code)
+    Object.entries(OFFICER_LOCAL_STORAGE_KEYS.SAMPLES).forEach(([keyName, storageKey]) => {
+      try {
+        const raw = safeStorage.getItem(storageKey);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return;
+
+        const comm = keyName as StatutoryCommodity;
+        parsed.forEach((item: Record<string, unknown>, index: number) => {
+          if (!item.issuedAt) return; // unissued covering-letter queue drafts are not records
+          const sampleCode = String(item.sampleCode || '').trim();
+          if (!sampleCode || cloudSampleCodes.has(sampleCode)) return;
+
+          records.push({
+            id: `local-sample-${comm}-${sampleCode}-${index}`,
+            source: 'local',
+            category: 'sample',
+            subType: comm,
+            commodity: comm,
+            title: `${comm.toUpperCase()} SAMPLE MEMO [Local]`,
+            referenceNumber: sampleCode,
+            entityName: String(item.firmName || item.dealerName || 'Local Draft'),
+            recordDate: String(item.dateOfSampling || item.samplingDate || new Date().toISOString().slice(0, 10)),
+            location: 'Local Storage',
+            details: item,
+            synced: false,
+            createdAt: new Date().toISOString(),
           });
         });
       } catch {
@@ -439,14 +595,33 @@ export class OfficerCloudSyncService {
       }
     }
 
-    // Also remove from any local arrays if present
-    Object.values(OFFICER_LOCAL_STORAGE_KEYS.ORDERS).forEach((key) => {
+    // Also remove from any local arrays if present (orders, inspections, samples).
+    // Match on every identifier a local item can carry — record.id covers cloud
+    // rows and local order/draft ids, details.id covers inspection drafts whose
+    // unified id is prefixed, and the reference fallbacks mirror the sync chain.
+    const detailId = String((record.details as Record<string, unknown> | undefined)?.id ?? '');
+    const allLocalKeys = [
+      ...Object.values(OFFICER_LOCAL_STORAGE_KEYS.ORDERS),
+      ...Object.values(OFFICER_LOCAL_STORAGE_KEYS.INSPECTIONS),
+      ...Object.values(OFFICER_LOCAL_STORAGE_KEYS.SAMPLES),
+    ];
+    allLocalKeys.forEach((key) => {
       try {
         const raw = safeStorage.getItem(key);
         if (!raw) return;
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-          const filtered = parsed.filter((item: Record<string, unknown>) => item.id !== record.id && item.orderNumber !== record.referenceNumber);
+          const filtered = parsed.filter((item: Record<string, unknown>) => {
+            const localRef = String(
+              item.orderNumber || item.noticeNumber || item.memoNumber || item.refNumber || item.sampleCode || item.id || ''
+            );
+            return (
+              item.id !== record.id &&
+              item.id !== detailId &&
+              localRef !== record.referenceNumber &&
+              item.sampleCode !== record.referenceNumber
+            );
+          });
           safeStorage.setItem(key, JSON.stringify(filtered));
         }
       } catch {
@@ -454,6 +629,332 @@ export class OfficerCloudSyncService {
       }
     });
 
+    // Unlink the record from any open enforcement case
+    const officerId = await this.getCurrentOfficerId();
+    if (officerId) {
+      const detailId = String((record.details as Record<string, unknown> | undefined)?.id ?? '');
+      const recordLink =
+        record.category === 'order'
+          ? `${record.subType}:${record.referenceNumber}`
+          : record.category === 'sample'
+            ? `sample:${record.referenceNumber}`
+            : `inspection:${detailId || record.id}`;
+      await this.unlinkCaseRecord(officerId, recordLink);
+    }
+
     return cloudDeleted;
+  }
+
+  // ---------- Record deletion (form-level deletes) ----------
+
+  /** Removes a `kind:ref` link from any open case that references a deleted record. */
+  private static async unlinkCaseRecord(officerId: string, recordLink: string): Promise<void> {
+    try {
+      const { data: cases } = await supabase
+        .from('officer_cases')
+        .select('id, linked_record_ids')
+        .eq('officer_id', officerId)
+        .neq('stage', 'CLOSED');
+      for (const c of cases ?? []) {
+        const linked = Array.isArray(c.linked_record_ids) ? c.linked_record_ids.map(String) : [];
+        if (!linked.includes(recordLink)) continue;
+        await supabase
+          .from('officer_cases')
+          .update({ linked_record_ids: linked.filter((l) => l !== recordLink) })
+          .eq('id', c.id);
+      }
+    } catch {
+      // best-effort
+    }
+  }
+
+  /** Deletes the cloud inspection row for an issued draft. */
+  static async deleteInspectionRecord(commodity: StatutoryCommodity, draftId: string): Promise<boolean> {
+    const officerId = await this.getCurrentOfficerId();
+    const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+    if (!officerId || !isOnline || !draftId) return false;
+    try {
+      const { error } = await supabase
+        .from('officer_inspections')
+        .delete()
+        .eq('officer_id', officerId)
+        .filter('findings_json->>id', 'eq', draftId);
+      if (error) return false;
+      await this.unlinkCaseRecord(officerId, `inspection:${draftId}`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Deletes the cloud statutory-order row by its natural key. */
+  static async deleteStatutoryOrderRecord(
+    orderType: StatutoryOrderType,
+    commodity: StatutoryCommodity,
+    orderNumber: string
+  ): Promise<boolean> {
+    const officerId = await this.getCurrentOfficerId();
+    const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+    if (!officerId || !isOnline || !orderNumber) return false;
+    try {
+      const { error } = await supabase
+        .from('officer_statutory_orders')
+        .delete()
+        .eq('officer_id', officerId)
+        .eq('order_type', orderType)
+        .eq('commodity', commodity)
+        .eq('order_number', orderNumber);
+      if (error) return false;
+      await this.unlinkCaseRecord(officerId, `${orderType}:${orderNumber}`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Deletes the cloud sample-memo row by commodity + sample code. */
+  static async deleteSampleMemoRecord(commodity: StatutoryCommodity, sampleCode: string): Promise<boolean> {
+    const officerId = await this.getCurrentOfficerId();
+    const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+    if (!officerId || !isOnline || !sampleCode) return false;
+    try {
+      const { error } = await supabase
+        .from('officer_samples')
+        .delete()
+        .eq('officer_id', officerId)
+        .eq('commodity', commodity)
+        .eq('sample_code', sampleCode);
+      if (error) return false;
+      await this.unlinkCaseRecord(officerId, `sample:${sampleCode}`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // ---------- Enforcement case auto-linking ----------
+
+  private static readonly CASE_STAGE_RANK: Record<string, number> = {
+    INSPECTION: 0,
+    SAMPLING: 1,
+    LAB_TEST: 2,
+    SHOW_CAUSE: 3,
+    ENFORCEMENT: 4,
+    CLOSED: 5,
+  };
+
+  private static normalizeCaseDealer(name: string): string {
+    return name.trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+
+  private static orderCaseStage(orderType: StatutoryOrderType): { stage: string; priority: 'NORMAL' | 'HIGH' } {
+    if (orderType === 'show_cause') return { stage: 'SHOW_CAUSE', priority: 'NORMAL' };
+    return { stage: 'ENFORCEMENT', priority: 'HIGH' };
+  }
+
+  private static sampleCaseStage(labStatus: OfficerSampleDbRecord['lab_status']): string {
+    return labStatus === 'TEST_PASSED' || labStatus === 'TEST_FAILED' ? 'LAB_TEST' : 'SAMPLING';
+  }
+
+  private static async ensureSampleCase(
+    officerId: string,
+    commodity: StatutoryCommodity,
+    firmName: string,
+    sampleCode: string,
+    dateOfSampling: string,
+    labStatus: OfficerSampleDbRecord['lab_status']
+  ): Promise<void> {
+    await this.ensureEnforcementCase({
+      officerId,
+      dealerName: firmName,
+      commodity,
+      stage: this.sampleCaseStage(labStatus),
+      recordRef: sampleCode,
+      recordDate: dateOfSampling,
+      recordKind: 'sample',
+    });
+  }
+
+  /**
+   * Auto-creates or updates an enforcement case for a dealer+commodity whenever
+   * a statutory record (inspection, sample memo, show-cause, stop-sale, seizure,
+   * revocation) is synced — so cases appear in the tracker without manual entry.
+   * Best-effort: failures never block record sync.
+   */
+  private static async ensureEnforcementCase(params: {
+    officerId: string;
+    dealerName: string;
+    commodity: StatutoryCommodity;
+    stage: string;
+    priority?: 'LOW' | 'NORMAL' | 'HIGH' | 'CRITICAL';
+    recordRef: string;
+    recordDate: string;
+    recordKind: string;
+  }): Promise<void> {
+    const dealerName = params.dealerName.trim();
+    const dealerKey = this.normalizeCaseDealer(dealerName);
+    if (!dealerKey || /unknown|sample source|dealer inspection/i.test(dealerKey)) return;
+    if (!(params.stage in this.CASE_STAGE_RANK)) return;
+
+    try {
+      const { data: openCases } = await supabase
+        .from('officer_cases')
+        .select('id, dealer_name, commodity, stage, linked_record_ids')
+        .eq('officer_id', params.officerId)
+        .neq('stage', 'CLOSED');
+
+      const recordLink = `${params.recordKind}:${params.recordRef}`;
+      const existing = (openCases ?? []).find(
+        (c) =>
+          c.commodity === params.commodity &&
+          this.normalizeCaseDealer(String(c.dealer_name ?? '')) === dealerKey
+      );
+
+      if (existing) {
+        const linked: string[] = Array.isArray(existing.linked_record_ids)
+          ? existing.linked_record_ids.map(String)
+          : [];
+        const updates: Record<string, unknown> = {};
+        if (!linked.includes(recordLink)) updates.linked_record_ids = [...linked, recordLink];
+        const currentRank = this.CASE_STAGE_RANK[String(existing.stage)] ?? 0;
+        const nextRank = this.CASE_STAGE_RANK[params.stage] ?? 0;
+        if (nextRank > currentRank) updates.stage = params.stage;
+        if (Object.keys(updates).length > 0) {
+          await supabase.from('officer_cases').update(updates).eq('id', existing.id);
+        }
+        return;
+      }
+
+      const today = new Date().toISOString().slice(0, 10);
+      await supabase.from('officer_cases').insert({
+        officer_id: params.officerId,
+        case_number: `CASE-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+        dealer_name: dealerName,
+        commodity: params.commodity,
+        stage: params.stage,
+        priority: params.priority ?? 'NORMAL',
+        opened_date: params.recordDate || today,
+        linked_record_ids: [recordLink],
+        notes: `Auto-created from ${params.recordKind} record ${params.recordRef}`,
+      });
+    } catch {
+      // Case auto-linking is best-effort; never block record sync.
+    }
+  }
+
+  // ---------- Offline pending-record flush ----------
+
+  private static flushTimer: ReturnType<typeof setTimeout> | null = null;
+  private static flushListenerRegistered = false;
+  private static lastFlushAt = 0;
+  private static flushing = false;
+
+  /**
+   * Re-syncs every locally stored official record (orders, issued inspection
+   * drafts, sample memos) to Supabase. All sync methods dedupe server-side, so
+   * re-running is safe — this is the safety net for records created while
+   * offline. Called automatically on reconnect; safe to call manually.
+   */
+  static async flushPendingLocalRecords(): Promise<{ attempted: number; synced: number }> {
+    const now = Date.now();
+    if (this.flushing || now - this.lastFlushAt < 30_000) {
+      return { attempted: 0, synced: 0 };
+    }
+    this.flushing = true;
+    this.lastFlushAt = now;
+
+    let attempted = 0;
+    let synced = 0;
+
+    const run = async (fn: () => Promise<SyncResult>) => {
+      attempted += 1;
+      try {
+        const result = await fn();
+        if (result.syncedToCloud) synced += 1;
+      } catch {
+        // keep flushing the rest; failures retry on next reconnect
+      }
+    };
+
+    try {
+      // Orders — every saved order is eligible (they persist on issue/save)
+      for (const [keyName, storageKey] of Object.entries(OFFICER_LOCAL_STORAGE_KEYS.ORDERS)) {
+        const items = this.readLocalArray(storageKey);
+        const orderType = (keyName.includes('stop_sale') ? 'stop_sale'
+          : keyName.includes('seizure') ? 'seizure'
+          : keyName.includes('revocation') ? 'revocation'
+          : 'show_cause') as StatutoryOrderType;
+        const commodity = (keyName.includes('seed') ? 'seed'
+          : keyName.includes('pesticide') ? 'pesticide'
+          : 'fertilizer') as StatutoryCommodity;
+        for (const item of items) {
+          // Record-on-issue: only orders whose document was actually generated
+          // (issuedAt set) are official records — saved drafts stay local.
+          if (!item.issuedAt) continue;
+          // Revocations must prefer revokeDate over the original notice's
+          // noticeDate; only override when a real value exists.
+          const overrides =
+            orderType === 'revocation' && item.revokeDate
+              ? { orderDate: String(item.revokeDate) }
+              : undefined;
+          await run(() => this.syncStatutoryOrder(orderType, commodity, item, overrides));
+        }
+      }
+
+      // Inspections — only issued drafts are official records
+      for (const [keyName, storageKey] of Object.entries(OFFICER_LOCAL_STORAGE_KEYS.INSPECTIONS)) {
+        const commodity = keyName as StatutoryCommodity;
+        for (const item of this.readLocalArray(storageKey)) {
+          if (!item.issuedAt) continue;
+          await run(() => this.syncInspection(commodity, item));
+        }
+      }
+
+      // Samples — covering-letter queue items; only issued samples are records
+      for (const [keyName, storageKey] of Object.entries(OFFICER_LOCAL_STORAGE_KEYS.SAMPLES)) {
+        const commodity = keyName as StatutoryCommodity;
+        for (const item of this.readLocalArray(storageKey)) {
+          if (!item.issuedAt) continue;
+          await run(() => this.syncSampleMemo(commodity, item));
+        }
+      }
+    } finally {
+      this.flushing = false;
+    }
+
+    return { attempted, synced };
+  }
+
+  /**
+   * Registers a one-time `online` listener that flushes pending local records
+   * when connectivity returns, plus an initial flush for records created while
+   * the app was offline in a previous session.
+   */
+  static initOfflineSyncRetry(): void {
+    if (typeof window === 'undefined' || this.flushListenerRegistered) return;
+    this.flushListenerRegistered = true;
+
+    window.addEventListener('online', () => {
+      void this.flushPendingLocalRecords();
+    });
+
+    // Flush shortly after boot in case connectivity returned while the app
+    // was closed — covers records issued offline in a previous session.
+    window.setTimeout(() => {
+      if (typeof navigator !== 'undefined' && navigator.onLine) {
+        void this.flushPendingLocalRecords();
+      }
+    }, 5_000);
+  }
+
+  private static readLocalArray(key: string): Record<string, unknown>[] {
+    try {
+      const raw = safeStorage.getItem(key);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
   }
 }

@@ -2,13 +2,15 @@ import type { OfficerDocumentArchiveRecord } from '../types/officerArchiveTypes'
 import type { UnifiedOfficerRecord } from './officerCloudSyncService';
 
 export interface ReportExportOptions {
-  activeTab: 'documents' | 'forms' | 'enforcement';
+  activeTab: 'documents' | 'forms' | 'enforcement' | 'all';
   categoryFilter?: string;
   commodityFilter?: string;
   searchQuery?: string;
   officerName?: string;
   designation?: string;
+  qualification?: string;
   location?: string;
+  district?: string;
   /** Optional per-record result overrides keyed by record id (e.g. sample status chosen at export time). */
   statusOverrides?: Record<string, string>;
 }
@@ -34,23 +36,57 @@ export class OfficerReportExportService {
     forms: UnifiedOfficerRecord[],
     options: ReportExportOptions
   ): ExtractedReportRow[] {
-    const isDocs = options.activeTab === 'documents';
     const defaultOfficer = options.officerName || 'Agricultural Officer / Inspector';
+
+    if (options.activeTab === 'all') {
+      // Form records carry richer statutory data — put them first so they win dedupe
+      const formRows = this.extractRows([], forms, { ...options, activeTab: 'forms' });
+      const docRows = this.extractRows(documents, [], { ...options, activeTab: 'documents' });
+      const seen = new Set<string>();
+      const merged: ExtractedReportRow[] = [];
+      for (const row of [...formRows, ...docRows]) {
+        const key = [row.codeNo, row.productName, row.firmName, row.samplingDate]
+          .map((v) => v.trim().toLowerCase())
+          .join('|');
+        if (seen.has(key)) continue;
+        seen.add(key);
+        merged.push(row);
+      }
+      return merged.map((row, idx) => ({ ...row, sNo: idx + 1 }));
+    }
+
+    const isDocs = options.activeTab === 'documents';
+
+    const sampleProductLabels = (meta: Record<string, unknown>): string => {
+      const list = meta.sampleProducts;
+      if (!Array.isArray(list)) return '';
+      return list
+        .map((p) => String((p as Record<string, unknown>)?.label || (p as Record<string, unknown>)?.name || ''))
+        .filter(Boolean)
+        .join(', ');
+    };
 
     if (isDocs) {
       return documents.map((doc, idx) => {
         const meta = (doc.metadata_json || {}) as Record<string, unknown>;
         const rawName = doc.document_name.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
 
-        const productName = String(
-          meta.productName ||
-            meta.product ||
-            meta.fertilizerName ||
-            meta.insecticideName ||
-            meta.variety ||
-            meta.commodity ||
-            rawName
-        );
+        const cropName = String(meta.cropName || meta.crop || meta.seedName || '');
+        const varietyName = String(meta.variety || meta.varietyName || '');
+        const badgeProducts = sampleProductLabels(meta);
+        const productName = cropName && varietyName
+          ? `${cropName} — ${varietyName}`
+          : String(
+              meta.productName ||
+                meta.product ||
+                meta.fertilizerName ||
+                meta.insecticideName ||
+                badgeProducts ||
+                cropName ||
+                varietyName ||
+                meta.commodity ||
+                rawName
+            );
 
         const firmName = String(
           meta.dealerName ||
@@ -112,15 +148,22 @@ export class OfficerReportExportService {
       return forms.map((rec, idx) => {
         const details = (rec.details || {}) as Record<string, unknown>;
 
-        const productName = String(
-          details.productName ||
-            details.product ||
-            details.fertilizerName ||
-            details.insecticideName ||
-            details.variety ||
-            details.commodity ||
-            rec.title
-        );
+        const cropName = String(details.cropName || details.crop || details.seedName || '');
+        const varietyName = String(details.variety || details.varietyName || '');
+        const badgeProducts = sampleProductLabels(details);
+        const productName = cropName && varietyName
+          ? `${cropName} — ${varietyName}`
+          : String(
+              details.productName ||
+                details.product ||
+                details.fertilizerName ||
+                details.insecticideName ||
+                badgeProducts ||
+                cropName ||
+                varietyName ||
+                details.commodity ||
+                rec.title
+            );
 
         const firmName = String(
           rec.entityName ||
@@ -176,6 +219,23 @@ export class OfficerReportExportService {
         };
       });
     }
+  }
+
+  /**
+   * Builds the officer identity lines shown under the report title:
+   * name + designation + qualification on the first line, jurisdiction on the second.
+   */
+  private static officerMetaLines(options: ReportExportOptions): { officerLine: string; detailLine: string } {
+    const designation = options.designation?.trim() || 'Agricultural Officer';
+    const qualification = options.qualification?.trim() || '—';
+    const jurisdiction = [options.location, options.district]
+      .map((v) => (v || '').trim())
+      .filter((v, i, a) => v.length > 0 && a.indexOf(v) === i)
+      .join(', ') || 'Telangana';
+    return {
+      officerLine: `Name: ${options.officerName || 'Agricultural Officer'}  |  Designation: ${designation}  |  ${qualification}`,
+      detailLine: `Jurisdiction: ${jurisdiction}`,
+    };
   }
 
   /**
@@ -260,7 +320,7 @@ export class OfficerReportExportService {
     const sheet = workbook.addWorksheet('Official Report', {
       pageSetup: {
         paperSize: 9, // A4
-        orientation: 'landscape',
+        orientation: 'portrait',
         fitToPage: true,
         fitToWidth: 1,
         fitToHeight: 0,
@@ -268,7 +328,7 @@ export class OfficerReportExportService {
     });
 
     // 1. Header Banner
-    sheet.mergeCells('A1:H1');
+    sheet.mergeCells('A1:G1');
     const titleCell = sheet.getCell('A1');
     titleCell.value = mainTitle;
     titleCell.font = { name: 'Arial', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -276,7 +336,7 @@ export class OfficerReportExportService {
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF15803D' } }; // emerald-700
     sheet.getRow(1).height = 28;
 
-    sheet.mergeCells('A2:H2');
+    sheet.mergeCells('A2:G2');
     const subCell = sheet.getCell('A2');
     subCell.value = subTitle;
     subCell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FF1E293B' } };
@@ -285,28 +345,36 @@ export class OfficerReportExportService {
     sheet.getRow(2).height = 22;
 
     // 2. Metadata Info Box
+    const { officerLine, detailLine } = this.officerMetaLines(options);
+
     sheet.mergeCells('A3:D3');
     const metaLeft = sheet.getCell('A3');
-    metaLeft.value = `Officer: ${options.officerName || 'Agricultural Officer'} | Jurisdiction: ${options.location || 'Telangana'}`;
-    metaLeft.font = { name: 'Arial', size: 9, italic: true };
+    metaLeft.value = officerLine;
+    metaLeft.font = { name: 'Arial', size: 9, bold: true };
     metaLeft.alignment = { horizontal: 'left', vertical: 'middle' };
 
-    sheet.mergeCells('E3:H3');
+    sheet.mergeCells('E3:G3');
     const metaRight = sheet.getCell('E3');
     metaRight.value = `Date: ${dateStr} | Total Records: ${rows.length}`;
     metaRight.font = { name: 'Arial', size: 9, italic: true };
     metaRight.alignment = { horizontal: 'right', vertical: 'middle' };
     sheet.getRow(3).height = 18;
 
+    sheet.mergeCells('A4:G4');
+    const metaDetail = sheet.getCell('A4');
+    metaDetail.value = detailLine;
+    metaDetail.font = { name: 'Arial', size: 9, italic: true, color: { argb: 'FF475569' } };
+    metaDetail.alignment = { horizontal: 'left', vertical: 'middle' };
+    sheet.getRow(4).height = 16;
+
     // 3. Table Column Headers
     const headers = [
       'S.No',
-      'Product Name',
+      'Code No',
+      'Product / Crop & Variety',
       'Firm Name',
       'Firm Address',
-      'Code No',
-      'Date of Sampling',
-      'Officer Name',
+      'Sampling Date',
       'Result / Remarks',
     ];
 
@@ -329,12 +397,11 @@ export class OfficerReportExportService {
     rows.forEach((r, idx) => {
       const row = sheet.addRow([
         r.sNo,
+        r.codeNo,
         r.productName,
         r.firmName,
         r.firmAddress,
-        r.codeNo,
         r.samplingDate,
-        r.officerName,
         r.resultRemarks,
       ]);
       row.height = 20;
@@ -353,7 +420,7 @@ export class OfficerReportExportService {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
         }
         // Center S.No, Code No, and Date
-        if (colNum === 1 || colNum === 5 || colNum === 6) {
+        if (colNum === 1 || colNum === 2 || colNum === 6) {
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
         } else {
           cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
@@ -363,14 +430,13 @@ export class OfficerReportExportService {
 
     // 5. Column Widths
     sheet.columns = [
-      { width: 8 },  // S.No
-      { width: 26 }, // Product Name
-      { width: 24 }, // Firm Name
-      { width: 26 }, // Firm Address
+      { width: 7 },  // S.No
       { width: 16 }, // Code No
-      { width: 16 }, // Date of Sampling
-      { width: 22 }, // Officer Name
-      { width: 20 }, // Result / Remarks
+      { width: 26 }, // Product / Crop & Variety
+      { width: 22 }, // Firm Name
+      { width: 26 }, // Firm Address
+      { width: 15 }, // Date of Sampling
+      { width: 24 }, // Result / Remarks
     ];
 
     const buffer = await workbook.xlsx.writeBuffer();
@@ -392,7 +458,7 @@ export class OfficerReportExportService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const autoTable = (autoTableModule as any).default || autoTableModule;
 
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const { mainTitle, subTitle, filenameBase } = this.getReportTitle(options);
     const dateStr = new Date().toISOString().slice(0, 10);
     const filename = `${filenameBase}_${dateStr}.pdf`;
@@ -414,39 +480,42 @@ export class OfficerReportExportService {
     doc.text(subTitle, pageWidth / 2, 23, { align: 'center' });
 
     // 3. Metadata Bar
-    doc.setFont('times', 'normal');
+    const { officerLine, detailLine } = this.officerMetaLines(options);
+    doc.setFont('times', 'bold');
     doc.setFontSize(8.5);
+    doc.setTextColor(30, 41, 59);
+    doc.text(officerLine, 10, 28);
+    doc.setFont('times', 'normal');
+    doc.setFontSize(8);
     doc.setTextColor(71, 85, 105);
-    const metaLeft = `Officer: ${options.officerName || 'Agricultural Officer'} | Jurisdiction: ${options.location || 'Telangana'}`;
-    const metaRight = `Date: ${dateStr} | Total Records: ${rows.length}`;
-    doc.text(metaLeft, 10, 28);
-    doc.text(metaRight, pageWidth - 10, 28, { align: 'right' });
+    doc.text(detailLine, 10, 32.5);
+    doc.setFontSize(8.5);
+    doc.text(`Date: ${dateStr} | Total Records: ${rows.length}`, pageWidth - 10, 28, { align: 'right' });
 
     // 4. AutoTable
     const headers = [
-      ['S.No', 'Product Name', 'Firm Name', 'Firm Address', 'Code No', 'Date of Sampling', 'Officer Name', 'Result / Remarks'],
+      ['S.No', 'Code No', 'Product / Crop & Variety', 'Firm Name', 'Firm Address', 'Sampling Date', 'Result / Remarks'],
     ];
 
     const body = rows.map((r) => [
       String(r.sNo),
+      r.codeNo,
       r.productName,
       r.firmName,
       r.firmAddress,
-      r.codeNo,
       r.samplingDate,
-      r.officerName,
       r.resultRemarks,
     ]);
 
     autoTable(doc, {
-      startY: 31,
+      startY: 36,
       head: headers,
       body,
       theme: 'grid',
       styles: {
         font: 'times',
-        fontSize: 8,
-        cellPadding: 1.8,
+        fontSize: 7.5,
+        cellPadding: 1.5,
         lineColor: [226, 232, 240],
         lineWidth: 0.2,
         textColor: [30, 41, 59],
@@ -455,20 +524,20 @@ export class OfficerReportExportService {
         fillColor: [5, 150, 105], // emerald-600
         textColor: [255, 255, 255],
         fontStyle: 'bold',
+        fontSize: 7.5,
         halign: 'center',
       },
       alternateRowStyles: {
         fillColor: [248, 250, 252],
       },
       columnStyles: {
-        0: { halign: 'center', cellWidth: 12 }, // S.No
-        1: { cellWidth: 46 },                  // Product Name
-        2: { cellWidth: 40 },                  // Firm Name
-        3: { cellWidth: 44 },                  // Firm Address
-        4: { halign: 'center', cellWidth: 26 }, // Code No
-        5: { halign: 'center', cellWidth: 26 }, // Date of Sampling
-        6: { cellWidth: 40 },                  // Officer Name
-        7: { cellWidth: 38 },                  // Result / Remarks
+        0: { halign: 'center', cellWidth: 8 },  // S.No
+        1: { halign: 'center', cellWidth: 22 }, // Code No
+        2: { cellWidth: 38 },                   // Product / Crop & Variety
+        3: { cellWidth: 28 },                   // Firm Name
+        4: { cellWidth: 34 },                   // Firm Address
+        5: { halign: 'center', cellWidth: 20 }, // Date of Sampling
+        6: { cellWidth: 40 },                   // Result / Remarks
       },
       margin: { left: 10, right: 10 },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

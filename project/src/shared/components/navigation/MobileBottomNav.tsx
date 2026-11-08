@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Scale, TestTubes, CalendarDays, LayoutGrid } from 'lucide-react';
+import { Home, Scale, TestTubes, BookOpen, LayoutGrid } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface MobileBottomNavProps {
@@ -10,7 +10,6 @@ interface MobileBottomNavProps {
 const ENFORCEMENT_PAGES = new Set([
   'acts-and-orders',
   'enforcement-tracker',
-  'forms-library',
   'inspection-enforcement',
   'license-services',
   'seed-dealer-inspection',
@@ -20,32 +19,15 @@ const ENFORCEMENT_PAGES = new Set([
 
 const SAMPLING_PAGES = new Set(['forms']);
 
-const TOUR_PAGES = new Set([
-  'dealers',
-  'farm-mechanization',
-  'farmer-database',
-  'officer-contacts',
-  'officer-contacts-admin',
-  'quality',
-  'quality-seeds',
-  'quality-pesticides',
-  'quality-fertilizers',
-  'subsidy',
-  'subsidy-nfsm',
-  'subsidy-state-seed',
-  'tour-diary',
-  'officer-records',
-  'stock-analytics',
-  'stock-receipts-sales',
-]);
+const LIBRARY_PAGES = new Set(['forms-library']);
 
-type TabId = 'home' | 'enforcement' | 'sampling' | 'tour' | 'more';
+type TabId = 'home' | 'enforcement' | 'sampling' | 'library' | 'more';
 
 function activeTabFor(page: string): TabId {
   if (page === 'dashboard' || page === 'dealer-portal') return 'home';
   if (ENFORCEMENT_PAGES.has(page)) return 'enforcement';
   if (SAMPLING_PAGES.has(page)) return 'sampling';
-  if (TOUR_PAGES.has(page)) return 'tour';
+  if (LIBRARY_PAGES.has(page)) return 'library';
   return 'more';
 }
 
@@ -57,7 +39,7 @@ export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProp
     { id: 'home', label: 'Home', labelTe: 'హోమ్', icon: Home, target: 'dashboard' },
     { id: 'enforcement', label: 'Enforcement', labelTe: 'ఎన్‌ఫోర్స్‌మెంట్', icon: Scale, target: 'inspection-enforcement' },
     { id: 'sampling', label: 'Sampling', labelTe: 'సాంప్లింగ్', icon: TestTubes, target: 'forms' },
-    { id: 'tour', label: 'Tour', labelTe: 'టూర్', icon: CalendarDays, target: 'tour-diary' },
+    { id: 'library', label: 'Library', labelTe: 'లైబ్రరీ', icon: BookOpen, target: 'forms-library' },
     { id: 'more', label: 'More', labelTe: 'మరిన్ని', icon: LayoutGrid, target: 'all-modules' },
   ];
 

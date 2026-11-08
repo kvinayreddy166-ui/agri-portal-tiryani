@@ -112,11 +112,11 @@ describe('OfficerRecordsHub (Enhanced Cloudflare R2 Archive)', () => {
     expect(html).not.toContain('Cloudflare R2 Active');
   });
 
-  it('renders the tab options for Cloud Storage and My Records', () => {
+  it('renders a single merged view without separate storage/records tabs', () => {
     const html = renderToString(<OfficerRecordsHub />);
 
-    expect(html).toContain('Cloud Storage');
-    expect(html).toContain('My Records');
+    expect(html).not.toContain('Cloud Storage');
+    expect(html).not.toContain('My Records');
   });
 
   it('renders filter controls, search bar, and compact Export button', () => {
@@ -125,7 +125,7 @@ describe('OfficerRecordsHub (Enhanced Cloudflare R2 Archive)', () => {
     expect(html).toContain('All Categories');
     expect(html).toContain('Statutory Orders');
     expect(html).toContain('Show Cause Notices');
-    expect(html).toContain('Search by document name');
+    expect(html).toContain('Search by name, number, firm, product');
     expect(html).toContain('Export');
     expect(html).toContain('List View');
   });

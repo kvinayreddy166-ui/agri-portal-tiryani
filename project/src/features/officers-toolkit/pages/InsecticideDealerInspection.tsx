@@ -5,6 +5,7 @@ import { ClipboardCheck, Eye, FileDown, FileUp, FolderOpen, RotateCcw, Save, Tra
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -14,6 +15,7 @@ import { ActionButton, ExportMenu, Field, InspectionTheme, Modal, RowTable, Sect
 import { emptyStatus, formatDate, listOrNil, statusText, toggleText } from '../inspection/types';
 import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField } from '../inspection/types';
 import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../inspection/persistence';
+import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../inspection/useDirtyGuard';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 
@@ -135,6 +137,7 @@ export function InsecticideDealerInspection() {
   const [confirmAction, setConfirmAction] = useState<{ title: string; message?: string; action: () => void } | null>(null);
   const [form, setForm] = useState<InspectionForm>(() => loadPersistedForm(FORM_KEY, initialForm, migrateForm));
   const [drafts, setDrafts] = useState<DraftRecord[]>(() => loadPersistedDrafts(DRAFTS_KEY, migrateForm));
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<number, boolean>>({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false });
   const [sameStorageAsSale, setSameStorageAsSale] = useState(false);
@@ -167,13 +170,40 @@ export function InsecticideDealerInspection() {
 
   const saveDraft = () => {
     const name = `${form.dealerName.trim() || 'Untitled dealer'} - ${formatDate(form.inspectionDate) || 'No date'}`;
-    const record: DraftRecord = { id: activeDraftId ?? `${Date.now()}`, name, savedAt: new Date().toISOString(), form };
+    const issuedAt = drafts.find((d) => d.id === activeDraftId)?.issuedAt;
+    const record: DraftRecord = { id: activeDraftId ?? `${Date.now()}`, name, savedAt: new Date().toISOString(), form, issuedAt };
     const next = activeDraftId ? drafts.map((d) => (d.id === activeDraftId ? record : d)) : [record, ...drafts];
     setDrafts(next);
     persistDraftRecords(DRAFTS_KEY, next);
     setActiveDraftId(record.id);
     setDirty(false);
     showSaved('Draft saved', name);
+  };
+
+  // Record-on-issue: the inspection becomes a cloud record only when the
+  // officer actually generates the document (PDF/print/Excel).
+  const issueInspection = async (): Promise<boolean> => {
+    const dealer = form.dealerName.trim();
+    const ok = await askConfirm({
+      title: `Issue Dealer Inspection for ${dealer || 'this dealer'}?`,
+      message: 'The record will be saved to cloud records.',
+      confirmLabel: 'Issue',
+    });
+    if (!ok) return false;
+    const name = `${dealer || 'Untitled dealer'} - ${formatDate(form.inspectionDate) || 'No date'}`;
+    const record: DraftRecord = {
+      id: activeDraftId ?? `${Date.now()}`,
+      name,
+      savedAt: new Date().toISOString(),
+      form,
+      issuedAt: new Date().toISOString(),
+    };
+    const next = activeDraftId ? drafts.map((d) => (d.id === activeDraftId ? record : d)) : [record, ...drafts];
+    setDrafts(next);
+    persistDraftRecords(DRAFTS_KEY, next);
+    setActiveDraftId(record.id);
+    setDirty(false);
+    return true;
   };
 
   const loadDraft = (draft: DraftRecord) => {
@@ -189,9 +219,11 @@ export function InsecticideDealerInspection() {
       title: 'Delete this draft?',
       message: 'The saved draft will be removed permanently.',
       action: () => {
+        const draft = drafts.find((d) => d.id === id);
         const next = drafts.filter((d) => d.id !== id);
         setDrafts(next);
         persistDraftRecords(DRAFTS_KEY, next);
+        if (draft?.issuedAt) void OfficerCloudSyncService.deleteInspectionRecord('pesticide', id);
         if (activeDraftId === id) setActiveDraftId(null);
         showDeleted('Draft deleted');
       },
@@ -248,6 +280,7 @@ export function InsecticideDealerInspection() {
       setOpenSections((current) => ({ ...current, 1: true }));
       return;
     }
+    if (!(await issueInspection())) return;
     try {
       const doc = await buildPdf(form);
       await addEmblemImageWatermark(doc);
@@ -279,6 +312,7 @@ export function InsecticideDealerInspection() {
       setOpenSections((current) => ({ ...current, 1: true }));
       return;
     }
+    if (!(await issueInspection())) return;
     try {
       const { exportInspectionExcel } = await import('../inspection/excelExport');
       const { items, subTables } = buildRows(form);
@@ -309,6 +343,7 @@ export function InsecticideDealerInspection() {
       setOpenSections((current) => ({ ...current, 1: true }));
       return;
     }
+    if (!(await issueInspection())) return;
     try {
       const doc = await buildPdf(form);
       await addEmblemImageWatermark(doc);
@@ -376,6 +411,7 @@ export function InsecticideDealerInspection() {
     <InspectionTheme tone="rose">
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-red-50 to-pink-50 dark:from-slate-950 dark:via-rose-950 dark:to-red-950">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      {confirmDialog}
       <ConfirmDialog
         open={confirmAction !== null}
         title={confirmAction?.title ?? ''}

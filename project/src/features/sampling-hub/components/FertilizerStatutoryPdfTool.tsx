@@ -1196,25 +1196,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         setPdfPreview({ url: blobUrl, name: fileName });
       }
       setFormType(type);
-      await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
-        filename: fileName,
-        documentCategory: 'sample',
-        sourceModule: 'fertilizer_statutory',
-        fileFormat: 'pdf',
-        mimeType: 'application/pdf',
-        metadata: {
-          type: 'fertilizer_statutory_form',
-          viaPreview: true,
-          formType: type,
-          productName: resolveFertilizerTypeGrade(documentValues) || documentValues.nameGrade || '',
-          firmName: documentValues.dealerName || '',
-          firmAddress: documentValues.dealerAddress || documentValues.place || documentValues.premisesLocation || '',
-          codeNo: documentValues.sampleCode || documentValues.codeNumber || documentValues.no || '',
-          samplingDate: documentValues.samplingDate || documentValues.date || '',
-          officerName: documentValues.officerName || '',
-          payload: documentValues,
-        },
-      });
       showInfo('Preview Opened', mobileTab ? 'PDF preview opened in a new tab.' : 'PDF preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview fertilizer PDF:', error);
@@ -1267,24 +1248,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       } else {
         setPdfPreview({ url: blobUrl, name: fileName });
       }
-      await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
-        filename: fileName,
-        documentCategory: 'sample',
-        sourceModule: 'fertilizer_statutory',
-        fileFormat: 'pdf',
-        mimeType: 'application/pdf',
-        metadata: {
-          type: 'fertilizer_statutory_all_forms',
-          viaPreview: true,
-          productName: resolveFertilizerTypeGrade(documentValues) || documentValues.nameGrade || '',
-          firmName: documentValues.dealerName || '',
-          firmAddress: documentValues.dealerAddress || documentValues.place || documentValues.premisesLocation || '',
-          codeNo: documentValues.sampleCode || documentValues.codeNumber || documentValues.no || '',
-          samplingDate: documentValues.samplingDate || documentValues.date || '',
-          officerName: documentValues.officerName || '',
-          payload: documentValues,
-        },
-      });
       showInfo('Preview Opened', mobileTab ? 'All forms preview opened in a new tab.' : 'All forms preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview all fertilizer PDFs:', error);
@@ -1339,7 +1302,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         samplingDate: documentValues.samplingDate || documentValues.date || '',
         officerName: documentValues.officerName || '',
         payload: documentValues,
-      });
+      }, false);
       showSuccess(`PDF Downloaded Successfully${archiveStatusNote(archiveResult)}`, fileName, 4000);
     } catch (error) {
       console.error('Unable to download fertilizer PDF:', error);
@@ -2610,7 +2573,8 @@ function archiveStatusNote(result?: { uploadStatus?: string } | null): string {
 async function downloadFertilizerDoc(
   doc: { output: (type: 'blob') => Blob },
   fileName: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
+  shouldArchive = true
 ) {
   try {
     const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
@@ -2625,6 +2589,8 @@ async function downloadFertilizerDoc(
     link.remove();
 
     window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+
+    if (!shouldArchive) return undefined;
 
     // Auto-archive statutory fertilizer document
     return await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
@@ -2646,6 +2612,8 @@ async function downloadFertilizerDoc(
       const blobUrl = URL.createObjectURL(blob);
       window.open(blobUrl, '_blank', 'noopener,noreferrer');
       window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+
+      if (!shouldArchive) return undefined;
 
       // Auto-archive statutory fertilizer document
       return await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {

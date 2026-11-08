@@ -45,12 +45,171 @@ import type {
 } from '../types/officerArchiveTypes';
 import type { StatutoryCommodity } from '../../auth/types/officerAuth';
 
+type DocumentCommodity = StatutoryCommodity;
+
+const COMMODITY_BADGE_STYLES: Record<DocumentCommodity, string> = {
+  fertilizer: 'bg-emerald-100 text-emerald-800 ring-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:ring-emerald-800/60',
+  pesticide: 'bg-orange-100 text-orange-800 ring-orange-200 dark:bg-orange-950/60 dark:text-orange-300 dark:ring-orange-800/60',
+  seed: 'bg-sky-100 text-sky-800 ring-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:ring-sky-800/60',
+};
+
+const COMMODITY_LABELS: Record<DocumentCommodity, { en: string; te: string }> = {
+  fertilizer: { en: 'Fertilizer', te: 'ఎరువు' },
+  pesticide: { en: 'Pesticide', te: 'పురుగుమందు' },
+  seed: { en: 'Seed', te: 'విత్తనం' },
+};
+
+/** Resolves the commodity for a sample document from archive metadata or source module. */
+function getDocumentCommodity(doc: OfficerDocumentArchiveRecord): DocumentCommodity | null {
+  const metaCommodity = String((doc.metadata_json as Record<string, unknown> | undefined)?.commodity ?? '').toLowerCase();
+  if (metaCommodity === 'fertilizer' || metaCommodity === 'pesticide' || metaCommodity === 'seed') {
+    return metaCommodity;
+  }
+  const moduleName = String(doc.source_module || '').toLowerCase();
+  if (moduleName.includes('pesticide') || moduleName.includes('insecticide')) return 'pesticide';
+  if (moduleName.includes('seed')) return 'seed';
+  if (moduleName.includes('fertilizer') || moduleName.includes('fertiliser') || moduleName === 'covering_letter') return 'fertilizer';
+  return null;
+}
+
+/** Product labels for a sample document: covering-letter sampleProducts, crop+variety, or statutory productName. */
+function getSampleProductLabels(doc: OfficerDocumentArchiveRecord): string[] {
+  const meta = doc.metadata_json as Record<string, unknown> | undefined;
+  if (!meta) return [];
+  const products = meta.sampleProducts;
+  if (Array.isArray(products)) {
+    const labels = products
+      .map((p) => String((p as Record<string, unknown>)?.label ?? '').trim())
+      .filter(Boolean);
+    if (labels.length > 0) return labels;
+  }
+  // Statutory forms keep the full form payload — build "Crop — Variety" like covering-letter badges
+  const payload = (meta.payload || {}) as Record<string, unknown>;
+  const pick = (...vals: unknown[]) => vals.map((v) => String(v ?? '').trim()).find(Boolean) || '';
+  const crop = pick(meta.cropName, meta.crop, meta.seedName, payload.crop, payload.seedName, payload.cropName);
+  const variety = pick(meta.variety, meta.varietyName, meta.kindVariety, payload.variety, payload.varietyName, payload.kindVariety);
+  if (crop) return [variety ? `${crop} — ${variety}` : crop];
+  if (variety) return [variety];
+  const productName = String(meta.productName ?? '').trim();
+  return productName ? [productName] : [];
+}
+
+/** Renders commodity + product badges for sample-category documents. */
+function SampleDocumentBadges({ doc, t }: { doc: OfficerDocumentArchiveRecord; t: (en: string, te: string) => string }) {
+  if (doc.document_category !== 'sample') return null;
+  const commodity = getDocumentCommodity(doc);
+  const products = getSampleProductLabels(doc);
+  if (!commodity && products.length === 0) return null;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1">
+      {commodity && (
+        <span
+          className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-black uppercase ring-1 ${COMMODITY_BADGE_STYLES[commodity]}`}
+          title={t('Sample commodity', 'నమూనా వస్తువు')}
+        >
+          {t(COMMODITY_LABELS[commodity].en, COMMODITY_LABELS[commodity].te)}
+        </span>
+      )}
+      {products.map((label, index) => (
+        <span
+          key={`${doc.id}-product-${index}`}
+          className="inline-flex max-w-[220px] items-center truncate rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold text-violet-800 ring-1 ring-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-800/60"
+          title={label}
+        >
+          {label}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** Product labels for a form record: sampleProducts badges, crop+variety, or product fields in details. */
+function getRecordProductLabels(record: UnifiedOfficerRecord): string[] {
+  const details = (record.details || {}) as Record<string, unknown>;
+  const products = details.sampleProducts;
+  if (Array.isArray(products)) {
+    const labels = products
+      .map((p) => String((p as Record<string, unknown>)?.label ?? '').trim())
+      .filter(Boolean);
+    if (labels.length > 0) return labels;
+  }
+  const pick = (...vals: unknown[]) => vals.map((v) => String(v ?? '').trim()).find(Boolean) || '';
+  const crop = pick(details.cropName, details.crop, details.seedName);
+  const variety = pick(details.variety, details.varietyName, details.kindVariety);
+  if (crop) return [variety ? `${crop} — ${variety}` : crop];
+  if (variety) return [variety];
+  const product = pick(
+    details.productName,
+    details.fertilizerName,
+    details.technicalName,
+    details.tradeName,
+    details.insecticideName,
+    details.product
+  );
+  return product ? [product] : [];
+}
+
+/** Renders product badges (crop — variety / fertilizer / technical name) on form-record cards. */
+function RecordProductBadges({ record }: { record: UnifiedOfficerRecord }) {
+  const labels = getRecordProductLabels(record);
+  if (labels.length === 0) return null;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1">
+      {labels.map((label, index) => (
+        <span
+          key={`${record.id}-product-${index}`}
+          className="inline-flex max-w-[220px] items-center truncate rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold text-violet-800 ring-1 ring-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-800/60"
+          title={label}
+        >
+          {label}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** Code number for a form record: statutory "Code No. of sample" fields, falling back to the reference number. */
+function getRecordCodeNo(record: UnifiedOfficerRecord): string {
+  const details = (record.details || {}) as Record<string, unknown>;
+  const nested = (details.form || details.data || {}) as Record<string, unknown>;
+  const pick = (...vals: unknown[]) =>
+    vals.map((v) => String(v ?? '').trim()).find(Boolean) || '';
+  return pick(
+    details.codeNo,
+    details.codeNumber,
+    details.sampleCode,
+    details.cdaCode,
+    details.sampleSerialNumber,
+    details.no,
+    nested.codeNo,
+    nested.codeNumber,
+    nested.sampleCode,
+    record.referenceNumber
+  );
+}
+
+/** Code number for an archived document: document_number first, then metadata code/sample fields. */
+function getDocCodeNo(doc: OfficerDocumentArchiveRecord): string {
+  const meta = (doc.metadata_json || {}) as Record<string, unknown>;
+  const pick = (...vals: unknown[]) =>
+    vals.map((v) => String(v ?? '').trim()).find(Boolean) || '';
+  return pick(
+    doc.document_number,
+    meta.codeNo,
+    meta.codeNumber,
+    meta.sampleCode,
+    meta.cdaCode,
+    meta.sampleSerialNumber,
+    meta.referenceNumber
+  );
+}
+
 export function OfficerRecordsHub() {
   const { user, officerProfile } = useAuth();
   const { t } = useLanguage();
 
-  // Tab View: 'documents' (Cloud Storage archive) | 'forms' (Statutory Form Records)
-  const [activeTab, setActiveTab] = useState<'documents' | 'forms'>('documents');
+  // View tabs: documents (archived files) vs records (statutory form records)
+  const [activeTab, setActiveTab] = useState<'documents' | 'records'>('documents');
 
   // Display Mode: 'list' (default as requested) vs 'grid'
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -90,7 +249,6 @@ export function OfficerRecordsHub() {
 
   // Modals
   const [selectedRecord, setSelectedRecord] = useState<UnifiedOfficerRecord | null>(null);
-  const [selectedDocDetails, setSelectedDocDetails] = useState<OfficerDocumentArchiveRecord | null>(null);
   const [previewDoc, setPreviewDoc] = useState<{ doc: OfficerDocumentArchiveRecord; url: string } | null>(null);
 
   // Mobile browsers (especially iOS Safari) cannot render PDFs/DOCX inside iframes
@@ -299,11 +457,12 @@ export function OfficerRecordsHub() {
   const handleDeleteDocument = async () => {
     if (!docToDelete) return;
     try {
-      await OfficerDocumentArchiveService.deleteDocument(docToDelete.id, docToDelete.object_key);
+      await OfficerDocumentArchiveService.deleteDocument(
+        docToDelete.id,
+        docToDelete.object_key,
+        docToDelete.original_sha256 || docToDelete.content_hash
+      );
       setDocuments((prev) => prev.filter((d) => d.id !== docToDelete.id));
-      if (selectedDocDetails?.id === docToDelete.id) {
-        setSelectedDocDetails(null);
-      }
       // Refresh storage overview
       const newStats = await OfficerDocumentArchiveService.getStorageOverview();
       setStorageStats(newStats);
@@ -337,10 +496,26 @@ export function OfficerRecordsHub() {
     return Array.from(years).sort().reverse();
   }, [documents]);
 
+  // Parse a record/document date string to a timestamp (supports ISO and DD-MM-YYYY / DD/MM/YYYY)
+  const parseItemDate = useCallback((value?: string | null): number => {
+    if (!value) return 0;
+    const iso = new Date(value).getTime();
+    if (!Number.isNaN(iso)) return iso;
+    const m = value.match(/(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1])).getTime();
+    return 0;
+  }, []);
+
   // Filtered Documents
   const filteredDocuments = useMemo(() => {
     return documents.filter((doc) => {
       if (categoryFilter !== 'all' && doc.document_category !== categoryFilter) return false;
+
+      // Commodity filter (sample documents only)
+      if (commodityFilter !== 'all') {
+        if (doc.document_category !== 'sample') return false;
+        if (getDocumentCommodity(doc) !== commodityFilter) return false;
+      }
 
       // Year Filter
       if (yearFilter !== 'all') {
@@ -368,30 +543,74 @@ export function OfficerRecordsHub() {
         const nameMatch = doc.document_name.toLowerCase().includes(q);
         const origMatch = doc.original_filename?.toLowerCase().includes(q);
         const numMatch = doc.document_number ? doc.document_number.toLowerCase().includes(q) : false;
-        const modMatch = doc.source_module.toLowerCase().includes(q);
-        return Boolean(nameMatch || origMatch || numMatch || modMatch);
+        const modMatch = (doc.source_module || '').toLowerCase().includes(q);
+        // Search metadata too: product/crop names, firm/dealer, sample codes, badges
+        const metaMatch = JSON.stringify(doc.metadata_json || {}).toLowerCase().includes(q);
+        return Boolean(nameMatch || origMatch || numMatch || modMatch || metaMatch);
       }
 
       return true;
     });
-  }, [documents, categoryFilter, yearFilter, monthFilter, dateFilter, searchQuery]);
+  }, [documents, categoryFilter, commodityFilter, yearFilter, monthFilter, dateFilter, searchQuery]);
 
   // Filtered Form Records
   const filteredRecords = useMemo(() => {
     return records.filter((rec) => {
       if (categoryFilter !== 'all' && rec.category !== categoryFilter) return false;
       if (commodityFilter !== 'all' && rec.commodity !== commodityFilter) return false;
+
+      // Year / Month / Quick-date filters (recordDate may be ISO or DD-MM-YYYY)
+      const recTime = parseItemDate(rec.recordDate);
+      if (yearFilter !== 'all' && recTime) {
+        if (new Date(recTime).getFullYear().toString() !== yearFilter) return false;
+      }
+      if (monthFilter !== 'all' && recTime) {
+        if ((new Date(recTime).getMonth() + 1).toString().padStart(2, '0') !== monthFilter) return false;
+      }
+      if (dateFilter !== 'all' && recTime) {
+        const now = Date.now();
+        const oneDay = 24 * 60 * 60 * 1000;
+        if (dateFilter === 'today' && now - recTime > oneDay) return false;
+        if (dateFilter === '7days' && now - recTime > 7 * oneDay) return false;
+        if (dateFilter === '30days' && now - recTime > 30 * oneDay) return false;
+      }
+
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const matchesRef = rec.referenceNumber.toLowerCase().includes(query);
-        const matchesEntity = rec.entityName.toLowerCase().includes(query);
-        const matchesTitle = rec.title.toLowerCase().includes(query);
-        const matchesLoc = rec.location.toLowerCase().includes(query);
-        return matchesRef || matchesEntity || matchesTitle || matchesLoc;
+        const matchesRef = (rec.referenceNumber || '').toLowerCase().includes(query);
+        const matchesEntity = (rec.entityName || '').toLowerCase().includes(query);
+        const matchesTitle = (rec.title || '').toLowerCase().includes(query);
+        const matchesLoc = (rec.location || '').toLowerCase().includes(query);
+        // Search record details too: product/crop names, firm, batch, sample code
+        const detailsMatch = JSON.stringify(rec.details || {}).toLowerCase().includes(query);
+        return matchesRef || matchesEntity || matchesTitle || matchesLoc || detailsMatch;
       }
       return true;
     });
-  }, [records, categoryFilter, commodityFilter, searchQuery]);
+  }, [records, categoryFilter, commodityFilter, yearFilter, monthFilter, dateFilter, searchQuery, parseItemDate]);
+
+  // Merged view: documents + records interleaved, newest first
+  const mergedItems = useMemo(() => {
+    const docs = filteredDocuments.map((doc) => ({
+      kind: 'document' as const,
+      id: `doc-${doc.id}`,
+      time: parseItemDate(doc.document_date) || new Date(doc.created_at).getTime() || 0,
+      doc,
+    }));
+    const recs = filteredRecords.map((record) => ({
+      kind: 'record' as const,
+      id: `rec-${record.id}`,
+      time: parseItemDate(record.recordDate) || new Date(record.createdAt).getTime() || 0,
+      record,
+    }));
+    return [...docs, ...recs].sort((a, b) => b.time - a.time);
+  }, [filteredDocuments, filteredRecords, parseItemDate]);
+
+  // Items visible under the active tab
+  const visibleItems = useMemo(() => {
+    if (activeTab === 'documents') return mergedItems.filter((i) => i.kind === 'document');
+    return mergedItems.filter((i) => i.kind === 'record');
+  }, [mergedItems, activeTab]);
 
   // Sample records eligible for export-time result marking
   const exportableSamples = useMemo(
@@ -442,13 +661,15 @@ export function OfficerRecordsHub() {
     try {
       setExportingType(type);
       const options: ReportExportOptions = {
-        activeTab,
+        activeTab: activeTab === 'records' ? 'forms' : activeTab,
         categoryFilter,
         commodityFilter,
         searchQuery,
         officerName: officerProfile?.full_name || user?.email || 'Agricultural Officer',
         designation: officerProfile?.designation || 'Agricultural Officer',
+        qualification: officerProfile?.qualification,
         location: officerProfile?.mandal || officerProfile?.district || 'Telangana',
+        district: officerProfile?.district,
         statusOverrides,
       };
 
@@ -632,6 +853,15 @@ export function OfficerRecordsHub() {
               <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
                 {t('Compressed cloud footprint', 'కంప్రెస్డ్ నిల్వ')}
               </p>
+              {storageStats.storageSavedBytes > 0 && (
+                <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                  <CheckCircle2 className="h-3 w-3" />
+                  {t(
+                    `${formatBytes(storageStats.storageSavedBytes)} saved (${storageStats.compressionPercentage}%)`,
+                    `${formatBytes(storageStats.storageSavedBytes)} ఆదా (${storageStats.compressionPercentage}%)`
+                  )}
+                </p>
+              )}
             </div>
           </div>
 
@@ -668,54 +898,44 @@ export function OfficerRecordsHub() {
         </div>
       </div>
 
-      {/* Primary Section Switch: Document Archive vs Form Records */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800">
-        <button
-          type="button"
-          onClick={() => setActiveTab('documents')}
-          className={`flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-bold transition ${
-            activeTab === 'documents'
-              ? 'border-emerald-600 text-emerald-700 dark:border-emerald-400 dark:text-emerald-300'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <span>{t('Cloud Storage', 'క్లౌడ్ నిల్వ')}</span>
-          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-            {documents.length}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('forms')}
-          className={`flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-bold transition ${
-            activeTab === 'forms'
-              ? 'border-emerald-600 text-emerald-700 dark:border-emerald-400 dark:text-emerald-300'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <span>{t('My Records', 'నా రికార్డులు')}</span>
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-            {records.length}
-          </span>
-        </button>
-
+      {/* View Tabs: All / Documents / Records */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3 dark:border-slate-800">
+        {([
+          { key: 'documents', label: t('Documents', 'పత్రాలు') },
+          { key: 'records', label: t('Records', 'రికార్డులు') },
+        ] as const).map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`rounded-xl px-5 py-2.5 text-sm font-bold transition ${
+              activeTab === tab.key
+                ? 'bg-emerald-700 text-white shadow-sm'
+                : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+            }`}
+          >
+            {tab.label}
+            <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${
+              activeTab === tab.key
+                ? 'bg-white/20 text-white'
+                : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+            }`}>
+              {tab.key === 'documents' ? filteredDocuments.length : filteredRecords.length}
+            </span>
+          </button>
+        ))}
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:justify-between">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="relative w-full md:w-1/2 lg:w-2/5">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={
-              activeTab === 'documents'
-                ? t('Search by document name, memo number, or module...', 'పత్రం పేరు లేదా నంబర్ ద్వారా వెతకండి...')
-                : t('Search by firm, order number, or location...', 'డీలర్ పేరు, ఆర్డర్ నంబర్ లేదా ప్రాంతం ద్వారా వెతకండి...')
-            }
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-10 pr-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+            placeholder={t('Search by name, number, firm, product, or module...', 'పేరు, నంబర్, డీలర్, ఉత్పత్తి లేదా మాడ్యూల్ ద్వారా వెతకండి...')}
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:focus:ring-emerald-900/40"
           />
         </div>
 
@@ -734,8 +954,20 @@ export function OfficerRecordsHub() {
             <option value="tour_diary">{t('Tour Diaries', 'పర్యటన డైరీలు')}</option>
           </select>
 
-          {/* Year Filter for Documents */}
-          {activeTab === 'documents' && availableYears.length > 0 && (
+          {/* Commodity filter — applies to sample documents and all form records */}
+          <select
+            value={commodityFilter}
+            onChange={(e) => setCommodityFilter(e.target.value as typeof commodityFilter)}
+            className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+          >
+            <option value="all">{t('All Commodities', 'అన్ని వస్తువులు')}</option>
+            <option value="fertilizer">{t('Fertilizer', 'ఎరువు')}</option>
+            <option value="pesticide">{t('Pesticide', 'పురుగుమందు')}</option>
+            <option value="seed">{t('Seed', 'విత్తనం')}</option>
+          </select>
+
+          {/* Year Filter */}
+          {availableYears.length > 0 && (
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
@@ -750,8 +982,8 @@ export function OfficerRecordsHub() {
             </select>
           )}
 
-          {/* Month Filter for Documents */}
-          {activeTab === 'documents' && (
+          {/* Month Filter */}
+          {(
             <select
               value={monthFilter}
               onChange={(e) => setMonthFilter(e.target.value)}
@@ -773,40 +1005,24 @@ export function OfficerRecordsHub() {
             </select>
           )}
 
-          {/* Date Filter (for documents) */}
-          {activeTab === 'documents' ? (
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value as typeof dateFilter)}
-              className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-            >
-              <option value="all">{t('All Quick Dates', 'అన్ని తేదీలు')}</option>
-              <option value="today">{t('Today', 'ఈ రోజు')}</option>
-              <option value="7days">{t('Last 7 Days', 'గత 7 రోజులు')}</option>
-              <option value="30days">{t('Last 30 Days', 'గత 30 రోజులు')}</option>
-            </select>
-          ) : (
-            <select
-              value={commodityFilter}
-              onChange={(e) => setCommodityFilter(e.target.value as typeof commodityFilter)}
-              className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-            >
-              <option value="all">{t('All Commodities', 'అన్ని వస్తువులు')}</option>
-              <option value="fertilizer">{t('Fertilizer', 'ఎరువులు')}</option>
-              <option value="seed">{t('Seed', 'విత్తనాలు')}</option>
-              <option value="pesticide">{t('Pesticide', 'పురుగుమందులు')}</option>
-            </select>
-          )}
+          {/* Quick Date Filter — applies to both files and records */}
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value as typeof dateFilter)}
+            className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+          >
+            <option value="all">{t('All Quick Dates', 'అన్ని తేదీలు')}</option>
+            <option value="today">{t('Today', 'ఈ రోజు')}</option>
+            <option value="7days">{t('Last 7 Days', 'గత 7 రోజులు')}</option>
+            <option value="30days">{t('Last 30 Days', 'గత 30 రోజులు')}</option>
+          </select>
 
           {/* Export Dropdown Button (Tucks Excel & PDF inside) */}
           <div className="relative" ref={exportMenuRef}>
             <button
               type="button"
               onClick={() => setIsExportMenuOpen((prev) => !prev)}
-              disabled={
-                exportingType !== null ||
-                (activeTab === 'documents' ? filteredDocuments.length === 0 : filteredRecords.length === 0)
-              }
+              disabled={exportingType !== null || visibleItems.length === 0}
               className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
               title={t('Export Register & Reports', 'రిజిస్టర్ & నివేదికలను ఎగుమతి చేయండి')}
               aria-haspopup="true"
@@ -851,7 +1067,7 @@ export function OfficerRecordsHub() {
                   <span>PDF</span>
                 </button>
 
-                {activeTab === 'forms' && exportableSamples.length > 0 && (
+                {exportableSamples.length > 0 && (
                   <button
                     type="button"
                     onClick={openExportStatusModal}
@@ -905,24 +1121,192 @@ export function OfficerRecordsHub() {
             {t('Retrieving officer archives and storage stats...', 'రికార్డులను లోడ్ చేస్తోంది...')}
           </p>
         </div>
-      ) : activeTab === 'documents' ? (
-        // Tab 1: Cloudflare R2 Document Archive Cards
-        filteredDocuments.length === 0 ? (
+      ) : (
+        <>
+          {/* Sync status center — covers both form-record sync and manual document uploads */}
+          {(() => {
+            const pendingDocs = storageStats.pendingUploads + storageStats.failedUploads;
+            const hasPending = pendingSyncCount > 0 || pendingDocs > 0;
+            return (
+              <div
+                className={`mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-4 py-3 ${
+                  hasPending
+                    ? 'border-amber-200 bg-amber-50/70 dark:border-amber-900/50 dark:bg-amber-950/30'
+                    : 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/50 dark:bg-emerald-950/30'
+                }`}
+              >
+                <div className="flex items-center gap-2 text-xs font-bold">
+                  {hasPending ? (
+                    <CloudOff className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  )}
+                  <span className={hasPending ? 'text-amber-800 dark:text-amber-200' : 'text-emerald-800 dark:text-emerald-200'}>
+                    {hasPending
+                      ? [
+                          pendingSyncCount > 0
+                            ? t(
+                                `${pendingSyncCount} record(s) saved locally — not yet backed up to cloud`,
+                                `${pendingSyncCount} రికార్డులు స్థానికంగా ఉన్నాయి — ఇంకా క్లౌడ్‌కు బ్యాకప్ కాలేదు`
+                              )
+                            : '',
+                          pendingDocs > 0
+                            ? t(
+                                `${pendingDocs} document(s) pending cloud upload — upload manually from Documents tab`,
+                                `${pendingDocs} పత్రాలు క్లౌడ్ అప్‌లోడ్ కోసం పెండింగ్ — పత్రాల ట్యాబ్ నుండి మాన్యువల్‌గా అప్‌లోడ్ చేయండి`
+                              )
+                            : '',
+                        ].filter(Boolean).join(' · ')
+                      : t('All records and documents are backed up to cloud', 'అన్ని రికార్డులు & పత్రాలు క్లౌడ్‌కు బ్యాకప్ అయ్యాయి')}
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                    ({cloudRecordCount}/{records.length} {t('records', 'రికార్డులు')} · {storageStats.successfullyUploaded}/{documents.length} {t('docs', 'పత్రాలు')} {t('in cloud', 'క్లౌడ్‌లో')})
+                  </span>
+                </div>
+                {pendingSyncCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => void handleSyncNow()}
+                    disabled={syncingRecords || refreshing}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-600 disabled:opacity-50"
+                  >
+                    {syncingRecords ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    )}
+                    {syncingRecords ? t('Syncing…', 'సింక్ అవుతోంది…') : t('Sync now', 'ఇప్పుడు సింక్ చేయండి')}
+                  </button>
+                )}
+              </div>
+            );
+          })()}
+          {syncFeedback && (
+            <p className="mb-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
+              {syncFeedback}
+            </p>
+          )}
+
+        {visibleItems.length === 0 ? (
           <div className="flex min-h-[250px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
               <Archive className="h-6 w-6" />
             </div>
             <h3 className="mt-3 text-base font-bold text-slate-800 dark:text-slate-100">
-              {searchQuery ? t('No matching documents found', 'సరిపోలే పత్రాలు కనుగొనబడలేదు') : t('No archived documents yet', 'ఇంకా ఎటువంటి పత్రాలు భద్రపరచబడలేదు')}
+              {searchQuery ? t('No matching records found', 'సరిపోలే రికార్డులు కనుగొనబడలేదు') : t('No records saved yet', 'ఇంకా రికార్డులు భద్రపరచబడలేదు')}
             </h3>
             <p className="mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">
-              {t('Official stop sale notices, seizure orders, inspection memos, and tour diaries generated in AGRONIX are automatically archived here.', 'టూల్‌కిట్‌లో రూపొందించబడిన ఉత్తర్వులు, నివేదికలు & పర్యటన డైరీలు ఇక్కడ ఆటోమేటిక్‌గా కనిపిస్తాయి.')}
+              {t('Statutory orders, notices, inspections, sampling memos, and generated documents created in the toolkit will appear here.', 'టూల్‌కిట్‌లో రూపొందించబడిన ఉత్తర్వులు, తనిఖీలు, మెమోలు & పత్రాలు ఇక్కడ ఆటోమేటిక్‌గా కనిపిస్తాయి.')}
             </p>
           </div>
         ) : viewMode === 'list' ? (
-          // Tab 1: Clean List View (Default)
+          // Merged List View (Default)
           <div className="space-y-2.5">
-            {filteredDocuments.map((doc) => {
+            {visibleItems.map((item) => {
+              if (item.kind === 'record') {
+                const record = item.record;
+                const isOrder = record.category === 'order';
+                const isInspection = record.category === 'inspection';
+
+                return (
+                <div
+                  key={item.id}
+                  className="group flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs transition hover:border-emerald-300 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700/60 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      <ClipboardList className="h-5 w-5" />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
+                            isOrder
+                              ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
+                              : isInspection
+                              ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                              : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
+                          }`}
+                        >
+                          {record.title}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRecord(record)}
+                          className="font-bold text-left text-slate-900 hover:text-emerald-700 dark:text-white dark:hover:text-emerald-400 truncate max-w-md text-sm sm:text-base cursor-pointer"
+                          title={record.entityName}
+                        >
+                          {record.entityName}
+                        </button>
+
+                        {record.synced ? (
+                          <span
+                            title={t('Backed up to cloud', 'క్లౌడ్‌కు బ్యాకప్ చేయబడింది')}
+                            className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                          >
+                            <CheckCircle2 className="h-3 w-3" />
+                            <span>Cloud</span>
+                          </span>
+                        ) : (
+                          <span
+                            title={t('Saved locally on device', 'పరికరంలో స్థానికంగా ఉంది')}
+                            className="flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                          >
+                            <Smartphone className="h-3 w-3" />
+                            <span>Local</span>
+                          </span>
+                        )}
+
+                        <RecordProductBadges record={record} />
+                      </div>
+
+                      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                        {record.referenceNumber && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-slate-400">{t('Code No:', 'కోడ్ నం:')}</span>
+                            <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{getRecordCodeNo(record)}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1">
+                          <span className="text-slate-400">{t('Date:', 'తేదీ:')}</span>
+                          <span className="font-medium text-slate-700 dark:text-slate-300">{record.recordDate}</span>
+                        </div>
+                        {record.location && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-slate-400">{t('Location:', 'ప్రాంతం:')}</span>
+                            <span className="font-medium text-slate-700 dark:text-slate-300">{record.location}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0 border-t border-slate-100 pt-2 sm:border-t-0 sm:pt-0 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedRecord(record)}
+                      className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300"
+                    >
+                      <span>{t('View Details', 'వివరాలు చూడండి')}</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setRecordToDelete(record)}
+                      className="rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+                      title={t('Delete Record', 'రికార్డు తొలగించండి')}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                );
+              }
+
+              const doc = item.doc;
               const origSize = Number(doc.original_size_bytes ?? doc.original_size) || 0;
 
               return (
@@ -955,15 +1339,17 @@ export function OfficerRecordsHub() {
                           {doc.file_format}
                         </span>
 
+                        <SampleDocumentBadges doc={doc} t={t} />
+
                         {renderUploadStatusBadge(doc.upload_status)}
                       </div>
 
                       {/* Sub-row details */}
                       <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                        {doc.document_number && (
+                        {getDocCodeNo(doc) && (
                           <div className="flex items-center gap-1">
-                            <span className="text-slate-400">{t('No:', 'నం:')}</span>
-                            <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{doc.document_number}</span>
+                            <span className="text-slate-400">{t('Code No:', 'కోడ్ నం:')}</span>
+                            <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{getDocCodeNo(doc)}</span>
                           </div>
                         )}
                         <div className="flex items-center gap-1">
@@ -1031,15 +1417,6 @@ export function OfficerRecordsHub() {
 
                     <button
                       type="button"
-                      onClick={() => setSelectedDocDetails(doc)}
-                      className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                      title={t('View Full Details', 'పూర్తి వివరాలు')}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-
-                    <button
-                      type="button"
                       onClick={() => setDocToDelete(doc)}
                       className="rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
                       title={t('Delete Document', 'తొలగించండి')}
@@ -1053,7 +1430,104 @@ export function OfficerRecordsHub() {
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredDocuments.map((doc) => {
+            {visibleItems.map((item) => {
+              if (item.kind === 'record') {
+                const record = item.record;
+                const isOrder = record.category === 'order';
+                const isInspection = record.category === 'inspection';
+
+                return (
+                <div
+                  key={item.id}
+                  className="group relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:border-emerald-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700/60"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold ${
+                          isOrder
+                            ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
+                            : isInspection
+                            ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                            : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
+                        }`}
+                      >
+                        {record.title}
+                      </span>
+
+                      {record.synced ? (
+                        <span
+                          title={t('Backed up to cloud', 'క్లౌడ్‌కు బ్యాకప్ చేయబడింది')}
+                          className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                        >
+                          <CheckCircle2 className="h-3 w-3" />
+                          <span>Cloud</span>
+                        </span>
+                      ) : (
+                        <span
+                          title={t('Saved locally on device', 'పరికరంలో స్థానికంగా ఉంది')}
+                          className="flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                        >
+                          <Smartphone className="h-3 w-3" />
+                          <span>Local</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <h4 className="mt-2.5 truncate text-sm font-bold text-slate-900 dark:text-white" title={record.entityName}>
+                      {record.entityName}
+                    </h4>
+
+                    {getRecordProductLabels(record).length > 0 && (
+                      <div className="mt-1.5">
+                        <RecordProductBadges record={record} />
+                      </div>
+                    )}
+
+                    <div className="mt-2 space-y-1 text-xs text-slate-500 dark:text-slate-400">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-slate-400">{t('Code No:', 'కోడ్ నం:')}</span>
+                        <span className="font-mono font-bold text-slate-700 dark:text-slate-300 truncate max-w-[140px]" title={getRecordCodeNo(record)}>
+                          {getRecordCodeNo(record)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-slate-400">{t('Date:', 'తేదీ:')}</span>
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">{record.recordDate}</span>
+                      </div>
+                      {record.location && (
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-slate-400">{t('Location:', 'ప్రాంతం:')}</span>
+                          <span className="truncate max-w-[140px] text-slate-700 dark:text-slate-300">{record.location}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedRecord(record)}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400"
+                    >
+                      <span>{t('View Details', 'వివరాలు చూడండి')}</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setRecordToDelete(record)}
+                      className="rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+                      title={t('Delete Record', 'రికార్డు తొలగించండి')}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                );
+              }
+
+              const doc = item.doc;
               const origSize = Number(doc.original_size_bytes ?? doc.original_size) || 0;
 
               return (
@@ -1071,6 +1545,7 @@ export function OfficerRecordsHub() {
                         <span className="inline-flex items-center uppercase rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-mono font-bold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
                           {doc.file_format}
                         </span>
+                        <SampleDocumentBadges doc={doc} t={t} />
                       </div>
 
                       {renderUploadStatusBadge(doc.upload_status)}
@@ -1083,11 +1558,11 @@ export function OfficerRecordsHub() {
 
                     {/* Metadata lines */}
                     <div className="mt-2 space-y-1 text-xs text-slate-500 dark:text-slate-400">
-                      {doc.document_number && (
+                      {getDocCodeNo(doc) && (
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-slate-400">{t('Doc Number:', 'నంబర్:')}</span>
-                          <span className="font-mono font-bold text-slate-700 dark:text-slate-300 truncate max-w-[140px]" title={doc.document_number}>
-                            {doc.document_number}
+                          <span className="font-medium text-slate-400">{t('Code No:', 'కోడ్ నం:')}</span>
+                          <span className="font-mono font-bold text-slate-700 dark:text-slate-300 truncate max-w-[140px]" title={getDocCodeNo(doc)}>
+                            {getDocCodeNo(doc)}
                           </span>
                         </div>
                       )}
@@ -1158,15 +1633,6 @@ export function OfficerRecordsHub() {
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        onClick={() => setSelectedDocDetails(doc)}
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                        title={t('View Full Details', 'పూర్తి వివరాలు')}
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-
-                      <button
-                        type="button"
                         onClick={() => setDocToDelete(doc)}
                         className="rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
                         title={t('Delete Document', 'తొలగించండి')}
@@ -1174,264 +1640,6 @@ export function OfficerRecordsHub() {
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )
-      ) : (
-        // Tab 2: Existing Form Records List
-        <>
-          {/* Sync status center — distinguishes document uploads from form-record sync */}
-          <div
-            className={`mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-4 py-3 ${
-              pendingSyncCount > 0
-                ? 'border-amber-200 bg-amber-50/70 dark:border-amber-900/50 dark:bg-amber-950/30'
-                : 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/50 dark:bg-emerald-950/30'
-            }`}
-          >
-            <div className="flex items-center gap-2 text-xs font-bold">
-              {pendingSyncCount > 0 ? (
-                <CloudOff className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              ) : (
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              )}
-              <span className={pendingSyncCount > 0 ? 'text-amber-800 dark:text-amber-200' : 'text-emerald-800 dark:text-emerald-200'}>
-                {pendingSyncCount > 0
-                  ? t(
-                      `${pendingSyncCount} record(s) saved locally — not yet backed up to cloud`,
-                      `${pendingSyncCount} రికార్డులు స్థానికంగా ఉన్నాయి — ఇంకా క్లౌడ్‌కు బ్యాకప్ కాలేదు`
-                    )
-                  : t('All form records are backed up to cloud', 'అన్ని ఫారమ్ రికార్డులు క్లౌడ్‌కు బ్యాకప్ అయ్యాయి')}
-              </span>
-              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-                ({cloudRecordCount} {t('cloud', 'క్లౌడ్')} · {records.length} {t('total', 'మొత్తం')})
-              </span>
-            </div>
-            {pendingSyncCount > 0 && (
-              <button
-                type="button"
-                onClick={() => void handleSyncNow()}
-                disabled={syncingRecords || refreshing}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-600 disabled:opacity-50"
-              >
-                {syncingRecords ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-3.5 w-3.5" />
-                )}
-                {syncingRecords ? t('Syncing…', 'సింక్ అవుతోంది…') : t('Sync now', 'ఇప్పుడు సింక్ చేయండి')}
-              </button>
-            )}
-          </div>
-          {syncFeedback && (
-            <p className="mb-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
-              {syncFeedback}
-            </p>
-          )}
-
-        {filteredRecords.length === 0 ? (
-          <div className="flex min-h-[250px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
-              <Archive className="h-6 w-6" />
-            </div>
-            <h3 className="mt-3 text-base font-bold text-slate-800 dark:text-slate-100">
-              {searchQuery ? t('No matching records found', 'సరిపోలే రికార్డులు కనుగొనబడలేదు') : t('No official records saved yet', 'ఇంకా ఎటువంటి రికార్డులు భద్రపరచబడలేదు')}
-            </h3>
-            <p className="mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">
-              {t('Statutory orders, notices, dealer inspections, and sampling memos created in the toolkit will appear here.', 'టూల్‌కిట్‌లో రూపొందించబడిన స్టాప్ సేల్ ఆర్డర్లు, తనిఖీలు & మెమోలు ఇక్కడ ఆటోమేటిక్‌గా కనిపిస్తాయి.')}
-            </p>
-          </div>
-        ) : viewMode === 'list' ? (
-          // Tab 2: Clean List View (Default)
-          <div className="space-y-2.5">
-            {filteredRecords.map((record) => {
-              const isOrder = record.category === 'order';
-              const isInspection = record.category === 'inspection';
-
-              return (
-                <div
-                  key={record.id}
-                  className="group flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs transition hover:border-emerald-300 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700/60 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex items-start gap-3 min-w-0 flex-1">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                      <ClipboardList className="h-5 w-5" />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
-                            isOrder
-                              ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
-                              : isInspection
-                              ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
-                              : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
-                          }`}
-                        >
-                          {record.title}
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={() => setSelectedRecord(record)}
-                          className="font-bold text-left text-slate-900 hover:text-emerald-700 dark:text-white dark:hover:text-emerald-400 truncate max-w-md text-sm sm:text-base cursor-pointer"
-                          title={record.entityName}
-                        >
-                          {record.entityName}
-                        </button>
-
-                        {record.synced ? (
-                          <span
-                            title={t('Backed up to cloud', 'క్లౌడ్‌కు బ్యాకప్ చేయబడింది')}
-                            className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                          >
-                            <CheckCircle2 className="h-3 w-3" />
-                            <span>Cloud</span>
-                          </span>
-                        ) : (
-                          <span
-                            title={t('Saved locally on device', 'పరికరంలో స్థానికంగా ఉంది')}
-                            className="flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                          >
-                            <Smartphone className="h-3 w-3" />
-                            <span>Local</span>
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                        {record.referenceNumber && (
-                          <div className="flex items-center gap-1">
-                            <span className="text-slate-400">{t('Ref:', 'రిఫరెన్స్:')}</span>
-                            <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{record.referenceNumber}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1">
-                          <span className="text-slate-400">{t('Date:', 'తేదీ:')}</span>
-                          <span className="font-medium text-slate-700 dark:text-slate-300">{record.recordDate}</span>
-                        </div>
-                        {record.location && (
-                          <div className="flex items-center gap-1">
-                            <span className="text-slate-400">{t('Location:', 'ప్రాంతం:')}</span>
-                            <span className="font-medium text-slate-700 dark:text-slate-300">{record.location}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1 shrink-0 border-t border-slate-100 pt-2 sm:border-t-0 sm:pt-0 dark:border-slate-800">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRecord(record)}
-                      className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300"
-                    >
-                      <span>{t('View Details', 'వివరాలు చూడండి')}</span>
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setRecordToDelete(record)}
-                      className="rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
-                      title={t('Delete Record', 'రికార్డు తొలగించండి')}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredRecords.map((record) => {
-              const isOrder = record.category === 'order';
-              const isInspection = record.category === 'inspection';
-
-              return (
-                <div
-                  key={record.id}
-                  className="group relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-xs transition hover:border-emerald-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700/60"
-                >
-                  <div>
-                    <div className="flex items-start justify-between gap-2">
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold ${
-                          isOrder
-                            ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
-                            : isInspection
-                            ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
-                            : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
-                        }`}
-                      >
-                        {record.title}
-                      </span>
-
-                      {record.synced ? (
-                        <span
-                          title={t('Backed up to cloud', 'క్లౌడ్‌కు బ్యాకప్ చేయబడింది')}
-                          className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
-                        >
-                          <CheckCircle2 className="h-3 w-3" />
-                          <span>Cloud</span>
-                        </span>
-                      ) : (
-                        <span
-                          title={t('Saved locally on device', 'పరికరంలో స్థానికంగా ఉంది')}
-                          className="flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                        >
-                          <Smartphone className="h-3 w-3" />
-                          <span>Local</span>
-                        </span>
-                      )}
-                    </div>
-
-                    <h4 className="mt-2.5 truncate text-sm font-bold text-slate-900 dark:text-white" title={record.entityName}>
-                      {record.entityName}
-                    </h4>
-
-                    <div className="mt-2 space-y-1 text-xs text-slate-500 dark:text-slate-400">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-slate-400">{t('Ref / No:', 'రిఫరెన్స్:')}</span>
-                        <span className="font-mono font-bold text-slate-700 dark:text-slate-300 truncate max-w-[140px]" title={record.referenceNumber}>
-                          {record.referenceNumber}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-slate-400">{t('Date:', 'తేదీ:')}</span>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">{record.recordDate}</span>
-                      </div>
-                      {record.location && (
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-slate-400">{t('Location:', 'ప్రాంతం:')}</span>
-                          <span className="truncate max-w-[140px] text-slate-700 dark:text-slate-300">{record.location}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRecord(record)}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400"
-                    >
-                      <span>{t('View Details', 'వివరాలు చూడండి')}</span>
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setRecordToDelete(record)}
-                      className="rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
-                      title={t('Delete Record', 'రికార్డు తొలగించండి')}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
                   </div>
                 </div>
               );
@@ -1703,120 +1911,6 @@ export function OfficerRecordsHub() {
         </div>
       )}
 
-      {selectedDocDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs">
-          <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
-                  <FileText className="h-4 w-4" />
-                </span>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white truncate max-w-sm">
-                    {selectedDocDetails.document_name}
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                    Version {selectedDocDetails.version_number} &middot; {selectedDocDetails.file_format.toUpperCase()}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedDocDetails(null)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 text-xs">
-                <div>
-                  <span className="block font-semibold text-slate-400">{t('Document Category', 'పత్రం విభాగం')}</span>
-                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200 capitalize">{selectedDocDetails.document_category}</span>
-                </div>
-                <div>
-                  <span className="block font-semibold text-slate-400">{t('Document Number', 'పత్రం సంఖ్య')}</span>
-                  <span className="text-sm font-bold font-mono text-slate-800 dark:text-slate-200">{selectedDocDetails.document_number || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="block font-semibold text-slate-400">{t('Creation Date', 'రూపొందించిన తేదీ')}</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedDocDetails.document_date}</span>
-                </div>
-                <div>
-                  <span className="block font-semibold text-slate-400">{t('Upload Status', 'అప్‌లోడ్ స్థితి')}</span>
-                  <div className="mt-1">{renderUploadStatusBadge(selectedDocDetails.upload_status)}</div>
-                </div>
-                <div>
-                  <span className="block font-semibold text-slate-400">{t('Original Size', 'అసలు సైజు')}</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    {formatBytes(selectedDocDetails.original_size_bytes ?? selectedDocDetails.original_size)}
-                  </span>
-                </div>
-                <div>
-                  <span className="block font-semibold text-slate-400">{t('Stored in R2', 'క్లౌడ్ నిల్వ సైజు')}</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    {formatBytes(selectedDocDetails.stored_size_bytes ?? selectedDocDetails.stored_size)}
-                  </span>
-                </div>
-                <div>
-                  <span className="block font-semibold text-slate-400">{t('Compression Method', 'కంప్రెషన్ పద్ధతి')}</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200 uppercase font-mono">
-                    {selectedDocDetails.compression_method === 'gzip'
-                      ? 'GZIP (Lossless Reversible)'
-                      : 'RAW (Uncompressed)'}
-                  </span>
-                </div>
-                <div>
-                  <span className="block font-semibold text-slate-400">{t('Storage Saved', 'ఆదా చేసిన నిల్వ')}</span>
-                  <span className="font-bold text-emerald-700 dark:text-emerald-300">
-                    {(() => {
-                      const orig = Number(selectedDocDetails.original_size_bytes ?? selectedDocDetails.original_size) || 0;
-                      const stored = Number(selectedDocDetails.stored_size_bytes ?? selectedDocDetails.stored_size) || orig;
-                      const saved = Math.max(0, orig - stored);
-                      const pct = orig > 0 ? ((saved / orig) * 100).toFixed(1) : '0';
-                      return `${formatBytes(saved)} (${pct}%)`;
-                    })()}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-5 flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => {
-                  const doc = selectedDocDetails;
-                  setSelectedDocDetails(null);
-                  void handlePreview(doc);
-                }}
-                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white p-2.5 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                title={t('Preview Document', 'పత్రం ప్రివ్యూ')}
-                aria-label={t('Preview Document', 'పత్రం ప్రివ్యూ')}
-              >
-                <Eye className="h-4 w-4 text-emerald-600" />
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleDownload(selectedDocDetails)}
-                className="inline-flex items-center justify-center rounded-xl bg-emerald-600 p-2.5 text-white hover:bg-emerald-700"
-                title={t('Download Document', 'పత్రం డౌన్‌లోడ్')}
-                aria-label={t('Download Document', 'పత్రం డౌన్‌లోడ్')}
-              >
-                <Download className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedDocDetails(null)}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-              >
-                {t('Close', 'మూసివేయి')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Document Preview Modal */}
       {previewDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-xs">
@@ -2080,8 +2174,8 @@ export function OfficerRecordsHub() {
         open={Boolean(docToDelete)}
         title={t('Delete Archived Document', 'పత్రాన్ని తొలగించాలా?')}
         message={t(
-          `Are you sure you want to delete ${docToDelete?.document_name}? This will permanently remove the file from Cloudflare R2 and Supabase.`,
-          `ఈ పత్రాన్ని శాశ్వతంగా తొలగించాలనుకుంటున్నారా? ఇది క్లౌడ్‌ఫ్లేర్ R2 మరియు డేటాబేస్ నుండి తొలగించబడుతుంది.`
+          `Are you sure you want to delete ${docToDelete?.document_name}? This action cannot be undone.`,
+          `మీరు ఖచ్చితంగా ${docToDelete?.document_name}ని తొలగించాలనుకుంటున్నారా? ఈ చర్యను రద్దు చేయలేరు.`
         )}
         confirmLabel={t('Delete Permanently', 'శాశ్వతంగా తొలగించు')}
         cancelLabel={t('Cancel', 'రద్దు')}
@@ -2094,8 +2188,8 @@ export function OfficerRecordsHub() {
         open={Boolean(recordToDelete)}
         title={t('Delete Officer Record', 'రికార్డును తొలగించాలా?')}
         message={t(
-          `Are you sure you want to delete ${recordToDelete?.referenceNumber || 'this record'}? This will remove it from both cloud and local cache.`,
-          `ఈ రికార్డును తొలగించాలనుకుంటున్నారా? ఇది క్లౌడ్ మరియు స్థానిక కాష్ నుండి తొలగించబడుతుంది.`
+          `Are you sure you want to delete ${recordToDelete?.referenceNumber || 'this record'}? This action cannot be undone.`,
+          `మీరు ఖచ్చితంగా ${recordToDelete?.referenceNumber || 'ఈ రికార్డును'} తొలగించాలనుకుంటున్నారా? ఈ చర్యను రద్దు చేయలేరు.`
         )}
         confirmLabel={t('Delete Permanently', 'శాశ్వతంగా తొలగించు')}
         cancelLabel={t('Cancel', 'రద్దు')}

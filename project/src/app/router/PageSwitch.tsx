@@ -1,7 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { PageLoader, PublicReadOnlyShell, SafeSuspense } from './loading';
-import { AgronixBrandMark } from '../../shared/components/ui/AgronixBrandMark';
 import {
   AgrochemicalDatabase,
   ActsAndOrders,
@@ -79,7 +78,6 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, onNavigate }:
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <OfficerSignUp />
-          <AgronixBrandMark />
         </SafeSuspense>
       );
     case 'forgot-password':
@@ -87,7 +85,6 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, onNavigate }:
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <ForgotPassword />
-          <AgronixBrandMark />
         </SafeSuspense>
       );
     case 'dashboard':
@@ -293,21 +290,18 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, onNavigate }:
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <Disclaimer />
-          <AgronixBrandMark />
         </SafeSuspense>
       );
     case 'privacy-policy':
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <PrivacyPolicy />
-          <AgronixBrandMark />
         </SafeSuspense>
       );
     case 'terms-conditions':
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <TermsConditions />
-          <AgronixBrandMark />
         </SafeSuspense>
       );
     default:
@@ -324,7 +318,6 @@ function PublicToolkitPage({ children, hideLogo = false }: { children: React.Rea
   return (
     <SafeSuspense fallback={<PageLoader hideLogo={hideLogo} />}>
       {children}
-      <AgronixBrandMark />
     </SafeSuspense>
   );
 }
@@ -337,7 +330,6 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <OfficerSignUp />
-          <AgronixBrandMark />
         </SafeSuspense>
       );
     case 'forgot-password':
@@ -345,7 +337,6 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <ForgotPassword />
-          <AgronixBrandMark />
         </SafeSuspense>
       );
     case 'dealers':
@@ -358,7 +349,6 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <OfficersToolkit isAdmin={false} isTestUser={false} isPublic={true} />
-          <AgronixBrandMark />
         </SafeSuspense>
       );
     case 'forms':
@@ -366,7 +356,6 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <PublicOfficerTools />
-          <AgronixBrandMark />
         </SafeSuspense>
       );
     case 'license-services':
@@ -411,21 +400,18 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <Disclaimer />
-          <AgronixBrandMark />
         </SafeSuspense>
       );
     case 'privacy-policy':
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <PrivacyPolicy />
-          <AgronixBrandMark />
         </SafeSuspense>
       );
     case 'terms-conditions':
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <TermsConditions />
-          <AgronixBrandMark />
         </SafeSuspense>
       );
     default:

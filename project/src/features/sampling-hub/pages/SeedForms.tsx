@@ -459,13 +459,13 @@ export function SeedForms({
       payload: form,
     };
     try {
-      const archiveResult = await downloadSeedDoc(doc, seedFileName(kind, form), metadata);
+      const archiveResult = await downloadSeedDoc(doc, seedFileName(kind, form), metadata, kind === 'ALL');
       rememberSeedGeneratedData(form);
       showSuccess(`PDF Downloaded Successfully${archiveStatusNote(archiveResult)}`, seedFileName(kind, form), 4000);
     } catch (error) {
       console.error('Download failed, opening in new tab:', error);
       const targetWindow = openBlankSeedPdfTab();
-      const archiveResult = await openSeedDocInTab(doc, seedFileName(kind, form), targetWindow, metadata);
+      const archiveResult = await openSeedDocInTab(doc, seedFileName(kind, form), targetWindow, metadata, kind === 'ALL');
       rememberSeedGeneratedData(form);
       showInfo(`Preview Opened${archiveStatusNote(archiveResult)}`, 'PDF opened in a new tab (download failed).', 4000);
     }
@@ -1006,7 +1006,7 @@ function PdfAction({ label, onPreview, onDownload, primary = false }: any) {
           }`}
         >
           <FileText className="h-3.5 w-3.5" />
-          PDF
+          Download
         </button>
       </div>
     </div>
@@ -1658,7 +1658,7 @@ function archiveStatusNote(result?: { uploadStatus?: string } | null): string {
     : ' — saved locally, upload from Records';
 }
 
-async function openSeedDocInTab(doc: any, fileName: any, targetWindow: any, metadata?: Record<string, unknown>) {
+async function openSeedDocInTab(doc: any, fileName: any, targetWindow: any, metadata?: Record<string, unknown>, shouldArchive = true) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   if (targetWindow && !targetWindow.closed) {
@@ -1667,6 +1667,8 @@ async function openSeedDocInTab(doc: any, fileName: any, targetWindow: any, meta
     window.open(blobUrl, '_blank', 'noopener,noreferrer');
   }
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+
+  if (!shouldArchive) return undefined;
 
   // Auto-archive statutory seed document
   return await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
@@ -1682,7 +1684,7 @@ async function openSeedDocInTab(doc: any, fileName: any, targetWindow: any, meta
   });
 }
 
-async function downloadSeedDoc(doc: any, fileName: any, metadata?: Record<string, unknown>) {
+async function downloadSeedDoc(doc: any, fileName: any, metadata?: Record<string, unknown>, shouldArchive = true) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -1695,6 +1697,8 @@ async function downloadSeedDoc(doc: any, fileName: any, metadata?: Record<string
   link.remove();
 
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+
+  if (!shouldArchive) return undefined;
 
   // Auto-archive statutory seed document
   return await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {

@@ -66,7 +66,9 @@ export function persistDraftRecords<T>(key: string, drafts: DraftRecord<T>[]): v
     : key.includes('insecticide') || key.includes('pesticide') ? 'pesticide'
     : 'seed';
 
-  drafts.forEach((draft) => {
+  // Only issued inspections (document generated) sync to the cloud records —
+  // plain drafts stay local until the officer actually issues the document.
+  drafts.filter((draft) => draft.issuedAt).forEach((draft) => {
     void OfficerCloudSyncService.syncInspection(commodity, draft as unknown as Record<string, unknown>);
   });
 }

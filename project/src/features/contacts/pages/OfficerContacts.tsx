@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Phone, Search, User, Building2, MapPin, Filter, MessageCircle, Loader2, Users } from 'lucide-react';
+import { Phone, Search, User, Building2, Filter, MessageCircle, Loader2, Users } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -419,76 +419,54 @@ export function OfficerContacts() {
 
   const renderContactCard = useCallback((contact: OfficerContact) => {
     const TabIcon = TABS.find(tab => tab.id === activeTab)?.icon || User;
-    
+    const fallbackName = activeTab === 'ADA'
+      ? 'Assistant Director of Agriculture'
+      : activeTab === 'DAO'
+        ? 'District Agriculture Officer'
+        : null;
+    const location = [contact.district, contact.division, contact.mandal, contact.cluster]
+      .filter(Boolean)
+      .join(' · ');
+
     return (
-      <div key={ contact.id } className="rounded-2xl border border-emerald-200/60 bg-white p-5 shadow-md shadow-emerald-950/5 dark:border-emerald-800/50 dark:bg-slate-900/80">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white shadow-lg shadow-emerald-950/20">
-            <TabIcon className="h-6 w-6" />
+      <div key={contact.id} className="rounded-xl border border-emerald-200/60 bg-white px-4 py-3 shadow-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+            <TabIcon className="h-4 w-4" />
           </div>
           <div className="min-w-0 flex-1">
-            {contact.name && (
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                {contact.name}
-              </h3>
+            <h3 className="truncate text-sm font-bold text-slate-900 dark:text-white">
+              {contact.name || fallbackName || activeTab}
+            </h3>
+            <p className="truncate text-xs font-medium text-slate-500 dark:text-slate-400">
+              {location}
+            </p>
+          </div>
+        </div>
+        <div className="mt-2.5 flex items-center justify-between border-t border-slate-100 pt-2.5 dark:border-slate-800">
+          <span className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+            <Phone className="h-3.5 w-3.5" />
+            {contact.phone}
+          </span>
+          <div className="flex items-center gap-1.5">
+            {isValidIndianMobile(contact.phone) && (
+              <button
+                onClick={() => handleWhatsApp(contact.phone)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-600 text-white transition hover:bg-green-700"
+                title="WhatsApp"
+                aria-label={`WhatsApp ${contact.phone}`}
+              >
+                <MessageCircle className="h-4 w-4" />
+              </button>
             )}
-            {!contact.name && activeTab === 'ADA' && (
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Assistant Director of Agriculture
-              </h3>
-            )}
-            {!contact.name && activeTab === 'DAO' && (
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                District Agriculture Officer
-              </h3>
-            )}
-            
-            <div className="mt-2 space-y-1">
-              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                <MapPin className="h-3.5 w-3.5" />
-                <span className="font-medium">{contact.district}</span>
-              </div>
-              {contact.division && (
-                <div className="text-sm text-slate-600 dark:text-slate-300">
-                  Division: {contact.division}
-                </div>
-              )}
-              {contact.mandal && (
-                <div className="text-sm text-slate-600 dark:text-slate-300">
-                  Mandal: {contact.mandal}
-                </div>
-              )}
-              {contact.cluster && (
-                <div className="text-sm text-slate-600 dark:text-slate-300">
-                  Cluster: {contact.cluster}
-                </div>
-              )}
-            </div>
-
-            <div className="mt-3 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                <Phone className="h-4 w-4" />
-                <span>{contact.phone}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {isValidIndianMobile(contact.phone) && (
-                  <button
-                    onClick={() => handleWhatsApp(contact.phone)}
-                    className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-700 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-green-950/20 transition hover:scale-105 hover:shadow-xl"
-                    title="WhatsApp"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                  </button>
-                )}
-                <button
-                  onClick={() => handleCall(contact.phone)}
-                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-800 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-950/20 transition hover:scale-105 hover:shadow-xl"
-                  title="Call"
-                >
-                  <Phone className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+            <button
+              onClick={() => handleCall(contact.phone)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white transition hover:bg-emerald-700"
+              title="Call"
+              aria-label={`Call ${contact.phone}`}
+            >
+              <Phone className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -501,21 +479,21 @@ export function OfficerContacts() {
     const showCluster = activeTab === 'AEO';
 
     return (
-      <div className="mb-6 space-y-4">
+      <div className="mb-5 space-y-3">
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             placeholder="Search contacts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 pl-12 pr-4 py-3 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
+            className="w-full rounded-lg border border-emerald-200/60 bg-white py-2 pl-9 pr-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
           />
         </div>
 
         {/* Filter Grid */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {/* District Filter */}
           <div>
             <select
@@ -526,9 +504,9 @@ export function OfficerContacts() {
                 setSelectedMandal('');
                 setSelectedCluster('');
               }}
-              className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
+              className="w-full rounded-lg border border-emerald-200/60 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
             >
-              <option value="">Select District</option>
+              <option value="">District</option>
               {dropdownOptions.districts.map(district => (
                 <option key={district} value={district}>{district}</option>
               ))}
@@ -546,9 +524,9 @@ export function OfficerContacts() {
                   setSelectedCluster('');
                 }}
                 disabled={!selectedDistrict}
-                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
+                className="w-full rounded-lg border border-emerald-200/60 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
-                <option value="">Select Division</option>
+                <option value="">Division</option>
                 {dropdownOptions.divisions.map(division => (
                   <option key={division} value={division}>{division}</option>
                 ))}
@@ -566,9 +544,9 @@ export function OfficerContacts() {
                   setSelectedCluster('');
                 }}
                 disabled={showDivision ? !selectedDivision : !selectedDistrict}
-                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
+                className="w-full rounded-lg border border-emerald-200/60 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
-                <option value="">Select Mandal</option>
+                <option value="">Mandal</option>
                 {dropdownOptions.mandals.map(mandal => (
                   <option key={mandal} value={mandal}>{mandal}</option>
                 ))}
@@ -583,9 +561,9 @@ export function OfficerContacts() {
                 value={selectedCluster}
                 onChange={(e) => setSelectedCluster(e.target.value)}
                 disabled={!selectedMandal}
-                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
+                className="w-full rounded-lg border border-emerald-200/60 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
-                <option value="">Select Cluster</option>
+                <option value="">Cluster</option>
                 {dropdownOptions.clusters.map(cluster => (
                   <option key={cluster} value={cluster}>{cluster}</option>
                 ))}
@@ -654,13 +632,13 @@ export function OfficerContacts() {
                     setActiveTab(tab.id);
                     resetFilters();
                   }}
-                  className={`flex shrink-0 items-center gap-2 rounded-2xl border px-5 py-3 text-base font-bold transition ${
+                  className={`flex shrink-0 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-bold transition ${
                     activeTab === tab.id
-                      ? 'border-emerald-800 bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-lg shadow-emerald-950/20 dark:border-emerald-500'
-                      : 'border-emerald-200/50 bg-white/80 text-slate-700 hover:border-emerald-400 hover:bg-emerald-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:bg-emerald-950/30'
+                      ? 'border-emerald-700 bg-emerald-700 text-white dark:border-emerald-500 dark:bg-emerald-600'
+                      : 'border-emerald-200/60 bg-white text-slate-600 hover:border-emerald-400 hover:bg-emerald-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:bg-emerald-950/30'
                   }`}
                 >
-                  <TabIcon className="h-5 w-5" />
+                  <TabIcon className="h-4 w-4" />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -679,17 +657,23 @@ export function OfficerContacts() {
         </div>
 
         {/* Contact Cards */}
-        <div className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 transition duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`grid gap-3 sm:grid-cols-2 lg:grid-cols-3 transition duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {loading && contacts.length === 0 ? (
             // Skeleton loaders for initial load
             Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-emerald-200/60 bg-white p-5 shadow-md shadow-emerald-950/5 dark:border-emerald-800/50 dark:bg-slate-900/80">
-                <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 animate-pulse rounded-xl bg-emerald-200 dark:bg-emerald-800" />
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <div className="h-4 w-3/4 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+              <div key={i} className="rounded-xl border border-emerald-200/60 bg-white px-4 py-3 shadow-sm dark:border-emerald-800/50 dark:bg-slate-900/80">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 animate-pulse rounded-lg bg-emerald-200 dark:bg-emerald-800" />
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="h-3.5 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
                     <div className="h-3 w-1/2 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-                    <div className="h-3 w-1/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                  </div>
+                </div>
+                <div className="mt-2.5 flex items-center justify-between border-t border-slate-100 pt-2.5 dark:border-slate-800">
+                  <div className="h-3.5 w-1/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="flex gap-1.5">
+                    <div className="h-8 w-8 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
+                    <div className="h-8 w-8 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700" />
                   </div>
                 </div>
               </div>
@@ -714,7 +698,7 @@ export function OfficerContacts() {
                   <button
                     onClick={loadMore}
                     disabled={loadingMore}
-                    className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-200/50 bg-white/80 px-6 py-3 text-base font-semibold text-emerald-600 transition hover:border-emerald-500 hover:bg-emerald-50 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                    className="flex items-center justify-center gap-2 rounded-lg border border-emerald-200/60 bg-white px-5 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-400 hover:bg-emerald-50 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
                   >
                     {loadingMore ? (
                       <>

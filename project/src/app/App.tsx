@@ -2,7 +2,6 @@ import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useStat
 import { useAuth, AuthProvider } from '../shared/context/AuthContext';
 import { LanguageProvider } from '../shared/context/LanguageContext';
 import { ThemeProvider } from '../shared/context/ThemeContext';
-import { AgronixBrandMark } from '../shared/components/ui/AgronixBrandMark';
 import { GlobalMobileDatePickerProvider } from '../shared/components/ui/DateInput';
 import { confirmDiscardIfDirty } from '../features/officers-toolkit/inspection/useDirtyGuard';
 import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
@@ -30,6 +29,7 @@ import { PageSwitch, PublicPageSwitch } from './router/PageSwitch';
 import { Layout, Login } from './router/lazyPages';
 
 import { safeStorage } from '../shared/lib/safeStorage';
+import { OfficerCloudSyncService } from '../features/officers-toolkit/services/officerCloudSyncService';
 function AppContent() {
   const { user, loading, authChecked, appReady, isAdminUser, isTestUser, isDealerUser } = useAuth();
   const location = useLocation();
@@ -43,10 +43,13 @@ function AppContent() {
     location.pathname === '/officer-toolkit/acreage-calculator' ||
     location.pathname === '/fertilizer-calculator' ||
     location.pathname === '/acreage-calculator';
-  const isOfficerToolkitRoute =
-    location.pathname === '/officer-toolkit' || location.pathname.startsWith('/officer-toolkit/');
   useAppScrollRestoration(location, navigationType);
   useInitialBackFallback(location, loading, Boolean(user));
+
+  // Flush officer records created offline once connectivity returns
+  useEffect(() => {
+    if (user) OfficerCloudSyncService.initOfflineSyncRetry();
+  }, [user]);
 
   // Wait for hydration to complete before rendering
   useEffect(() => {
@@ -209,7 +212,6 @@ function AppContent() {
     <SafeSuspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
       <Layout currentPage={currentPage} onNavigate={navigateToPage} onBack={handleBack}>
         <PageSwitch currentPage={currentPage} isAdminUser={isAdminUser} isTestUser={isTestUser} onNavigate={navigateToPage} />
-        {isOfficerToolkitRoute && <AgronixBrandMark />}
       </Layout>
     </SafeSuspense>
   );

@@ -12,6 +12,7 @@ import { safeStorage } from '../../../shared/lib/safeStorage';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerCloudSyncService } from '../../officers-toolkit/services/officerCloudSyncService';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
+import { buildSampleProductBadges } from '../services/coveringLetterQueue';
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
 const PESTICIDE_COVERING_LETTER_DETAILS_KEY = 'tiryani-pesticide-covering-letter-details';
 
@@ -22,6 +23,7 @@ type PesticideCoveringLetterQueueItem = {
   activeIngredient: string;
   formulationType: string;
   dateOfSampling: string;
+  issuedAt?: string;
 };
 
 type PesticideCoveringLetterMetadata = {
@@ -270,9 +272,12 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   const confirmDeleteSample = () => {
     if (sampleToDelete !== null) {
       setEditingTechnicalNames({});
+      const removed = editedQueue[sampleToDelete];
+      const removedCode = String(removed?.sampleCode || '').trim();
       const updatedQueue = editedQueue.filter((_, i) => i !== sampleToDelete);
       setEditedQueue(updatedQueue);
       safeStorage.setItem(PESTICIDE_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+      if (removedCode) void OfficerCloudSyncService.deleteSampleMemoRecord('pesticide', removedCode);
 
       if (validationErrors[sampleToDelete]) {
         const newErrors = { ...validationErrors };
@@ -303,6 +308,10 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   };
 
   const confirmClearQueue = () => {
+    editedQueue.forEach((s) => {
+      const code = String(s.sampleCode || '').trim();
+      if (code) void OfficerCloudSyncService.deleteSampleMemoRecord('pesticide', code);
+    });
     setEditedQueue([]);
     setEditingTechnicalNames({});
     setValidationErrors({});
@@ -323,9 +332,6 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
     }
     
     setIsGenerating(true);
-    editedQueue.forEach((sample) => {
-      void OfficerCloudSyncService.syncSampleMemo('pesticide', sample);
-    });
     
     try {
       const { generatePesticideCoveringLetterPdf } = await import('../lib/pesticideCoveringLetterPdf');
@@ -383,7 +389,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
           documentDate: metadata.letterDate || localTodayDate(),
           sourceModule: 'pesticide_covering_letter',
           fileFormat: 'docx',
-          metadata: { metadata, officerDetails },
+          metadata: { metadata, officerDetails, commodity: 'pesticide', sampleProducts: buildSampleProductBadges('pesticide', editedQueue) },
         });
       } else {
         doc.save(fileName);
@@ -395,7 +401,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
           documentDate: metadata.letterDate || localTodayDate(),
           sourceModule: 'pesticide_covering_letter',
           fileFormat: 'pdf',
-          metadata: { metadata, officerDetails },
+          metadata: { metadata, officerDetails, commodity: 'pesticide', sampleProducts: buildSampleProductBadges('pesticide', editedQueue) },
         });
       }
       

@@ -11,6 +11,7 @@ import { safeStorage } from '../../../shared/lib/safeStorage';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerCloudSyncService } from '../../officers-toolkit/services/officerCloudSyncService';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
+import { buildSampleProductBadges } from '../services/coveringLetterQueue';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 const COVERING_LETTER_DETAILS_KEY = 'tiryani-covering-letter-details';
 
@@ -19,6 +20,7 @@ type CoveringLetterQueueItem = {
   fertilizerName: string;
   quantity: string;
   dateOfSampling: string;
+  issuedAt?: string;
 };
 
 type CoveringLetterMetadata = {
@@ -258,9 +260,12 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
   const confirmDeleteSample = () => {
     if (sampleToDelete !== null) {
+      const removed = editedQueue[sampleToDelete];
+      const removedCode = String(removed?.sampleCode || '').trim();
       const updatedQueue = editedQueue.filter((_, i) => i !== sampleToDelete);
       setEditedQueue(updatedQueue);
       safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+      if (removedCode) void OfficerCloudSyncService.deleteSampleMemoRecord('fertilizer', removedCode);
 
       if (validationErrors[sampleToDelete]) {
         const newErrors = { ...validationErrors };
@@ -289,6 +294,10 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   };
 
   const confirmClearQueue = () => {
+    editedQueue.forEach((s) => {
+      const code = String(s.sampleCode || '').trim();
+      if (code) void OfficerCloudSyncService.deleteSampleMemoRecord('fertilizer', code);
+    });
     setEditedQueue([]);
     setValidationErrors({});
     safeStorage.removeItem(COVERING_LETTER_QUEUE_KEY);
@@ -314,9 +323,6 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
     setIsPreviewing(true);
     setIsGenerating(true);
-    editedQueue.forEach((sample) => {
-      void OfficerCloudSyncService.syncSampleMemo('fertilizer', sample);
-    });
     try {
       const { generateCoveringLetterPdf } = await import('../lib/coveringLetterPdf');
       
@@ -402,7 +408,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
           documentDate: metadataForPdf.letterDate || new Date().toISOString().slice(0, 10),
           sourceModule: 'covering_letter',
           fileFormat: 'docx',
-          metadata: { letterType, officerDetails, metadataForPdf },
+          metadata: { letterType, officerDetails, metadataForPdf, commodity: 'fertilizer', sampleProducts: buildSampleProductBadges('fertilizer', editedQueue) },
         });
 
         setMessage('Covering Letter downloaded successfully.');
@@ -428,7 +434,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
         documentDate: metadataForPdf.letterDate || new Date().toISOString().slice(0, 10),
         sourceModule: 'covering_letter',
         fileFormat: 'pdf',
-        metadata: { letterType, officerDetails, metadataForPdf },
+        metadata: { letterType, officerDetails, metadataForPdf, commodity: 'fertilizer', sampleProducts: buildSampleProductBadges('fertilizer', editedQueue) },
       });
 
       setMessage('Covering Letter downloaded successfully.');

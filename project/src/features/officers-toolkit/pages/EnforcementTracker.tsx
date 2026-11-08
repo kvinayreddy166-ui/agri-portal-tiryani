@@ -218,7 +218,11 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
   const filteredSamples = useMemo(() => {
     if (!searchQuery.trim()) return samplePipeline;
     const q = searchQuery.toLowerCase();
-    return samplePipeline.filter((s) => s.dealerName.toLowerCase().includes(q) || s.sampleCode.toLowerCase().includes(q));
+    return samplePipeline.filter((s) =>
+      s.dealerName.toLowerCase().includes(q) ||
+      s.sampleCode.toLowerCase().includes(q) ||
+      s.productLabel.toLowerCase().includes(q)
+    );
   }, [samplePipeline, searchQuery]);
 
   const stats = useMemo(() => {
@@ -653,12 +657,13 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
                   {s.riskLevel} · {s.riskScore}
                 </span>
               </div>
-              <div className="mt-3 grid grid-cols-4 gap-1.5 text-center text-[10px] font-bold">
+              <div className="mt-3 grid grid-cols-5 gap-1.5 text-center text-[10px] font-bold">
                 {[
                   { label: t('Inspections', 'తనిఖీలు'), value: s.inspections, cls: 'text-sky-600' },
-                  { label: t('Orders', 'ఆర్డర్లు'), value: s.orders, cls: 'text-slate-600 dark:text-slate-300' },
+                  { label: t('Stop Sale', 'స్టాప్ సేల్'), value: s.stopSale, cls: 'text-orange-600' },
                   { label: t('Show Cause', 'షో కారణం'), value: s.showCause, cls: 'text-amber-600' },
                   { label: t('Seizures', 'సీజర్లు'), value: s.seizures, cls: 'text-red-600' },
+                  { label: t('Samples', 'నమూనాలు'), value: s.samplesTotal, cls: s.samplesFailed > 0 ? 'text-red-600' : 'text-violet-600' },
                 ].map((m) => (
                   <div key={m.label} className="rounded-lg bg-slate-50 px-1 py-1.5 dark:bg-slate-800/60">
                     <p className={`text-sm font-black ${m.cls}`}>{m.value}</p>
@@ -705,6 +710,11 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
                         <p className="text-[10px] font-semibold text-slate-500">
                           {s.sampleCode} · {t(COMMODITY_LABELS[s.commodity].en, COMMODITY_LABELS[s.commodity].te)} · {s.sampledDate} · {s.daysInStage}d {t('in stage', 'స్టేజ్‌లో')}
                         </p>
+                        {s.productLabel && (
+                          <p className="mt-0.5 truncate text-[10px] font-bold text-violet-600 dark:text-violet-300" title={s.productLabel}>
+                            {s.productLabel}
+                          </p>
+                        )}
                       </div>
                       <div className="flex flex-wrap items-center gap-1.5">
                         {status === 'DRAFT' && (
@@ -879,6 +889,12 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
                   <span className="text-[10px] font-black uppercase text-slate-400">{t('Commodity', 'వస్తువు')}:</span>
                   <p className="font-bold text-slate-900 dark:text-white capitalize">{markingSample.sample.commodity}</p>
                 </div>
+                {markingSample.sample.productLabel && (
+                  <div className="col-span-2">
+                    <span className="text-[10px] font-black uppercase text-slate-400">{t('Product / Crop & Variety', 'ఉత్పత్తి / పంట & రకం')}:</span>
+                    <p className="font-bold text-slate-900 dark:text-white truncate">{markingSample.sample.productLabel}</p>
+                  </div>
+                )}
                 <div className="col-span-2">
                   <span className="text-[10px] font-black uppercase text-slate-400">{t('Firm / Dealer', 'డీలర్ / సంస్థ')}:</span>
                   <p className="font-bold text-slate-900 dark:text-white truncate">{markingSample.sample.dealerName}</p>

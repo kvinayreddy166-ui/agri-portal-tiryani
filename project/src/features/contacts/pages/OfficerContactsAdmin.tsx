@@ -317,35 +317,34 @@ export function OfficerContactsAdmin() {
               const Icon = getOfficerIcon(contact.officer_type);
               return (
                 <article key={contact.id} className="grid gap-3 p-4 lg:grid-cols-[1fr_auto]">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                      <Icon className="h-6 w-6" />
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                      <Icon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex rounded-full bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                        <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-black text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                           {contact.officer_type}
                         </span>
                         {!contact.active && (
-                          <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-xs font-black text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                          <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-black text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                             Inactive
                           </span>
                         )}
                       </div>
                       {contact.name && (
-                        <h3 className="mt-2 text-base font-black text-slate-950 dark:text-white">
+                        <h3 className="mt-1 text-sm font-bold text-slate-950 dark:text-white">
                           {contact.name}
                         </h3>
                       )}
-                      <div className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-300">
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-3.5 w-3.5" />
-                          <span className="font-mono font-bold">{contact.phone}</span>
-                        </div>
-                        <div>District: {contact.district}</div>
-                        {contact.division && <div>Division: {contact.division}</div>}
-                        {contact.mandal && <div>Mandal: {contact.mandal}</div>}
-                        {contact.cluster && <div>Cluster: {contact.cluster}</div>}
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-600 dark:text-slate-300">
+                        <span className="inline-flex items-center gap-1 font-semibold">
+                          <Phone className="h-3 w-3" />
+                          {contact.phone}
+                        </span>
+                        <span className="truncate">
+                          {[contact.district, contact.division, contact.mandal, contact.cluster].filter(Boolean).join(' · ')}
+                        </span>
                       </div>
                     </div>
                   </div>

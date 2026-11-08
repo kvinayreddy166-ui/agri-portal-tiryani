@@ -639,25 +639,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       } else {
         setPdfPreview({ url: blobUrl, name: fileName });
       }
-      await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
-        filename: fileName,
-        documentCategory: 'sample',
-        sourceModule: 'pesticide_statutory',
-        fileFormat: 'pdf',
-        mimeType: 'application/pdf',
-        metadata: {
-          type: 'pesticide_statutory_form',
-          viaPreview: true,
-          formType,
-          productName: documentValues.insecticideCommonName || documentValues.tradeName || '',
-          firmName: documentValues.dealerName || '',
-          firmAddress: documentValues.dealerAddress || documentValues.place || '',
-          codeNo: documentValues.cdaCode || documentValues.sampleSerialNumber || '',
-          samplingDate: documentValues.sampleDrawnDate || documentValues.date || '',
-          officerName: documentValues.officerName || '',
-          payload: documentValues,
-        },
-      });
       showInfo('Preview Opened', mobileTab ? 'PDF preview opened in a new tab.' : 'PDF preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview pesticide PDF:', error);
@@ -713,7 +694,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
         samplingDate: documentValues.sampleDrawnDate || documentValues.date || '',
         officerName: documentValues.officerName || '',
         payload: documentValues,
-      });
+      }, false);
       showSuccess(`PDF Downloaded Successfully${archiveStatusNote(archiveResult)}`, fileName, 4000);
     } catch (error) {
       console.error('Unable to download pesticide PDF:', error);
@@ -767,24 +748,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       } else {
         setPdfPreview({ url: blobUrl, name: fileName });
       }
-      await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {
-        filename: fileName,
-        documentCategory: 'sample',
-        sourceModule: 'pesticide_statutory',
-        fileFormat: 'pdf',
-        mimeType: 'application/pdf',
-        metadata: {
-          type: 'pesticide_statutory_all_forms',
-          viaPreview: true,
-          productName: values.insecticideCommonName || values.tradeName || '',
-          firmName: values.dealerName || '',
-          firmAddress: values.dealerAddress || values.place || '',
-          codeNo: values.cdaCode || values.sampleSerialNumber || '',
-          samplingDate: values.sampleDrawnDate || values.date || '',
-          officerName: values.officerName || '',
-          payload: values,
-        },
-      });
       showInfo('All Forms Previewed', mobileTab ? 'All pesticide forms preview opened in a new tab.' : 'All pesticide forms preview opened.', 4000);
     } catch (error) {
       console.error('Unable to preview all pesticide PDFs:', error);
@@ -1434,7 +1397,8 @@ function archiveStatusNote(result?: { uploadStatus?: string } | null): string {
 async function downloadDoc(
   doc: { output: (type: 'blob') => Blob },
   fileName: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
+  shouldArchive = true
 ) {
   const blob = new File([doc.output('blob')], fileName, { type: 'application/pdf' });
   const blobUrl = URL.createObjectURL(blob);
@@ -1446,6 +1410,8 @@ async function downloadDoc(
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+
+  if (!shouldArchive) return undefined;
 
   // Auto-archive statutory pesticide document
   return await OfficerDocumentArchiveService.archiveGeneratedDocument(blob, {

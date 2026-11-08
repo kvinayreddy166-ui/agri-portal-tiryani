@@ -9,6 +9,7 @@ import {
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import {
   buildNoticeWordDocument,
   designationOptionsFor,
@@ -31,6 +32,7 @@ import type { SavedFertStopSaleOrder } from './FertilizerStopSaleEntry';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
+import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 interface FertRevokeProductRow {
   id: string;
   name: string;
@@ -61,6 +63,7 @@ interface FertRevokeFormState {
 interface SavedFertRevokeOrder extends FertRevokeFormState {
   id: string;
   savedAt: string;
+  issuedAt?: string;
 }
 
 const STORAGE_KEY = 'agri-legal-fertilizer-stop-sale-revoke-orders';
@@ -277,6 +280,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
     prefill ? makeFormFromOrder(prefill) : readFormDraft() ?? makeInitialForm()
   );
   const [savedOrders, setSavedOrders] = useState<SavedFertRevokeOrder[]>(() => readSavedOrders());
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [savedSearch, setSavedSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -334,15 +338,39 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
   const removeProduct = (id: string) =>
     setForm((current) => ({ ...current, products: current.products.filter((row) => row.id !== id) }));
 
-  const saveOrder = () => {
+  const persistOrder = (notify = false, issue = false) => {
+    const entryId = editingId || uid();
     const entry: SavedFertRevokeOrder = {
       ...form,
-      id: editingId || uid(),
+      id: entryId,
       savedAt: new Date().toISOString(),
+      issuedAt: issue ? new Date().toISOString() : savedOrders.find((item) => item.id === entryId)?.issuedAt,
     };
     setSavedOrders((current) => [entry, ...current.filter((item) => item.id !== entry.id)]);
     setEditingId(entry.id);
-    showSaved('Order saved', entry.orderNumber || 'Revoke of Stop Sale Order');
+    if (issue) void OfficerCloudSyncService.syncStatutoryOrder('revocation', 'fertilizer', entry as unknown as Record<string, unknown>, {
+      orderDate: form.revokeDate || today(),
+    });
+    if (notify) showSaved('Order saved', entry.orderNumber || 'Revoke of Stop Sale Order');
+  };
+
+  const saveOrder = () => persistOrder(true);
+
+  // Persist the record when the document is actually issued (download/print),
+  // not merely when the form is filled in.
+  const persistOrderForExport = async (): Promise<boolean> => {
+    const dealer = String(form.firmName ?? '').trim();
+    if (!dealer) return false;
+    const f = form as unknown as Record<string, unknown>;
+    const ref = String(f.orderNumber || f.noticeNumber || f.memoNumber || f.refNumber || '').trim();
+    const ok = await askConfirm({
+      title: `Issue Revocation of Stop Sale Order for ${dealer}${ref ? ` (${ref})` : ''}?`,
+      message: 'The record will be saved to cloud records.',
+      confirmLabel: 'Issue',
+    });
+    if (!ok) return false;
+    persistOrder(false, true);
+    return true;
   };
 
   const editSavedOrder = (order: SavedFertRevokeOrder) => {
@@ -361,6 +389,9 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
     if (orderToDelete) {
       setSavedOrders((current) => current.filter((item) => item.id !== orderToDelete.id));
       if (editingId === orderToDelete.id) setEditingId(null);
+      const deleted = orderToDelete as unknown as Record<string, unknown>;
+      const orderNumber = String(deleted.orderNumber || deleted.noticeNumber || deleted.memoNumber || deleted.refNumber || deleted.id || '');
+      if (orderNumber) void OfficerCloudSyncService.deleteStatutoryOrderRecord('revocation', 'fertilizer', orderNumber);
       showDeleted('Order deleted', orderToDelete.orderNumber || 'Untitled order');
       setOrderToDelete(null);
     }
@@ -404,6 +435,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
   const fileBase = () => `${form.orderNumber || 'revoke-stop-sale-order'}`.replace(/[\\/]/g, '-');
 
   const downloadPdf = async () => {
+    if (!(await persistOrderForExport())) return;
     const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Revoke of Stop Sale Order', 'times');
     const filename = `${fileBase()}.pdf`;
     doc.save(filename);
@@ -423,6 +455,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
 
   const downloadWord = async () => {
     try {
+      if (!(await persistOrderForExport())) return;
       const blob = await buildNoticeWordDocument(noticeBlocks, 'times');
       const url = URL.createObjectURL(blob);
       const filename = `${fileBase()}.docx`;
@@ -453,6 +486,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
 
   const printOrder = async () => {
     try {
+      if (!(await persistOrderForExport())) return;
       const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Revoke of Stop Sale Order', 'times');
       const pdfBlob = doc.output('blob');
       const pdfUrl = URL.createObjectURL(pdfBlob);
@@ -481,6 +515,7 @@ export function FertilizerStopSaleRevokeEntry({ prefill }: { prefill?: SavedFert
   return (
     <div className="space-y-4">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      {confirmDialog}
       <ConfirmDialog
         open={resetConfirmOpen}
         title="Reset form?"

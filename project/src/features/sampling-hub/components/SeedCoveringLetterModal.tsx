@@ -11,6 +11,7 @@ import { safeStorage } from '../../../shared/lib/safeStorage';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerCloudSyncService } from '../../officers-toolkit/services/officerCloudSyncService';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
+import { buildSampleProductBadges } from '../services/coveringLetterQueue';
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 const SEED_COVERING_LETTER_DETAILS_KEY = 'tiryani-seed-covering-letter-details';
 
@@ -71,6 +72,7 @@ type SeedCoveringLetterQueueItem = {
   quantity: string;
   dateOfSampling: string;
   isCotton?: boolean;
+  issuedAt?: string;
 };
 
 type SeedCoveringLetterMetadata = {
@@ -258,9 +260,12 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
 
   const confirmDeleteSample = () => {
     if (sampleToDelete !== null) {
+      const removed = editedQueue[sampleToDelete];
+      const removedCode = String(removed?.sampleCode || '').trim();
       const updatedQueue = editedQueue.filter((_, i) => i !== sampleToDelete);
       setEditedQueue(updatedQueue);
       safeStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify(updatedQueue));
+      if (removedCode) void OfficerCloudSyncService.deleteSampleMemoRecord('seed', removedCode);
 
       if (validationErrors[sampleToDelete]) {
         const newErrors = { ...validationErrors };
@@ -277,6 +282,10 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   };
 
   const confirmClearQueue = () => {
+    editedQueue.forEach((s) => {
+      const code = String(s.sampleCode || '').trim();
+      if (code) void OfficerCloudSyncService.deleteSampleMemoRecord('seed', code);
+    });
     setEditedQueue([]);
     safeStorage.setItem(SEED_COVERING_LETTER_QUEUE_KEY, JSON.stringify([]));
     setValidationErrors({});
@@ -314,9 +323,6 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
     
     setIsGenerating(true);
     setIsPreviewing(true);
-    editedQueue.forEach((sample) => {
-      void OfficerCloudSyncService.syncSampleMemo('seed', sample);
-    });
     
     try {
       const { generateSeedCoveringLetterPdf } = await import('../lib/seedCoveringLetterPdf');
@@ -436,7 +442,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
           documentDate: metadata.letterDate || localTodayDate(),
           sourceModule: 'seed_covering_letter',
           fileFormat: 'docx',
-          metadata: { letterType, metadata, officerDetailsWithPhone },
+          metadata: { letterType, metadata, officerDetailsWithPhone, commodity: 'seed', sampleProducts: buildSampleProductBadges('seed', queueWithLetterType) },
         });
       } else {
         doc.save(fileName);
@@ -448,7 +454,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
           documentDate: metadata.letterDate || localTodayDate(),
           sourceModule: 'seed_covering_letter',
           fileFormat: 'pdf',
-          metadata: { letterType, metadata, officerDetailsWithPhone },
+          metadata: { letterType, metadata, officerDetailsWithPhone, commodity: 'seed', sampleProducts: buildSampleProductBadges('seed', queueWithLetterType) },
         });
       }
       

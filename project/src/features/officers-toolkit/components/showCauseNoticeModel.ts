@@ -51,6 +51,7 @@ export interface NoticeFormState {
 export interface SavedNotice extends NoticeFormState {
   id: string;
   savedAt: string;
+  issuedAt?: string;
 }
 
 export const STORAGE_KEY = 'agri-legal-show-cause-notices';
