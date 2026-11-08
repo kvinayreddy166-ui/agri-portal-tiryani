@@ -1384,14 +1384,17 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       try {
         const sampleCode = values.sampleCode.trim();
         if (sampleCode) {
-          const dealerName = (values.dealerManufacturerImporterName === 'Other'
-            ? values.manualDealerManufacturerImporterName
-            : values.dealerManufacturerImporterName || '').trim();
+          const dealerName = (documentValues.dealerName || '').trim();
           const result = upsertCoveringLetterSample('fertilizer', {
             sampleCode,
             fertilizerName: resolveFertilizerTypeGrade(values).trim(),
             quantity: getDefaultQuantity(values),
             dateOfSampling: values.samplingDate.trim(),
+            batchNo: (values.batchDetails || '').trim() || undefined,
+            mandal: (isAssistantDirectorOfAgriculture(values.designation)
+              ? effectiveLocationValue(values.placeOfCollectionMandal, values.manualPlaceOfCollection)
+              : effectiveLocationValue(values.mandal, values.manualMandal)) || undefined,
+            district: effectiveLocationValue(values.district, values.manualDistrict) || undefined,
             firmName: dealerName || undefined,
           });
           if (result === 'added') {

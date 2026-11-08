@@ -19,9 +19,9 @@ export type CoveringLetterUpsertResult = 'added' | 'updated' | 'unchanged';
 // Fields compared to detect whether a re-download changed the queued sample.
 // Tracker-written fields (labStatus, dispatchedAt, ...) are intentionally excluded.
 const TRACKED_FIELDS: Record<StatutoryCommodity, string[]> = {
-  fertilizer: ['fertilizerName', 'quantity', 'dateOfSampling', 'firmName'],
-  pesticide: ['tradeName', 'technicalName', 'activeIngredient', 'formulationType', 'dateOfSampling', 'firmName'],
-  seed: ['seedName', 'variety', 'quantity', 'dateOfSampling', 'isCotton', 'firmName'],
+  fertilizer: ['fertilizerName', 'quantity', 'dateOfSampling', 'batchNo', 'firmName'],
+  pesticide: ['tradeName', 'technicalName', 'activeIngredient', 'formulationType', 'dateOfSampling', 'batchNo', 'firmName'],
+  seed: ['seedName', 'variety', 'quantity', 'dateOfSampling', 'isCotton', 'batchNo', 'firmName'],
 };
 
 function notifyQueueChanged() {
@@ -125,7 +125,7 @@ export function describeSampleProduct(commodity: StatutoryCommodity, item: Cover
   }
   const crop = text(item.seedName) || text(item.crop);
   const variety = text(item.variety);
-  return [crop, variety].filter(Boolean).join(' - ') || 'Sample';
+  return [crop && variety ? `${crop} (${variety})` : crop || variety].filter(Boolean)[0] || 'Sample';
 }
 
 /** Builds the product badge list stored in document archive metadata. */

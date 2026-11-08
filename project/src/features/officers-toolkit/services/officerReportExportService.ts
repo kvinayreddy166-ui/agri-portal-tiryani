@@ -18,6 +18,7 @@ export interface ReportExportOptions {
 export interface ExtractedReportRow {
   sNo: number;
   productName: string;
+  batchNo: string;
   firmName: string;
   firmAddress: string;
   codeNo: string;
@@ -25,6 +26,20 @@ export interface ExtractedReportRow {
   officerName: string;
   resultRemarks: string;
   rawCategory: string;
+}
+
+const LAB_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Draft',
+  DISPATCHED: 'Dispatched',
+  RECEIVED_LAB: 'Received at Lab',
+  TEST_PASSED: 'Test Passed',
+  TEST_FAILED: 'Test Failed',
+};
+
+function labStatusLabel(value: unknown): string {
+  const key = String(value ?? '').trim().toUpperCase();
+  if (!key) return '';
+  return LAB_STATUS_LABELS[key] || key.replace(/_/g, ' ');
 }
 
 export class OfficerReportExportService {
@@ -74,19 +89,40 @@ export class OfficerReportExportService {
         const cropName = String(meta.cropName || meta.crop || meta.seedName || '');
         const varietyName = String(meta.variety || meta.varietyName || '');
         const badgeProducts = sampleProductLabels(meta);
+        const payload = (meta.payload || {}) as Record<string, unknown>;
+        const docTradeName = String(meta.tradeName ?? payload.tradeName ?? '').trim();
+        const docPesticideParts = [meta.technicalName ?? payload.technicalName, meta.activeIngredient ?? payload.activeIngredient, meta.formulationType ?? payload.formulationType]
+          .map((v) => String(v ?? '').trim())
+          .filter(Boolean);
+        const docPesticideLabel = docTradeName
+          ? (docPesticideParts.length ? `${docTradeName} (${docPesticideParts.join(', ')})` : docTradeName)
+          : docPesticideParts.join(', ');
         const productName = cropName && varietyName
-          ? `${cropName} — ${varietyName}`
+          ? `${cropName} (${varietyName})`
           : String(
               meta.productName ||
                 meta.product ||
                 meta.fertilizerName ||
                 meta.insecticideName ||
+                docPesticideLabel ||
                 badgeProducts ||
                 cropName ||
                 varietyName ||
                 meta.commodity ||
                 rawName
             );
+
+        const batchNo = String(
+          meta.batchNo ||
+            meta.batchNumber ||
+            meta.batchLotNumber ||
+            meta.lotNo ||
+            payload.batchNo ||
+            payload.batchNumber ||
+            payload.batchLotNumber ||
+            payload.lotNo ||
+            '—'
+        );
 
         const firmName = String(
           meta.dealerName ||
@@ -124,17 +160,25 @@ export class OfficerReportExportService {
             defaultOfficer
         );
 
-        const resultRemarks = String(
-          options.statusOverrides?.[doc.id] ||
+        const docStatusLabel = labStatusLabel(meta.labStatus || meta.lab_status);
+        const docFindingText = String(
+          meta.failureFinding ||
+            meta.labReportRef ||
             meta.resultRemarks ||
             meta.remarks ||
             meta.result ||
-            (doc.upload_status === 'saved_to_cloud' ? 'Archived to Cloud' : 'Recorded')
+            ''
+        ).trim();
+        const resultRemarks = String(
+          options.statusOverrides?.[doc.id] ||
+            [docStatusLabel, docFindingText].filter(Boolean).join(' — ') ||
+            '—'
         );
 
         return {
           sNo: idx + 1,
           productName,
+          batchNo,
           firmName,
           firmAddress,
           codeNo,
@@ -151,19 +195,38 @@ export class OfficerReportExportService {
         const cropName = String(details.cropName || details.crop || details.seedName || '');
         const varietyName = String(details.variety || details.varietyName || '');
         const badgeProducts = sampleProductLabels(details);
+        const tradeName = String(details.tradeName ?? '').trim();
+        const pesticideParts = [details.technicalName, details.activeIngredient, details.formulationType]
+          .map((v) => String(v ?? '').trim())
+          .filter(Boolean);
+        const pesticideLabel = tradeName
+          ? (pesticideParts.length ? `${tradeName} (${pesticideParts.join(', ')})` : tradeName)
+          : pesticideParts.join(', ');
         const productName = cropName && varietyName
-          ? `${cropName} — ${varietyName}`
+          ? `${cropName} (${varietyName})`
           : String(
               details.productName ||
                 details.product ||
                 details.fertilizerName ||
                 details.insecticideName ||
+                pesticideLabel ||
+                details.activeIngredient ||
+                details.insecticideCommonName ||
+                details.nameGrade ||
                 badgeProducts ||
                 cropName ||
                 varietyName ||
                 details.commodity ||
                 rec.title
             );
+
+        const batchNo = String(
+          details.batchNo ||
+            details.batchNumber ||
+            details.batchLotNumber ||
+            details.lotNo ||
+            '—'
+        );
 
         const firmName = String(
           rec.entityName ||
@@ -198,17 +261,25 @@ export class OfficerReportExportService {
             defaultOfficer
         );
 
-        const resultRemarks = String(
-          options.statusOverrides?.[rec.id] ||
+        const statusLabel = labStatusLabel(details.labStatus || details.lab_status);
+        const findingText = String(
+          details.failureFinding ||
+            details.labReportRef ||
             details.remarks ||
             details.result ||
             details.findings ||
-            (rec.synced ? 'Synced to Cloud' : 'Saved on Device')
+            ''
+        ).trim();
+        const resultRemarks = String(
+          options.statusOverrides?.[rec.id] ||
+            [statusLabel, findingText].filter(Boolean).join(' — ') ||
+            '—'
         );
 
         return {
           sNo: idx + 1,
           productName,
+          batchNo,
           firmName,
           firmAddress,
           codeNo,
@@ -294,7 +365,7 @@ export class OfficerReportExportService {
 
     return {
       mainTitle: 'GOVERNMENT OF TELANGANA — DEPARTMENT OF AGRICULTURE',
-      subTitle: `OFFICIAL ${commodityPrefix}RECORDS & CLOUD STORAGE CONSOLIDATED REPORT`,
+      subTitle: '',
       filenameBase: `Official_${commodityFilePrefix}Records_Cloud_Storage_Report`,
     };
   }
@@ -328,7 +399,7 @@ export class OfficerReportExportService {
     });
 
     // 1. Header Banner
-    sheet.mergeCells('A1:G1');
+    sheet.mergeCells('A1:H1');
     const titleCell = sheet.getCell('A1');
     titleCell.value = mainTitle;
     titleCell.font = { name: 'Arial', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -336,13 +407,15 @@ export class OfficerReportExportService {
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF15803D' } }; // emerald-700
     sheet.getRow(1).height = 28;
 
-    sheet.mergeCells('A2:G2');
+    sheet.mergeCells('A2:H2');
     const subCell = sheet.getCell('A2');
-    subCell.value = subTitle;
+    subCell.value = subTitle || null;
     subCell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FF1E293B' } };
     subCell.alignment = { horizontal: 'center', vertical: 'middle' };
-    subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
-    sheet.getRow(2).height = 22;
+    if (subTitle) {
+      subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+    }
+    sheet.getRow(2).height = subTitle ? 22 : 10;
 
     // 2. Metadata Info Box
     const { officerLine, detailLine } = this.officerMetaLines(options);
@@ -353,14 +426,14 @@ export class OfficerReportExportService {
     metaLeft.font = { name: 'Arial', size: 9, bold: true };
     metaLeft.alignment = { horizontal: 'left', vertical: 'middle' };
 
-    sheet.mergeCells('E3:G3');
+    sheet.mergeCells('E3:H3');
     const metaRight = sheet.getCell('E3');
     metaRight.value = `Date: ${dateStr} | Total Records: ${rows.length}`;
     metaRight.font = { name: 'Arial', size: 9, italic: true };
     metaRight.alignment = { horizontal: 'right', vertical: 'middle' };
     sheet.getRow(3).height = 18;
 
-    sheet.mergeCells('A4:G4');
+    sheet.mergeCells('A4:H4');
     const metaDetail = sheet.getCell('A4');
     metaDetail.value = detailLine;
     metaDetail.font = { name: 'Arial', size: 9, italic: true, color: { argb: 'FF475569' } };
@@ -372,6 +445,7 @@ export class OfficerReportExportService {
       'S.No',
       'Code No',
       'Product / Crop & Variety',
+      'Batch / Lot No',
       'Firm Name',
       'Firm Address',
       'Sampling Date',
@@ -399,6 +473,7 @@ export class OfficerReportExportService {
         r.sNo,
         r.codeNo,
         r.productName,
+        r.batchNo,
         r.firmName,
         r.firmAddress,
         r.samplingDate,
@@ -419,8 +494,8 @@ export class OfficerReportExportService {
         if (isEven) {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
         }
-        // Center S.No, Code No, and Date
-        if (colNum === 1 || colNum === 2 || colNum === 6) {
+        // Center S.No, Code No, Batch/Lot and Date
+        if (colNum === 1 || colNum === 2 || colNum === 4 || colNum === 7) {
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
         } else {
           cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
@@ -432,11 +507,12 @@ export class OfficerReportExportService {
     sheet.columns = [
       { width: 7 },  // S.No
       { width: 16 }, // Code No
-      { width: 26 }, // Product / Crop & Variety
+      { width: 24 }, // Product / Crop & Variety
+      { width: 15 }, // Batch / Lot No
       { width: 22 }, // Firm Name
       { width: 26 }, // Firm Address
       { width: 15 }, // Date of Sampling
-      { width: 24 }, // Result / Remarks
+      { width: 22 }, // Result / Remarks
     ];
 
     const buffer = await workbook.xlsx.writeBuffer();
@@ -474,10 +550,12 @@ export class OfficerReportExportService {
     doc.text(mainTitle, pageWidth / 2, 14.5, { align: 'center' });
 
     // 2. Subtitle
-    doc.setFont('times', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(30, 41, 59);
-    doc.text(subTitle, pageWidth / 2, 23, { align: 'center' });
+    if (subTitle) {
+      doc.setFont('times', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(30, 41, 59);
+      doc.text(subTitle, pageWidth / 2, 23, { align: 'center' });
+    }
 
     // 3. Metadata Bar
     const { officerLine, detailLine } = this.officerMetaLines(options);
@@ -494,13 +572,14 @@ export class OfficerReportExportService {
 
     // 4. AutoTable
     const headers = [
-      ['S.No', 'Code No', 'Product / Crop & Variety', 'Firm Name', 'Firm Address', 'Sampling Date', 'Result / Remarks'],
+      ['S.No', 'Code No', 'Product / Crop & Variety', 'Batch / Lot No', 'Firm Name', 'Firm Address', 'Sampling Date', 'Result / Remarks'],
     ];
 
     const body = rows.map((r) => [
       String(r.sNo),
       r.codeNo,
       r.productName,
+      r.batchNo,
       r.firmName,
       r.firmAddress,
       r.samplingDate,
@@ -532,12 +611,13 @@ export class OfficerReportExportService {
       },
       columnStyles: {
         0: { halign: 'center', cellWidth: 8 },  // S.No
-        1: { halign: 'center', cellWidth: 22 }, // Code No
-        2: { cellWidth: 38 },                   // Product / Crop & Variety
-        3: { cellWidth: 28 },                   // Firm Name
-        4: { cellWidth: 34 },                   // Firm Address
-        5: { halign: 'center', cellWidth: 20 }, // Date of Sampling
-        6: { cellWidth: 40 },                   // Result / Remarks
+        1: { halign: 'center', cellWidth: 20 }, // Code No
+        2: { cellWidth: 32 },                   // Product / Crop & Variety
+        3: { halign: 'center', cellWidth: 18 }, // Batch / Lot No
+        4: { cellWidth: 26 },                   // Firm Name
+        5: { cellWidth: 30 },                   // Firm Address
+        6: { halign: 'center', cellWidth: 18 }, // Date of Sampling
+        7: { cellWidth: 34 },                   // Result / Remarks
       },
       margin: { left: 10, right: 10 },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

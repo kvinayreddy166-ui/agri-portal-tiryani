@@ -1609,7 +1609,7 @@ export function LicenseServices() {
 
         {/* Amendment Type Selections - Hidden for now */}
         {showFertilizerAmendmentType && (
-          <div className={`mb-4 transition duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className={`mb-4 transition duration-700 delay-400 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
             <div className="mb-2">
               <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
                 Fertilizer Amendment Type
@@ -1632,7 +1632,7 @@ export function LicenseServices() {
 
         {/* Seed Amendment Type Selection - Hidden for now */}
         {showSeedAmendmentType && (
-          <div className={`mb-4 transition duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className={`mb-4 transition duration-700 delay-400 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
             <div className="mb-2">
               <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
                 Seed Amendment Type
@@ -1655,7 +1655,7 @@ export function LicenseServices() {
 
         {/* Insecticide Amendment Type Selection - Hidden for now */}
         {showInsecticideAmendmentType && (
-          <div className={`mb-4 transition duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className={`mb-4 transition duration-700 delay-400 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
             <div className="mb-2">
               <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300">
                 Insecticide Amendment Type

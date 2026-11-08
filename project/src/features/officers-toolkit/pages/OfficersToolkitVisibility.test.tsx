@@ -121,7 +121,7 @@ describe('OfficersToolkit — Public vs Authenticated Visibility', () => {
 
     // Authenticated officer sees their records & cloud archive
     expect(html).toContain('Saved Records &amp; Storage');
-    expect(html).toContain('Synced with R2 repository');
+    expect(html).toContain('Synced to cloud storage');
   });
 
   it('renders Field Tools module without disturbing cards', () => {

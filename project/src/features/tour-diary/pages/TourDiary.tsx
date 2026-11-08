@@ -2138,7 +2138,7 @@ export function TourDiary() {
         />
 
         {/* Officer Details */}
-        <div className={`mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition duration-700 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
           <h2 className="mb-4 text-sm font-bold text-slate-900 dark:text-white">Officer Details</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div>
@@ -2275,7 +2275,7 @@ export function TourDiary() {
         </div>
 
         {/* Month/Year Selection */}
-        <div className={`relative z-20 mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`relative z-20 mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 backdrop-blur-sm p-4 shadow-lg dark:border-emerald-800/50 dark:bg-slate-900/80 transition duration-700 delay-100 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <button
@@ -2395,7 +2395,7 @@ export function TourDiary() {
         </div>
 
         {/* Monthly Summary */}
-        <details className={`group mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-lg backdrop-blur-sm transition duration-700 delay-100 dark:border-emerald-800/50 dark:bg-slate-900/80 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+        <details className={`group mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-lg backdrop-blur-sm transition duration-700 delay-100 dark:border-emerald-800/50 dark:bg-slate-900/80 ${mounted ? 'opacity-100' : 'translate-y-8 opacity-0'}`}>
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-slate-900 dark:text-white">
             <span>Monthly Summary</span>
             <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true" />
@@ -2470,7 +2470,7 @@ export function TourDiary() {
         </details>
 
         {/* Month Overview: progress + mini calendar */}
-        <details className={`group mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-lg backdrop-blur-sm transition duration-700 delay-200 dark:border-emerald-800/50 dark:bg-slate-900/80 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+        <details className={`group mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-lg backdrop-blur-sm transition duration-700 delay-200 dark:border-emerald-800/50 dark:bg-slate-900/80 ${mounted ? 'opacity-100' : 'translate-y-8 opacity-0'}`}>
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-slate-900 dark:text-white">
             <span>Daily Progress</span>
             <span className="flex items-center gap-2">
@@ -2573,7 +2573,7 @@ export function TourDiary() {
         </details>
 
         {/* Monthly Diary */}
-        <div className={`transition duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`transition duration-700 delay-200 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">Daily Entries</h2>
             <div className="flex gap-1">

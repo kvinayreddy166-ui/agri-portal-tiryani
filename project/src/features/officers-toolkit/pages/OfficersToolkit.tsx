@@ -416,7 +416,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
   const location = useLocation();
   const { t, language, toggleLanguage } = useLanguage();
   const { user, isOfficerUser, isAdminUser, isTestUser: isAuthTestUser } = useAuth();
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(true);
 
   // Authenticated officers, staff admins, or designated test users can view records and cloud archive.
   // Public visitors in the public toolkit cannot.
@@ -447,10 +447,6 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
   const sortedToolkitItems = [...visibleToolkitItems].sort((a, b) => a.title.localeCompare(b.title));
   const sortedExternalPortals = [...externalPortals].sort((a, b) => a.title.localeCompare(b.title));
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
     <div className={isPublic ? "min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-emerald-950 dark:to-teal-950" : "space-y-4"}>
       {/* Animated Background Elements - Only shown for public standalone page */}
@@ -465,7 +461,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
       <div className={isPublic ? "relative mx-auto max-w-7xl p-4 sm:p-6 lg:p-8" : "relative"}>
         {/* Header Section - Only shown for public access */}
         {!shouldHideHeader && (
-          <div className={`mb-5 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className={`mb-5 transition duration-700 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
             <div className="relative overflow-hidden rounded-2xl border border-emerald-800/60 bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-900 p-4 shadow-lg shadow-emerald-900/25 backdrop-blur-sm">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 via-gold-400 to-emerald-700" />
               <div className="flex items-start justify-between gap-3">
@@ -509,7 +505,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
 
         {shouldHideHeader && activeTab !== 'records' && (
           <ModulePageHeader
-            className={`mb-4 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            className={`mb-4 transition duration-700 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}
             title={fixedTab === 'portals'
               ? t('Government Portals', 'ప్రభుత్వ పోర్టల్స్')
               : fixedTab === 'tools'
@@ -528,7 +524,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
 
         {/* Section Switcher — Field Tools / Government Portals / Records & Cloud Storage */}
         {!fixedTab && activeTab !== 'records' && (
-        <div className={`mb-5 transition duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`mb-5 transition duration-700 delay-200 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
           <div className="inline-flex w-full max-w-md items-stretch gap-1 rounded-2xl border border-slate-200/90 bg-white/90 p-1 shadow-2xs backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/90">
             {[
               { id: 'tools' as const, label: 'Field Tools', te: 'ఫీల్డ్ టూల్స్', icon: Calculator, count: sortedToolkitItems.length },
@@ -571,7 +567,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
         {/* Active Section Grid */}
         <div
           key={activeTab}
-          className={`transition duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          className={`transition duration-700 delay-300 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}
         >
           {activeTab === 'tools' ? (
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
@@ -607,7 +603,7 @@ export function OfficersToolkit({ isAdmin = false, isTestUser = false, isPublic 
         </div>
 
         {/* Footer */}
-        <div className={`mt-8 text-center transition duration-700 delay-600 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`mt-8 text-center transition duration-700 delay-600 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
             {t('Empowering Agriculture with Digital Tools', 'డిజిటల్ టూల్స్‌తో వ్యవసాయాన్ని శక్తివంతం చేయడం')}
           </p>

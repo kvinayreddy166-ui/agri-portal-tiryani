@@ -1014,12 +1014,12 @@ export class OfficerDocumentArchiveService {
     candidateKeys.add(`officers/${userId}/${year}/${month}/${doc.id}.${ext}`);
     candidateKeys.add(`officers/${doc.user_id}/${year}/${month}/${doc.id}.${ext}`);
 
-    for (const key of candidateKeys) {
-      try {
-        const { data, error } = await supabase.storage.from('uploads').download(key);
-        if (error || !data) continue;
-        const now = new Date().toISOString();
-        return {
+    const workerUrl = this.getWorkerUrl();
+    const sessionUser = await this.getCurrentUser();
+
+    const buildQueuedDoc = (key: string, data: Blob): QueuedDocument => {
+      const now = new Date().toISOString();
+      return {
           id: doc.id,
           userId: doc.user_id || userId,
           documentName: doc.document_name,
@@ -1049,12 +1049,103 @@ export class OfficerDocumentArchiveService {
           retryCount: 0,
           createdAt: doc.created_at,
           updatedAt: now,
-        };
+      };
+    };
+
+    const downloadFromKey = async (key: string): Promise<QueuedDocument | null> => {
+      let data: Blob | null = null;
+
+      // 1. Primary: Cloudflare R2 via worker — the file may have been uploaded
+      //    there even though the local IndexedDB copy was later lost.
+      if (workerUrl && sessionUser) {
+        try {
+          const res = await fetch(`${workerUrl}/api/documents/download?key=${encodeURIComponent(key)}&raw=true`, {
+            headers: { Authorization: `Bearer ${sessionUser.token}` },
+          });
+          console.debug('[DocRecovery] worker download', key, '->', res.status);
+          if (res.ok) {
+            data = await res.blob();
+          }
+        } catch (err) {
+          console.debug('[DocRecovery] worker download failed', key, err);
+          // fall through to Supabase storage
+        }
+      }
+
+      // 2. Fallback: Supabase Storage bucket
+      if (!data) {
+        try {
+          const { data: sbData, error } = await supabase.storage.from('uploads').download(key);
+          console.debug('[DocRecovery] supabase download', key, '->', error ? error.message : 'ok');
+          if (!error && sbData) {
+            data = sbData;
+          }
+        } catch (err) {
+          console.debug('[DocRecovery] supabase download failed', key, err);
+          // key not found — caller tries the next candidate
+        }
+      }
+
+      return data ? buildQueuedDoc(key, data) : null;
+    };
+
+    for (const key of candidateKeys) {
+      const recovered = await downloadFromKey(key);
+      if (recovered) return recovered;
+    }
+
+    // 3. Last resort: the object key may not match the canonical guess (e.g. the
+    //    document was queued under a different id or date). List the officer's
+    //    storage prefix and match objects whose filename starts with the doc id.
+    const discoveredKeys = await this.discoverStoredObjectKeys(
+      Array.from(new Set([userId, doc.user_id].filter(Boolean) as string[])),
+      doc
+    );
+    console.debug('[DocRecovery] discovered keys:', discoveredKeys, 'guessed keys were:', Array.from(candidateKeys));
+    for (const key of discoveredKeys) {
+      const recovered = await downloadFromKey(key);
+      if (recovered) return recovered;
+    }
+
+    return null;
+  }
+
+  /**
+   * Lists the Supabase 'uploads' bucket under officers/{userId}/{year}/{month}
+   * and returns object keys whose filename starts with the document id.
+   * Used when the canonical object-key guess fails during cloud recovery.
+   */
+  private static async discoverStoredObjectKeys(
+    userIds: string[],
+    doc: OfficerDocumentArchiveRecord
+  ): Promise<string[]> {
+    const keys = new Set<string>();
+    const docId = String(doc.id || '');
+    if (!docId) return [];
+
+    for (const uid of userIds) {
+      try {
+        const { data: yearFolders } = await supabase.storage.from('uploads').list(`officers/${uid}`);
+        for (const yearFolder of yearFolders || []) {
+          if (yearFolder.id !== null) continue; // files can't sit at this level
+          const { data: monthFolders } = await supabase.storage.from('uploads').list(`officers/${uid}/${yearFolder.name}`);
+          for (const monthFolder of monthFolders || []) {
+            if (monthFolder.id !== null) continue;
+            const prefix = `officers/${uid}/${yearFolder.name}/${monthFolder.name}`;
+            const { data: files } = await supabase.storage.from('uploads').list(prefix);
+            for (const file of files || []) {
+              if (file.id === null) continue;
+              if (file.name.startsWith(`${docId}.`) || file.name === docId) {
+                keys.add(`${prefix}/${file.name}`);
+              }
+            }
+          }
+        }
       } catch {
-        // try next candidate key
+        // listing unsupported or bucket unreachable — skip this user
       }
     }
-    return null;
+    return Array.from(keys);
   }
 
   /**

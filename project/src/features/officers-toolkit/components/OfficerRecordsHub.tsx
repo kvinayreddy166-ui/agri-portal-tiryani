@@ -13,7 +13,6 @@ import {
   ExternalLink,
   Eye,
   FileSpreadsheet,
-  FlaskConical,
   FileText,
   LayoutGrid,
   List,
@@ -88,8 +87,16 @@ function getSampleProductLabels(doc: OfficerDocumentArchiveRecord): string[] {
   const pick = (...vals: unknown[]) => vals.map((v) => String(v ?? '').trim()).find(Boolean) || '';
   const crop = pick(meta.cropName, meta.crop, meta.seedName, payload.crop, payload.seedName, payload.cropName);
   const variety = pick(meta.variety, meta.varietyName, meta.kindVariety, payload.variety, payload.varietyName, payload.kindVariety);
-  if (crop) return [variety ? `${crop} — ${variety}` : crop];
+  if (crop) return [variety ? `${crop} (${variety})` : crop];
   if (variety) return [variety];
+  const tradeName = pick(meta.tradeName, payload.tradeName);
+  const pesticideParts = [meta.technicalName ?? payload.technicalName, meta.activeIngredient ?? payload.activeIngredient, meta.formulationType ?? payload.formulationType]
+    .map((v) => String(v ?? '').trim())
+    .filter(Boolean);
+  const pesticideLabel = tradeName
+    ? (pesticideParts.length ? `${tradeName} (${pesticideParts.join(', ')})` : tradeName)
+    : pesticideParts.join(', ');
+  if (pesticideLabel) return [pesticideLabel];
   const productName = String(meta.productName ?? '').trim();
   return productName ? [productName] : [];
 }
@@ -136,13 +143,22 @@ function getRecordProductLabels(record: UnifiedOfficerRecord): string[] {
   const pick = (...vals: unknown[]) => vals.map((v) => String(v ?? '').trim()).find(Boolean) || '';
   const crop = pick(details.cropName, details.crop, details.seedName);
   const variety = pick(details.variety, details.varietyName, details.kindVariety);
-  if (crop) return [variety ? `${crop} — ${variety}` : crop];
+  if (crop) return [variety ? `${crop} (${variety})` : crop];
   if (variety) return [variety];
+  const tradeName = pick(details.tradeName);
+  const pesticideParts = [details.technicalName, details.activeIngredient, details.formulationType]
+    .map((v) => String(v ?? '').trim())
+    .filter(Boolean);
+  const pesticideLabel = tradeName
+    ? (pesticideParts.length ? `${tradeName} (${pesticideParts.join(', ')})` : tradeName)
+    : pesticideParts.join(', ');
   const product = pick(
     details.productName,
     details.fertilizerName,
-    details.technicalName,
-    details.tradeName,
+    pesticideLabel,
+    details.activeIngredient,
+    details.insecticideCommonName,
+    details.nameGrade,
     details.insecticideName,
     details.product
   );
@@ -185,6 +201,26 @@ function getRecordCodeNo(record: UnifiedOfficerRecord): string {
     nested.codeNumber,
     nested.sampleCode,
     record.referenceNumber
+  );
+}
+
+/** Batch / lot number for a form record: statutory batch fields, falling back to nested form payloads. */
+function getRecordBatchNo(record: UnifiedOfficerRecord): string {
+  const details = (record.details || {}) as Record<string, unknown>;
+  const nested = (details.form || details.data || {}) as Record<string, unknown>;
+  const pick = (...vals: unknown[]) =>
+    vals.map((v) => String(v ?? '').trim()).find(Boolean) || '';
+  return pick(
+    details.batchNo,
+    details.batchNumber,
+    details.batchLotNumber,
+    details.lotNo,
+    details.batchDetails,
+    nested.batchNo,
+    nested.batchNumber,
+    nested.batchLotNumber,
+    nested.lotNo,
+    nested.batchDetails
   );
 }
 
@@ -264,9 +300,6 @@ export function OfficerRecordsHub() {
   const [recordToDelete, setRecordToDelete] = useState<UnifiedOfficerRecord | null>(null);
   const [docToDelete, setDocToDelete] = useState<OfficerDocumentArchiveRecord | null>(null);
   const [exportingType, setExportingType] = useState<'excel' | 'pdf' | null>(null);
-  const [exportStatusOpen, setExportStatusOpen] = useState(false);
-  const [statusDraft, setStatusDraft] = useState<Record<string, string>>({});
-  const [bulkStatus, setBulkStatus] = useState('');
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
@@ -367,6 +400,12 @@ export function OfficerRecordsHub() {
       setRetryingQueue(false);
     }
   };
+
+  // Fallback jurisdiction for legacy records that predate stored mandal/district
+  const officerLocationFallback = [officerProfile?.mandal, officerProfile?.district]
+    .map((v) => String(v ?? '').trim())
+    .filter(Boolean)
+    .join(', ');
 
   // Sync status for local (not-yet-cloud) form records
   const pendingSyncCount = useMemo(() => records.filter((r) => !r.synced).length, [records]);
@@ -612,52 +651,8 @@ export function OfficerRecordsHub() {
     return mergedItems.filter((i) => i.kind === 'record');
   }, [mergedItems, activeTab]);
 
-  // Sample records eligible for export-time result marking
-  const exportableSamples = useMemo(
-    () => filteredRecords.filter((r) => r.category === 'sample'),
-    [filteredRecords]
-  );
-
-  const EXPORT_STATUS_OPTIONS = useMemo(() => [
-    { value: '', label: t('— Keep existing —', '— ఉన్నదే ఉంచండి —') },
-    { value: 'Dispatched', label: t('Dispatched', 'పంపబడింది') },
-    { value: 'Passed / Standard', label: t('Passed / Standard', 'పాస్ / ప్రమాణం') },
-    { value: 'Not to Specification', label: t('Not to Specification', 'స్పెసిఫికేషన్ల ప్రకారం లేదు') },
-    { value: 'Substandard', label: t('Substandard', 'సబ్‌స్టాండర్డ్') },
-    { value: 'Misbranded', label: t('Misbranded', 'మిస్‌బ్రాండెడ్') },
-    { value: 'Pending', label: t('Pending', 'పెండింగ్') },
-  ], [t]);
-
-  const openExportStatusModal = () => {
-    setStatusDraft({});
-    setBulkStatus('');
-    setIsExportMenuOpen(false);
-    setExportStatusOpen(true);
-  };
-
-  const applyBulkStatus = (value: string) => {
-    setBulkStatus(value);
-    if (!value) {
-      setStatusDraft({});
-      return;
-    }
-    const next: Record<string, string> = {};
-    exportableSamples.forEach((r) => {
-      next[r.id] = value;
-    });
-    setStatusDraft(next);
-  };
-
-  const handleStatusExport = async (type: 'excel' | 'pdf') => {
-    const overrides = Object.fromEntries(
-      Object.entries(statusDraft).filter(([, v]) => v.trim())
-    );
-    setExportStatusOpen(false);
-    await handleExport(type, Object.keys(overrides).length ? overrides : undefined);
-  };
-
   // Export Report to Excel or PDF
-  const handleExport = async (type: 'excel' | 'pdf', statusOverrides?: Record<string, string>) => {
+  const handleExport = async (type: 'excel' | 'pdf') => {
     try {
       setExportingType(type);
       const options: ReportExportOptions = {
@@ -670,7 +665,6 @@ export function OfficerRecordsHub() {
         qualification: officerProfile?.qualification,
         location: officerProfile?.mandal || officerProfile?.district || 'Telangana',
         district: officerProfile?.district,
-        statusOverrides,
       };
 
       const rows = OfficerReportExportService.extractRows(
@@ -836,7 +830,7 @@ export function OfficerRecordsHub() {
                 </span>
               </div>
               <div className="mt-2 text-2xl font-black tracking-tight text-emerald-700 dark:text-emerald-300">{storageStats.successfullyUploaded}</div>
-              <p className="mt-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400">{t('Synced with R2 repository', 'R2 లో భద్రపరచబడింది')}</p>
+              <p className="mt-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400">{t('Synced to cloud storage', 'క్లౌడ్ నిల్వకు సమించబడింది')}</p>
             </div>
 
             <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
@@ -1017,7 +1011,8 @@ export function OfficerRecordsHub() {
             <option value="30days">{t('Last 30 Days', 'గత 30 రోజులు')}</option>
           </select>
 
-          {/* Export Dropdown Button (Tucks Excel & PDF inside) */}
+          {/* Export Dropdown Button (Tucks Excel & PDF inside) — records tab only */}
+          {activeTab === 'records' && (
           <div className="relative" ref={exportMenuRef}>
             <button
               type="button"
@@ -1067,19 +1062,10 @@ export function OfficerRecordsHub() {
                   <span>PDF</span>
                 </button>
 
-                {exportableSamples.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={openExportStatusModal}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/40 transition border-t border-slate-100 dark:border-slate-700/60"
-                  >
-                    <FlaskConical className="h-4 w-4 shrink-0" />
-                    <span>{t('Set Status & Export…', 'సెట్ స్థితి & ఎగుమతి…')}</span>
-                  </button>
-                )}
               </div>
             )}
           </div>
+          )}
 
           {/* View Mode Toggle: List (default) vs Card Grid */}
           <div className="flex items-center rounded-xl border border-slate-200 bg-slate-100 p-0.5 dark:border-slate-700 dark:bg-slate-800">
@@ -1269,16 +1255,16 @@ export function OfficerRecordsHub() {
                             <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{getRecordCodeNo(record)}</span>
                           </div>
                         )}
+                        {getRecordBatchNo(record) && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-slate-400">{t('Batch/Lot:', 'బ్యాచ్/లాట్:')}</span>
+                            <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{getRecordBatchNo(record)}</span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-1">
                           <span className="text-slate-400">{t('Date:', 'తేదీ:')}</span>
                           <span className="font-medium text-slate-700 dark:text-slate-300">{record.recordDate}</span>
                         </div>
-                        {record.location && (
-                          <div className="flex items-center gap-1">
-                            <span className="text-slate-400">{t('Location:', 'ప్రాంతం:')}</span>
-                            <span className="font-medium text-slate-700 dark:text-slate-300">{record.location}</span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -1491,16 +1477,18 @@ export function OfficerRecordsHub() {
                           {getRecordCodeNo(record)}
                         </span>
                       </div>
+                      {getRecordBatchNo(record) && (
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-slate-400">{t('Batch/Lot:', 'బ్యాచ్/లాట్:')}</span>
+                          <span className="font-mono font-bold text-slate-700 dark:text-slate-300 truncate max-w-[140px]" title={getRecordBatchNo(record)}>
+                            {getRecordBatchNo(record)}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-slate-400">{t('Date:', 'తేదీ:')}</span>
                         <span className="font-semibold text-slate-700 dark:text-slate-300">{record.recordDate}</span>
                       </div>
-                      {record.location && (
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-slate-400">{t('Location:', 'ప్రాంతం:')}</span>
-                          <span className="truncate max-w-[140px] text-slate-700 dark:text-slate-300">{record.location}</span>
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -1747,7 +1735,7 @@ export function OfficerRecordsHub() {
                 </div>
                 <div>
                   <span className="block font-semibold text-slate-400">{t('Jurisdiction / Location', 'ప్రాంతం / మండలం')}</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedRecord.location || 'N/A'}</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedRecord.location || officerLocationFallback || 'N/A'}</span>
                 </div>
                 <div>
                   <span className="block font-semibold text-slate-400">{t('Record Type', 'రికార్డు రకం')}</span>
@@ -1838,49 +1826,124 @@ export function OfficerRecordsHub() {
                 );
               })()}
 
-              {/* Form Input Key-Value Breakdown */}
+              {/* Grouped Form Field Breakdown */}
               {(() => {
-                const d = selectedRecord.details || {};
+                const d = (selectedRecord.details || {}) as Record<string, unknown>;
                 const excludedKeys = new Set([
-                  'id', 'products', 'items', 'stock_details', 'savedAt', 'observations',
-                  'remarks', 'reason', 'contravention_details', 'irregularities_observed',
-                  'action_taken', 'entityName', 'referenceNumber', 'recordDate'
+                  'id', 'products', 'items', 'stock_details', 'savedAt', 'issuedAt', 'createdAt', 'updatedAt',
+                  'observations', 'remarks', 'reason', 'contravention_details', 'irregularities_observed',
+                  'action_taken', 'entityName', 'referenceNumber', 'recordDate', 'synced',
+                  'dealerName', 'firmName', 'partyName', 'dealerManufacturerImporterName',
+                  'manualDealerManufacturerImporterName', 'dealerManufacturerImporter',
+                  'nameOfDealer', 'dealerFirmName',
+                  'labStatus', 'labReportRef', 'dispatchedAt', 'reportReceivedAt', 'failureFinding',
+                  'sampleProducts', 'covering_letter_json', 'payload_json'
                 ]);
+                const flattenKeys = new Set(['form', 'data', 'payload']);
 
-                const entries = Object.entries(d).filter(
-                  ([k, v]) => !excludedKeys.has(k) && v !== '' && v !== null && v !== undefined
-                );
+                const flatEntries: [string, unknown][] = [];
+                const pushEntry = (key: string, val: unknown) => {
+                  if (excludedKeys.has(key) || val === '' || val === null || val === undefined) return;
+                  if (typeof val === 'object') {
+                    // Skip plain objects and arrays of objects (inspection
+                    // checklist rows like detentions/defects) — they render as
+                    // unreadable JSON. Arrays of primitives are kept.
+                    if (!Array.isArray(val)) return;
+                    if (val.some((v) => v !== null && typeof v === 'object')) return;
+                  }
+                  flatEntries.push([key, val]);
+                };
+                for (const [key, val] of Object.entries(d)) {
+                  if (flattenKeys.has(key) && val && typeof val === 'object' && !Array.isArray(val)) {
+                    for (const [nk, nv] of Object.entries(val as Record<string, unknown>)) pushEntry(nk, nv);
+                  } else {
+                    pushEntry(key, val);
+                  }
+                }
 
-                if (entries.length === 0) return null;
+                if (flatEntries.length === 0) return null;
+
+                const GROUP_DEFS: { title: string; te: string; pattern: RegExp }[] = [
+                  {
+                    title: 'Sample / Product Details',
+                    te: 'నమూనా / ఉత్పత్తి వివరాలు',
+                    pattern: /sample|batch|lot|code|product|fertiliz|pesticide|insecticide|seed|crop|variety|trade|technical|activeingredient|formulation|quantity|grade|stock|commodity|schedule|specification|invoice|memo|order|notice|seizure|stop|mrp|price|bag|packet|expiry|manufactur|regist|drawn|collection/i,
+                  },
+                  {
+                    title: 'Dealer / Party Details',
+                    te: 'డీలర్ / పార్టీ వివరాలు',
+                    pattern: /dealer|firm|licen|party|owner|proprietor|address/i,
+                  },
+                  {
+                    title: 'Location / Jurisdiction',
+                    te: 'ప్రాంతం / మండలం',
+                    pattern: /mandal|district|division|place|location|premises|office|zone|region|village|street|road|door/i,
+                  },
+                  {
+                    title: 'Inspection / Enforcement',
+                    te: 'తనిఖీ / అమలు',
+                    pattern: /officer|inspector|designation|qualification|inspection|visit|sign|status|observ|finding|result|test|lab|report|dispatch|receiv|issue|deadline|enclosure|violation|clause|section|act/i,
+                  },
+                ];
+
+                const grouped: { title: string; te: string; entries: [string, unknown][] }[] = GROUP_DEFS.map((g) => ({
+                  ...g,
+                  entries: [],
+                }));
+                const otherEntries: [string, unknown][] = [];
+
+                for (const entry of flatEntries) {
+                  const [key] = entry;
+                  const group = grouped.find((g) => g.pattern.test(key));
+                  if (group) group.entries.push(entry);
+                  else otherEntries.push(entry);
+                }
+
+                const humanize = (key: string) =>
+                  key
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/_/g, ' ')
+                    .replace(/^./, (s) => s.toUpperCase());
+
+                const renderValue = (val: unknown) => {
+                  if (typeof val === 'boolean') return val ? t('Yes', 'అవును') : t('No', 'కాదు');
+                  if (Array.isArray(val)) {
+                    return val.every((v) => typeof v !== 'object')
+                      ? val.map((v) => String(v)).join(', ')
+                      : JSON.stringify(val);
+                  }
+                  return String(val);
+                };
+
+                const sections = [
+                  ...grouped.filter((g) => g.entries.length > 0),
+                  ...(otherEntries.length > 0
+                    ? [{ title: 'Other Details', te: 'ఇతర వివరాలు', entries: otherEntries }]
+                    : []),
+                ];
 
                 return (
-                  <div className="rounded-xl bg-slate-50 dark:bg-slate-800/40 p-4 text-xs space-y-2">
-                    <h4 className="font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5">
-                      {t('Statutory Form Field Inputs', 'ఫారం నమోదు వివరాలు')}
-                    </h4>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {entries.map(([key, val]) => {
-                        const label = key
-                          .replace(/([A-Z])/g, ' $1')
-                          .replace(/_/g, ' ')
-                          .replace(/^./, (s) => s.toUpperCase());
-
-                        const renderedVal = typeof val === 'boolean'
-                          ? (val ? t('Yes', 'అవును') : t('No', 'కాదు'))
-                          : typeof val === 'object'
-                          ? JSON.stringify(val)
-                          : String(val);
-
-                        return (
-                          <div key={key} className="flex flex-col">
-                            <span className="text-[11px] font-medium text-slate-400">{label}</span>
-                            <span className="font-semibold text-slate-700 dark:text-slate-200 truncate" title={renderedVal}>
-                              {renderedVal}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                  <div className="space-y-3">
+                    {sections.map((section) => (
+                      <div key={section.title} className="rounded-xl bg-slate-50 dark:bg-slate-800/40 p-4 text-xs">
+                        <h4 className="font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200/60 dark:border-slate-700/60 pb-1.5 mb-2">
+                          {t(section.title, section.te)}
+                        </h4>
+                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                          {section.entries.map(([key, val]) => {
+                            const renderedVal = renderValue(val);
+                            return (
+                              <div key={key} className="flex flex-col">
+                                <span className="text-[11px] font-medium text-slate-400">{humanize(key)}</span>
+                                <span className="font-semibold text-slate-700 dark:text-slate-200 break-words" title={renderedVal}>
+                                  {renderedVal}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 );
               })()}
@@ -2020,7 +2083,7 @@ export function OfficerRecordsHub() {
               {t('Rename Document', 'పత్రం పేరు మార్చండి')}
             </h3>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              {t('Updates metadata without modifying or moving the Cloudflare R2 object.', 'క్లౌడ్ ఆబ్జెక్ట్‌ను తరలించకుండా మెటాడేటాను మాత్రమే అప్‌డేట్ చేస్తుంది.')}
+              {t('Updates the document name in your records. The stored file stays unchanged.', 'రికార్డులలో పత్రం పేరును అప్‌డేట్ చేస్తుంది. నిల్వ చేసిన ఫైల్ మారదు.')}
             </p>
             <div className="mt-4">
               <input
@@ -2046,124 +2109,6 @@ export function OfficerRecordsHub() {
               >
                 {t('Save Changes', 'భద్రపరచు')}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Export Result Status Modal */}
-      {exportStatusOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
-            <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-700">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  {t('Mark Sample Results for Export', 'ఎగుమతికి నమూనా ఫలితాలను గుర్తించండి')}
-                </h3>
-                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                  {t(
-                    `${exportableSamples.length} sample record(s) in this view. Choose a status per record — it appears in the "Result / Remarks" column of the exported report.`,
-                    `ఈ వీక్షణలో ${exportableSamples.length} నమూనా రికార్డులు ఉన్నాయి. రికార్డుకు స్థితి ఎంచుకోండి — ఎగుమతి నివేదికలో "ఫలితం / వ్యాఖ్యలు" నిలువరుసలో కనిపిస్తుంది.`
-                  )}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setExportStatusOpen(false)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-                aria-label={t('Close', 'మూసివేయి')}
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="border-b border-slate-200 px-5 py-3 dark:border-slate-700">
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-                {t('Apply to all:', 'అన్నింటికీ వర్తించు:')}
-                <select
-                  value={bulkStatus}
-                  onChange={(e) => applyBulkStatus(e.target.value)}
-                  className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-                >
-                  {EXPORT_STATUS_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <div className="max-h-[45vh] overflow-y-auto px-5 py-3">
-              {exportableSamples.length === 0 ? (
-                <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">
-                  {t('No sample records in the current filter.', 'ప్రస్తుత ఫిల్టర్‌లో నమూనా రికార్డులు లేవు.')}
-                </p>
-              ) : (
-                <ul className="space-y-2">
-                  {exportableSamples.map((rec) => (
-                    <li
-                      key={rec.id}
-                      className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800/50"
-                    >
-                      <FlaskConical className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-bold text-slate-800 dark:text-slate-100">
-                          {rec.title}
-                        </p>
-                        <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
-                          {rec.referenceNumber} · {rec.entityName} · {rec.recordDate}
-                        </p>
-                      </div>
-                      <select
-                        value={statusDraft[rec.id] || ''}
-                        onChange={(e) =>
-                          setStatusDraft((prev) => ({ ...prev, [rec.id]: e.target.value }))
-                        }
-                        className="w-40 shrink-0 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-semibold text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-                      >
-                        {EXPORT_STATUS_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>{o.label}</option>
-                        ))}
-                      </select>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between gap-3 border-t border-slate-200 px-5 py-4 dark:border-slate-700">
-              <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                {t(
-                  `${Object.values(statusDraft).filter(Boolean).length} record(s) marked`,
-                  `${Object.values(statusDraft).filter(Boolean).length} రికార్డులు గుర్తించబడ్డాయి`
-                )}
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setExportStatusOpen(false)}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
-                >
-                  {t('Cancel', 'రద్దు')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleStatusExport('excel')}
-                  disabled={exportingType !== null}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  {exportingType === 'excel' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />}
-                  {t('Export Excel', 'ఎక్సెల్ ఎగుమతి')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleStatusExport('pdf')}
-                  disabled={exportingType !== null}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50"
-                >
-                  {exportingType === 'pdf' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Printer className="h-3.5 w-3.5" />}
-                  {t('Export PDF', 'PDF ఎగుమతి')}
-                </button>
-              </div>
             </div>
           </div>
         </div>

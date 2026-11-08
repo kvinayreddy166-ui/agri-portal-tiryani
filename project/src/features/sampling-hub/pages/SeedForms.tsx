@@ -502,6 +502,11 @@ export function SeedForms({
             quantity: numericQuantity,
             dateOfSampling: form.collectionDate.trim(),
             isCotton: (form.crop || '').toLowerCase().includes('cotton'),
+            batchNo: (form.lotNo || '').trim() || undefined,
+            mandal: (isAssistantDirectorOfAgriculture(form.designation)
+              ? effectiveLocationValue(form.placeOfCollectionMandal, form.manualPlaceOfCollection)
+              : effectiveLocationValue(form.mandal, form.manualMandal)) || undefined,
+            district: effectiveLocationValue(form.district, form.manualDistrict) || undefined,
             firmName: (form.dealerName || form.vendorName || form.firmName || '').trim() || undefined,
           });
           if (result === 'added') {

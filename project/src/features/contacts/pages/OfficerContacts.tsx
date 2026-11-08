@@ -597,7 +597,7 @@ export function OfficerContacts() {
 
       <div className="relative mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
-        <div className={`mb-8 transition duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`mb-8 transition duration-700 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
           {showCompactHeader ? (
             <ModulePageHeader
               className="mb-4"
@@ -621,7 +621,7 @@ export function OfficerContacts() {
         </div>
 
         {/* Tabs */}
-        <div className={`mb-6 transition duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`mb-6 transition duration-700 delay-200 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {TABS.map((tab) => {
               const TabIcon = tab.icon;
@@ -650,14 +650,14 @@ export function OfficerContacts() {
         {renderFilters()}
 
         {/* Results Count */}
-        <div className={`mb-4 transition duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`mb-4 transition duration-700 delay-300 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
           <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
             {loading ? 'Loading...' : `Showing ${totalCount} ${activeTab} contact${totalCount !== 1 ? 's' : ''} across ${dropdownOptions.districts.length} district${dropdownOptions.districts.length !== 1 ? 's' : ''}`}
           </p>
         </div>
 
         {/* Contact Cards */}
-        <div className={`grid gap-3 sm:grid-cols-2 lg:grid-cols-3 transition duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className={`grid gap-3 sm:grid-cols-2 lg:grid-cols-3 transition duration-700 delay-400 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
           {loading && contacts.length === 0 ? (
             // Skeleton loaders for initial load
             Array.from({ length: 6 }).map((_, i) => (

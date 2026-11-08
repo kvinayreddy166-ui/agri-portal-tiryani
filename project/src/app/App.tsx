@@ -35,7 +35,7 @@ function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const navigationType = useNavigationType();
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(true);
   const [forceAppShell, setForceAppShell] = useState(false);
   const currentPathIsPublic = PUBLIC_AUTH_ROUTES.has(location.pathname) || location.pathname.startsWith('/officer-toolkit/') || location.pathname === '/' || location.pathname === '/login' || location.pathname === '/disclaimer' || location.pathname === '/privacy-policy' || location.pathname === '/terms-conditions';
   const hideCalculatorLogo =
@@ -188,6 +188,17 @@ function AppContent() {
 
   // Show loader during initial load or hydration (must be after all hooks). Public/officer toolkit routes are allowed to render even if auth is slow.
   if (!shellReady) {
+    return <GlobalAppLoader hideLogo={hideCalculatorLogo} />;
+  }
+
+  // Auth-required officer-toolkit routes render different content for signed-in
+  // officers vs visitors. Wait for the auth check there so refresh doesn't flash
+  // the wrong view — other toolkit pages are identical either way, render instantly.
+  const officerPathNeedsAuth =
+    location.pathname === '/officer-toolkit/my-records' ||
+    location.pathname === '/officer-toolkit/enforcement-tracker' ||
+    location.pathname === '/enforcement-tracker';
+  if (!user && loading && officerPathNeedsAuth) {
     return <GlobalAppLoader hideLogo={hideCalculatorLogo} />;
   }
 

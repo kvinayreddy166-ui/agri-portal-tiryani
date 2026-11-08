@@ -837,6 +837,11 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
             activeIngredient: values.activeIngredient || '',
             formulationType: values.formulationType === 'Others' ? values.manualFormulationType : values.formulationType || '',
             dateOfSampling: values.sampleDrawnDate.trim(),
+            batchNo: (values.batchNumber || '').trim() || undefined,
+            mandal: (isAssistantDirectorOfAgriculture(values.designation)
+              ? effectiveLocationValue(values.sampleDrawingMandal, values.manualPlaceOfCollection)
+              : effectiveLocationValue(values.mandal, values.manualMandal)) || undefined,
+            district: effectiveLocationValue(values.district, values.manualDistrict) || undefined,
             firmName: (values.dealerName || '').trim() || undefined,
           });
           if (result === 'added') {

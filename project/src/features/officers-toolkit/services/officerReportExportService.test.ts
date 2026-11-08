@@ -59,6 +59,7 @@ describe('OfficerReportExportService', () => {
       expect(rows[0]).toEqual({
         sNo: 1,
         productName: 'Urea (46% N) Granular',
+        batchNo: '—',
         firmName: 'Sri Venkateshwara Fertilisers',
         firmAddress: 'Main Road, Tiryani Mandal',
         codeNo: 'SMP-FERT-2026-001',
@@ -110,7 +111,7 @@ describe('OfficerReportExportService', () => {
       expect(rows[0].codeNo).toBe('—');
       expect(rows[0].samplingDate).toBe('2026-11-06');
       expect(rows[0].officerName).toBe('K. Vinay Reddy');
-      expect(rows[0].resultRemarks).toBe('Archived to Cloud');
+      expect(rows[0].resultRemarks).toBe('—');
     });
   });
 
@@ -150,6 +151,7 @@ describe('OfficerReportExportService', () => {
       expect(rows[0]).toEqual({
         sNo: 1,
         productName: 'Cotton BG-II',
+        batchNo: '—',
         firmName: 'Kisan Beej Bhandar',
         firmAddress: 'Tiryani Village',
         codeNo: 'SEED-TIR-042',
@@ -214,7 +216,7 @@ describe('OfficerReportExportService', () => {
         activeTab: 'documents',
         categoryFilter: 'all',
       });
-      expect(title.subTitle).toContain('OFFICIAL RECORDS & CLOUD STORAGE CONSOLIDATED REPORT');
+      expect(title.subTitle).toBe('');
     });
   });
 });

@@ -424,8 +424,25 @@ export class OfficerCloudSyncService {
               referenceNumber: row.sample_code,
               entityName: row.firm_name,
               recordDate: row.date_of_sampling,
-              location: row.batch_no ? `Batch: ${row.batch_no}` : 'N/A',
-              details: row.covering_letter_json || {},
+              location: (() => {
+                const loc = (row.covering_letter_json || {}) as Record<string, unknown>;
+                const mandal = [loc.mandal, loc.manualMandal, loc.placeOfCollectionMandal, loc.manualPlaceOfCollection, loc.sampleDrawingMandal, loc.place, loc.premisesLocation]
+                  .map((v) => String(v ?? '').trim())
+                  .find(Boolean) || '';
+                const district = [loc.district, loc.manualDistrict]
+                  .map((v) => String(v ?? '').trim())
+                  .find(Boolean) || '';
+                return [mandal, district].filter(Boolean).join(', ');
+              })(),
+              details: {
+                ...((row.covering_letter_json && typeof row.covering_letter_json === 'object'
+                  ? row.covering_letter_json
+                  : {}) as Record<string, unknown>),
+                labStatus: row.lab_status,
+                labReportRef: row.lab_report_ref,
+                dispatchedAt: row.dispatched_at,
+                reportReceivedAt: row.report_received_at,
+              },
               synced: true,
               createdAt: row.created_at || row.date_of_sampling,
             });
@@ -547,7 +564,15 @@ export class OfficerCloudSyncService {
             referenceNumber: sampleCode,
             entityName: String(item.firmName || item.dealerName || 'Local Draft'),
             recordDate: String(item.dateOfSampling || item.samplingDate || new Date().toISOString().slice(0, 10)),
-            location: 'Local Storage',
+            location: (() => {
+              const mandal = [item.mandal, item.manualMandal, item.placeOfCollectionMandal, item.manualPlaceOfCollection, item.sampleDrawingMandal, item.place, item.premisesLocation]
+                .map((v) => String(v ?? '').trim())
+                .find(Boolean) || '';
+              const district = [item.district, item.manualDistrict]
+                .map((v) => String(v ?? '').trim())
+                .find(Boolean) || '';
+              return [mandal, district].filter(Boolean).join(', ') || 'Local Storage';
+            })(),
             details: item,
             synced: false,
             createdAt: new Date().toISOString(),

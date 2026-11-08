@@ -35,7 +35,7 @@ export function ModernCard({
     dark:border-emerald-800/50
     ${hover ? 'hover-lift cursor-pointer' : ''}
     ${onClick ? 'cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50 focus-visible:ring-offset-2' : ''}
-    ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
+    ${isVisible ? 'opacity-100' : 'opacity-0 translate-y-4'}
     ${className}
   `;
 
