@@ -4,6 +4,8 @@ import { Spinner } from '../../shared/components/ui/Spinner';
 import { APP_BUILD_LABEL, clearAppCacheAndReload } from '../../shared/lib/appVersion';
 import { isRecoverableChunkError, recoverFromStaleAssets } from '../../shared/lib/pwaRecovery';
 
+const BOOT_SLOW_ERROR_CODE = 'AGRX-BOOT-001';
+
 export function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
   const [slow, setSlow] = useState(false);
 
@@ -25,9 +27,18 @@ export function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
         <div className="max-w-md rounded-2xl border border-amber-200 bg-white/90 p-4 shadow-sm dark:border-amber-900 dark:bg-slate-900">
           <h2 className="text-base font-black text-slate-950 dark:text-white">App is taking longer than expected.</h2>
           <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">
-            A stale deployment cache or slow auth check may be blocking startup. Clearing cache and reloading...
+            A stale deployment cache or slow connection may be blocking startup.
           </p>
-          <p className="mt-2 text-xs font-bold text-slate-500 dark:text-slate-400">App Version: {APP_BUILD_LABEL}</p>
+          <button
+            type="button"
+            onClick={() => void clearAppCacheAndReload()}
+            className="mt-3 rounded-xl bg-emerald-700 px-5 py-2 text-sm font-black text-white transition hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+          >
+            Clear cache &amp; reload
+          </button>
+          <p className="mt-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+            App Version: {APP_BUILD_LABEL} · Error Code: {BOOT_SLOW_ERROR_CODE}
+          </p>
         </div>
       )}
     </div>

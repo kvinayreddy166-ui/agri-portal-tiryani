@@ -9,6 +9,8 @@ export interface Dealer {
   expiry_date: string;
   location: string;
   dealer_category?: 'fertilizer' | 'seed' | 'pesticide';
+  created_by?: string | null;
+  created_by_name?: string | null;
   created_at: string;
   updated_at: string;
 }

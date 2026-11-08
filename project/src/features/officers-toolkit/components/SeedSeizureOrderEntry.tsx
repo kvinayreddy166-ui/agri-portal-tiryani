@@ -32,6 +32,9 @@ import { CROP_OPTIONS } from '../pages/SeedDealerInspection';
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
+import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
+import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
+import type { Dealer } from '../../../shared/types/database';
 interface SeedSeizureProductRow {
   id: string;
   crop: string;
@@ -327,6 +330,11 @@ export function SeedSeizureOrderEntry() {
   }, [form]);
 
   const updateForm = (patch: Partial<SeedSeizureFormState>) => setForm((current) => ({ ...current, ...patch }));
+  const { dealers: directoryDealers } = useDealers('seed');
+  const applyDealerPick = (dealer: Dealer | null) => {
+    if (!dealer) return;
+    updateForm({ firmName: dealer.dealer_name, dealerAddress: dealerAddressLine(dealer) });
+  };
 
   const updateProduct = (id: string, patch: Partial<SeedSeizureProductRow>) =>
     setForm((current) => ({
@@ -572,6 +580,7 @@ export function SeedSeizureOrderEntry() {
       <div className="rounded-lg border border-emerald-200/80 dark:border-emerald-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <h3 className="mb-2.5 pb-2 border-b border-emerald-200/80 dark:border-emerald-800/60 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Dealer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
+          <DealerPartySelect dealers={directoryDealers} onPick={applyDealerPick} label="Select dealer / party" />
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
           <label className="block md:col-span-3">
             <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>
@@ -584,7 +593,7 @@ export function SeedSeizureOrderEntry() {
               onChange={(event) => updateForm({ dealerAddress: event.target.value })}
               placeholder="D.No, Road, Village"
               rows={2}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
             />
           </label>
         </div>
@@ -601,7 +610,7 @@ export function SeedSeizureOrderEntry() {
             onChange={(event) => updateForm({ recordsDetails: event.target.value })}
             placeholder={'Stock register\nSale bills\nPurchase invoices'}
             rows={4}
-            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
           />
         </label>
       </div>
@@ -747,7 +756,7 @@ export function SeedSeizureOrderEntry() {
               value={savedSearch}
               onChange={(event) => setSavedSearch(event.target.value)}
               placeholder="Search saved orders"
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
             />
           </div>
         </div>

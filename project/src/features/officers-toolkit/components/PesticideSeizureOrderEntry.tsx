@@ -31,6 +31,9 @@ import {
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
+import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
+import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
+import type { Dealer } from '../../../shared/types/database';
 interface PestSeizureProductRow {
   id: string;
   name: string;
@@ -354,6 +357,11 @@ export function PesticideSeizureOrderEntry() {
   }, [form]);
 
   const updateForm = (patch: Partial<PestSeizureFormState>) => setForm((current) => ({ ...current, ...patch }));
+  const { dealers: directoryDealers } = useDealers('pesticide');
+  const applyDealerPick = (dealer: Dealer | null) => {
+    if (!dealer) return;
+    updateForm({ firmName: dealer.dealer_name, premisesAt: dealerAddressLine(dealer) });
+  };
 
   const updateProduct = (id: string, patch: Partial<PestSeizureProductRow>) =>
     setForm((current) => ({
@@ -599,6 +607,7 @@ export function PesticideSeizureOrderEntry() {
       <div className="rounded-lg border border-amber-200/80 dark:border-amber-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <h3 className="mb-2.5 pb-2 border-b border-amber-200/80 dark:border-amber-800/60 text-sm font-black uppercase tracking-wide text-amber-700 dark:text-amber-400 font-black">Dealer Details</h3>
         <div className="grid gap-3">
+          <DealerPartySelect dealers={directoryDealers} onPick={applyDealerPick} label="Select dealer / party" />
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
           <label className="block">
             <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>
@@ -611,7 +620,7 @@ export function PesticideSeizureOrderEntry() {
               onChange={(event) => updateForm({ premisesAt: event.target.value })}
               placeholder="D.No, Road, Village"
               rows={2}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
             />
           </label>
         </div>
@@ -651,7 +660,7 @@ export function PesticideSeizureOrderEntry() {
                     value={row.name}
                     onChange={(event) => updateProduct(row.id, { name: event.target.value })}
                     rows={1}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                   />
                 </label>
                 <TextInput label="Manufactured by" value={row.manufacturedBy} onChange={(value) => updateProduct(row.id, { manufacturedBy: value })} />
@@ -758,7 +767,7 @@ export function PesticideSeizureOrderEntry() {
               value={savedSearch}
               onChange={(event) => setSavedSearch(event.target.value)}
               placeholder="Search saved orders"
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
             />
           </div>
         </div>

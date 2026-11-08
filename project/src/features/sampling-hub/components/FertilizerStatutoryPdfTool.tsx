@@ -35,6 +35,11 @@ const showCoveringLetter = true;
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { upsertCoveringLetterSample } from '../services/coveringLetterQueue';
 import { missingRequiredFields, requiredFieldsErrorMessage } from '../lib/statutoryRequiredFields';
+import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
+import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
+import { useSampleTargets } from '../../../shared/hooks/useSampleTargets';
+import { SampleTargetSelect } from '../../../shared/components/SampleTargetSelect';
+import type { Dealer } from '../../../shared/types/database';
 
 
 type FieldConfig = {
@@ -614,6 +619,22 @@ const fertilizerFieldSections: SectionConfig[] = [
 
 export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
+  const { dealers: directoryDealers } = useDealers('fertilizer');
+  const { targets: sampleTargets } = useSampleTargets('fertilizer');
+
+  const applyDealerPick = (dealer: Dealer | null) => {
+    if (!dealer) return;
+    setValues((current) => {
+      const next = {
+        ...current,
+        dealerName: dealer.dealer_name,
+        dealerAddress: dealerAddressLine(dealer),
+        authorizationNumber: dealer.license_number || current.authorizationNumber,
+      };
+      next.dealerNameAddress = buildDealerNameAddress(next);
+      return next;
+    });
+  };
   const draftsKey = user ? `${DRAFTS_KEY}_${user.id}` : DRAFTS_KEY;
   const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
     try {
@@ -1591,7 +1612,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                 <select
                   value={selectedDraftName}
                   onChange={(event) => loadDraft(event.target.value)}
-                  className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition ${
+                  className={`rounded-lg border px-3 py-2 text-sm outline-none backdrop-blur-sm transition ${
                     selectedDraftName
                       ? 'border-violet-400 bg-violet-50 text-violet-700 focus:border-violet-500 focus:bg-violet-100 focus:ring-2 focus:ring-violet-100/50'
                       : 'border-violet-200 bg-white/90 text-slate-900 focus:border-violet-500 focus:bg-white focus:ring-2 focus:ring-violet-100/50'
@@ -1668,6 +1689,22 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                     isCollapsed={collapsedSections.has(section.title)}
                     onToggle={() => toggleSection(section.title)}
                   >
+                    {section.title === 'DEALER DETAILS' && (
+                      <DealerPartySelect
+                        dealers={directoryDealers}
+                        onPick={applyDealerPick}
+                        label="Select dealer / party"
+                        className="sm:col-span-2"
+                      />
+                    )}
+                    {section.title === 'SAMPLE DETAILS' && (
+                      <SampleTargetSelect
+                        targets={sampleTargets}
+                        onPick={(code) => setValues((current) => ({ ...current, sampleCode: code, codeNumber: code }))}
+                        label="Select sample code"
+                        className="sm:col-span-2"
+                      />
+                    )}
                     {(section.title === 'COMPOSITION'
                       ? (values.fertilizerCategory === 'Micro Nutrient Fertilizers'
                           ? (values.microNutrientTypeGrade && values.microNutrientTypeGrade !== 'Other'
@@ -2379,7 +2416,7 @@ function PdfInput({
   values: FertilizerPdfValues;
 }) {
   const commonClass =
-    'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+    'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
 
   const displayLabel = field.dynamicLabel && values?.designation === 'Asst. Director of Agriculture' && field.key === 'mandal'
     ? 'Division'

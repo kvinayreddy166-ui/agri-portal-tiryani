@@ -539,7 +539,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   <select
                     value={metadata.year}
                     onChange={(e) => setMetadata({ ...metadata, year: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
                   >
                     {((COVERING_LETTER_FINANCIAL_YEARS as readonly string[]).includes(metadata.year)
                       ? COVERING_LETTER_FINANCIAL_YEARS

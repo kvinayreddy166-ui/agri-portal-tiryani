@@ -1538,16 +1538,27 @@ function designationLine(values: PesticidePdfValues) {
   return parts.map((part) => part.trim()).filter(Boolean).join(', ');
 }
 
+function stripAddressParts(address: string, parts: Array<string | undefined | null>) {
+  const needles = parts.map((part) => String(part || '').trim().toLowerCase()).filter(Boolean);
+  if (!needles.length) return address;
+  return String(address || '')
+    .split(/[\n,]+/)
+    .map((segment) => segment.trim())
+    .filter((segment) => segment && !needles.some((needle) => segment.toLowerCase().includes(needle)))
+    .join(', ');
+}
+
 function buildDealerAddress(values: PesticidePdfValues) {
   const resolvedMandal = sampleMandal(values);
-  const mandalWithText = resolvedMandal ? `${resolvedMandal} Mandal` : '';
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
+  const cleanedDealerAddress = stripAddressParts(values.dealerAddress, [resolvedMandal, resolvedDistrict]);
+  const mandalWithText = resolvedMandal ? `${resolvedMandal} Mandal` : '';
   const districtWithPincode = values.pincode && resolvedDistrict ? `${resolvedDistrict} - ${values.pincode}` : resolvedDistrict;
   // Skip premises location when it matches the mandal to avoid printing the mandal twice
   const premisesLocation = values.premisesLocation && values.premisesLocation.trim() !== (resolvedMandal || '').trim()
     ? values.premisesLocation
     : '';
-  const addressLines = [values.dealerName, values.dealerAddress, premisesLocation, mandalWithText, districtWithPincode].map((part) => part.trim()).filter(Boolean);
+  const addressLines = [values.dealerName, cleanedDealerAddress, premisesLocation, mandalWithText, districtWithPincode].map((part) => part.trim()).filter(Boolean);
   
   // Add punctuation: commas to all lines except last, full stop to last line
   const formattedLines = addressLines.map((line, index) => {
@@ -1564,8 +1575,9 @@ function buildDealerAddress(values: PesticidePdfValues) {
 }
 
 function dealerLocation(values: PesticidePdfValues) {
-  const addressWithoutNewlines = values.dealerAddress.replace(/\n/g, ', ');
   const resolvedMandal = sampleMandal(values);
+  const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
+  const addressWithoutNewlines = stripAddressParts(values.dealerAddress.replace(/\n/g, ', '), [resolvedMandal, resolvedDistrict]);
   // Skip premises location when it matches the mandal to avoid printing the mandal twice
   const premisesLocation = values.premisesLocation && values.premisesLocation.trim() !== (resolvedMandal || '').trim()
     ? values.premisesLocation

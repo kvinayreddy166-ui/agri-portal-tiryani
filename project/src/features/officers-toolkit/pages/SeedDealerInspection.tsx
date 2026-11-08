@@ -17,6 +17,9 @@ import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedF
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../inspection/useDirtyGuard';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
+import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
+import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
+import type { Dealer } from '../../../shared/types/database';
 
 
 type GroundBalanceRow = { crop: string; variety: string; lotNo: string; registerQuantity: string; groundStock: string; difference: string; unit: string };
@@ -168,6 +171,15 @@ export function SeedDealerInspection() {
   }, [form]);
 
   const set = <K extends keyof InspectionForm>(key: K, value: InspectionForm[K]) => { setDirty(true); if (error) setError(''); setForm((current) => ({ ...current, [key]: value })); };
+  const { dealers: directoryDealers } = useDealers('seed');
+  const applyDealerPick = (dealer: Dealer | null) => {
+    if (!dealer) return;
+    const address = dealerAddressLine(dealer);
+    set('dealerName', dealer.dealer_name);
+    set('licenceNo', dealer.license_number);
+    set('licenceValidity', dealer.expiry_date || '');
+    set('salePlace', address);
+  };
   const setStatus = (key: keyof InspectionForm, patch: Partial<StatusField>) => {
     setDirty(true);
     setForm((current) => ({ ...current, [key]: { ...(current[key] as StatusField), ...patch } }));
@@ -483,6 +495,7 @@ export function SeedDealerInspection() {
 
         <div className="space-y-4">
           <Section id={1} title="Dealer and Premises" subtitle="Items 1 to 6" open={openSections[1]} onToggle={toggleSection} progress={sectionProgress[1]}>
+            <DealerPartySelect dealers={directoryDealers} onPick={applyDealerPick} label="Select dealer / party" />
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="1. Date of inspection" type="date" value={form.inspectionDate} onChange={(v) => set('inspectionDate', v)} required />
               <Field label="2. Name of the dealer" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Firm / dealer name" required />

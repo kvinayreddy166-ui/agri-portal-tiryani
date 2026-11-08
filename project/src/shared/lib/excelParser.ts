@@ -88,7 +88,8 @@ async function rowsFromFirstHeaderSheet(sheet: any): Promise<Record<string, unkn
 
 export async function parseExcelAndImportDealers(
   file: File,
-  category: ParsedDealerRow['dealer_category'] = 'fertilizer'
+  category: ParsedDealerRow['dealer_category'] = 'fertilizer',
+  attribution: { created_by?: string | null; created_by_name?: string | null } = {}
 ): Promise<{ imported: number; errors: string[] }> {
   const XLSX = await import('xlsx');
   const buffer = await file.arrayBuffer();
@@ -128,7 +129,13 @@ export async function parseExcelAndImportDealers(
     return { imported: 0, errors: ['All dealer rows already exist.'] };
   }
 
-  const { error } = await supabase.from('dealers').insert(newDealers);
+  const { error } = await supabase.from('dealers').insert(
+    newDealers.map((dealer) => ({
+      ...dealer,
+      created_by: attribution.created_by ?? null,
+      created_by_name: attribution.created_by_name ?? null,
+    }))
+  );
   if (error) {
     errors.push(error.message);
     return { imported: 0, errors };

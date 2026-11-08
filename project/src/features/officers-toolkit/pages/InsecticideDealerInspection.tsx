@@ -18,6 +18,9 @@ import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedF
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../inspection/useDirtyGuard';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
+import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
+import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
+import type { Dealer } from '../../../shared/types/database';
 
 type VariationRow = { productName: string; brandName: string; batchNumber: string; bookStock: string; physicalStock: string; variation: string; remarks: string };
 type DetainedRow = { productName: string; brandName: string; manufacturer: string; batchNumber: string; quantity: string; detentionReason: string };
@@ -156,6 +159,15 @@ export function InsecticideDealerInspection() {
   }, [form]);
 
   const set = <K extends keyof InspectionForm>(key: K, value: InspectionForm[K]) => { setDirty(true); if (error) setError(''); setForm((current) => ({ ...current, [key]: value })); };
+  const { dealers: directoryDealers } = useDealers('pesticide');
+  const applyDealerPick = (dealer: Dealer | null) => {
+    if (!dealer) return;
+    const address = dealerAddressLine(dealer);
+    set('dealerName', dealer.dealer_name);
+    set('licenceHolderName', dealer.dealer_name);
+    set('licenceNo', dealer.license_number);
+    set('sellingPointDoorNo', address);
+  };
   const setStatus = (key: keyof InspectionForm, patch: Partial<StatusField>) => {
     setDirty(true);
     setForm((current) => ({ ...current, [key]: { ...(current[key] as StatusField), ...patch } }));
@@ -465,6 +477,7 @@ export function InsecticideDealerInspection() {
 
         <div className="space-y-4">
           <Section id={1} title="Dealer, License and Premises" subtitle="Items 1 to 6" open={openSections[1]} onToggle={toggleSection} progress={sectionProgress[1]}>
+            <DealerPartySelect dealers={directoryDealers} onPick={applyDealerPick} label="Select dealer / party" />
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="1. Date of inspection" type="date" value={form.inspectionDate} onChange={(v) => set('inspectionDate', v)} required />
               <Field label="2. Name of the Dealer/Firm" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Dealer / firm name" required />

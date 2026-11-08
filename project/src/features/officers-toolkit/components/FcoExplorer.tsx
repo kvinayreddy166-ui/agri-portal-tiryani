@@ -5,7 +5,6 @@ import {
   ClipboardList,
   FileText,
   FlaskConical,
-  Mic,
   PackageCheck,
   Search,
   ShieldCheck,
@@ -130,24 +129,6 @@ export function FcoExplorer({
     searchRef.current?.focus();
   };
 
-  const speechSupported = typeof window !== 'undefined' && Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
-  const startVoiceSearch = () => {
-    const Recognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!Recognition) return;
-    try {
-      const recognition = new Recognition();
-      recognition.lang = 'en-IN';
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-      recognition.onresult = (event: any) => {
-        const transcript = event.results?.[0]?.[0]?.transcript;
-        if (transcript) pickSearchTerm(String(transcript));
-      };
-      recognition.start();
-    } catch {
-      // Voice input is best-effort only.
-    }
-  };
 
   const showResults = query.length >= 2;
   const focusSearch = () => {
@@ -207,16 +188,11 @@ export function FcoExplorer({
               onChange={(event) => setTerm(event.target.value)}
               onKeyDown={(event) => { if (event.key === 'Enter' && term.trim()) saveRecent(term.trim()); }}
               placeholder="Search clauses, sections, definitions, forms, schedules, keywords..."
-              className="w-full min-w-0 bg-transparent text-sm font-semibold text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100"
+              className="w-full min-w-0 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100"
             />
             {term && (
               <button type="button" onClick={() => setTerm('')} aria-label="Clear search" className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">
                 <X className="h-4 w-4" />
-              </button>
-            )}
-            {speechSupported && (
-              <button type="button" onClick={startVoiceSearch} aria-label="Voice search" className="rounded-lg p-1.5 text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-slate-800">
-                <Mic className="h-4 w-4" />
               </button>
             )}
             <button type="button" onClick={() => term.trim() && saveRecent(term.trim())} aria-label="Search" className="shrink-0 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-xs font-black text-white transition hover:bg-indigo-700 sm:px-3">

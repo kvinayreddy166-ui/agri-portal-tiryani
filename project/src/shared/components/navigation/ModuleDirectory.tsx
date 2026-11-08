@@ -7,15 +7,16 @@ import { getPinnedModules, getRecentModules, togglePinnedModule } from '../../li
 interface ModuleDirectoryProps {
   currentPage: string;
   isAdminUser: boolean;
+  isOfficerUser?: boolean;
   onNavigate: (page: string) => void;
 }
 
-export function ModuleDirectory({ currentPage, isAdminUser, onNavigate }: ModuleDirectoryProps) {
+export function ModuleDirectory({ currentPage, isAdminUser, isOfficerUser = false, onNavigate }: ModuleDirectoryProps) {
   const { t } = useLanguage();
   const [query, setQuery] = useState('');
   const [pinned, setPinned] = useState<string[]>(() => getPinnedModules());
 
-  const items = useMemo(() => getVisibleModuleItems(isAdminUser), [isAdminUser]);
+  const items = useMemo(() => getVisibleModuleItems(isAdminUser, isOfficerUser), [isAdminUser, isOfficerUser]);
   const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
 
   const sections = useMemo(() => moduleSections(items, t), [items, t]);

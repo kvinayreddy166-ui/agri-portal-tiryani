@@ -577,7 +577,7 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search Form III, Form V(A), Appendix B, licence, seizure, register..."
-            className={`w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
+            className={`w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
           />
         </div>
       </div>
@@ -704,7 +704,7 @@ function FertilizerClausesPanel({
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder={searchPlaceholder}
-            className={`w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
+            className={`w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
           />
         </div>
       </div>
@@ -755,7 +755,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search schedule, part, sampling, tolerance, biofertiliser..."
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           />
         </div>
       </div>
@@ -1498,7 +1498,7 @@ function FertilizerFormsPanel({
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="Search form number, title, clause, category..."
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -1834,7 +1834,7 @@ function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig })
                   value={offenceSearch}
                   onChange={(event) => setOffenceSearch(event.target.value)}
                   placeholder={config.offenceSearchPlaceholder}
-                  className={`w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
+                  className={`w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
                 />
               </div>
               <FcoOffencesSection

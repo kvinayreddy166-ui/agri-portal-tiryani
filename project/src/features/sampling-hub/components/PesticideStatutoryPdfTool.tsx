@@ -33,6 +33,11 @@ import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/o
 import { upsertCoveringLetterSample } from '../services/coveringLetterQueue';
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 import { missingRequiredFields, requiredFieldsErrorMessage } from '../lib/statutoryRequiredFields';
+import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
+import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
+import { useSampleTargets } from '../../../shared/hooks/useSampleTargets';
+import { SampleTargetSelect } from '../../../shared/components/SampleTargetSelect';
+import type { Dealer } from '../../../shared/types/database';
 type FieldConfig = {
   key: keyof PesticidePdfValues;
   label: string;
@@ -198,6 +203,19 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
 
 export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
+  const { dealers: directoryDealers } = useDealers('pesticide');
+  const { targets: sampleTargets } = useSampleTargets('pesticide');
+
+  const applyDealerPick = (dealer: Dealer | null) => {
+    if (!dealer) return;
+    setValues((current) => ({
+      ...current,
+      dealerName: dealer.dealer_name,
+      dealerAddress: dealerAddressLine(dealer),
+      authorizationLicenseNumber: dealer.license_number || current.authorizationLicenseNumber,
+      licenseDate: dealer.issue_date || current.licenseDate,
+    }));
+  };
   const draftsKey = user ? `${DRAFTS_KEY}_${user.id}` : DRAFTS_KEY;
   const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
     try {
@@ -929,7 +947,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               <select
                 value={selectedDraftName}
                 onChange={(event) => loadDraft(event.target.value)}
-                className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition ${
+                className={`rounded-lg border px-3 py-2 text-sm outline-none backdrop-blur-sm transition ${
                   selectedDraftName
                     ? 'border-red-400 bg-red-50 text-red-700 focus:border-red-500 focus:bg-red-100 focus:ring-2 focus:ring-red-100/50'
                     : 'border-red-200 bg-white/90 text-slate-900 focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-100/50'
@@ -968,6 +986,20 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                   key={section.title}
                 >
                   <FieldSection title={section.title} color={color} onReset={getResetHandler(section.title)}>
+                    {section.title === 'DEALER DETAILS' && (
+                      <DealerPartySelect
+                        dealers={directoryDealers}
+                        onPick={applyDealerPick}
+                        label="Select dealer / party"
+                      />
+                    )}
+                    {section.title === 'PRODUCT DETAILS' && (
+                      <SampleTargetSelect
+                        targets={sampleTargets}
+                        onPick={(code) => setValues((current) => ({ ...current, cdaCode: code }))}
+                        label="Select C & DA code"
+                      />
+                    )}
                     {section.fields.map((field) => {
                       // Hide manual district field unless district is "Others"
                       if (field.key === 'manualDistrict' && values.district !== 'Others') {
@@ -1078,7 +1110,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                                           activeIngredient: combinationString 
                                         }));
                                       }}
-                                      className="min-h-11 flex-1 rounded-lg border border-amber-200 bg-white/85 px-3 py-2 text-sm font-bold text-slate-950 outline-none transition focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-100 dark:border-amber-900 dark:bg-slate-950 dark:text-white dark:focus:ring-amber-900/40"
+                                      className="min-h-11 flex-1 rounded-lg border border-amber-200 bg-white/85 px-3 py-2 text-sm font-medium text-slate-950 outline-none transition focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-100 dark:border-amber-900 dark:bg-slate-950 dark:text-white dark:focus:ring-amber-900/40"
                                       placeholder="Eg: 18% w/w or w/v"
                                     />
                                   </div>
@@ -1316,7 +1348,7 @@ function FieldSection({ title, children, color = 'slate', onReset }: { title: st
 }
 
 function PdfInput({ field, value, onChange, options, values }: { field: FieldConfig; value: string; onChange: (value: string) => void; options?: { label: string; value: string }[]; values?: PesticidePdfValues }) {
-  const commonClass = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm font-semibold text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+  const commonClass = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
   
   const displayLabel = field.dynamicLabel && values?.designation === 'Asst. Director of Agriculture' && field.key === 'mandal'
     ? 'DIVISION'

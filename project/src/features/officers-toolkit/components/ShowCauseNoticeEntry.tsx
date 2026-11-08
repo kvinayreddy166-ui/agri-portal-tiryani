@@ -21,6 +21,9 @@ import {
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
+import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
+import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
+import type { Dealer } from '../../../shared/types/database';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 import type { StatutoryCommodity } from '../../auth/types/officerAuth';
 import {
@@ -154,6 +157,16 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const updateForm = (patch: Partial<NoticeFormState>) => setForm((current) => {
     return { ...current, ...patch };
   });
+  const { dealers: directoryDealers } = useDealers();
+  const applyDealerPick = (dealer: Dealer | null) => {
+    if (!dealer) return;
+    updateForm({
+      firmName: dealer.dealer_name,
+      dealerName: dealer.dealer_name,
+      dealerAddress: dealerAddressLine(dealer),
+      licenceNumber: dealer.license_number || form.licenceNumber,
+    });
+  };
 
   const selectedEnclosures = useMemo(
     () => form.enclosures.split(',').map((item) => item.trim()).filter(Boolean),
@@ -599,6 +612,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
           <div className={`rounded-lg border ${sectionBorderColor} bg-white dark:bg-slate-900 p-3 shadow-sm`}>
             <h3 className={`mb-2.5 pb-2 border-b ${sectionDividerColor} text-sm font-black uppercase tracking-wide ${sectionHeaderColor}`}>Dealer Details</h3>
             <div className="grid gap-3 md:grid-cols-4">
+            <DealerPartySelect dealers={directoryDealers} onPick={applyDealerPick} label="Select dealer / party" />
             <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value, dealerName: value })} />
             <label className="block md:col-span-2">
               <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>
@@ -611,7 +625,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                 onChange={(event) => updateForm({ dealerAddress: event.target.value })}
                 placeholder="D.No, Road, Village"
                 rows={2}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
             </label>
             <TextInput label="Licence Number" value={form.licenceNumber} onChange={(value) => updateForm({ licenceNumber: value })} optional />
@@ -633,7 +647,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                 <button
                   type="button"
                   onClick={() => setEnclosuresOpen((open) => !open)}
-                  className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 >
                   <span className={`truncate ${selectedEnclosures.length ? '' : 'text-slate-400 dark:text-slate-500'}`}>
                     {selectedEnclosures.length ? `${selectedEnclosures.length} selected` : 'Select enclosures'}
@@ -676,7 +690,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                             value={otherEnclosureText}
                             onChange={(event) => writeEnclosures(checkedEnclosures, event.target.value)}
                             placeholder="Specify other enclosures"
-                            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                           />
                         </div>
                       )}
@@ -750,7 +764,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                 onChange={(event) => updateForm({ observation: event.target.value })}
                 placeholder={config.observationPlaceholder}
                 rows={4}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
             </label>
 
@@ -869,7 +883,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               value={savedSearch}
               onChange={(event) => setSavedSearch(event.target.value)}
               placeholder="Search saved notices"
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
             />
           </div>
         </div>
@@ -926,7 +940,7 @@ export function SelectInput({ label, value, onChange, options }: { label: string
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
       >
         <option value="">Select</option>
         {options.map((option) => (
@@ -953,7 +967,7 @@ export function TextInput({ label, value, onChange, type = 'text', optional = fa
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
       />
     </div>
   );

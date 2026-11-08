@@ -31,6 +31,9 @@ import {
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
+import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
+import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
+import type { Dealer } from '../../../shared/types/database';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 interface StopSaleProductRow {
   id: string;
@@ -358,6 +361,15 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
   }, [form]);
 
   const updateForm = (patch: Partial<StopSaleFormState>) => setForm((current) => ({ ...current, ...patch }));
+  const { dealers: directoryDealers } = useDealers('pesticide');
+  const applyDealerPick = (dealer: Dealer | null) => {
+    if (!dealer) return;
+    updateForm({
+      firmName: dealer.dealer_name,
+      dealerAddress: dealerAddressLine(dealer),
+      licenceNumber: dealer.license_number || form.licenceNumber,
+    });
+  };
 
   const updateProduct = (id: string, patch: Partial<StopSaleProductRow>) =>
     setForm((current) => ({
@@ -609,6 +621,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
       <div className="rounded-lg border border-amber-200/80 dark:border-amber-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <h3 className="mb-2.5 pb-2 border-b border-amber-200/80 dark:border-amber-800/60 text-sm font-black uppercase tracking-wide text-amber-700 dark:text-amber-400 font-black">Dealer Details</h3>
         <div className="grid gap-3 md:grid-cols-4">
+          <DealerPartySelect dealers={directoryDealers} onPick={applyDealerPick} label="Select dealer / party" />
           <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
           <label className="block md:col-span-2">
             <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>
@@ -621,7 +634,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
               onChange={(event) => updateForm({ dealerAddress: event.target.value })}
               placeholder="D.No, Road, Village"
               rows={2}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
             />
           </label>
           <TextInput label="Licence Number" value={form.licenceNumber} onChange={(value) => updateForm({ licenceNumber: value })} />
@@ -648,7 +661,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
               value={form.observations}
               onChange={(event) => updateForm({ observations: event.target.value })}
               rows={2}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
             />
           </label>
         </div>
@@ -688,7 +701,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
                     value={row.name}
                     onChange={(event) => updateProduct(row.id, { name: event.target.value })}
                     rows={1}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                   />
                 </label>
                 <TextInput label="Manufactured By" value={row.manufacturer} onChange={(value) => updateProduct(row.id, { manufacturer: value })} />
@@ -792,7 +805,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
               value={savedSearch}
               onChange={(event) => setSavedSearch(event.target.value)}
               placeholder="Search saved orders"
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
             />
           </div>
         </div>

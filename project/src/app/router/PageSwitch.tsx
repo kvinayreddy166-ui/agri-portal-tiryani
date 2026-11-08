@@ -68,10 +68,11 @@ interface PageSwitchProps {
   currentPage: string;
   isAdminUser: boolean;
   isTestUser: boolean;
+  isOfficerUser?: boolean;
   onNavigate: (page: string) => void;
 }
 
-export function PageSwitch({ currentPage, isAdminUser, isTestUser, onNavigate }: PageSwitchProps) {
+export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser = false, onNavigate }: PageSwitchProps) {
   switch (currentPage) {
     case 'register':
     case 'officer-register':
@@ -108,7 +109,7 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, onNavigate }:
     case 'dealer-portal':
       return <DealerStockPortal />;
     case 'dealers':
-      return isAdminUser ? <DealerManagement /> : <Dashboard />;
+      return isAdminUser || isOfficerUser ? <DealerManagement /> : <Dashboard />;
     case 'farmer-database':
       return isAdminUser ? <FarmerDatabase /> : <Dashboard />;
     case 'crops':
@@ -223,7 +224,7 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, onNavigate }:
     case 'all-modules':
       return (
         <SafeSuspense fallback={<PageLoader />}>
-          <ModuleDirectory currentPage={currentPage} isAdminUser={isAdminUser} onNavigate={onNavigate} />
+          <ModuleDirectory currentPage={currentPage} isAdminUser={isAdminUser} isOfficerUser={isOfficerUser} onNavigate={onNavigate} />
         </SafeSuspense>
       );
     case 'knowledge':

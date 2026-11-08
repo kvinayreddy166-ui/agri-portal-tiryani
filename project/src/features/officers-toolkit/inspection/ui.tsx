@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, FileDown, FileSpreadsheet, FileText, Mic, MicOff, Plus, Printer, Trash2 } from 'lucide-react';
-import { useLanguage } from '../../../shared/context/LanguageContext';
-import { useSpeechInput } from '../../../shared/hooks/useSpeechInput';
+import { ChevronDown, FileDown, FileSpreadsheet, FileText, Plus, Printer, Trash2 } from 'lucide-react';
 import type { Column, Status, StatusField } from './types';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
 
@@ -83,7 +81,7 @@ function useToneStyles(): ToneStyles {
 }
 
 const inputBaseClass =
-  'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm font-semibold text-slate-950 outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white';
+  'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-sm text-slate-950 outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white';
 
 /** Tone-aware replacement for the old per-page `inputClass` constant. */
 export function useInputClass(): string {
@@ -222,32 +220,6 @@ export function Section({ id, title, subtitle, open, onToggle, progress, childre
   );
 }
 
-export function MicButton({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const { language } = useLanguage();
-  const valueRef = useRef(value);
-  valueRef.current = value;
-  const { supported, listening, error, start, stop } = useSpeechInput(
-    language === 'te' ? 'te-IN' : 'en-IN',
-    (text) => onChange(valueRef.current ? `${valueRef.current.replace(/\s+$/, '')} ${text}` : text)
-  );
-  const [unsupportedNote, setUnsupportedNote] = useState(false);
-  const note = error || (unsupportedNote && !supported ? 'Voice input not supported in this browser (use Chrome or Edge)' : null);
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      {note && <span className="text-[10px] font-semibold normal-case text-red-600 dark:text-red-400">{note}</span>}
-      <button
-        type="button"
-        onClick={supported ? (listening ? stop : start) : () => setUnsupportedNote(true)}
-        aria-label={listening ? 'Stop voice input' : 'Start voice input'}
-        title={listening ? 'Stop voice input' : 'Dictate'}
-        className={`inline-flex h-6 w-6 items-center justify-center rounded-full transition ${listening ? 'animate-pulse bg-red-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'}`}
-      >
-        {listening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
-      </button>
-    </span>
-  );
-}
-
 export function Field({
   label,
   value,
@@ -278,7 +250,6 @@ export function Field({
           {type === 'date' && value ? (
             <DateClearButton onClick={() => onChange('')} />
           ) : null}
-          {textarea && <MicButton value={value} onChange={onChange} />}
         </span>
       </div>
       {textarea ? (

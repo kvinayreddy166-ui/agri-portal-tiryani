@@ -12,6 +12,7 @@ export interface ModuleMenuItem {
   label: string;
   icon: LucideIcon;
   adminOnly?: boolean;
+  officerAccess?: boolean;
   desc: string;
   descTe: string;
 }
@@ -36,7 +37,7 @@ export const MODULE_MENU_ITEMS: ModuleMenuItem[] = [
   { id: 'farm-calculators', label: 'Farm Calculators', icon: Calculator, desc: 'Area, fertilizer, seed and profit calculators', descTe: 'ఎకరాల, ఎరువు, విత్తనం & లాభ కాలిక్యులేటర్లు' },
 
   // Field Operations & Officer Administration
-  { id: 'dealers', label: 'Dealers Directory', icon: UsersRound, adminOnly: true, desc: 'Registered dealers and contact details', descTe: 'నమోదిత డీలర్లు & సంప్రదింపు వివరాలు' },
+  { id: 'dealers', label: 'Dealers Directory', icon: UsersRound, adminOnly: true, officerAccess: true, desc: 'Registered dealers and contact details', descTe: 'నమోదిత డీలర్లు & సంప్రదింపు వివరాలు' },
   { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor, adminOnly: true, desc: 'Machinery subsidy and mechanization info', descTe: 'యంత్రాల & యాంత్రీకరణ సమాచారం' },
   { id: 'farmer-database', label: 'Farmer Database', icon: Database, adminOnly: true, desc: 'Farmer records and registry', descTe: 'రైతు రికార్డులు & రిజిస్ట్రీ' },
   { id: 'officer-contacts', label: 'Officer Contacts', icon: Phone, desc: 'Directory of agriculture officers', descTe: 'వ్యవసాయ అధికారి డైరెక్టరీ' },
@@ -56,8 +57,10 @@ export const MODULE_MENU_ITEMS: ModuleMenuItem[] = [
   { id: 'settings', label: 'Settings', icon: Settings, desc: 'Account, language and app settings', descTe: 'ఖాతా, భాష & యాప్ సెట్టింగులు' },
 ];
 
-export function getVisibleModuleItems(isAdminUser: boolean) {
-  return MODULE_MENU_ITEMS.filter((item) => !item.adminOnly || isAdminUser);
+export function getVisibleModuleItems(isAdminUser: boolean, isOfficerUser = false) {
+  return MODULE_MENU_ITEMS.filter(
+    (item) => !item.adminOnly || isAdminUser || (item.officerAccess && isOfficerUser)
+  );
 }
 
 export function moduleSections(items: ModuleMenuItem[], t: (key: string, telugu: string) => string) {

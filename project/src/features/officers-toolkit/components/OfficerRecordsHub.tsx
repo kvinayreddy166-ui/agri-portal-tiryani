@@ -938,7 +938,7 @@ export function OfficerRecordsHub() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
             <option value="all">{t('All Categories', 'అన్ని విభాగాలు')}</option>
             <option value="order">{t('Statutory Orders', 'ఉత్తర్వులు')}</option>
@@ -952,7 +952,7 @@ export function OfficerRecordsHub() {
           <select
             value={commodityFilter}
             onChange={(e) => setCommodityFilter(e.target.value as typeof commodityFilter)}
-            className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
             <option value="all">{t('All Commodities', 'అన్ని వస్తువులు')}</option>
             <option value="fertilizer">{t('Fertilizer', 'ఎరువు')}</option>
@@ -965,7 +965,7 @@ export function OfficerRecordsHub() {
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             >
               <option value="all">{t('All Years', 'అన్ని సంవత్సరాలు')}</option>
               {availableYears.map((yr) => (
@@ -981,7 +981,7 @@ export function OfficerRecordsHub() {
             <select
               value={monthFilter}
               onChange={(e) => setMonthFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             >
               <option value="all">{t('All Months', 'అన్ని నెలలు')}</option>
               <option value="01">01 - {t('Jan', 'జన')}</option>
@@ -1003,7 +1003,7 @@ export function OfficerRecordsHub() {
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value as typeof dateFilter)}
-            className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
             <option value="all">{t('All Quick Dates', 'అన్ని తేదీలు')}</option>
             <option value="today">{t('Today', 'ఈ రోజు')}</option>
@@ -2090,7 +2090,7 @@ export function OfficerRecordsHub() {
                 type="text"
                 value={renameInput}
                 onChange={(e) => setRenameInput(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs sm:text-sm font-semibold text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
             </div>
             <div className="mt-5 flex justify-end gap-2">

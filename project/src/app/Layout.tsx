@@ -105,7 +105,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
     if (menuItemIds.has(currentPage)) recordRecentModule(currentPage);
   }, [currentPage, menuItemIds]);
 
-  const visibleMenuItems = isDealerUser ? [] : getVisibleModuleItems(isAdminUser);
+  const visibleMenuItems = isDealerUser ? [] : getVisibleModuleItems(isAdminUser, isOfficerUser);
 
   return (
     <div className="min-h-screen bg-[#f2f7f3] dark:bg-slate-950">

@@ -599,7 +599,7 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
                   type="date"
                   defaultValue={order.reply_deadline ?? ''}
                   onChange={(e) => void handleSetDeadline(order, e.target.value || null)}
-                  className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-semibold text-slate-800 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 />
                 <div className="ml-auto flex items-center gap-1">
                   {(['PENDING', 'REPLIED', 'NO_REPLY', 'EXPIRED', 'WAIVED'] as ReplyStatus[]).map((rs) => (
@@ -916,7 +916,7 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
                   value={reportRefInput}
                   onChange={(e) => setReportRefInput(e.target.value)}
                   placeholder="e.g. CTL/RPT/2026/042 or Memorandum No."
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 />
               </div>
 
@@ -929,7 +929,7 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
                     type="date"
                     value={reportDateInput}
                     onChange={(e) => setReportDateInput(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                   />
                 </div>
                 <div>
@@ -951,7 +951,7 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
                   value={reportRemarksInput}
                   onChange={(e) => setReportRemarksInput(e.target.value)}
                   placeholder="e.g. Active ingredient below tolerance, Germination % below minimum standard"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 />
               </div>
             </div>

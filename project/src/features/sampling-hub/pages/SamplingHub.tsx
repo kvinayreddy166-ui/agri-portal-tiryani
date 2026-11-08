@@ -1,9 +1,11 @@
 import React, { lazy, Suspense, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bug, FileText, Files, FlaskConical, HelpCircle, Loader2, Sprout } from 'lucide-react';
+import { Bug, FileText, Files, FlaskConical, Hash, HelpCircle, Loader2, Sprout } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useBackButtonOverlay } from '../../../shared/hooks/useBackButtonOverlay';
+import { SampleTargetsModal } from '../components/SampleTargetsModal';
 
 const FertilizerStatutoryPdfTool = lazy(() =>
   import('../components/FertilizerStatutoryPdfTool').then((module) => ({ default: module.FertilizerStatutoryPdfTool }))
@@ -44,9 +46,11 @@ const SAMPLE_CATEGORIES = [
 
 export function SamplingHub() {
   const { t } = useLanguage();
+  const { isAdminUser, isOfficerUser } = useAuth();
   const navigate = useNavigate();
   const [category, setCategory] = useState('fertilizers');
   const [toolOpen, setToolOpen] = useState(false);
+  const [targetsOpen, setTargetsOpen] = useState(false);
   const [seedInstructionOpen, setSeedInstructionOpen] = useState(true);
   const toolOverlay = useBackButtonOverlay('sampling-hub-tool', () => setToolOpen(false));
 
@@ -112,14 +116,28 @@ export function SamplingHub() {
             'నమూనా వివరాలను ఒకసారి నింపండి — అవసరమైన ఫారాలు శాఖా ఫార్మాట్‌లో సిద్ధమవుతాయి.'
           )}
         </p>
-        <button
-          type="button"
-          onClick={openTool}
-          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 px-4 py-3 text-sm font-black text-white shadow-md shadow-emerald-950/20 transition hover:from-emerald-900 hover:to-emerald-800 hover:shadow-lg sm:w-auto"
-        >
-          <FileText className="h-5 w-5" />
-          {t('Start New Sample Drawal', 'కొత్త నమూనా డ్రాయింగ్‌ను ప్రారంభించండి')}
-        </button>
+        <div className="mt-4 flex flex-col gap-2">
+          {(isAdminUser || isOfficerUser) && (
+            <button
+              type="button"
+              onClick={() => setTargetsOpen(true)}
+              className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-emerald-600/50 bg-gradient-to-br from-emerald-50 to-emerald-100/70 px-4 py-3 text-sm font-black text-emerald-800 shadow-sm transition hover:border-emerald-600 hover:from-emerald-100 hover:to-emerald-200/70 hover:shadow-md dark:border-emerald-500/40 dark:from-emerald-950/50 dark:to-emerald-900/30 dark:text-emerald-200"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-700 text-white shadow-sm transition group-hover:scale-105">
+                <Hash className="h-4 w-4" />
+              </span>
+              {t('Sample Code Targets', 'నమూనా కోడ్ లక్ష్యాలు')}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={openTool}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 px-4 py-3 text-sm font-black text-white shadow-md shadow-emerald-950/20 transition hover:from-emerald-900 hover:to-emerald-800 hover:shadow-lg"
+          >
+            <FileText className="h-5 w-5" />
+            {t('Start New Sample Drawal', 'కొత్త నమూనా డ్రాయింగ్‌ను ప్రారంభించండి')}
+          </button>
+        </div>
       </section>
 
       <section className="rounded-2xl border border-emerald-900/10 bg-gradient-to-br from-emerald-50/60 via-white to-slate-50 p-5 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20">
@@ -207,6 +225,8 @@ export function SamplingHub() {
           )}
         </Suspense>
       )}
+
+      <SampleTargetsModal open={targetsOpen} onClose={() => setTargetsOpen(false)} />
     </div>
   );
 }

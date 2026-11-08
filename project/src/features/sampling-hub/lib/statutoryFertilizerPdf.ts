@@ -438,17 +438,28 @@ function drawHeader(cursor: PdfCursor, formType: FertilizerStatutoryFormType, va
   doc.setFontSize(BODY_SIZE);
 }
 
+function stripAddressParts(address: string, parts: Array<string | undefined | null>) {
+  const needles = parts.map((part) => String(part || '').trim().toLowerCase()).filter(Boolean);
+  if (!needles.length) return address;
+  return String(address || '')
+    .split(/[\n,]+/)
+    .map((segment) => segment.trim())
+    .filter((segment) => segment && !needles.some((needle) => segment.toLowerCase().includes(needle)))
+    .join(', ');
+}
+
 function buildFormJDealerAddress(values: FertilizerPdfValues): string {
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
   const resolvedMandal = values.mandal === 'Others' ? values.manualMandal : values.mandal;
-  
-  const addressParts = [values.dealerName, values.dealerAddress]
-    .map((part) => part.trim())
-    .filter(Boolean);
-  
+
   // Use placeOfCollection for Mandal value when ADA is selected (Form J specific)
   const isADA = isAssistantDirectorOfAgriculture(values.designation);
   const mandalValue = isADA && values.placeOfCollection ? values.placeOfCollection : resolvedMandal;
+  const cleanedDealerAddress = stripAddressParts(values.dealerAddress, [mandalValue, resolvedDistrict]);
+
+  const addressParts = [values.dealerName, cleanedDealerAddress]
+    .map((part) => part.trim())
+    .filter(Boolean);
   if (mandalValue) addressParts.push(`Mandal: ${mandalValue}`);
   if (resolvedDistrict) addressParts.push(`District: ${resolvedDistrict}`);
   

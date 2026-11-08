@@ -676,7 +676,7 @@ export function LicenseServices() {
                 <select
                   value={fertilizerAmendmentType}
                   onChange={(e) => handleFertilizerAmendmentTypeChange(e.target.value as FertilizerAmendmentType)}
-                  className="w-full rounded-xl border border-slate-200/90 bg-white py-2 px-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                  className="w-full rounded-xl border border-slate-200/90 bg-white py-2 px-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                 >
                   <option value="">{t('Select Amendment Type', 'సవరణ రకాన్ని ఎంచుకోండి')}</option>
                   {Object.entries(FERTILIZER_AMENDMENT_TYPES).map(([key, label]) => (
@@ -694,7 +694,7 @@ export function LicenseServices() {
                 <select
                   value={seedAmendmentType}
                   onChange={(e) => handleSeedAmendmentTypeChange(e.target.value as SeedAmendmentType)}
-                  className="w-full rounded-xl border border-slate-200/90 bg-white py-2 px-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                  className="w-full rounded-xl border border-slate-200/90 bg-white py-2 px-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                 >
                   <option value="">{t('Select Amendment Type', 'సవరణ రకాన్ని ఎంచుకోండి')}</option>
                   {Object.entries(SEED_AMENDMENT_TYPES).map(([key, label]) => (
@@ -712,7 +712,7 @@ export function LicenseServices() {
                 <select
                   value={insecticideAmendmentType}
                   onChange={(e) => handleInsecticideAmendmentTypeChange(e.target.value as InsecticideAmendmentType)}
-                  className="w-full rounded-xl border border-slate-200/90 bg-white py-2 px-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                  className="w-full rounded-xl border border-slate-200/90 bg-white py-2 px-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                 >
                   <option value="">{t('Select Amendment Type', 'సవరణ రకాన్ని ఎంచుకోండి')}</option>
                   {Object.entries(INSECTICIDE_AMENDMENT_TYPES).map(([key, label]) => (
@@ -733,7 +733,7 @@ export function LicenseServices() {
                   <select
                     value={district}
                     onChange={(e) => handleDistrictChange(e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-slate-200/90 bg-white py-2.5 pl-10 pr-8 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                    className="w-full appearance-none rounded-xl border border-slate-200/90 bg-white py-2.5 pl-10 pr-8 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                   >
                     <option value="">{t('Select District', 'జిల్లాను ఎంచుకోండి')}</option>
                     {TELANGANA_DISTRICTS.map((dist) => (
@@ -756,7 +756,7 @@ export function LicenseServices() {
                       value={division}
                       onChange={(e) => handleDivisionChange(e.target.value)}
                       disabled={!district}
-                      className="w-full appearance-none rounded-xl border border-slate-200/90 bg-white py-2.5 pl-10 pr-8 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white disabled:opacity-50"
+                      className="w-full appearance-none rounded-xl border border-slate-200/90 bg-white py-2.5 pl-10 pr-8 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white disabled:opacity-50"
                     >
                       <option value="">{t('Select Division', 'డివిజన్ ఎంచుకోండి')}</option>
                       {getDivisionsForDistrict(district).map((div) => (
@@ -778,7 +778,7 @@ export function LicenseServices() {
                     onChange={(e) => handleNumberOfProductsChange(e.target.value)}
                     min="1"
                     placeholder={t('Enter product count', 'ఉత్పత్తుల సంఖ్య నమోదు చేయండి')}
-                    className="w-full rounded-xl border border-slate-200/90 bg-white py-2.5 px-3.5 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                    className="w-full rounded-xl border border-slate-200/90 bg-white py-2.5 px-3.5 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                   />
                 </div>
               ) : null}
@@ -1078,7 +1078,7 @@ export function LicenseServices() {
                 <select
                   value={licenseType}
                   onChange={(e) => handleLicenseTypeChange(e.target.value as LicenseType)}
-                  className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                  className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
                 >
                   <option value="">Select License Type</option>
                   <option value="fertilizer">Fertilizer</option>
@@ -1203,7 +1203,7 @@ export function LicenseServices() {
                   <select
                     value={district}
                     onChange={(e) => handleDistrictChange(e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                    className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
                   >
                     <option value="">Select District</option>
                     {TELANGANA_DISTRICTS.map((dist) => (
@@ -1230,7 +1230,7 @@ export function LicenseServices() {
                   <select
                     value={division}
                     onChange={(e) => handleDivisionChange(e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm font-semibold text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                    className="w-full appearance-none rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 pl-11 text-sm text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
                   >
                     <option value="">Select Division</option>
                     {getDivisionsForDistrict(district).map((div) => (
@@ -1258,7 +1258,7 @@ export function LicenseServices() {
                   value={numberOfProducts}
                   onChange={(e) => handleNumberOfProductsChange(e.target.value)}
                   min="1"
-                  className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                  className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
                   placeholder="Enter number of products"
                 />
               </div>
@@ -1619,7 +1619,7 @@ export function LicenseServices() {
               <select
                 value={fertilizerAmendmentType}
                 onChange={(e) => handleFertilizerAmendmentTypeChange(e.target.value as FertilizerAmendmentType)}
-                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition duration-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
+                className="w-full rounded-2xl border border-emerald-200/50 bg-white/80 px-4 py-3 text-base text-slate-900 outline-none transition duration-300 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
                 <option value="">Amendment Type</option>
                 {Object.entries(FERTILIZER_AMENDMENT_TYPES).map(([key, label]) => (
@@ -1642,7 +1642,7 @@ export function LicenseServices() {
               <select
                 value={seedAmendmentType}
                 onChange={(e) => handleSeedAmendmentTypeChange(e.target.value as SeedAmendmentType)}
-                className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-base text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
               >
                 <option value="">Amendment Type</option>
                 {Object.entries(SEED_AMENDMENT_TYPES).map(([key, label]) => (
@@ -1665,7 +1665,7 @@ export function LicenseServices() {
               <select
                 value={insecticideAmendmentType}
                 onChange={(e) => handleInsecticideAmendmentTypeChange(e.target.value as InsecticideAmendmentType)}
-                className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-base font-semibold text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                className="w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-base text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
               >
                 <option value="">Amendment Type</option>
                 {Object.entries(INSECTICIDE_AMENDMENT_TYPES).map(([key, label]) => (

@@ -13,6 +13,7 @@ interface State {
 }
 
 const RELOAD_ATTEMPT_KEY = 'agronix-update-reload-attempt';
+const GENERIC_ERROR_CODE = 'AGRX-ERR-001';
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null, showUpdateScreen: false };
@@ -116,7 +117,9 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="mt-2 max-w-md text-sm font-semibold text-slate-600 dark:text-slate-300">
               {this.state.error.message}
             </p>
-            <p className="mt-2 text-xs font-bold text-slate-500 dark:text-slate-400">App Version: {APP_BUILD_LABEL}</p>
+            <p className="mt-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+              App Version: {APP_BUILD_LABEL} · Error Code: {GENERIC_ERROR_CODE}
+            </p>
           </div>
           <div className="flex flex-wrap justify-center gap-2">
             <button

@@ -22,6 +22,11 @@ import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/o
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 import { upsertCoveringLetterSample } from '../services/coveringLetterQueue';
 import { missingRequiredFields, requiredFieldsErrorMessage } from '../lib/statutoryRequiredFields';
+import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
+import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
+import { useSampleTargets } from '../../../shared/hooks/useSampleTargets';
+import { SampleTargetSelect } from '../../../shared/components/SampleTargetSelect';
+import type { Dealer } from '../../../shared/types/database';
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
 const LAST_GENERATED_KEY = 'tiryani-seed-forms-last-generated';
@@ -206,6 +211,14 @@ export function SeedForms({
   const dealerDetailsRef = useRef(null);
   const { toasts, removeToast, showSuccess, showInfo, showSaved, showDeleted, showLoaded, showQueue, showReset } = useToast();
   const [confirmAction, setConfirmAction] = useState<{ title: string; message?: string; action: () => void } | null>(null);
+  const { dealers: directoryDealers } = useDealers('seed');
+  const { targets: sampleTargets } = useSampleTargets('seed');
+
+  const applyDealerPick = (dealer: Dealer | null) => {
+    if (!dealer) return;
+    setField('dealerName', dealer.dealer_name);
+    setField('dealerAddress', dealerAddressLine(dealer));
+  };
 
   useEffect(() => {
     safeStorage.setItem(STORAGE_KEY, JSON.stringify(form));
@@ -636,7 +649,7 @@ export function SeedForms({
           <select
             value={selectedDraftName}
             onChange={(event) => loadDraft(event.target.value)}
-            className={`rounded-lg border px-3 py-2 text-sm font-semibold outline-none backdrop-blur-sm transition ${
+            className={`rounded-lg border px-3 py-2 text-sm outline-none backdrop-blur-sm transition ${
               selectedDraftName
                 ? 'border-orange-400 bg-orange-50 text-orange-700 focus:border-orange-500 focus:bg-orange-100 focus:ring-2 focus:ring-orange-100/50'
                 : 'border-orange-200 bg-white/90 text-slate-900 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-100/50'
@@ -707,6 +720,11 @@ export function SeedForms({
 
         <div ref={sampleDetailsRef}>
         <Card title="SAMPLE DETAILS" color="amber" onReset={resetSampleDetails}>
+          <SampleTargetSelect
+            targets={sampleTargets}
+            onPick={(code) => setField('codeNo', code)}
+            label="Select sample code"
+          />
           <div className="grid gap-2 sm:grid-cols-2">
             <Input label="Serial No. of sample" value={form.serialNo} onChange={(value: any) => setField('serialNo', value)} />
             <Input label="Code No. of sample" value={form.codeNo} onChange={(value: any) => setField('codeNo', value)} />
@@ -732,6 +750,7 @@ export function SeedForms({
 
         <div ref={dealerDetailsRef}>
         <Card title="DEALER DETAILS" color="maroon" onReset={resetDealerDetails}>
+          <DealerPartySelect dealers={directoryDealers} onPick={applyDealerPick} label="Select dealer / party" />
           <Input label="Dealer / Party name" value={form.dealerName} onChange={(value: any) => setField('dealerName', value)} />
           <label>
             <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">Dealer / Party address</span>
@@ -739,7 +758,7 @@ export function SeedForms({
               {(isAssistantDirectorOfAgriculture(form.designation) ? effectiveLocationValue(form.placeOfCollectionMandal, form.manualPlaceOfCollection) : effectiveLocationValue(form.mandal, form.manualMandal)) || 'Mandal'} Mandal,<br />
               {effectiveLocationValue(form.district, form.manualDistrict) || 'District'} District. (auto-added)
             </span>
-            <textarea rows={2} value={form.dealerAddress} onChange={(event) => setField('dealerAddress', event.target.value)} placeholder="D.No, Road, Village" className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm font-semibold text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" />
+            <textarea rows={2} value={form.dealerAddress} onChange={(event) => setField('dealerAddress', event.target.value)} placeholder="D.No, Road, Village" className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" />
           </label>
           <div className="grid gap-2 sm:grid-cols-2">
             <Select label="Cost of sample demanded" value={form.costDemanded} onChange={(value: any) => setField('costDemanded', value)} options={['Yes', 'No'].map(toOption)} />
@@ -944,7 +963,7 @@ function PreviewCard({ title, lines }: any) {
 }
 
 function Input({ label, value, onChange, type = 'text', textarea = false, placeholder = '' }: any) {
-  const className = 'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm font-semibold text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+  const className = 'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
   return (
     <div>
       <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
@@ -966,7 +985,7 @@ function Select({ label, value, onChange, options }: any) {
   return (
     <label>
       <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm font-semibold text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
         <option value="">Select...</option>
         {options.map((option: any) => (
           <option key={option.value} value={option.value}>{option.label}</option>
@@ -1190,6 +1209,16 @@ function drawSeedFormV(doc: any, form: any) {
   footer(doc, p, r, { compact: true });
 }
 
+function stripSeedAddressParts(address: string, parts: Array<string | undefined | null>) {
+  const needles = parts.map((part) => String(part || '').trim().toLowerCase()).filter(Boolean);
+  if (!needles.length) return address;
+  return String(address || '')
+    .split(/[\n,]+/)
+    .map((segment) => segment.trim())
+    .filter((segment) => segment && !needles.some((needle) => segment.toLowerCase().includes(needle)))
+    .join(', ');
+}
+
 function drawSeedFormVI(doc: any, form: any) {
   const r = resolveSeedValues(form);
   const p = page(doc);
@@ -1209,9 +1238,10 @@ function drawSeedFormVI(doc: any, form: any) {
   p.y += 7;
   const districtWithPin = r.districtWithPinCode ? `${r.districtWithPinCode}` : `${r.district}`;
   const mandalWithText = r.mandal ? `${r.mandal} Mandal` : '';
+  const dealerAddr = stripSeedAddressParts(r.dealerAddress, [r.mandal, r.district]);
   // Skip r.place if it's the same as mandal value (without Mandal suffix) to avoid duplication
   const shouldIncludePlace = r.place && r.place !== r.mandal;
-  const addressLines = [r.dealerName, r.dealerAddress, ...(shouldIncludePlace ? [r.place] : []), mandalWithText, districtWithPin].filter(Boolean);
+  const addressLines = [r.dealerName, dealerAddr, ...(shouldIncludePlace ? [r.place] : []), mandalWithText, districtWithPin].filter(Boolean);
   
   // Add punctuation: commas to all lines except last, full stop to last line
   const formattedLines = addressLines.map((line, index) => {
@@ -1278,8 +1308,9 @@ function drawSeedFormI(doc: any, form: any) {
   p.y += 7;
   const districtWithPin = r.districtWithPinCode ? `${r.districtWithPinCode}` : `${r.district}`;
   const mandalWithText = r.mandal ? `${r.mandal} Mandal` : '';
+  const dealerAddr = stripSeedAddressParts(r.dealerAddress, [r.mandal, r.district]);
   const shouldIncludePlace = r.place && r.place !== r.mandal;
-  const addressLines = [r.dealerName, r.dealerAddress, ...(shouldIncludePlace ? [r.place] : []), mandalWithText, districtWithPin].filter(Boolean);
+  const addressLines = [r.dealerName, dealerAddr, ...(shouldIncludePlace ? [r.place] : []), mandalWithText, districtWithPin].filter(Boolean);
   const formattedLines = addressLines.map((line, index) => {
     if (index === addressLines.length - 1) {
       return line.endsWith('.') || line.endsWith(',') ? line : `${line}.`;
@@ -1347,7 +1378,7 @@ function drawSeedFormVIII(doc: any, form: any) {
     { text: ' taken from the premises of M/s ' },
     { text: r.dealerName || '________________', bold: true },
     { text: ', situated at ' },
-    { text: blank([r.dealerAddress, r.place, r.mandal && `${r.mandal} Mandal`, r.districtWithPinCode || r.district].filter(Boolean).join(', ')), bold: true },
+    { text: blank([stripSeedAddressParts(r.dealerAddress, [r.mandal, r.district]), r.place, r.mandal && `${r.mandal} Mandal`, r.districtWithPinCode || r.district].filter(Boolean).join(', ')), bold: true },
     { text: ' Samples of Seeds specified below to have same tested / Analyzed by Seed Analyst.' },
   ]);
   doc.setFont(PDF_FONT, 'bold');
