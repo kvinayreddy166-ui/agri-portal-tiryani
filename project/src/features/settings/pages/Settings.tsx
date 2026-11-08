@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { User, Database, Film, Play, Phone, Mail, MapPin, GraduationCap, Briefcase, AlertTriangle } from 'lucide-react';
-import { playIntroVideo } from '../../../shared/components/ui/appIntroState';
+import { User, Database, Phone, Mail, MapPin, GraduationCap, Briefcase, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 
@@ -211,30 +210,6 @@ export function Settings() {
           </div>
         </div>
       )}
-
-      {/* AGRONIX Intro Video */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
-        <div className="flex items-center gap-2 mb-3">
-          <Film className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">AGRONIX Intro Video</h2>
-        </div>
-        <p className="text-sm text-gray-600 dark:text-slate-300 mb-4">
-          Watch the introductory video about AGRONIX platform features and digital tools.
-        </p>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-gray-50 dark:bg-slate-800/60 rounded-xl border border-gray-100 dark:border-slate-700/60">
-          <span className="text-sm text-gray-600 dark:text-slate-300">
-            Available on demand anytime
-          </span>
-          <button
-            type="button"
-            onClick={() => playIntroVideo()}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer shadow-sm active:scale-95"
-          >
-            <Play className="w-4 h-4 fill-current" />
-            Watch Intro Video
-          </button>
-        </div>
-      </div>
 
       {/* System Information */}
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">

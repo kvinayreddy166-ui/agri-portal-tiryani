@@ -108,16 +108,15 @@ describe('OfficerRecordsHub (Enhanced Cloudflare R2 Archive)', () => {
   it('renders records header correctly without redundant officer jurisdiction strip', () => {
     const html = renderToString(<OfficerRecordsHub />);
 
-    expect(html).toContain('Records &amp; Cloud Archive');
+    expect(html).toContain('Saved Records &amp; Storage');
     expect(html).not.toContain('Cloudflare R2 Active');
   });
 
-  it('renders the tab options for Archived Documents and Field Form Records', () => {
+  it('renders the tab options for Cloud Storage and My Records', () => {
     const html = renderToString(<OfficerRecordsHub />);
 
-    expect(html).toContain('Archived Documents');
-    expect(html).not.toContain('Archived Documents (R2 Cloud)');
-    expect(html).toContain('Field Form Records &amp; Findings');
+    expect(html).toContain('Cloud Storage');
+    expect(html).toContain('My Records');
   });
 
   it('renders filter controls, search bar, and compact Export button', () => {

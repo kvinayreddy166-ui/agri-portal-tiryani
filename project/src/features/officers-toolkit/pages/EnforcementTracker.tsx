@@ -37,6 +37,7 @@ import {
   getStatutoryNonComplianceInfo,
 } from '../services/enforcementTrackerService';
 import type { StatutoryCommodity } from '../../auth/types/officerAuth';
+import { DealerProfileDrawer } from '../components/DealerProfileDrawer';
 
 type TrackerTab = 'cases' | 'deadlines' | 'scorecards' | 'samples';
 
@@ -73,6 +74,39 @@ const LAB_STATUS_LABELS: Record<string, { en: string; te: string }> = {
   TEST_FAILED: { en: 'Failed', te: 'ఫెయిల్' },
 };
 
+const LAB_STATUS_STYLES: Record<string, { icon: string; text: string; count: string; accent: string }> = {
+  DRAFT: {
+    icon: 'text-slate-400 dark:text-slate-500',
+    text: 'text-slate-600 dark:text-slate-300',
+    count: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+    accent: 'border-l-slate-300 dark:border-l-slate-600',
+  },
+  DISPATCHED: {
+    icon: 'text-sky-500 dark:text-sky-400',
+    text: 'text-sky-700 dark:text-sky-300',
+    count: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+    accent: 'border-l-sky-400 dark:border-l-sky-500',
+  },
+  RECEIVED_LAB: {
+    icon: 'text-amber-500 dark:text-amber-400',
+    text: 'text-amber-700 dark:text-amber-300',
+    count: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+    accent: 'border-l-amber-400 dark:border-l-amber-500',
+  },
+  TEST_PASSED: {
+    icon: 'text-emerald-500 dark:text-emerald-400',
+    text: 'text-emerald-700 dark:text-emerald-300',
+    count: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
+    accent: 'border-l-emerald-400 dark:border-l-emerald-500',
+  },
+  TEST_FAILED: {
+    icon: 'text-red-500 dark:text-red-400',
+    text: 'text-red-700 dark:text-red-300',
+    count: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
+    accent: 'border-l-red-400 dark:border-l-red-500',
+  },
+};
+
 const COMMODITY_LABELS: Record<StatutoryCommodity | 'mixed', { en: string; te: string }> = {
   fertilizer: { en: 'Fertilizer', te: 'ఎరువు' },
   pesticide: { en: 'Pesticide', te: 'పురుగుమందు' },
@@ -80,7 +114,7 @@ const COMMODITY_LABELS: Record<StatutoryCommodity | 'mixed', { en: string; te: s
   mixed: { en: 'Mixed', te: 'మిశ్రమం' },
 };
 
-export function EnforcementTracker() {
+export function EnforcementTracker({ embedded = false }: { embedded?: boolean }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -99,6 +133,7 @@ export function EnforcementTracker() {
   const [selectedCase, setSelectedCase] = useState<OfficerCase | null>(null);
   const [caseToClose, setCaseToClose] = useState<OfficerCase | null>(null);
   const [caseToDelete, setCaseToDelete] = useState<OfficerCase | null>(null);
+  const [sampleToDelete, setSampleToDelete] = useState<SamplePipelineItem | null>(null);
   const [suggestionToOpen, setSuggestionToOpen] = useState<CaseSuggestion | null>(null);
   const [newCaseOpen, setNewCaseOpen] = useState(false);
   const [newCaseForm, setNewCaseForm] = useState({ dealerName: '', commodity: 'fertilizer' as StatutoryCommodity, priority: 'NORMAL' as CasePriority, notes: '' });
@@ -112,6 +147,7 @@ export function EnforcementTracker() {
   const [reportDateInput, setReportDateInput] = useState(localTodayDate());
   const [reportRemarksInput, setReportRemarksInput] = useState('');
   const [submittingLabReport, setSubmittingLabReport] = useState(false);
+  const [dealer360Name, setDealer360Name] = useState<string | null>(null);
 
   const handleConfirmNonCompliance = async () => {
     if (!markingSample) return;
@@ -258,6 +294,13 @@ export function EnforcementTracker() {
     void load(true);
   };
 
+  const handleDeleteSample = async () => {
+    if (!sampleToDelete) return;
+    await EnforcementTrackerService.deleteSample(sampleToDelete.id);
+    setSampleToDelete(null);
+    void load(true);
+  };
+
   const handleUpdateSampleStatus = async (sampleId: string, labStatus: SamplePipelineItem['labStatus'], markDispatched = false, markReport = false) => {
     const now = new Date().toISOString();
     await EnforcementTrackerService.updateSampleLab(sampleId, {
@@ -291,7 +334,8 @@ export function EnforcementTracker() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl p-2 sm:p-3">
+    <div className={embedded ? 'w-full' : 'mx-auto w-full max-w-7xl p-2 sm:p-3'}>
+      {!embedded && (
       <ModulePageHeader
         className="mb-4"
         title={t('Enforcement Tracker', 'అమలు ట్రాకర్')}
@@ -308,6 +352,7 @@ export function EnforcementTracker() {
           </button>
         }
       />
+      )}
 
       {/* Summary stat cards */}
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
@@ -497,7 +542,14 @@ export function EnforcementTracker() {
             <div key={order.id} className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-black text-slate-900 dark:text-white">{order.firm_name}</p>
+                  <button
+                    type="button"
+                    onClick={() => setDealer360Name(order.firm_name)}
+                    className="truncate text-sm font-black text-slate-900 underline decoration-dotted decoration-slate-300 underline-offset-2 transition hover:text-emerald-700 hover:decoration-emerald-500 dark:text-white dark:hover:text-emerald-300"
+                    title={t('View dealer 360° profile', 'డీలర్ 360° ప్రొఫైల్ చూడండి')}
+                  >
+                    {order.firm_name}
+                  </button>
                   <p className="mt-0.5 text-[11px] font-semibold text-slate-500">
                     {order.order_number} · {t(COMMODITY_LABELS[order.commodity].en, COMMODITY_LABELS[order.commodity].te)} · {order.order_date}
                     {order._local && (
@@ -584,7 +636,14 @@ export function EnforcementTracker() {
                     {i + 1}
                   </span>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-black text-slate-900 dark:text-white">{s.dealerName}</p>
+                    <button
+                      type="button"
+                      onClick={() => setDealer360Name(s.dealerName)}
+                      className="truncate text-sm font-black text-slate-900 underline decoration-dotted decoration-slate-300 underline-offset-2 transition hover:text-emerald-700 hover:decoration-emerald-500 dark:text-white dark:hover:text-emerald-300"
+                      title={t('View dealer 360° profile', 'డీలర్ 360° ప్రొఫైల్ చూడండి')}
+                    >
+                      {s.dealerName}
+                    </button>
                     <p className="mt-0.5 text-[11px] font-semibold text-slate-500">
                       {t(COMMODITY_LABELS[s.commodity].en, COMMODITY_LABELS[s.commodity].te)} · {t('last activity', 'చివరి యాక్టివిటీ')} {s.lastActivity || '—'}
                     </p>
@@ -623,17 +682,26 @@ export function EnforcementTracker() {
           {LAB_STATUS_ORDER.map((status) => {
             const items = filteredSamples.filter((s) => s.labStatus === status);
             if (items.length === 0) return null;
+            const statusStyle = LAB_STATUS_STYLES[status] ?? LAB_STATUS_STYLES.DRAFT;
             return (
-              <div key={status} className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <p className="mb-2 flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-slate-500">
-                  <FlaskConical className="h-3.5 w-3.5" />
-                  {t(LAB_STATUS_LABELS[status].en, LAB_STATUS_LABELS[status].te)} ({items.length})
+              <div key={status} className={`rounded-2xl border border-slate-200/80 border-l-4 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 ${statusStyle.accent}`}>
+                <p className={`mb-2 flex items-center gap-1.5 text-xs font-black uppercase tracking-wide ${statusStyle.text}`}>
+                  <FlaskConical className={`h-3.5 w-3.5 ${statusStyle.icon}`} />
+                  {t(LAB_STATUS_LABELS[status].en, LAB_STATUS_LABELS[status].te)}
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black normal-case ${statusStyle.count}`}>{items.length}</span>
                 </p>
                 <div className="space-y-1.5">
                   {items.map((s) => (
                     <div key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2 dark:border-slate-800 dark:bg-slate-800/40">
                       <div className="min-w-0">
-                        <p className="truncate text-xs font-black text-slate-800 dark:text-slate-100">{s.dealerName}</p>
+                        <button
+                          type="button"
+                          onClick={() => setDealer360Name(s.dealerName)}
+                          className="truncate text-xs font-black text-slate-800 underline decoration-dotted decoration-slate-300 underline-offset-2 transition hover:text-emerald-700 dark:text-slate-100 dark:hover:text-emerald-300"
+                          title={t('View dealer 360° profile', 'డీలర్ 360° ప్రొఫైల్ చూడండి')}
+                        >
+                          {s.dealerName}
+                        </button>
                         <p className="text-[10px] font-semibold text-slate-500">
                           {s.sampleCode} · {t(COMMODITY_LABELS[s.commodity].en, COMMODITY_LABELS[s.commodity].te)} · {s.sampledDate} · {s.daysInStage}d {t('in stage', 'స్టేజ్‌లో')}
                         </p>
@@ -747,6 +815,15 @@ export function EnforcementTracker() {
                             {t('Standard / Passed', 'ప్రమాణాల ప్రకారం ఉంది')}
                           </span>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => setSampleToDelete(s)}
+                          className="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:hover:bg-red-950/40"
+                          aria-label={t('Delete sample', 'నమూనాను తొలగించు')}
+                          title={t('Delete sample', 'నమూనాను తొలగించు')}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -1107,6 +1184,20 @@ export function EnforcementTracker() {
         onConfirm={() => void handleDeleteCase()}
         onCancel={() => setCaseToDelete(null)}
       />
+
+      <ConfirmDialog
+        open={Boolean(sampleToDelete)}
+        title={t('Delete this sample?', 'ఈ నమూనా తొలగించాలా?')}
+        message={sampleToDelete ? `${sampleToDelete.sampleCode} — ${sampleToDelete.dealerName}` : ''}
+        confirmLabel={t('Delete Permanently', 'శాశ్వతంగా తొలగించు')}
+        cancelLabel={t('Cancel', 'రద్దు చేయండి')}
+        onConfirm={() => void handleDeleteSample()}
+        onCancel={() => setSampleToDelete(null)}
+      />
+
+      {dealer360Name && data && (
+        <DealerProfileDrawer dealerName={dealer360Name} data={data} onClose={() => setDealer360Name(null)} />
+      )}
     </div>
   );
 }

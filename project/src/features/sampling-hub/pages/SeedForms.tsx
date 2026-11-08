@@ -20,11 +20,11 @@ import { safeStorage } from '../../../shared/lib/safeStorage';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
+import { upsertCoveringLetterSample } from '../services/coveringLetterQueue';
 import { missingRequiredFields, requiredFieldsErrorMessage } from '../lib/statutoryRequiredFields';
 const STORAGE_KEY = 'tiryani-seed-forms-draft';
 const DRAFTS_KEY = 'tiryani-seed-forms-named-drafts';
 const LAST_GENERATED_KEY = 'tiryani-seed-forms-last-generated';
-const COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 
 const PDF_FONT = 'times';
 const PDF_BODY_SIZE = 12.5;
@@ -491,58 +491,25 @@ export function SeedForms({
 
     if (addToCoveringLetterChecked) {
       try {
-        const queue = JSON.parse(safeStorage.getItem(COVERING_LETTER_QUEUE_KEY) || '[]');
-        
-        const existingIndex = queue.findIndex((item: any) => item.sampleCode === form.codeNo.trim());
         const sampleCode = form.codeNo.trim();
-        
         if (sampleCode) {
-          if (existingIndex === -1) {
-            // New sample - add to queue
-            const quantityValue = cropQuantityMapping[form.crop] || form.quantityDrawn || '';
-            const numericQuantity = quantityValue.match(/^\d+/)?.[0] || quantityValue;
-            const newItem = {
-              sampleCode: sampleCode,
-              seedName: form.crop || '',
-              variety: form.variety || '',
-              quantity: numericQuantity,
-              dateOfSampling: form.collectionDate.trim(),
-              isCotton: (form.crop || '').toLowerCase().includes('cotton'),
-            };
-            queue.push(newItem);
-            safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
-            window.dispatchEvent(new Event('local-storage-update'));
+          const quantityValue = cropQuantityMapping[form.crop] || form.quantityDrawn || '';
+          const numericQuantity = quantityValue.match(/^\d+/)?.[0] || quantityValue;
+          const result = upsertCoveringLetterSample('seed', {
+            sampleCode,
+            seedName: form.crop || '',
+            variety: form.variety || '',
+            quantity: numericQuantity,
+            dateOfSampling: form.collectionDate.trim(),
+            isCotton: (form.crop || '').toLowerCase().includes('cotton'),
+            firmName: (form.dealerName || form.vendorName || form.firmName || '').trim() || undefined,
+          });
+          if (result === 'added') {
             showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 4000);
+          } else if (result === 'updated') {
+            showQueue('Sample updated in Covering Letter', `Sample ${sampleCode} updated in Sample Queue`, 4000);
           } else {
-            // Check if sample details have changed
-            const existingItem = queue[existingIndex];
-            const quantityValue = cropQuantityMapping[form.crop] || form.quantityDrawn || '';
-            const numericQuantity = quantityValue.match(/^\d+/)?.[0] || quantityValue;
-            const newItem = {
-              sampleCode: sampleCode,
-              seedName: form.crop || '',
-              variety: form.variety || '',
-              quantity: numericQuantity,
-              dateOfSampling: form.collectionDate.trim(),
-              isCotton: (form.crop || '').toLowerCase().includes('cotton'),
-            };
-            
-            const hasChanged = 
-              existingItem.seedName !== newItem.seedName ||
-              existingItem.variety !== newItem.variety ||
-              existingItem.quantity !== newItem.quantity ||
-              existingItem.dateOfSampling !== newItem.dateOfSampling;
-            
-            if (hasChanged) {
-              // Update existing sample
-              queue[existingIndex] = newItem;
-              safeStorage.setItem(COVERING_LETTER_QUEUE_KEY, JSON.stringify(queue));
-              window.dispatchEvent(new Event('local-storage-update'));
-              showQueue('Sample updated in Covering Letter', `Sample ${sampleCode} updated in Sample Queue`, 4000);
-            } else {
-              // Sample already exists and unchanged
-              showQueue('Sample already in Covering Letter', `Sample ${sampleCode} already in Sample Queue`, 4000);
-            }
+            showQueue('Sample already in Covering Letter', `Sample ${sampleCode} already in Sample Queue`, 4000);
           }
         }
       } catch (error) {
@@ -808,9 +775,11 @@ export function SeedForms({
           <button
             type="button"
             onClick={() => setShowCoveringLetterModal(true)}
-            className="group relative w-full sm:w-auto sm:min-w-[300px] sm:max-w-md inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition duration-300 ease-out hover:shadow-xl hover:-translate-y-0.5 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 active:scale-95 active:shadow-md focus:outline-none focus:ring-4 focus:ring-emerald-500/50 focus:ring-offset-2 min-h-[44px]"
+            className="group relative w-full sm:w-auto sm:min-w-[300px] sm:max-w-md inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-800 px-6 py-3 text-sm font-bold text-white shadow-md shadow-emerald-900/20 ring-1 ring-white/10 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-900/30 hover:from-emerald-600 hover:via-emerald-600 hover:to-emerald-700 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 min-h-[44px]"
           >
-            <FileText className="h-5 w-5" />
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/20 transition-colors group-hover:bg-white/25">
+              <FileText className="h-4 w-4" />
+            </span>
             <span>Generate Official Covering Letter</span>
           </button>
         </div>

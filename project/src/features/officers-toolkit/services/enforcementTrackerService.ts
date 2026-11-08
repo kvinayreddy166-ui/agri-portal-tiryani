@@ -163,6 +163,11 @@ function normalizeName(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
+/** Exported for dealer-profile aggregation (Enforcement Tracker 360 view). */
+export function normalizeDealerName(name: string): string {
+  return normalizeName(name);
+}
+
 async function getOfficerId(): Promise<string | null> {
   try {
     const { data } = await supabase.auth.getSession();
@@ -185,12 +190,84 @@ export class EnforcementTrackerService {
     const cloudOrderNumbers = new Set(cloudOrders.map((o) => o.order_number).filter(Boolean));
     const localOrders = this.fetchLocalOrders(cloudOrderNumbers);
 
+    const cloudSamples = (samplesRes.data ?? []) as SampleRow[];
+    const cloudSampleCodes = new Set(
+      cloudSamples.map((s) => String(s.sample_code || '').toLowerCase()).filter(Boolean)
+    );
+    const localSamples = this.fetchLocalSamples(cloudSampleCodes);
+
     return {
       cases: (casesRes.data ?? []) as OfficerCase[],
       orders: [...cloudOrders, ...localOrders],
       inspections: (inspRes.data ?? []) as InspectionRow[],
-      samples: (samplesRes.data ?? []) as SampleRow[],
+      samples: [...cloudSamples, ...localSamples],
     };
+  }
+
+  /**
+   * Reads local covering-letter sample queues so samples created offline or
+   * before cloud sync still appear in the tracker. Deduped against cloud rows
+   * by sample code.
+   */
+  private static fetchLocalSamples(cloudSampleCodes: Set<string>): SampleRow[] {
+    const rows: SampleRow[] = [];
+    const detailsKeys: Record<string, string> = {
+      fertilizer: 'tiryani-covering-letter-details',
+      pesticide: 'tiryani-pesticide-covering-letter-details',
+      seed: 'tiryani-seed-covering-letter-details',
+    };
+
+    const dealerNameFor = (storageKey: string): string => {
+      try {
+        const raw = safeStorage.getItem(storageKey);
+        if (!raw) return '';
+        const parsed = JSON.parse(raw) as Record<string, unknown>;
+        const dealer = (parsed.dealerDetails ?? parsed.dealer ?? parsed) as Record<string, unknown>;
+        return String(dealer.dealerName || dealer.firmName || '');
+      } catch {
+        return '';
+      }
+    };
+
+    for (const [keyName, storageKey] of Object.entries(OFFICER_LOCAL_STORAGE_KEYS.SAMPLES)) {
+      try {
+        const raw = safeStorage.getItem(storageKey);
+        if (!raw) continue;
+        const items = JSON.parse(raw) as unknown;
+        if (!Array.isArray(items)) continue;
+
+        const commodity = keyName as StatutoryCommodity;
+        const dealerName = dealerNameFor(detailsKeys[keyName] || '');
+
+        items.forEach((item, idx) => {
+          if (!item || typeof item !== 'object') return;
+          const rec = item as Record<string, unknown>;
+          const sampleCode = String(rec.sampleCode || rec.codeNumber || rec.codeNo || '').trim();
+          if (!sampleCode) return;
+          if (cloudSampleCodes.has(sampleCode.toLowerCase())) return;
+
+          rows.push({
+            id: `local-${keyName}:${idx}`,
+            officer_id: '',
+            commodity,
+            sample_code: sampleCode,
+            firm_name: String(rec.dealerName || rec.firmName || dealerName || 'Local sample'),
+            date_of_sampling: String(
+              rec.dateOfSampling || rec.samplingDate || rec.date || new Date().toISOString().slice(0, 10)
+            ),
+            batch_no: rec.batchNo ? String(rec.batchNo) : undefined,
+            covering_letter_json: rec,
+            lab_status: (rec.labStatus as LabStatus) || 'DRAFT',
+            dispatched_at: rec.dispatchedAt ? String(rec.dispatchedAt) : null,
+            report_received_at: rec.reportReceivedAt ? String(rec.reportReceivedAt) : null,
+            lab_report_ref: rec.labReportRef ? String(rec.labReportRef) : null,
+          });
+        });
+      } catch {
+        // skip malformed local payloads
+      }
+    }
+    return rows;
   }
 
   /** Reads legacy local-storage order records so pre-cloud data still appears in the tracker. */
@@ -559,6 +636,33 @@ export class EnforcementTrackerService {
       failureFinding?: string | null;
     }
   ): Promise<boolean> {
+    // Local queue samples (id format: local-<commodity>:<index>) persist
+    // status updates back into the covering-letter queue in safeStorage.
+    if (sampleId.startsWith('local-')) {
+      const match = sampleId.match(/^local-([a-z_]+):(\d+)$/);
+      if (!match) return false;
+      const [, keyName, idxStr] = match;
+      const storageKey =
+        OFFICER_LOCAL_STORAGE_KEYS.SAMPLES[keyName as keyof typeof OFFICER_LOCAL_STORAGE_KEYS.SAMPLES];
+      if (!storageKey) return false;
+      try {
+        const raw = safeStorage.getItem(storageKey);
+        const items = raw ? (JSON.parse(raw) as unknown[]) : [];
+        const idx = Number(idxStr);
+        if (!Array.isArray(items) || !items[idx] || typeof items[idx] !== 'object') return false;
+        const rec = items[idx] as Record<string, unknown>;
+        if (updates.labStatus) rec.labStatus = updates.labStatus;
+        if (updates.dispatchedAt !== undefined) rec.dispatchedAt = updates.dispatchedAt;
+        if (updates.reportReceivedAt !== undefined) rec.reportReceivedAt = updates.reportReceivedAt;
+        if (updates.labReportRef !== undefined) rec.labReportRef = updates.labReportRef;
+        if (updates.failureFinding) rec.failureFinding = updates.failureFinding;
+        safeStorage.setItem(storageKey, JSON.stringify(items));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
     const payload: Record<string, unknown> = {};
     if (updates.labStatus) payload.lab_status = updates.labStatus;
     if (updates.dispatchedAt !== undefined) payload.dispatched_at = updates.dispatchedAt;
@@ -581,6 +685,32 @@ export class EnforcementTrackerService {
     }
 
     const { error } = await supabase.from('officer_samples').update(payload).eq('id', sampleId);
+    return !error;
+  }
+
+  static async deleteSample(sampleId: string): Promise<boolean> {
+    // Local queue samples (id format: local-<commodity>:<index>) are removed
+    // from the covering-letter queue in safeStorage.
+    if (sampleId.startsWith('local-')) {
+      const match = sampleId.match(/^local-([a-z_]+):(\d+)$/);
+      if (!match) return false;
+      const storageKey =
+        OFFICER_LOCAL_STORAGE_KEYS.SAMPLES[match[1] as keyof typeof OFFICER_LOCAL_STORAGE_KEYS.SAMPLES];
+      if (!storageKey) return false;
+      try {
+        const raw = safeStorage.getItem(storageKey);
+        const items = raw ? (JSON.parse(raw) as unknown[]) : [];
+        const idx = Number(match[2]);
+        if (!Array.isArray(items) || idx < 0 || idx >= items.length) return false;
+        items.splice(idx, 1);
+        safeStorage.setItem(storageKey, JSON.stringify(items));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    const { error } = await supabase.from('officer_samples').delete().eq('id', sampleId);
     return !error;
   }
 

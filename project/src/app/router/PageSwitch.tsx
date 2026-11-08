@@ -38,6 +38,7 @@ import {
   KnowledgeSettings,
   KnowledgeUpload,
   LicenseServices,
+  ModuleDirectory,
   OfficerContacts,
   OfficerContactsAdmin,
   OfficersToolkit,
@@ -68,9 +69,10 @@ interface PageSwitchProps {
   currentPage: string;
   isAdminUser: boolean;
   isTestUser: boolean;
+  onNavigate: (page: string) => void;
 }
 
-export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchProps) {
+export function PageSwitch({ currentPage, isAdminUser, isTestUser, onNavigate }: PageSwitchProps) {
   switch (currentPage) {
     case 'register':
     case 'officer-register':
@@ -221,6 +223,12 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser }: PageSwitchP
       return isAdminUser ? <Analytics /> : <Dashboard />;
     case 'settings':
       return <Settings />;
+    case 'all-modules':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <ModuleDirectory currentPage={currentPage} isAdminUser={isAdminUser} onNavigate={onNavigate} />
+        </SafeSuspense>
+      );
     case 'knowledge':
       return (
         <SafeSuspense fallback={<PageLoader />}>

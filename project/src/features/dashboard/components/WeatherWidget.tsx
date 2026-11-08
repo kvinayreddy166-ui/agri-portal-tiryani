@@ -13,6 +13,7 @@ import {
   Thermometer,
   Wind,
 } from 'lucide-react';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import {
   getRealtimeWeather,
@@ -79,7 +80,7 @@ export function WeatherWidget() {
     return (
       <div className="portal-card flex h-64 items-center justify-center rounded-2xl p-6">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-9 w-9 animate-spin rounded-full border-3 border-emerald-200 border-t-emerald-600" />
+          <Spinner size="lg" className="text-emerald-600 dark:text-emerald-400" label="Loading weather" />
           <p className="text-xs font-semibold text-slate-500">
             {t('Connecting to real-time weather feed...', 'లైవ్ వాతావరణ సమాచారం సేకరిస్తున్నాం...')}
           </p>

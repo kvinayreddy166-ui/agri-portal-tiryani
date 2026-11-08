@@ -13,7 +13,6 @@ agri-portal-tiryani/
 │   │   ├── knowledge-process/ #   RAG ingestion: extract → clean → chunk → embed
 │   │   ├── knowledge-search/  #   hybrid vector + FTS search
 │   │   ├── knowledge-ask/     #   RAG pipeline with citations
-│   │   └── sync-urea-dashboard-reports/
 │   └── config.toml
 ├── project/                   # The Vite SPA (all application code lives here)
 ├── .github/workflows/ci.yml   # CI: npm ci → typecheck → build (from project/)

@@ -1,5 +1,4 @@
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Building2,
   MapPin,
@@ -15,21 +14,6 @@ import {
   X,
   Trash2,
   CalendarDays,
-  Archive,
-  ClipboardCheck,
-  Files,
-  FlaskConical,
-  Calculator,
-  FolderOpen,
-  FileCheck,
-  Scale,
-  Phone,
-  Stethoscope,
-  BookOpen,
-  ChevronRight,
-  FileStack,
-  Gavel,
-  Search,
 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../../dealer-stock/lib/fertilizerStock';
@@ -38,194 +22,10 @@ import { useLanguage } from '../../../shared/context/LanguageContext';
 import { Crop, Scheme, SchemeBeneficiary, MandalOverview } from '../../../shared/types/database';
 import { MandiPricesWidget } from '../components/MandiPricesWidget';
 import { WeatherWidget } from '../components/WeatherWidget';
+import { OfficerEnforcementStrip } from '../components/OfficerEnforcementStrip';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 import { cachedSupabaseRows, cachedSupabaseValue } from '../../../shared/lib/offlineCache';
-
-type OfficerToolItem = {
-  title: string;
-  teTitle: string;
-  description: string;
-  teDescription: string;
-  path: string;
-  icon: React.ComponentType<{ className?: string }>;
-  gradient: string;
-  category: 'statutory' | 'field';
-  badge: string;
-  badgeTe: string;
-  tone: 'emerald' | 'amber' | 'sky' | 'teal' | 'slate';
-};
-
-const officerDashboardTools: OfficerToolItem[] = [
-  {
-    title: 'Enforcement Tracker',
-    teTitle: 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్',
-    description: 'Case management, statutory deadlines, dealer risk scorecards & lab pipeline.',
-    teDescription: 'కేసు నిర్వహణ, గడువులు, డీలర్ స్కోర్‌కార్డులు & ల్యాబ్ ట్రాకింగ్.',
-    path: '/officer-toolkit/enforcement-tracker',
-    icon: Gavel,
-    gradient: 'from-emerald-700 to-teal-800',
-    category: 'statutory',
-    badge: 'Statutory',
-    badgeTe: 'చట్టబద్ధమైన',
-    tone: 'emerald',
-  },
-  {
-    title: 'Records & Cloud Storage',
-    teTitle: 'రికార్డులు & క్లౌడ్ నిల్వ',
-    description: 'Cloud storage of notices, stop sale orders, inspections & memos.',
-    teDescription: 'నోటీసులు, స్టాప్ సేల్ ఆర్డర్లు, తనిఖీలు & మెమోల క్లౌడ్ నిల్వ.',
-    path: '/officer-toolkit/my-records',
-    icon: Archive,
-    gradient: 'from-teal-700 to-emerald-800',
-    category: 'statutory',
-    badge: 'Cloud R2',
-    badgeTe: 'క్లౌడ్ R2',
-    tone: 'teal',
-  },
-  {
-    title: 'Inspection & Enforcement Hub',
-    teTitle: 'తనిఖీ & అమలు హబ్',
-    description: 'Inspection proforma, memos & show cause notices for seed, fertilizer & pesticide.',
-    teDescription: 'విత్తనం, ఎరువు & పురుగుమందు తనిఖీ ప్రొఫార్మా, మెమోలు & షోకాజ్ నోటీసులు.',
-    path: '/officer-toolkit/inspection-enforcement',
-    icon: ClipboardCheck,
-    gradient: 'from-emerald-800 to-green-900',
-    category: 'statutory',
-    badge: 'Inspection',
-    badgeTe: 'తనిఖీ',
-    tone: 'emerald',
-  },
-  {
-    title: 'Smart Sampling',
-    teTitle: 'స్మార్ట్ సాంప్లింగ్',
-    description: 'Sample drawal forms (Form II, VIII, XX) & auto-generated covering letters.',
-    teDescription: 'నమూనా డ్రాయింగ్ ఫారాలు (ఫారం II, VIII, XX) & ఆటో కవరింగ్ లెటర్లు.',
-    path: '/officer-toolkit/smart-sampling',
-    icon: Files,
-    gradient: 'from-amber-600 to-emerald-800',
-    category: 'statutory',
-    badge: 'Sampling',
-    badgeTe: 'సాంప్లింగ్',
-    tone: 'amber',
-  },
-  {
-    title: 'Tour Diary',
-    teTitle: 'పర్యటన డైరీ',
-    description: 'Monthly tour diary with GPS & route logging.',
-    teDescription: 'జీపీఎస్ & ప్రయాణ ట్రాకింగ్‌తో నెలవారీ పర్యటన డైరీ.',
-    path: '/officer-toolkit/tour-diary',
-    icon: CalendarDays,
-    gradient: 'from-sky-700 to-blue-800',
-    category: 'field',
-    badge: 'Field Tour',
-    badgeTe: 'పర్యటన',
-    tone: 'sky',
-  },
-  {
-    title: 'Agrochemicals Database',
-    teTitle: 'వ్యవసాయ రసాయనాల డేటాబేస్',
-    description: 'A–Z registered insecticides, fungicides & weedicides with IRAC/FRAC/HRAC MoA.',
-    teDescription: 'సిఐబి-ఆర్సి నమోదిత క్రిమిసంహారకాలు & మోడ్ ఆఫ్ యాక్షన్ పూర్తి వివరాలు.',
-    path: '/officer-toolkit/agrochemicals',
-    icon: FlaskConical,
-    gradient: 'from-teal-700 to-emerald-800',
-    category: 'field',
-    badge: 'Database',
-    badgeTe: 'డేటాబేస్',
-    tone: 'teal',
-  },
-  {
-    title: 'Farm Calculators',
-    teTitle: 'వ్యవసాయ కాలిక్యులేటర్లు',
-    description: 'Fertilizer dose, acreage, seed rate & spray dilution calculators.',
-    teDescription: 'ఎరువుల మోతాదు, విస్తీర్ణం, విత్తన రేటు & పిచికారీ గణన సాధనాలు.',
-    path: '/officer-toolkit/farm-calculators',
-    icon: Calculator,
-    gradient: 'from-emerald-700 to-green-800',
-    category: 'field',
-    badge: 'Calculators',
-    badgeTe: 'గణనలు',
-    tone: 'emerald',
-  },
-  {
-    title: 'Forms Library',
-    teTitle: 'ఫారాలు & లైబ్రరీ',
-    description: 'Browse, download and manage department circulars and statutory forms.',
-    teDescription: 'శాఖ సర్క్యులర్లు మరియు చట్టబద్ధమైన ఫారాలను డౌన్‌లోడ్ చేయండి.',
-    path: '/officer-toolkit/forms-library',
-    icon: FolderOpen,
-    gradient: 'from-sky-700 to-blue-800',
-    category: 'field',
-    badge: 'Library',
-    badgeTe: 'లైబ్రరీ',
-    tone: 'sky',
-  },
-  {
-    title: 'License Services',
-    teTitle: 'లైసెన్స్ సేవలు',
-    description: 'Fertilizer, seed & pesticide dealer licensing information.',
-    teDescription: 'ఎరువులు, విత్తనాలు & పురుగుమందుల డీలర్ లైసెన్సింగ్ సమాచారం.',
-    path: '/officer-toolkit/license-services',
-    icon: FileCheck,
-    gradient: 'from-sky-700 to-blue-800',
-    category: 'statutory',
-    badge: 'Licensing',
-    badgeTe: 'లైసెన్సింగ్',
-    tone: 'sky',
-  },
-  {
-    title: 'Acts & Orders',
-    teTitle: 'చట్టాలు & ఉత్తర్వులు',
-    description: 'FCO 1985, Seeds Act 1966, Insecticides Act 1968, Clauses & Rules.',
-    teDescription: 'ఎఫ్.సి.ఒ 1985, విత్తన చట్టం 1966, పురుగుమందు చట్టం 1968, క్లాజులు & నియమాలు.',
-    path: '/officer-toolkit/acts-and-orders',
-    icon: Scale,
-    gradient: 'from-slate-700 to-slate-900',
-    category: 'statutory',
-    badge: 'Statutes',
-    badgeTe: 'చట్టాలు',
-    tone: 'slate',
-  },
-  {
-    title: 'Officer Contacts',
-    teTitle: 'అధికారుల పరిచయాలు',
-    description: 'AEO • MAO • ADA • DAO contacts & jurisdiction directories.',
-    teDescription: 'ఏఈఓ • ఎంఏఓ • ఏడీఏ • డీఏఓ పరిచయాలు & పరిధి వివరాలు.',
-    path: '/officer-toolkit/officer-contacts',
-    icon: Phone,
-    gradient: 'from-emerald-700 to-teal-800',
-    category: 'field',
-    badge: 'Directory',
-    badgeTe: 'డైరెక్టరీ',
-    tone: 'emerald',
-  },
-  {
-    title: 'Crop Doctor & Field Diagnosis',
-    teTitle: 'పంట డాక్టర్ & క్షేత్ర నిర్ధారణ',
-    description: 'Crop-wise pests, diseases, weeds and nutrient deficiency diagnosis.',
-    teDescription: 'పంటల వారీగా పురుగులు, వ్యాధులు, కలుపు మరియు పోషక లోపాల గుర్తింపు.',
-    path: '/officer-toolkit/crop-doctor',
-    icon: Stethoscope,
-    gradient: 'from-teal-700 to-emerald-800',
-    category: 'field',
-    badge: 'Advisory',
-    badgeTe: 'సలహాలు',
-    tone: 'teal',
-  },
-  {
-    title: 'Knowledge Base AI',
-    teTitle: 'నాలెడ్జ్ బేస్ AI',
-    description: 'Natural language search across official GOs, circulars and agricultural manuals.',
-    teDescription: 'జీవోలు, సర్క్యులర్లు మరియు మాన్యువల్స్‌లో AI శోధన & సమాధానాలు.',
-    path: '/knowledge/assistant',
-    icon: BookOpen,
-    gradient: 'from-amber-600 to-emerald-800',
-    category: 'field',
-    badge: 'AI Assistant',
-    badgeTe: 'AI సహాయకుడు',
-    tone: 'amber',
-  },
-];
 
 type FarmerDashboardRow = {
   s_no?: number;
@@ -262,7 +62,6 @@ function getTimeGreeting(): { en: string; te: string; emoji: string } {
 }
 
 export const Dashboard = React.memo(function Dashboard() {
-  const navigate = useNavigate();
   const { isAdminUser, officerProfile } = useAuth();
   const { t } = useLanguage();
   const greeting = useMemo(() => getTimeGreeting(), []);
@@ -288,25 +87,6 @@ export const Dashboard = React.memo(function Dashboard() {
     beneficiaries_count: '',
     notes: '',
   });
-  const [toolSearch, setToolSearch] = useState('');
-  const [toolCategory, setToolCategory] = useState<'all' | 'statutory' | 'field'>('all');
-
-  const filteredOfficerTools = useMemo(() => {
-    return officerDashboardTools.filter((tool) => {
-      if (toolCategory !== 'all' && tool.category !== toolCategory) return false;
-      if (toolSearch.trim()) {
-        const q = toolSearch.toLowerCase().trim();
-        const matchTitle = tool.title.toLowerCase().includes(q);
-        const matchDesc = tool.description.toLowerCase().includes(q);
-        const matchTeTitle = tool.teTitle?.toLowerCase().includes(q);
-        const matchTeDesc = tool.teDescription?.toLowerCase().includes(q);
-        const matchBadge = tool.badge.toLowerCase().includes(q);
-        return matchTitle || matchDesc || matchTeTitle || matchTeDesc || matchBadge;
-      }
-      return true;
-    });
-  }, [toolCategory, toolSearch]);
-
   const fetchDashboardData = useCallback(async () => {
     if (!isAdminUser) {
       setLoading(false);
@@ -453,7 +233,7 @@ export const Dashboard = React.memo(function Dashboard() {
     return (
       <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-[#f2f7f3] dark:bg-slate-950">
         <PortalLogo size="xl" />
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
+        <Spinner size="xl" className="text-emerald-700 dark:text-emerald-400" label="Loading AGRONIX" />
         <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">{t('Loading AGRONIX...', 'AGRONIX లోడ్ అవుతోంది...')}</p>
       </div>
     );
@@ -499,159 +279,16 @@ export const Dashboard = React.memo(function Dashboard() {
         <MandiPricesWidget />
       </div>
 
-      {/* For Agricultural Officers: show Weather, Mandi Prices, and Officer Toolkit Tools only */}
-      {!isAdminUser ? (
-        <div className="dashboard-rise dashboard-delay-2 space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 pb-3 dark:border-slate-800">
-            <div>
-              <h2 className="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                <FileStack className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
-                <span>{t('Officer Toolkit & Field Tools', 'ఆఫీసర్ టూల్‌కిట్ & క్షేత్ర సాధనాలు')}</span>
-              </h2>
-              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                {t('Notices, inspection memos, smart sampling, calculators & cloud archive', 'నోటీసులు, తనిఖీ మెమోలు, స్మార్ట్ సాంప్లింగ్, కాలిక్యులేటర్లు & క్లౌడ్ నిల్వ')}
-              </p>
-            </div>
+      <div className="dashboard-rise dashboard-delay-2">
+        <OfficerEnforcementStrip />
+      </div>
 
-            {/* Category filter tabs */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              {[
-                { id: 'all' as const, label: 'All Tools', te: 'అన్ని సాధనాలు', count: officerDashboardTools.length },
-                { id: 'statutory' as const, label: 'Statutory & Enforcement', te: 'చట్టబద్ధమైన & అమలు', count: officerDashboardTools.filter((t) => t.category === 'statutory').length },
-                { id: 'field' as const, label: 'Field Operations', te: 'క్షేత్ర సాధనాలు', count: officerDashboardTools.filter((t) => t.category === 'field').length },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setToolCategory(tab.id)}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-colors ${
-                    toolCategory === tab.id
-                      ? 'bg-emerald-700 text-white shadow-2xs dark:bg-emerald-600'
-                      : 'border border-slate-200/90 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  <span>{t(tab.label, tab.te)}</span>
-                  <span
-                    className={`text-[10px] font-black rounded-full px-1.5 py-0.5 ${
-                      toolCategory === tab.id
-                        ? 'bg-white/20 text-emerald-50'
-                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
-                </button>
-              ))}
-            </div>
+      {!hasAnyDashboardData ? (
+        isAdminUser ? (
+          <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm font-semibold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+            {t('No data available', 'డేటా అందుబాటులో లేదు')}
           </div>
-
-          {/* Search bar */}
-          <div className="relative max-w-md">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={toolSearch}
-              onChange={(e) => setToolSearch(e.target.value)}
-              placeholder={t('Search officer tools, databases & forms...', 'టూల్స్, ఫారాలు & డేటాబేస్ శోధించండి...')}
-              className="w-full rounded-xl border border-slate-200/90 bg-white py-2 pl-9 pr-8 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 shadow-2xs focus:border-emerald-600 focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white"
-            />
-            {toolSearch && (
-              <button
-                type="button"
-                onClick={() => setToolSearch('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
-                title={t('Clear search', 'శోధన తొలగించు')}
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
-
-          {filteredOfficerTools.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center dark:border-slate-800 dark:bg-slate-900">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                {t('No tools matching', 'సరిపోలే సాధనాలు లేవు')} "{toolSearch}"
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setToolSearch('');
-                  setToolCategory('all');
-                }}
-                className="mt-2 text-xs font-bold text-emerald-700 hover:underline dark:text-emerald-400"
-              >
-                {t('Show all tools', 'అన్ని సాధనాలను చూపించు')}
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {filteredOfficerTools.map((tool) => {
-                const toneStyles = {
-                  emerald: {
-                    iconBg: 'bg-emerald-50 text-emerald-700 ring-emerald-200/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/40',
-                    badge: 'bg-emerald-50 text-emerald-800 ring-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/40',
-                    hoverBorder: 'hover:border-emerald-500/60',
-                  },
-                  teal: {
-                    iconBg: 'bg-teal-50 text-teal-700 ring-teal-200/70 dark:bg-teal-950/50 dark:text-teal-300 dark:ring-teal-800/40',
-                    badge: 'bg-teal-50 text-teal-800 ring-teal-200/60 dark:bg-teal-950/50 dark:text-teal-300 dark:ring-teal-800/40',
-                    hoverBorder: 'hover:border-teal-500/60',
-                  },
-                  amber: {
-                    iconBg: 'bg-amber-50 text-amber-700 ring-amber-200/70 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/40',
-                    badge: 'bg-amber-50 text-amber-800 ring-amber-200/60 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/40',
-                    hoverBorder: 'hover:border-amber-500/60',
-                  },
-                  sky: {
-                    iconBg: 'bg-sky-50 text-sky-700 ring-sky-200/70 dark:bg-sky-950/50 dark:text-sky-300 dark:ring-sky-800/40',
-                    badge: 'bg-sky-50 text-sky-800 ring-sky-200/60 dark:bg-sky-950/50 dark:text-sky-300 dark:ring-sky-800/40',
-                    hoverBorder: 'hover:border-sky-500/60',
-                  },
-                  slate: {
-                    iconBg: 'bg-slate-100 text-slate-700 ring-slate-200/70 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700/50',
-                    badge: 'bg-slate-100 text-slate-700 ring-slate-200/60 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700/50',
-                    hoverBorder: 'hover:border-slate-500/60',
-                  },
-                }[tool.tone];
-
-                return (
-                  <div
-                    key={tool.title}
-                    onClick={() => navigate(tool.path)}
-                    className={`group relative flex h-full cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-4 text-left shadow-xs transition-all duration-200 hover:-translate-y-1 ${toneStyles.hoverBorder} hover:shadow-md hover:shadow-emerald-900/10 dark:border-slate-800 dark:bg-slate-900`}
-                  >
-                    <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-600 via-gold-400 to-emerald-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                    <div>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${toneStyles.iconBg} ring-1 shadow-2xs transition-transform duration-200 group-hover:scale-105`}>
-                          <tool.icon className="h-5 w-5" />
-                        </div>
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ring-1 ${toneStyles.badge}`}>
-                          {t(tool.badge, tool.badgeTe)}
-                        </span>
-                      </div>
-                      <h3 className="mt-3 text-xs sm:text-sm font-bold text-slate-900 group-hover:text-emerald-800 dark:text-white dark:group-hover:text-emerald-300 transition-colors">
-                        {t(tool.title, tool.teTitle)}
-                      </h3>
-                      <p className="mt-1 text-[11px] leading-snug text-slate-500 line-clamp-2 dark:text-slate-400">
-                        {t(tool.description, tool.teDescription)}
-                      </p>
-                    </div>
-                    <div className="mt-3 flex items-center justify-end text-emerald-700 dark:text-emerald-400">
-                      <span className="text-[11px] font-bold opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5 flex items-center gap-0.5">
-                        {t('Open', 'తెరవండి')} <ChevronRight className="h-3 w-3" />
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      ) : !hasAnyDashboardData ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm font-semibold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-          {t('No data available', 'డేటా అందుబాటులో లేదు')}
-        </div>
+        ) : null
       ) : (
         <>
           {/* Mandal Overview */}

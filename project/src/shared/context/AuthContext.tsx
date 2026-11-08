@@ -28,12 +28,12 @@ interface AuthContextType {
   officerProfile: OfficerProfile | null;
   dealerId: string | null;
   dealerName: string | null;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signInOfficerOtp: (email: string) => Promise<{ error: Error | null }>;
+  signIn: (email: string, password: string, captchaToken?: string) => Promise<{ error: Error | null }>;
+  signInOfficerOtp: (email: string, captchaToken?: string) => Promise<{ error: Error | null }>;
   verifyOfficerOtp: (email: string, token: string) => Promise<{ error: Error | null }>;
-  registerOfficer: (data: OfficerRegistrationData) => Promise<{ error: Error | null }>;
+  registerOfficer: (data: OfficerRegistrationData, captchaToken?: string) => Promise<{ error: Error | null }>;
   refreshOfficerProfile: () => Promise<void>;
-  signInDealer: (phone: string, password: string) => Promise<{ error: Error | null }>;
+  signInDealer: (phone: string, password: string, captchaToken?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -193,7 +193,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [fetchOfficerProfile]);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, captchaToken?: string) => {
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!normalizedEmail || !password) {
@@ -204,6 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
         password,
+        options: captchaToken ? { captchaToken } : undefined,
       });
 
       if (error) {
@@ -236,7 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signInOfficerOtp = async (email: string) => {
+  const signInOfficerOtp = async (email: string, captchaToken?: string) => {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !normalizedEmail.includes('@')) {
       return { error: new Error('Please enter a valid official email address.') };
@@ -249,6 +250,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Allow creating a new user if the email does not exist
           shouldCreateUser: true,
           emailRedirectTo: `${window.location.origin}/login`,
+          ...(captchaToken ? { captchaToken } : {}),
         },
       });
 
@@ -301,7 +303,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const registerOfficer = async (data: OfficerRegistrationData) => {
+  const registerOfficer = async (data: OfficerRegistrationData, captchaToken?: string) => {
     const normalizedEmail = data.email.trim().toLowerCase();
     if (!normalizedEmail || !data.full_name || !data.designation || !data.district || !data.mandal || !data.phone) {
       return { error: new Error('Please fill in all mandatory officer registration fields.') };
@@ -321,6 +323,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           mandal: data.mandal.trim(),
           division: data.division?.trim() || '',
           phone: data.phone.trim(),
+          captchaToken,
         },
       });
 
@@ -355,7 +358,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signInDealer = async (phone: string, password: string) => {
+  const signInDealer = async (phone: string, password: string, captchaToken?: string) => {
     const digits = normalizePhone(phone);
     if (!digits || digits.length < 10) {
       return { error: new Error('Enter a valid 10-digit phone number registered in Dealers Directory.') };
@@ -392,6 +395,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: portalEmail.toLowerCase(),
           password: dealerPassword,
+          options: captchaToken ? { captchaToken } : undefined,
         });
         if (error) return { error };
         const signedDealerId = targetDealerId || getDealerIdFromUser(data.session?.user);
@@ -435,6 +439,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               dealer_name: dealerDisplayName,
               phone: digits,
             },
+            ...(captchaToken ? { captchaToken } : {}),
           },
         });
 

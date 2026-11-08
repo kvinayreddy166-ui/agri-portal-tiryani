@@ -3,6 +3,8 @@
 // ---------------------------------------------------------------------
 
 import { createAdminClient, corsHeaders, json, errorResponse } from '../_shared/knowledge.ts';
+import { verifyTurnstileToken, clientIp } from '../_shared/turnstile.ts';
+import { isPasswordCompliant, PASSWORD_POLICY_MESSAGE } from '../_shared/passwordPolicy.ts';
 
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight
@@ -28,8 +30,13 @@ Deno.serve(async (req: Request) => {
       return errorResponse('Valid 6-digit verification code is required.', 400);
     }
 
-    if (!newPassword || newPassword.length < 6) {
-      return errorResponse('New password must be at least 6 characters long.', 400);
+    if (!newPassword || !isPasswordCompliant(newPassword)) {
+      return errorResponse(PASSWORD_POLICY_MESSAGE, 400);
+    }
+
+    const turnstile = await verifyTurnstileToken(body.captchaToken, clientIp(req));
+    if (!turnstile.success) {
+      return errorResponse(turnstile.error || 'Security verification failed', 403);
     }
 
     const supabase = createAdminClient();

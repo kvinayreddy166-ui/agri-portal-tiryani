@@ -127,6 +127,7 @@ export const PAGE_PATHS: Record<string, string> = {
   'knowledge-assistant': '/knowledge/assistant',
   'knowledge-search': '/knowledge/search',
   'knowledge-viewer': '/knowledge/viewer',
+  'all-modules': '/all-modules',
   disclaimer: '/disclaimer',
   'privacy-policy': '/privacy-policy',
   'terms-conditions': '/terms-conditions',
@@ -181,6 +182,7 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
 }
 
 export function getPageBackFallback(page: string, isDealerUser: boolean) {
+  if (page === 'all-modules') return 'dashboard';
   if (page === 'officer-records' || page === 'enforcement-tracker') return 'dashboard';
   if (page === 'field-tools' || page === 'government-portals') return 'dashboard';
   if (
@@ -284,6 +286,7 @@ export const VALID_PAGES = new Set([
   'knowledge-assistant',
   'knowledge-search',
   'knowledge-viewer',
+  'all-modules',
 ]);
 
 const OFFICER_TOOLKIT_PAGE_PREFIX = 'officer-toolkit/';

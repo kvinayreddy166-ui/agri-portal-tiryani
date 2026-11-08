@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------
 
 import { createAdminClient, corsHeaders, json, errorResponse } from '../_shared/knowledge.ts';
+import { verifyTurnstileToken, clientIp } from '../_shared/turnstile.ts';
 
 const RESEND_API_URL = 'https://api.resend.com/emails';
 
@@ -26,6 +27,11 @@ Deno.serve(async (req: Request) => {
 
     if (!email || !email.includes('@')) {
       return errorResponse('Valid email address is required', 400);
+    }
+
+    const turnstile = await verifyTurnstileToken(body.captchaToken, clientIp(req));
+    if (!turnstile.success) {
+      return errorResponse(turnstile.error || 'Security verification failed', 403);
     }
 
     // 1. Generate 6-digit cryptographic OTP

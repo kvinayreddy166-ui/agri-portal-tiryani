@@ -7,11 +7,13 @@ import {
   ChevronRight,
   ClipboardList,
   Cloud,
+  CloudOff,
   Download,
   Edit2,
   ExternalLink,
   Eye,
   FileSpreadsheet,
+  FlaskConical,
   FileText,
   LayoutGrid,
   List,
@@ -47,7 +49,7 @@ export function OfficerRecordsHub() {
   const { user, officerProfile } = useAuth();
   const { t } = useLanguage();
 
-  // Tab View: 'documents' (Cloudflare R2 Archive) vs 'forms' (Statutory Form Drafts/Findings)
+  // Tab View: 'documents' (Cloud Storage archive) | 'forms' (Statutory Form Records)
   const [activeTab, setActiveTab] = useState<'documents' | 'forms'>('documents');
 
   // Display Mode: 'list' (default as requested) vs 'grid'
@@ -75,6 +77,8 @@ export function OfficerRecordsHub() {
   const [records, setRecords] = useState<UnifiedOfficerRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [syncingRecords, setSyncingRecords] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -102,6 +106,9 @@ export function OfficerRecordsHub() {
   const [recordToDelete, setRecordToDelete] = useState<UnifiedOfficerRecord | null>(null);
   const [docToDelete, setDocToDelete] = useState<OfficerDocumentArchiveRecord | null>(null);
   const [exportingType, setExportingType] = useState<'excel' | 'pdf' | null>(null);
+  const [exportStatusOpen, setExportStatusOpen] = useState(false);
+  const [statusDraft, setStatusDraft] = useState<Record<string, string>>({});
+  const [bulkStatus, setBulkStatus] = useState('');
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
@@ -201,6 +208,37 @@ export function OfficerRecordsHub() {
     } finally {
       setRetryingQueue(false);
     }
+  };
+
+  // Sync status for local (not-yet-cloud) form records
+  const pendingSyncCount = useMemo(() => records.filter((r) => !r.synced).length, [records]);
+  const cloudRecordCount = useMemo(() => records.filter((r) => r.synced).length, [records]);
+
+  // Manual "Sync now" — re-push every local-only record to Supabase
+  const handleSyncNow = async () => {
+    const localRecords = records.filter((r) => !r.synced);
+    if (localRecords.length === 0 || syncingRecords) return;
+    setSyncingRecords(true);
+    setSyncFeedback(null);
+    let succeeded = 0;
+    let failed = 0;
+    for (const record of localRecords) {
+      try {
+        const res = await OfficerCloudSyncService.resyncLocalRecord(record);
+        if (res?.syncedToCloud) succeeded += 1;
+        else failed += 1;
+      } catch {
+        failed += 1;
+      }
+    }
+    setSyncingRecords(false);
+    setSyncFeedback(
+      t(
+        `Sync complete: ${succeeded} record(s) backed up to cloud${failed > 0 ? `, ${failed} still pending` : ''}.`,
+        `సింక్ పూర్తయింది: ${succeeded} రికార్డులు క్లౌడ్‌కు బ్యాకప్ అయ్యాయి${failed > 0 ? `, ${failed} ఇంకా పెండింగ్` : ''}.`
+      )
+    );
+    await loadAllData(true);
   };
 
   // Document Management Actions
@@ -355,8 +393,52 @@ export function OfficerRecordsHub() {
     });
   }, [records, categoryFilter, commodityFilter, searchQuery]);
 
+  // Sample records eligible for export-time result marking
+  const exportableSamples = useMemo(
+    () => filteredRecords.filter((r) => r.category === 'sample'),
+    [filteredRecords]
+  );
+
+  const EXPORT_STATUS_OPTIONS = useMemo(() => [
+    { value: '', label: t('— Keep existing —', '— ఉన్నదే ఉంచండి —') },
+    { value: 'Dispatched', label: t('Dispatched', 'పంపబడింది') },
+    { value: 'Passed / Standard', label: t('Passed / Standard', 'పాస్ / ప్రమాణం') },
+    { value: 'Not to Specification', label: t('Not to Specification', 'స్పెసిఫికేషన్ల ప్రకారం లేదు') },
+    { value: 'Substandard', label: t('Substandard', 'సబ్‌స్టాండర్డ్') },
+    { value: 'Misbranded', label: t('Misbranded', 'మిస్‌బ్రాండెడ్') },
+    { value: 'Pending', label: t('Pending', 'పెండింగ్') },
+  ], [t]);
+
+  const openExportStatusModal = () => {
+    setStatusDraft({});
+    setBulkStatus('');
+    setIsExportMenuOpen(false);
+    setExportStatusOpen(true);
+  };
+
+  const applyBulkStatus = (value: string) => {
+    setBulkStatus(value);
+    if (!value) {
+      setStatusDraft({});
+      return;
+    }
+    const next: Record<string, string> = {};
+    exportableSamples.forEach((r) => {
+      next[r.id] = value;
+    });
+    setStatusDraft(next);
+  };
+
+  const handleStatusExport = async (type: 'excel' | 'pdf') => {
+    const overrides = Object.fromEntries(
+      Object.entries(statusDraft).filter(([, v]) => v.trim())
+    );
+    setExportStatusOpen(false);
+    await handleExport(type, Object.keys(overrides).length ? overrides : undefined);
+  };
+
   // Export Report to Excel or PDF
-  const handleExport = async (type: 'excel' | 'pdf') => {
+  const handleExport = async (type: 'excel' | 'pdf', statusOverrides?: Record<string, string>) => {
     try {
       setExportingType(type);
       const options: ReportExportOptions = {
@@ -367,6 +449,7 @@ export function OfficerRecordsHub() {
         officerName: officerProfile?.full_name || user?.email || 'Agricultural Officer',
         designation: officerProfile?.designation || 'Agricultural Officer',
         location: officerProfile?.mandal || officerProfile?.district || 'Telangana',
+        statusOverrides,
       };
 
       const rows = OfficerReportExportService.extractRows(
@@ -471,10 +554,10 @@ export function OfficerRecordsHub() {
               </span>
               <div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                  {t('Records & Cloud Storage', 'రికార్డులు & క్లౌడ్ నిల్వ')}
+                  {t('Saved Records & Storage', 'సేవ్ చేసిన రికార్డులు & స్టోరేజ్')}
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {t('Secure Cloudflare R2 repository and statutory records for agricultural officers.', 'అధికారుల పత్రాలు, చట్టబద్ధ నోటీసులు & నమూనాల క్లౌడ్‌ఫ్లేర్ R2 నిల్వ.')}
+                  {t('Archived documents and statutory records for agricultural officers.', 'అధికారుల భద్రపరచిన పత్రాలు & చట్టబద్ధ రికార్డులు.')}
                 </p>
               </div>
             </div>
@@ -596,8 +679,7 @@ export function OfficerRecordsHub() {
               : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
           }`}
         >
-          <FileText className="h-4 w-4" />
-          <span>{t('Archived Documents', 'భద్రపరచిన పత్రాలు')}</span>
+          <span>{t('Cloud Storage', 'క్లౌడ్ నిల్వ')}</span>
           <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
             {documents.length}
           </span>
@@ -612,12 +694,12 @@ export function OfficerRecordsHub() {
               : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
           }`}
         >
-          <ClipboardList className="h-4 w-4" />
-          <span>{t('Field Form Records & Findings', 'క్షేత్ర ఫారాలు & పరిశీలనలు')}</span>
+          <span>{t('My Records', 'నా రికార్డులు')}</span>
           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-300">
             {records.length}
           </span>
         </button>
+
       </div>
 
       {/* Filter and Search Bar */}
@@ -768,6 +850,17 @@ export function OfficerRecordsHub() {
                   <Printer className="h-4 w-4 text-rose-600 shrink-0" />
                   <span>PDF</span>
                 </button>
+
+                {activeTab === 'forms' && exportableSamples.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={openExportStatusModal}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/40 transition border-t border-slate-100 dark:border-slate-700/60"
+                  >
+                    <FlaskConical className="h-4 w-4 shrink-0" />
+                    <span>{t('Set Status & Export…', 'సెట్ స్థితి & ఎగుమతి…')}</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -1089,7 +1182,56 @@ export function OfficerRecordsHub() {
         )
       ) : (
         // Tab 2: Existing Form Records List
-        filteredRecords.length === 0 ? (
+        <>
+          {/* Sync status center — distinguishes document uploads from form-record sync */}
+          <div
+            className={`mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-4 py-3 ${
+              pendingSyncCount > 0
+                ? 'border-amber-200 bg-amber-50/70 dark:border-amber-900/50 dark:bg-amber-950/30'
+                : 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/50 dark:bg-emerald-950/30'
+            }`}
+          >
+            <div className="flex items-center gap-2 text-xs font-bold">
+              {pendingSyncCount > 0 ? (
+                <CloudOff className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              )}
+              <span className={pendingSyncCount > 0 ? 'text-amber-800 dark:text-amber-200' : 'text-emerald-800 dark:text-emerald-200'}>
+                {pendingSyncCount > 0
+                  ? t(
+                      `${pendingSyncCount} record(s) saved locally — not yet backed up to cloud`,
+                      `${pendingSyncCount} రికార్డులు స్థానికంగా ఉన్నాయి — ఇంకా క్లౌడ్‌కు బ్యాకప్ కాలేదు`
+                    )
+                  : t('All form records are backed up to cloud', 'అన్ని ఫారమ్ రికార్డులు క్లౌడ్‌కు బ్యాకప్ అయ్యాయి')}
+              </span>
+              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                ({cloudRecordCount} {t('cloud', 'క్లౌడ్')} · {records.length} {t('total', 'మొత్తం')})
+              </span>
+            </div>
+            {pendingSyncCount > 0 && (
+              <button
+                type="button"
+                onClick={() => void handleSyncNow()}
+                disabled={syncingRecords || refreshing}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-600 disabled:opacity-50"
+              >
+                {syncingRecords ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3.5 w-3.5" />
+                )}
+                {syncingRecords ? t('Syncing…', 'సింక్ అవుతోంది…') : t('Sync now', 'ఇప్పుడు సింక్ చేయండి')}
+              </button>
+            )}
+          </div>
+          {syncFeedback && (
+            <p className="mb-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300">
+              {syncFeedback}
+            </p>
+          )}
+
+        {filteredRecords.length === 0 ? (
           <div className="flex min-h-[250px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
               <Archive className="h-6 w-6" />
@@ -1295,7 +1437,8 @@ export function OfficerRecordsHub() {
               );
             })}
           </div>
-        )
+        )}
+        </>
       )}
 
       {/* Field Form Record Details Modal */}
@@ -1809,6 +1952,124 @@ export function OfficerRecordsHub() {
               >
                 {t('Save Changes', 'భద్రపరచు')}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Result Status Modal */}
+      {exportStatusOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-700">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  {t('Mark Sample Results for Export', 'ఎగుమతికి నమూనా ఫలితాలను గుర్తించండి')}
+                </h3>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                  {t(
+                    `${exportableSamples.length} sample record(s) in this view. Choose a status per record — it appears in the "Result / Remarks" column of the exported report.`,
+                    `ఈ వీక్షణలో ${exportableSamples.length} నమూనా రికార్డులు ఉన్నాయి. రికార్డుకు స్థితి ఎంచుకోండి — ఎగుమతి నివేదికలో "ఫలితం / వ్యాఖ్యలు" నిలువరుసలో కనిపిస్తుంది.`
+                  )}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setExportStatusOpen(false)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                aria-label={t('Close', 'మూసివేయి')}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="border-b border-slate-200 px-5 py-3 dark:border-slate-700">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                {t('Apply to all:', 'అన్నింటికీ వర్తించు:')}
+                <select
+                  value={bulkStatus}
+                  onChange={(e) => applyBulkStatus(e.target.value)}
+                  className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                >
+                  {EXPORT_STATUS_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="max-h-[45vh] overflow-y-auto px-5 py-3">
+              {exportableSamples.length === 0 ? (
+                <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+                  {t('No sample records in the current filter.', 'ప్రస్తుత ఫిల్టర్‌లో నమూనా రికార్డులు లేవు.')}
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {exportableSamples.map((rec) => (
+                    <li
+                      key={rec.id}
+                      className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800/50"
+                    >
+                      <FlaskConical className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-bold text-slate-800 dark:text-slate-100">
+                          {rec.title}
+                        </p>
+                        <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
+                          {rec.referenceNumber} · {rec.entityName} · {rec.recordDate}
+                        </p>
+                      </div>
+                      <select
+                        value={statusDraft[rec.id] || ''}
+                        onChange={(e) =>
+                          setStatusDraft((prev) => ({ ...prev, [rec.id]: e.target.value }))
+                        }
+                        className="w-40 shrink-0 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-semibold text-slate-800 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                      >
+                        {EXPORT_STATUS_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between gap-3 border-t border-slate-200 px-5 py-4 dark:border-slate-700">
+              <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                {t(
+                  `${Object.values(statusDraft).filter(Boolean).length} record(s) marked`,
+                  `${Object.values(statusDraft).filter(Boolean).length} రికార్డులు గుర్తించబడ్డాయి`
+                )}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setExportStatusOpen(false)}
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  {t('Cancel', 'రద్దు')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleStatusExport('excel')}
+                  disabled={exportingType !== null}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {exportingType === 'excel' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileSpreadsheet className="h-3.5 w-3.5" />}
+                  {t('Export Excel', 'ఎక్సెల్ ఎగుమతి')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleStatusExport('pdf')}
+                  disabled={exportingType !== null}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50"
+                >
+                  {exportingType === 'pdf' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Printer className="h-3.5 w-3.5" />}
+                  {t('Export PDF', 'PDF ఎగుమతి')}
+                </button>
+              </div>
             </div>
           </div>
         </div>

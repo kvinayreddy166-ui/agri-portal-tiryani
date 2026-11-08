@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { supabase } from '../../../shared/lib/supabase';
-import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, Clock, ChevronRight as ArrowRight, X, ClipboardList, Download, Printer } from 'lucide-react';
+import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, X, ClipboardList, Download, Printer } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
 import { statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
@@ -497,11 +497,6 @@ export function TourDiary() {
       return [];
     }
   }, []);
-
-  // Get the latest draft only for Continue Draft card
-  const getLatestDraft = useCallback((): TourDiaryDraft | null => {
-    return allDrafts.length > 0 ? allDrafts[0] : null;
-  }, [allDrafts]);
 
   // Group drafts by month for My Diaries
   const getGroupedMyDiaries = useCallback(() => {
@@ -1727,40 +1722,6 @@ export function TourDiary() {
 
   const summary = calculateMonthlySummary();
 
-  // Handle loading a specific draft
-  const loadDraft = (draft: TourDiaryDraft) => {
-    setCurrentYear(draft.year);
-    setCurrentMonth(draft.month);
-    setOfficerName(draft.officerName);
-    setDesignation(draft.designation);
-    setCustomDesignation(draft.customDesignation || '');
-    setDistrict(draft.district);
-    setCustomDistrict(draft.customDistrict || '');
-    setMandal(draft.mandal);
-    setCustomMandal(draft.customMandal || '');
-    setDivision(draft.division);
-    setCustomDivision(draft.customDivision || '');
-    setJourneys(draft.journeys || []);
-    setDateStatusOverrides(draft.dateStatusOverrides || {});
-    setTourDiary({
-      id: draft.id,
-      officer_id: user?.id || '',
-      year: draft.year,
-      month: draft.month,
-      opening_meter: draft.openingMeter,
-      closing_meter: draft.closingMeter,
-      total_km: draft.totalKm,
-      status: 'draft',
-      officer_name: draft.officerName,
-      designation: draft.designation,
-      district: draft.district,
-      mandal: draft.mandal
-    });
-    setShowDraftPicker(false);
-    setDraftMenuOpen(null);
-    setShowLandingPage(false);
-  };
-
   // Handle My Diaries - toggle dropdown
   const handleMyDiaries = () => {
     setShowMyDiariesDropdown(!showMyDiariesDropdown);
@@ -1833,33 +1794,6 @@ export function TourDiary() {
 
           {/* Action Cards - Modern Mobile-First Design */}
           <div className="mb-8 flex flex-col gap-4">
-            {/* Continue Draft Card - Only show latest draft */}
-            {(() => {
-              const latestDraft = getLatestDraft();
-              return latestDraft ? (
-                <button
-                  onClick={() => loadDraft(latestDraft)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-amber-100/50 px-4 py-3 shadow-sm transition active:scale-[0.98] hover:border-amber-300 hover:shadow-md dark:border-amber-800 dark:from-amber-950/50 dark:to-amber-900/30 dark:hover:border-amber-700"
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-200 to-amber-300 text-amber-800 shadow-sm dark:from-amber-900 dark:to-amber-800 dark:text-amber-200">
-                    <Clock className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                      Continue Draft
-                    </h3>
-                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                      {MONTHS[latestDraft.month - 1]} {latestDraft.year} • Last edited {new Date(latestDraft.updatedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-amber-200 px-3 py-1 text-xs font-black uppercase text-amber-800 shadow-sm dark:bg-amber-900 dark:text-amber-200">
-                    Draft
-                  </span>
-                  <ArrowRight className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" />
-                </button>
-              ) : null;
-            })()}
-
             {/* New Tour Diary Card */}
             <button
               onClick={() => {
@@ -1883,40 +1817,45 @@ export function TourDiary() {
                 setCurrentYear(new Date().getFullYear());
                 setCurrentMonth(new Date().getMonth() + 1);
               }}
-              className="flex w-full items-center gap-3 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-emerald-100/50 px-4 py-3 shadow-sm transition active:scale-[0.98] hover:border-emerald-300 hover:shadow-md dark:border-emerald-800 dark:from-emerald-950/50 dark:to-emerald-900/30 dark:hover:border-emerald-700"
+              className="group flex w-full items-center gap-3.5 rounded-2xl border border-emerald-200/80 bg-gradient-to-r from-emerald-50 to-emerald-100/40 px-4 py-3.5 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-900/10 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200 active:scale-[0.99] dark:border-emerald-800/70 dark:from-emerald-950/40 dark:to-emerald-900/20 dark:hover:border-emerald-600 dark:focus-visible:ring-emerald-900/50"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-200 to-emerald-300 text-emerald-800 shadow-sm dark:from-emerald-900 dark:to-emerald-800 dark:text-emerald-200">
-                <Plus className="h-5 w-5" />
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-md shadow-emerald-900/25 transition-transform duration-200 group-hover:scale-105">
+                <Plus className="h-5 w-5" strokeWidth={2.5} />
               </div>
-              <div className="flex-1 text-left">
-                <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                  New Tour Diary
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-sm font-black text-slate-900 dark:text-white">
+                  {t('New Tour Diary', 'కొత్త టూర్ డైరీ')}
                 </h3>
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                  Create a diary for a new month
+                <p className="truncate text-xs font-semibold text-slate-600 dark:text-slate-400">
+                  {t('Create a diary for a new month', 'కొత్త నెల కోసం డైరీ సృష్టించండి')}
                 </p>
               </div>
-              <ArrowRight className="h-5 w-5 shrink-0 text-emerald-700 dark:text-emerald-400" />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/70 text-emerald-700 ring-1 ring-emerald-200 transition-all duration-200 group-hover:bg-emerald-700 group-hover:text-white group-hover:ring-emerald-700 dark:bg-slate-800/70 dark:text-emerald-300 dark:ring-emerald-700 dark:group-hover:bg-emerald-600 dark:group-hover:ring-emerald-600">
+                <Plus className="h-4 w-4" strokeWidth={2.5} />
+              </span>
             </button>
 
             {/* My Diaries Card */}
             <button
               onClick={handleMyDiaries}
-              className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100/50 px-4 py-3 shadow-sm transition active:scale-[0.98] hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:from-slate-950/50 dark:to-slate-900/30 dark:hover:border-slate-700"
+              className="group flex w-full items-center gap-3.5 rounded-2xl border border-emerald-200/80 bg-gradient-to-r from-emerald-50 to-emerald-100/40 px-4 py-3.5 text-left shadow-sm backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-900/10 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200 active:scale-[0.99] dark:border-emerald-800/70 dark:from-emerald-950/40 dark:to-emerald-900/20 dark:hover:border-emerald-600 dark:focus-visible:ring-emerald-900/50"
+              aria-expanded={showMyDiariesDropdown}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 shadow-sm dark:from-slate-900 dark:to-slate-800 dark:text-slate-200">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-md shadow-emerald-900/25 transition-transform duration-200 group-hover:scale-105">
                 <ClipboardList className="h-5 w-5" />
               </div>
-              <div className="flex-1 text-left">
-                <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                  My Diaries
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-sm font-black text-slate-900 dark:text-white">
+                  {t('My Diaries', 'నా డైరీలు')}
                 </h3>
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                  Drafts
-                  {allDrafts.length > 0 && ` • ${allDrafts.length} Drafts`}
+                <p className="truncate text-xs font-semibold text-slate-600 dark:text-slate-400">
+                  {t('Drafts', 'డ్రాఫ్ట్‌లు')}
+                  {allDrafts.length > 0 && ` • ${allDrafts.length}`}
                 </p>
               </div>
-              <ArrowRight className="h-5 w-5 shrink-0 text-slate-700 dark:text-slate-400" />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/70 text-emerald-700 ring-1 ring-emerald-200 transition-all duration-300 group-hover:bg-emerald-700 group-hover:text-white group-hover:ring-emerald-700 dark:bg-slate-800/70 dark:text-emerald-300 dark:ring-emerald-700 dark:group-hover:bg-emerald-600 dark:group-hover:ring-emerald-600">
+                <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${showMyDiariesDropdown ? 'rotate-180' : ''}`} />
+              </span>
             </button>
           </div>
 

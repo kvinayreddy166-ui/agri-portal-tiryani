@@ -1,4 +1,5 @@
 import { supabase } from '../../../shared/lib/supabase';
+import { isPasswordCompliant, PASSWORD_MIN_LENGTH } from '../../../shared/lib/passwordPolicy';
 
 export interface SendOtpParams {
   email: string;
@@ -6,6 +7,7 @@ export interface SendOtpParams {
   designation: string;
   purpose?: 'registration' | 'login' | 'reset_password';
   payload?: Record<string, unknown>;
+  captchaToken?: string;
 }
 
 export interface SendOtpResult {
@@ -34,6 +36,7 @@ export class ResendOtpService {
     designation,
     purpose = 'registration',
     payload = {},
+    captchaToken,
   }: SendOtpParams): Promise<SendOtpResult> {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !normalizedEmail.includes('@')) {
@@ -49,6 +52,7 @@ export class ResendOtpService {
           designation,
           purpose,
           payload,
+          captchaToken,
         },
       });
 
@@ -144,10 +148,12 @@ export class ResendOtpService {
     email,
     token,
     newPassword,
+    captchaToken,
   }: {
     email: string;
     token: string;
     newPassword: string;
+    captchaToken?: string;
   }): Promise<{ success: boolean; message: string; error?: string }> {
     const normalizedEmail = email.trim().toLowerCase();
     const cleanToken = token.trim();
@@ -157,8 +163,8 @@ export class ResendOtpService {
       return { success: false, message: '', error: 'Email, verification code, and new password are required.' };
     }
 
-    if (cleanPassword.length < 6) {
-      return { success: false, message: '', error: 'Password must be at least 6 characters long.' };
+    if (!isPasswordCompliant(cleanPassword)) {
+      return { success: false, message: '', error: `Password must be at least ${PASSWORD_MIN_LENGTH} characters and include a capital letter, a small letter, a number and a symbol.` };
     }
 
     try {
@@ -167,6 +173,7 @@ export class ResendOtpService {
           email: normalizedEmail,
           token: cleanToken,
           newPassword: cleanPassword,
+          captchaToken,
         },
       });
 

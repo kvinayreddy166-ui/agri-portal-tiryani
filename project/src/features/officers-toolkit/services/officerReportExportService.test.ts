@@ -214,7 +214,7 @@ describe('OfficerReportExportService', () => {
         activeTab: 'documents',
         categoryFilter: 'all',
       });
-      expect(title.subTitle).toContain('OFFICIAL RECORDS & CLOUD ARCHIVE CONSOLIDATED REPORT');
+      expect(title.subTitle).toContain('OFFICIAL RECORDS & CLOUD STORAGE CONSOLIDATED REPORT');
     });
   });
 });

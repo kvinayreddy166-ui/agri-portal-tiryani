@@ -26,7 +26,7 @@ describe('Dashboard — Officer vs Admin view isolation', () => {
     vi.clearAllMocks();
   });
 
-  it('renders weather, mandi prices and officer toolkit tools for authenticated officers without showing admin sections', () => {
+  it('renders weather and mandi prices for authenticated officers without showing admin sections or toolkit tools', () => {
     mockUseAuth.mockReturnValue({
       user: { id: 'officer-1', email: 'officer@telangana.gov.in', user_metadata: { role: 'officer' } },
       session: null,
@@ -69,21 +69,19 @@ describe('Dashboard — Officer vs Admin view isolation', () => {
     );
 
     // Verifies officer greeting & header
-    expect(html).toContain('Officer Dashboard');
-    expect(html).toContain('K. Vinay Reddy • MAO (Tiryani)');
+    expect(html).toContain('K. Vinay Reddy • MAO • Tiryani');
 
     // Verifies weather & mandi prices are shown
     expect(html).toContain('Weather Widget Mock');
     expect(html).toContain('Mandi Prices Mock');
 
-    // Verifies officer toolkit tools are shown
-    expect(html).toContain('Officer Toolkit &amp; Field Tools');
-    expect(html).toContain('Inspection &amp; Enforcement Hub');
-    expect(html).toContain('Smart Sampling');
-    expect(html).toContain('Tour Diary');
-    expect(html).toContain('Agrochemicals Database');
-    expect(html).toContain('Farm Calculators');
-    expect(html).toContain('Forms Library');
+    // Officer toolkit tools are NOT duplicated on the dashboard (bottom nav provides them)
+    expect(html).not.toContain('Officer Toolkit &amp; Field Tools');
+    expect(html).not.toContain('Inspection &amp; Enforcement Hub');
+    expect(html).not.toContain('Smart Sampling');
+
+    // Officers see no dashboard sections or empty-state placeholder
+    expect(html).not.toContain('No data available');
 
     // Verifies admin sections are NOT displayed to officers
     expect(html).not.toContain('Mandal Overview');
@@ -181,9 +179,9 @@ describe('Dashboard — Officer vs Admin view isolation', () => {
     // Officer menu items present
     expect(html).not.toContain('Field Tools Hub');
     expect(html).toContain('Farm Calculators');
-    expect(html).toContain('Field Diagnosis');
+    expect(html).toContain('Crop Doctor');
     expect(html).toContain('Enforcement Tracker');
-    expect(html).toContain('Records &amp; Cloud Archive');
+    expect(html).toContain('Saved Records &amp; Storage');
     expect(html).toContain('Knowledge Base');
     expect(html).toContain('GOs &amp; Circulars');
     expect(html).toContain('Tour Diary');

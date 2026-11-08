@@ -28,7 +28,6 @@ import {
 import { GlobalAppLoader, PageLoader, SafeSuspense } from './router/loading';
 import { PageSwitch, PublicPageSwitch } from './router/PageSwitch';
 import { Layout, Login } from './router/lazyPages';
-import { AppIntroSplash } from '../shared/components/ui/AppIntroSplash';
 
 import { safeStorage } from '../shared/lib/safeStorage';
 function AppContent() {
@@ -209,7 +208,7 @@ function AppContent() {
   return (
     <SafeSuspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
       <Layout currentPage={currentPage} onNavigate={navigateToPage} onBack={handleBack}>
-        <PageSwitch currentPage={currentPage} isAdminUser={isAdminUser} isTestUser={isTestUser} />
+        <PageSwitch currentPage={currentPage} isAdminUser={isAdminUser} isTestUser={isTestUser} onNavigate={navigateToPage} />
         {isOfficerToolkitRoute && <AgronixBrandMark />}
       </Layout>
     </SafeSuspense>
@@ -248,7 +247,6 @@ function App() {
                 <UpdateBanner />
               </Suspense>
               <GlobalMobileDatePickerProvider />
-              <AppIntroSplash />
               <AppContent />
             </LanguageScope>
           </BrowserRouter>

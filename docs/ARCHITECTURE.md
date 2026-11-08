@@ -42,7 +42,6 @@ app/main.tsx
   - `knowledge-process` — extract text (raw PDF parser / mammoth), clean, semantic-chunk, embed via Ollama, save chunks
   - `knowledge-search` — hybrid vector (`knowledge_vector_search` RPC) + FTS (`knowledge_keyword_search` RPC)
   - `knowledge-ask` — retrieval → no-answer detection → LLM with `[SOURCE_N]` context → citations
-  - `sync-urea-dashboard-reports` — scheduled urea data sync
   - Ollama runs on an external VPS; keys/config only exist server-side as Supabase secrets (`OLLAMA_*`, `SUPABASE_SERVICE_ROLE_KEY`). No AI secrets reach the browser.
 
 ## Data flow

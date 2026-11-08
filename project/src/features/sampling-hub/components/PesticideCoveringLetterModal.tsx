@@ -9,6 +9,7 @@ import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { useCoveringLetterMetadata, COVERING_LETTER_FINANCIAL_YEARS, getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerCloudSyncService } from '../../officers-toolkit/services/officerCloudSyncService';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
@@ -30,6 +31,8 @@ type PesticideCoveringLetterMetadata = {
   authorityType: 'DAO' | 'ADA';
   daoMemoNumber: string;
   daoMemoDate: string;
+  cdaMemoNumber: string;
+  cdaMemoDate: string;
   division: string;
   officePhone: string;
 };
@@ -73,6 +76,7 @@ type PesticideCoveringLetterModalProps = {
 
 
 export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, coveringLetterDetails, onMetadataChange }: PesticideCoveringLetterModalProps) {
+  const { isAdminUser } = useAuth();
   const [watermarkEnabled, setWatermarkEnabled] = useState(() => {
     try {
       const stored = safeStorage.getItem('tiryani-watermark-enabled');
@@ -454,6 +458,8 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                       authorityType: 'DAO',
                       daoMemoNumber: '',
                       daoMemoDate: '',
+                      cdaMemoNumber: metadata.cdaMemoNumber,
+                      cdaMemoDate: metadata.cdaMemoDate,
                       division: '',
                       officePhone: '',
                     });
@@ -533,6 +539,36 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
                   />
                 </div>
+                {isAdminUser && (
+                  <>
+                    <div>
+                      <label className="mb-1 block text-xs font-bold text-slate-600">
+                        C&DA MEMO NO.
+                      </label>
+                      <input
+                        type="text"
+                        value={metadata.cdaMemoNumber}
+                        onChange={(e) => setMetadata({ ...metadata, cdaMemoNumber: e.target.value })}
+                        placeholder="Enter C&DA Memo Number"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                      />
+                    </div>
+                    <div>
+                      <div className="mb-1 flex items-center justify-between gap-2">
+                        <label className="block text-xs font-bold text-slate-600">C&DA MEMO DATE</label>
+                        {metadata.cdaMemoDate ? (
+                          <DateClearButton onClick={() => setMetadata({ ...metadata, cdaMemoDate: '' })} />
+                        ) : null}
+                      </div>
+                      <input
+                        type="date"
+                        value={metadata.cdaMemoDate}
+                        onChange={(e) => setMetadata({ ...metadata, cdaMemoDate: e.target.value })}
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                      />
+                    </div>
+                  </>
+                )}
                 {!isAssistantDirectorOfAgriculture(officerDetails?.designation || '') && (
                   <div>
                     <label className="mb-1 block text-xs font-bold text-slate-600">DIVISION</label>

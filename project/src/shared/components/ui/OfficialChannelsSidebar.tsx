@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import React, { Fragment } from 'react';
 import { Youtube } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -20,6 +20,9 @@ import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { ResendOtpService } from '../services/resendOtpService';
 import { AuthStepper } from '../components/AuthStepper';
 import { OtpInput } from '../components/OtpInput';
+import { TurnstileWidget, type TurnstileWidgetHandle } from '../../../shared/components/security/TurnstileWidget';
+import { isTurnstileEnabled } from '../../../shared/lib/turnstile';
+import { isPasswordCompliant, PASSWORD_RULES, passwordPolicyErrorMessage } from '../../../shared/lib/passwordPolicy';
 
 type ResetStep = 'email' | 'otp' | 'password' | 'completed';
 
@@ -41,6 +44,19 @@ export function ForgotPassword() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [devOtpNotice, setDevOtpNotice] = useState<string | null>(null);
   const [otpCooldown, setOtpCooldown] = useState(0);
+
+  // Cloudflare Turnstile — OTP steps share one widget, password reset has its own
+  const [otpCaptchaToken, setOtpCaptchaToken] = useState<string | null>(null);
+  const [resetCaptchaToken, setResetCaptchaToken] = useState<string | null>(null);
+  const otpTurnstileRef = useRef<TurnstileWidgetHandle>(null);
+  const resetTurnstileRef = useRef<TurnstileWidgetHandle>(null);
+  const requireCaptcha = (token: string | null) => {
+    if (isTurnstileEnabled() && !token) {
+      setError(t('Please complete the security verification below.', 'దయచేసి దిగువ సెక్యూరిటీ ధృవీకరణను పూర్తి చేయండి.'));
+      return false;
+    }
+    return true;
+  };
 
   // Countdown timer for OTP resend
   useEffect(() => {
@@ -64,13 +80,18 @@ export function ForgotPassword() {
       return;
     }
 
+    if (!requireCaptcha(otpCaptchaToken)) return;
+
     setLoading(true);
     const res = await ResendOtpService.sendOtp({
       email: normalizedEmail,
       fullName: 'Officer',
       designation: 'Officer',
       purpose: 'reset_password',
+      captchaToken: otpCaptchaToken ?? undefined,
     });
+    setOtpCaptchaToken(null);
+    otpTurnstileRef.current?.reset();
     setLoading(false);
 
     if (res.success) {
@@ -133,8 +154,8 @@ export function ForgotPassword() {
     const cleanPassword = password.trim();
     const cleanConfirm = confirmPassword.trim();
 
-    if (!cleanPassword || cleanPassword.length < 6) {
-      setError(t('Password must be at least 6 characters long.', 'పాస్‌వర్డ్ కనీసం 6 అక్షరాలు ఉండాలి.'));
+    if (!cleanPassword || !isPasswordCompliant(cleanPassword)) {
+      setError(t(passwordPolicyErrorMessage(), 'పాస్‌వర్డ్ కనీసం 8 అక్షరాలు ఉండాలి మరియు పెద్ద అక్షరం, చిన్న అక్షరం, సంఖ్య, చిహ్నం ఉంటాయి.'));
       return;
     }
 
@@ -143,12 +164,17 @@ export function ForgotPassword() {
       return;
     }
 
+    if (!requireCaptcha(resetCaptchaToken)) return;
+
     setLoading(true);
     const resetRes = await ResendOtpService.resetPassword({
       email: email.trim().toLowerCase(),
       token: otp.trim(),
       newPassword: cleanPassword,
+      captchaToken: resetCaptchaToken ?? undefined,
     });
+    setResetCaptchaToken(null);
+    resetTurnstileRef.current?.reset();
     setLoading(false);
 
     if (resetRes.success) {
@@ -265,6 +291,15 @@ export function ForgotPassword() {
                   </div>
                 </div>
 
+                <div className="flex justify-center">
+                  <TurnstileWidget
+                    ref={otpTurnstileRef}
+                    onVerify={setOtpCaptchaToken}
+                    onExpire={() => setOtpCaptchaToken(null)}
+                    onError={() => setOtpCaptchaToken(null)}
+                  />
+                </div>
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -325,6 +360,15 @@ export function ForgotPassword() {
                   </button>
                 </div>
 
+                <div className="flex justify-center">
+                  <TurnstileWidget
+                    ref={otpTurnstileRef}
+                    onVerify={setOtpCaptchaToken}
+                    onExpire={() => setOtpCaptchaToken(null)}
+                    onError={() => setOtpCaptchaToken(null)}
+                  />
+                </div>
+
                 <button
                   type="submit"
                   disabled={loading || otp.length < 6}
@@ -344,7 +388,7 @@ export function ForgotPassword() {
                     {t('Create New Password', 'కొత్త పాస్‌వర్డ్‌ను సృష్టించండి')}
                   </h3>
                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {t('Choose a strong password with at least 6 characters.', 'కనీసం 6 అక్షరాలతో బలమైన పాస్‌వర్డ్‌ను ఎంచుకోండి.')}
+                    {t('Choose a strong password with a capital letter, small letter, number and symbol.', 'పెద్ద అక్షరం, చిన్న అక్షరం, సంఖ్య, చిహ్నం ఉంటే బలమైన పాస్‌వర్డ్.')}
                   </p>
                 </div>
 
@@ -397,19 +441,30 @@ export function ForgotPassword() {
                 </div>
 
                 <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-[11px] text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300 space-y-1">
-                  <div className={`flex items-center gap-1.5 ${password.length >= 6 ? 'text-emerald-700 dark:text-emerald-400 font-bold' : ''}`}>
-                    <span>{password.length >= 6 ? '✓' : '•'}</span>
-                    <span>{t('At least 6 characters', 'కనీసం 6 అక్షరాలు')}</span>
-                  </div>
+                  {PASSWORD_RULES.map((rule) => (
+                    <div key={rule.id} className={`flex items-center gap-1.5 ${rule.test(password) ? 'text-emerald-700 dark:text-emerald-400 font-bold' : ''}`}>
+                      <span>{rule.test(password) ? '✓' : '•'}</span>
+                      <span>{t(rule.labelEn, rule.labelTe)}</span>
+                    </div>
+                  ))}
                   <div className={`flex items-center gap-1.5 ${password && confirmPassword && password === confirmPassword ? 'text-emerald-700 dark:text-emerald-400 font-bold' : ''}`}>
                     <span>{password && confirmPassword && password === confirmPassword ? '✓' : '•'}</span>
                     <span>{t('Both passwords match', 'రెండు పాస్‌వర్డ్‌లు సరిపోలుతున్నాయి')}</span>
                   </div>
                 </div>
 
+                <div className="flex justify-center">
+                  <TurnstileWidget
+                    ref={resetTurnstileRef}
+                    onVerify={setResetCaptchaToken}
+                    onExpire={() => setResetCaptchaToken(null)}
+                    onError={() => setResetCaptchaToken(null)}
+                  />
+                </div>
+
                 <button
                   type="submit"
-                  disabled={loading || password.length < 6 || password !== confirmPassword}
+                  disabled={loading || !isPasswordCompliant(password) || password !== confirmPassword}
                   className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <KeyRound className="h-4 w-4 shrink-0" />}

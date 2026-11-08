@@ -2,13 +2,15 @@ import type { OfficerDocumentArchiveRecord } from '../types/officerArchiveTypes'
 import type { UnifiedOfficerRecord } from './officerCloudSyncService';
 
 export interface ReportExportOptions {
-  activeTab: 'documents' | 'forms';
+  activeTab: 'documents' | 'forms' | 'enforcement';
   categoryFilter?: string;
   commodityFilter?: string;
   searchQuery?: string;
   officerName?: string;
   designation?: string;
   location?: string;
+  /** Optional per-record result overrides keyed by record id (e.g. sample status chosen at export time). */
+  statusOverrides?: Record<string, string>;
 }
 
 export interface ExtractedReportRow {
@@ -87,7 +89,8 @@ export class OfficerReportExportService {
         );
 
         const resultRemarks = String(
-          meta.resultRemarks ||
+          options.statusOverrides?.[doc.id] ||
+            meta.resultRemarks ||
             meta.remarks ||
             meta.result ||
             (doc.upload_status === 'saved_to_cloud' ? 'Archived to Cloud' : 'Recorded')
@@ -153,7 +156,8 @@ export class OfficerReportExportService {
         );
 
         const resultRemarks = String(
-          details.remarks ||
+          options.statusOverrides?.[rec.id] ||
+            details.remarks ||
             details.result ||
             details.findings ||
             (rec.synced ? 'Synced to Cloud' : 'Saved on Device')

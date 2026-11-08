@@ -40,6 +40,8 @@ type PesticideCoveringLetterMetadata = {
   authorityType: 'DAO' | 'ADA';
   daoMemoNumber: string;
   daoMemoDate: string;
+  cdaMemoNumber?: string;
+  cdaMemoDate?: string;
   division: string;
   officePhone: string;
 };
@@ -334,7 +336,11 @@ function drawReference(cursor: PdfCursor, metadata: PesticideCoveringLetterMetad
   const refIndent = refLabelX + doc.getTextWidth('Ref: ');
 
   doc.setFont(PDF_FONT, 'normal');
-  const ref1 = '1) C&DA, TS, Hyd Memo No. PP/34/2026-27, Dt. 21.05.2026.';
+  const cdaMemoNumber = metadata.cdaMemoNumber?.trim();
+  const cdaMemoDate = metadata.cdaMemoDate?.trim();
+  const ref1 = cdaMemoNumber || cdaMemoDate
+    ? `1) C&DA, TS, Hyd Memo No. ${displayValue(cdaMemoNumber)}, Dt. ${displayValue(formatDate(cdaMemoDate || ''))}.`
+    : '1) C&DA, TS, Hyd Memo No. PP/34/2026-27, Dt. 21.05.2026.';
   doc.text(ref1, refIndent, cursor.y);
   cursor.y += LINE_HEIGHT;
 

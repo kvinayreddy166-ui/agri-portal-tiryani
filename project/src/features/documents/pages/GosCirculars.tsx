@@ -87,26 +87,27 @@ export function GosCirculars() {
   const fetchDocuments = async () => {
     setFetchError(null);
     const baseSelect = 'id, title, description, file_url, file_name, file_type, issued_date, created_at, created_by';
+    let data: GosCircular[] | null = null;
     try {
       // doc_type column arrives with migration 20261109000000; fall back
       // gracefully (title-based inference) if it is not deployed yet.
-      let { data, error } = await supabase
+      const first = await supabase
         .from('gos_circulars')
         .select(`${baseSelect}, doc_type`)
         .order('created_at', { ascending: false })
         .limit(200);
 
-      if (error) {
+      if (first.error) {
         const retry = await supabase
           .from('gos_circulars')
           .select(baseSelect)
           .order('created_at', { ascending: false })
           .limit(200);
-        data = retry.data;
-        error = retry.error;
+        data = (retry.data || []) as GosCircular[];
+        if (retry.error) throw retry.error;
+      } else {
+        data = (first.data || []) as GosCircular[];
       }
-
-      if (error) throw error;
       setDocuments(data || []);
     } catch (error) {
       console.error('Error fetching GOs and circulars:', error);

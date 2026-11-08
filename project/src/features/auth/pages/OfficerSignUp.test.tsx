@@ -75,9 +75,9 @@ describe('OfficerSignUp — 3-Step Registration Flow', () => {
 
     // Header and stepper
     expect(html).toContain('Agricultural Officer Sign Up');
-    expect(html).toContain('1. Details');
-    expect(html).toContain('2. Email OTP');
-    expect(html).toContain('3. Password');
+    expect(html).toContain('Details');
+    expect(html).toContain('Email OTP');
+    expect(html).toContain('Password');
 
     // Details fields
     expect(html).toContain('Officer Full Name');

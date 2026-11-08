@@ -62,3 +62,4 @@ export const KnowledgeDocumentViewer = lazy(() => import('../../features/knowled
 export const Disclaimer = lazy(() => import('../../features/legal/pages/Disclaimer').then((m) => ({ default: m.Disclaimer })));
 export const PrivacyPolicy = lazy(() => import('../../features/legal/pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })));
 export const TermsConditions = lazy(() => import('../../features/legal/pages/TermsConditions').then((m) => ({ default: m.TermsConditions })));
+export const ModuleDirectory = lazy(() => import('../../shared/components/navigation/ModuleDirectory').then((m) => ({ default: m.ModuleDirectory })));

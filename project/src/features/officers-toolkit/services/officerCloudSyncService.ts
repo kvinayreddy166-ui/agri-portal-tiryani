@@ -50,7 +50,7 @@ export const OFFICER_LOCAL_STORAGE_KEYS = {
     seed: 'tiryani-seed-inspection-drafts',
   },
   SAMPLES: {
-    fertilizer: 'tiryani-fertilizer-covering-letter-queue',
+    fertilizer: 'tiryani-covering-letter-queue',
     pesticide: 'tiryani-pesticide-covering-letter-queue',
     seed: 'tiryani-seed-covering-letter-queue',
   },
@@ -200,25 +200,67 @@ export class OfficerCloudSyncService {
 
     if (officerId && isOnline) {
       try {
-        const payload: OfficerSampleDbRecord = {
-          officer_id: officerId,
-          commodity,
-          sample_code: sampleCode,
-          firm_name: firmName,
-          date_of_sampling: dateOfSampling,
-          batch_no: batchNo,
-          covering_letter_json: { ...data, id },
-          lab_status: labStatus,
-        };
-
-        const { error } = await supabase
+        // Dedupe by (officer_id, commodity, sample_code): re-downloading or
+        // re-previewing the same sample updates the existing row instead of
+        // creating duplicates. lab_status is preserved unless explicitly set,
+        // and covering_letter_json is merged so tracker fields survive.
+        const { data: existing } = await supabase
           .from('officer_samples')
-          .upsert(payload);
+          .select('id, lab_status, covering_letter_json')
+          .eq('officer_id', officerId)
+          .eq('commodity', commodity)
+          .eq('sample_code', sampleCode)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
 
-        if (!error) {
-          syncedToCloud = true;
-        } else {
+        if (existing) {
+          const mergedJson = {
+            ...((existing.covering_letter_json && typeof existing.covering_letter_json === 'object'
+              ? existing.covering_letter_json
+              : {}) as Record<string, unknown>),
+            ...data,
+            id: existing.id,
+          };
+          const updatePayload: Record<string, unknown> = {
+            firm_name: firmName,
+            date_of_sampling: dateOfSampling,
+            batch_no: batchNo,
+            covering_letter_json: mergedJson,
+          };
+          if (data.labStatus) updatePayload.lab_status = labStatus;
+
+          const { error } = await supabase
+            .from('officer_samples')
+            .update(updatePayload)
+            .eq('id', existing.id);
+
+          if (!error) {
+            syncedToCloud = true;
+            return { success: true, syncedToCloud, id: existing.id };
+          }
           cloudError = error.message;
+        } else {
+          const payload: OfficerSampleDbRecord = {
+            officer_id: officerId,
+            commodity,
+            sample_code: sampleCode,
+            firm_name: firmName,
+            date_of_sampling: dateOfSampling,
+            batch_no: batchNo,
+            covering_letter_json: { ...data, id },
+            lab_status: labStatus,
+          };
+
+          const { error } = await supabase
+            .from('officer_samples')
+            .insert(payload);
+
+          if (!error) {
+            syncedToCloud = true;
+          } else {
+            cloudError = error.message;
+          }
         }
       } catch (err) {
         cloudError = (err as Error).message;
@@ -361,6 +403,21 @@ export class OfficerCloudSyncService {
     });
 
     return records.sort((a, b) => new Date(b.recordDate).getTime() - new Date(a.recordDate).getTime());
+  }
+
+  /**
+   * Re-pushes a local-only unified record to Supabase. Used by the Records Hub
+   * "Sync now" action to flush records created offline.
+   */
+  static async resyncLocalRecord(record: UnifiedOfficerRecord): Promise<SyncResult | null> {
+    if (record.source !== 'local') return null;
+    if (record.category === 'order') {
+      return this.syncStatutoryOrder(record.subType as StatutoryOrderType, record.commodity, record.details);
+    }
+    if (record.category === 'inspection') {
+      return this.syncInspection(record.commodity, record.details);
+    }
+    return this.syncSampleMemo(record.commodity, record.details);
   }
 
   /**

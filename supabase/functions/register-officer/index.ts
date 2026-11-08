@@ -3,6 +3,8 @@
 // ---------------------------------------------------------------------
 
 import { createAdminClient, corsHeaders, json, errorResponse } from '../_shared/knowledge.ts';
+import { verifyTurnstileToken, clientIp } from '../_shared/turnstile.ts';
+import { isPasswordCompliant, PASSWORD_POLICY_MESSAGE } from '../_shared/passwordPolicy.ts';
 
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight
@@ -40,8 +42,13 @@ Deno.serve(async (req: Request) => {
       return errorResponse('Valid email address is required', 400);
     }
 
-    if (String(password).length < 6) {
-      return errorResponse('Password must be at least 6 characters', 400);
+    if (!isPasswordCompliant(String(password))) {
+      return errorResponse(PASSWORD_POLICY_MESSAGE, 400);
+    }
+
+    const turnstile = await verifyTurnstileToken(body.captchaToken, clientIp(req));
+    if (!turnstile.success) {
+      return errorResponse(turnstile.error || 'Security verification failed', 403);
     }
 
     // Create admin client with service role key

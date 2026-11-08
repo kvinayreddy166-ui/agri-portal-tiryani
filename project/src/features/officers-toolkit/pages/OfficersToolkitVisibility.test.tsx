@@ -33,7 +33,7 @@ describe('OfficersToolkit — Public vs Authenticated Visibility', () => {
     });
   });
 
-  it('does NOT show Records & Cloud Archive in the public toolkit', () => {
+  it('does NOT show Saved Records & Storage in the public toolkit', () => {
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
       user: null,
       session: null,
@@ -67,15 +67,15 @@ describe('OfficersToolkit — Public vs Authenticated Visibility', () => {
     expect(html).toContain('Field Tools');
     expect(html).toContain('Government Portals');
 
-    // "Records & Cloud Archive" must NOT be in public toolkit
-    expect(html).not.toContain('Officer Records &amp; Cloud Archive');
-    expect(html).not.toContain('Officer Records & Cloud Archive');
-    expect(html).not.toContain('Records &amp; Cloud Archive');
-    expect(html).not.toContain('Records & Cloud Archive');
+    // "Saved Records & Storage" must NOT be in public toolkit
+    expect(html).not.toContain('Officer Saved Records &amp; Storage');
+    expect(html).not.toContain('Officer Saved Records & Storage');
+    expect(html).not.toContain('Saved Records &amp; Storage');
+    expect(html).not.toContain('Saved Records & Storage');
     expect(html).not.toContain('Cloud archive of notices');
   });
 
-  it('shows Records & Cloud Archive for authenticated agricultural officers', () => {
+  it('shows Saved Records & Storage for authenticated agricultural officers', () => {
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
       user: { id: 'officer-123', email: 'officer@telangana.gov.in' } as any,
       session: {} as any,
@@ -115,13 +115,13 @@ describe('OfficersToolkit — Public vs Authenticated Visibility', () => {
       </MemoryRouter>
     );
 
-    // Records & Cloud Archive should NOT show the Field Tools or Government Portals switcher buttons
+    // Saved Records & Storage should NOT show the Field Tools or Government Portals switcher buttons
     expect(html).not.toContain('Field Tools');
     expect(html).not.toContain('Government Portals');
 
     // Authenticated officer sees their records & cloud archive
-    expect(html).toContain('Records &amp; Cloud Archive');
-    expect(html).toContain('Secure Cloudflare R2 repository');
+    expect(html).toContain('Saved Records &amp; Storage');
+    expect(html).toContain('Synced with R2 repository');
   });
 
   it('renders Field Tools module without disturbing cards', () => {
@@ -132,13 +132,13 @@ describe('OfficersToolkit — Public vs Authenticated Visibility', () => {
     );
     expect(html).toContain('Field Tools');
     expect(html).toContain('Tour Diary');
-    expect(html).not.toContain('Records &amp; Cloud Archive');
+    expect(html).not.toContain('Saved Records &amp; Storage');
     // Enforcement Tracker is a separate module, NOT in Field Tools cards
     expect(html).not.toContain('Enforcement Tracker');
     expect(html).not.toContain('Case management, notice deadlines');
   });
 
-  it('renders Enforcement Tracker as a separate module tab in switcher for authenticated officers', () => {
+  it('renders module switcher without Enforcement Tracker for authenticated officers', () => {
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
       user: { id: 'officer-123', email: 'officer@telangana.gov.in' } as any,
       session: {} as any,
@@ -178,49 +178,14 @@ describe('OfficersToolkit — Public vs Authenticated Visibility', () => {
       </MemoryRouter>
     );
 
-    // Switcher should have all modules
+    // Switcher should have all modules except Enforcement Tracker
     expect(html).toContain('Field Tools');
-    expect(html).toContain('Enforcement Tracker');
-    expect(html).toContain('Records &amp; Cloud Archive');
+    expect(html).not.toContain('Enforcement Tracker');
+    expect(html).toContain('Saved Records &amp; Storage');
     expect(html).toContain('Government Portals');
 
     // Field Tools card grid should NOT have Enforcement Tracker
     expect(html).not.toContain('Case management, notice deadlines');
-  });
-
-  it('renders Enforcement Tracker when fixedTab="enforcement"', () => {
-    vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
-      user: { id: 'officer-123', email: 'officer@telangana.gov.in' } as any,
-      session: {} as any,
-      loading: false,
-      authChecked: true,
-      appReady: true,
-      isAdminUser: false,
-      isTestUser: false,
-      isDealerUser: false,
-      isOfficerUser: true,
-      officerProfile: null,
-      dealerId: null,
-      dealerName: null,
-      signIn: vi.fn(),
-      signInDealer: vi.fn(),
-      signInOfficerOtp: vi.fn(),
-      verifyOfficerOtp: vi.fn(),
-      registerOfficer: vi.fn(),
-      refreshOfficerProfile: vi.fn(),
-      signOut: vi.fn(),
-    });
-
-    const html = renderToString(
-      <MemoryRouter initialEntries={['/officer-toolkit/enforcement-tracker']}>
-        <OfficersToolkit isAdmin={false} isTestUser={false} isPublic={false} fixedTab="enforcement" />
-      </MemoryRouter>
-    );
-
-    // Should NOT render Field Tools or Government Portals tab switchers
-    expect(html).not.toContain('Government Portals');
-    // Renders EnforcementTracker (which starts with loader or header)
-    expect(html).toBeDefined();
   });
 
   it('renders Government Portals module without disturbing cards', () => {
@@ -230,6 +195,6 @@ describe('OfficersToolkit — Public vs Authenticated Visibility', () => {
       </MemoryRouter>
     );
     expect(html).toContain('Government Portals');
-    expect(html).not.toContain('Records &amp; Cloud Archive');
+    expect(html).not.toContain('Saved Records &amp; Storage');
   });
 });

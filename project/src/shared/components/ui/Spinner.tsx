@@ -21,15 +21,15 @@ export function Spinner({ size = 'md', className = '', label }: SpinnerProps) {
   return (
     <span role="status" aria-label={label ?? 'Loading'} className={`inline-flex shrink-0 ${sizeClasses[size]} ${className}`}>
       <svg viewBox="0 0 24 24" fill="none" aria-hidden className="animate-spinner h-full w-full">
-        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.15" strokeWidth="3.5" />
+        <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeOpacity="0.12" strokeWidth="2" />
         <circle
           cx="12"
           cy="12"
-          r="9"
+          r="9.5"
           stroke="currentColor"
-          strokeWidth="3.5"
+          strokeWidth="2"
           strokeLinecap="round"
-          strokeDasharray="14 42.4"
+          strokeDasharray="14 45.7"
           transform="rotate(-90 12 12)"
         />
       </svg>

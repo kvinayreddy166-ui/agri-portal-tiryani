@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlertCircle,
@@ -32,6 +32,8 @@ import { recordSiteHit } from '../../../shared/lib/siteHits';
 import { getMandalsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBackButtonOverlay } from '../../../shared/hooks/useBackButtonOverlay';
+import { TurnstileWidget, type TurnstileWidgetHandle } from '../../../shared/components/security/TurnstileWidget';
+import { isTurnstileEnabled } from '../../../shared/lib/turnstile';
 
 const PublicOfficerTools = React.lazy(() => import('./PublicOfficerTools').then((m) => ({ default: m.PublicOfficerTools })));
 
@@ -127,6 +129,19 @@ export function Login() {
 
   const { signIn, signInDealer } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null);
+  const resetCaptcha = () => {
+    setCaptchaToken(null);
+    turnstileRef.current?.reset();
+  };
+  const requireCaptcha = () => {
+    if (isTurnstileEnabled() && !captchaToken) {
+      setError(t('Please complete the security verification below.', 'దయచేసి దిగువ సెక్యూరిటీ ధృవీకరణను పూర్తి చేయండి.'));
+      return false;
+    }
+    return true;
+  };
   const grievanceMandals = getMandalsForDistrict(DISTRICT_TO_MANDAL_KEY[grievance.district] || grievance.district);
   const grievanceOverlay = useBackButtonOverlay('public-grievance', () => setGrievanceOpen(false));
 
@@ -170,8 +185,10 @@ export function Login() {
       setError(t('Please enter both email and password.', 'దయచేసి ఇమెయిల్ మరియు పాస్వర్డ్ నమోదు చేయండి.'));
       return;
     }
+    if (!requireCaptcha()) return;
     setLoading(true);
-    const { error: signInErr } = await signIn(targetEmail, officerPassword);
+    const { error: signInErr } = await signIn(targetEmail, officerPassword, captchaToken ?? undefined);
+    resetCaptcha();
     setLoading(false);
     if (signInErr) {
       setError(signInErr.message);
@@ -186,8 +203,14 @@ export function Login() {
     setSuccessMessage(null);
     setLoading(true);
 
+    if (!requireCaptcha()) {
+      setLoading(false);
+      return;
+    }
+
     if (loginMode === 'dealer') {
-      const { error: signInError } = await signInDealer(dealerPhone, dealerPassword);
+      const { error: signInError } = await signInDealer(dealerPhone, dealerPassword, captchaToken ?? undefined);
+      resetCaptcha();
       if (signInError) {
         setError(translateDealerLoginError(signInError.message, language === 'te'));
       }
@@ -196,7 +219,8 @@ export function Login() {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const { error: signInError } = await signIn(normalizedEmail, password);
+    const { error: signInError } = await signIn(normalizedEmail, password, captchaToken ?? undefined);
+    resetCaptcha();
 
     if (signInError) {
       setError(
@@ -424,6 +448,15 @@ export function Login() {
                   <span>{successMessage}</span>
                 </div>
               )}
+
+              <div className="mb-4 flex justify-center">
+                <TurnstileWidget
+                  ref={turnstileRef}
+                  onVerify={setCaptchaToken}
+                  onExpire={() => setCaptchaToken(null)}
+                  onError={() => setCaptchaToken(null)}
+                />
+              </div>
 
               {/* ===================== OFFICER PORTAL ===================== */}
               {loginMode === 'officer' && (

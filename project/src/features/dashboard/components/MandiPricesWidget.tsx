@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 import { useAuth } from '../../../shared/context/AuthContext';
 import {
   ALL_ANDHRA_PRADESH_DISTRICTS,
@@ -339,7 +340,7 @@ export function MandiPricesWidget() {
     return (
       <div className="portal-card flex h-56 items-center justify-center rounded-2xl p-6">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-9 w-9 animate-spin rounded-full border-3 border-emerald-200 border-t-emerald-600" />
+          <Spinner size="lg" className="text-emerald-600 dark:text-emerald-400" label="Loading mandi prices" />
           <p className="text-xs font-semibold text-slate-500">
             {selectedState === 'Telangana'
               ? t('Loading Telangana Mandi Prices...', 'తెలంగాణ మండి ధరలు లోడ్ అవుతున్నాయి...')

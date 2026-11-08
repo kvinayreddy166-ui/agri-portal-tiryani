@@ -1,10 +1,6 @@
-import React, { useMemo, useState, ReactNode } from 'react';
+import React, { useEffect, useMemo, useState, ReactNode } from 'react';
 import {
-  ChevronLeft, ChevronRight, X, LayoutDashboard, PackageCheck, UsersRound,
-  Archive, BarChart3, Settings, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Moon, Sun, Landmark, Database, BookOpen, LogOut,
-  Globe, Check, Gavel, CalendarDays, Phone, FileCheck, Files,
-  ClipboardCheck, FlaskConical, Calculator, Stethoscope, Scale,
+  ChevronLeft, ChevronRight, X, Moon, Sun, Globe, Check, LogOut, Settings,
 } from 'lucide-react';
 import { PortalLogo } from '../shared/components/ui/PortalLogo';
 import { ConfirmDialog } from '../shared/components/ui/ConfirmDialog';
@@ -13,6 +9,9 @@ import { useLanguage } from '../shared/context/LanguageContext';
 import { useTheme } from '../shared/context/ThemeContext';
 import { useBackButtonOverlay } from '../shared/hooks/useBackButtonOverlay';
 import { OfficerProfileAutofill } from '../features/auth/components/OfficerProfileAutofill';
+import { MODULE_MENU_ITEMS, getVisibleModuleItems, moduleSections, translateMenu } from '../shared/data/modules';
+import { MobileBottomNav } from '../shared/components/navigation/MobileBottomNav';
+import { recordRecentModule } from '../shared/lib/modulePrefs';
 
 interface LayoutProps {
   children: ReactNode;
@@ -20,50 +19,6 @@ interface LayoutProps {
   onNavigate: (page: string, options?: { replace?: boolean }) => void;
   onBack: () => void;
 }
-
-const adminMenuItems = [
-  // Overview
-  { id: 'stock-analytics', label: 'Command Center', icon: PackageCheck, adminOnly: true },
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'analytics', label: 'Reports', icon: BarChart3, adminOnly: true },
-
-  // Statutory & Enforcement (Separate Field Tools Modules)
-  { id: 'acts-and-orders', label: 'Acts & Orders', icon: Scale },
-  { id: 'enforcement-tracker', label: 'Enforcement Tracker', icon: Gavel },
-  { id: 'forms-library', label: 'Forms & Library', icon: FolderOpen },
-  { id: 'inspection-enforcement', label: 'Inspection & Enforcement', icon: ClipboardCheck },
-  { id: 'license-services', label: 'License Services', icon: FileCheck },
-  { id: 'forms', label: 'Smart Sampling', icon: Files },
-
-  // Field Advisory & Diagnostics (Separate Field Tools Modules)
-  { id: 'agrochemicals', label: 'Agrochemicals Database', icon: FlaskConical },
-  { id: 'crop-doctor', label: 'Crop Doctor', icon: Stethoscope },
-  { id: 'farm-calculators', label: 'Farm Calculators', icon: Calculator },
-
-  // Field Operations & Officer Administration (Separate Field Tools Modules + Operations)
-  { id: 'dealers', label: 'Dealers Directory', icon: UsersRound, adminOnly: true },
-  { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor, adminOnly: true },
-  { id: 'farmer-database', label: 'Farmer Database', icon: Database, adminOnly: true },
-  { id: 'officer-contacts', label: 'Officer Contacts', icon: Phone },
-  { id: 'quality', label: 'Quality Control', icon: ShieldCheck, adminOnly: true },
-  { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark, adminOnly: true },
-  { id: 'tour-diary', label: 'Tour Diary', icon: CalendarDays },
-
-  // Knowledge & Portals
-  { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText },
-  { id: 'government-portals', label: 'Government Portals', icon: Globe },
-  { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },
-
-  // Records & Admin
-  { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true },
-  { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true },
-  { id: 'officer-records', label: 'Records & Cloud Storage', icon: Archive },
-  { id: 'settings', label: 'Settings', icon: Settings },
-];
-
-const dealerMenuItems = [] as typeof adminMenuItems;
-
-const menuItems = adminMenuItems;
 
 export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -144,12 +99,13 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
   const profileName = officerProfile?.full_name || userMeta.full_name || userMeta.name || userMeta.display_name || user?.email?.split('@')[0] || 'User';
   const profileRole = officerProfile?.designation || userMeta.designation || (isAdminUser ? t('Administrator', 'నిర్వాహకుడు') : isDealerUser ? dealerName || t('Dealer', 'డీలర్') : isOfficer ? t('Agricultural Officer', 'వ్యవసాయ అధికారి') : t('View access', 'చూడే ప్రవేశం'));
 
-  const visibleMenuItems = isDealerUser
-    ? dealerMenuItems
-    : menuItems.filter((item) => {
-        if (item.adminOnly && !isAdminUser) return false;
-        return true;
-      });
+  const menuItemIds = useMemo(() => new Set(MODULE_MENU_ITEMS.map((item) => item.id)), []);
+
+  useEffect(() => {
+    if (menuItemIds.has(currentPage)) recordRecentModule(currentPage);
+  }, [currentPage, menuItemIds]);
+
+  const visibleMenuItems = isDealerUser ? [] : getVisibleModuleItems(isAdminUser);
 
   return (
     <div className="min-h-screen bg-[#f2f7f3] dark:bg-slate-950">
@@ -345,7 +301,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
         </div>
 
         <nav className="flex-1 overflow-y-auto overscroll-y-contain px-2.5 py-3">
-          {menuSections(visibleMenuItems, t).map((section) => (
+          {moduleSections(visibleMenuItems, t).map((section) => (
             <div key={section.title} className="mb-3 last:mb-0">
               <p className="mb-1.5 px-2.5 text-[9px] font-black uppercase tracking-[0.18em] text-gold-600 dark:text-gold-400">
                 {t(section.title, translateMenu(section.title))}
@@ -411,7 +367,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
         </div>
       </aside>
 
-      <main className="min-h-[calc(100vh-3rem)] max-w-full overflow-x-hidden">
+      <main className="min-h-[calc(100vh-3rem)] max-w-full overflow-x-hidden pb-20 lg:pb-0">
         <div className="mx-auto w-full max-w-7xl overflow-x-hidden p-3 sm:p-4 md:p-5 lg:p-6">
           {currentPage !== 'dashboard' && currentPage !== 'dealer-portal' && (
             <div className="mb-4 flex items-center gap-2">
@@ -457,6 +413,10 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
         </div>
       </main>
 
+      {!isDealerUser && (
+        <MobileBottomNav currentPage={currentPage} onNavigate={(page) => handleNavigation(page)} />
+      )}
+
       <ConfirmDialog
         open={showSignOutConfirm}
         title={t('Sign Out of Agronix?', 'అగ్రోనిక్స్ నుండి సైన్ అవుట్ చేయాలా?')}
@@ -478,54 +438,6 @@ type BreadcrumbItem = {
   label: string;
   page?: string;
 };
-
-function menuSections(items: typeof adminMenuItems, t: (key: string, telugu: string) => string) {
-  const sections = [
-    {
-      title: t('Overview', 'అవలోకనం'),
-      ids: ['stock-analytics', 'dashboard', 'analytics'],
-    },
-    {
-      title: t('Statutory & Enforcement', 'చట్టబద్ధమైన & అమలు'),
-      ids: ['acts-and-orders', 'enforcement-tracker', 'forms-library', 'inspection-enforcement', 'license-services', 'forms'],
-    },
-    {
-      title: t('Field Advisory & Diagnostics', 'ఫీల్డ్ అడ్వైజరీ & నిర్ధారణ'),
-      ids: ['agrochemicals', 'crop-doctor', 'farm-calculators'],
-    },
-    {
-      title: t('Field Operations & Duties', 'ఫీల్డ్ విధులు & కార్యకలాపాలు'),
-      ids: ['dealers', 'farm-mechanization', 'farmer-database', 'officer-contacts', 'quality', 'subsidy', 'tour-diary'],
-    },
-    {
-      title: t('Knowledge & Portals', 'జ్ఞాన భాండాగారం & పోర్టల్స్'),
-      ids: ['gos-circulars', 'government-portals', 'knowledge'],
-    },
-    {
-      title: t('Records & Archives', 'రికార్డులు & ఆర్కైవ్'),
-      ids: ['file-directory', 'excel', 'officer-records', 'settings'],
-    },
-  ];
-
-  const itemById = new Map(items.map((item) => [item.id, item]));
-  const used = new Set<string>();
-  const grouped = sections
-    .map((section) => {
-      const sectionItems = section.ids
-        .map((id) => itemById.get(id))
-        .filter((item): item is (typeof adminMenuItems)[number] => Boolean(item))
-        .sort((a, b) => a.label.localeCompare(b.label));
-      sectionItems.forEach((item) => used.add(item.id));
-      return { title: section.title, items: sectionItems };
-    })
-    .filter((section) => section.items.length > 0);
-
-  const remaining = items
-    .filter((item) => !used.has(item.id))
-    .sort((a, b) => a.label.localeCompare(b.label));
-  if (remaining.length) grouped.push({ title: t('More', 'మరిన్ని'), items: remaining });
-  return grouped;
-}
 
 function getPageMeta(page: string, t: (key: string, telugu: string) => string): { title: string; breadcrumbs: BreadcrumbItem[] } {
   const dashboard = { label: t('Dashboard', 'డ్యాష్‌బోర్డ్'), page: 'dashboard' };
@@ -575,7 +487,7 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'officer-toolkit': { title: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), breadcrumbs: [dashboard] },
     'field-tools': { title: t('Field Tools Hub', 'క్షేత్ర పరికరాల హబ్'), breadcrumbs: [dashboard] },
     'government-portals': { title: t('Government Portals', 'ప్రభుత్వ పోర్టల్స్'), breadcrumbs: [dashboard] },
-    'officer-records': { title: t('Records & Cloud Storage', 'రికార్డులు & క్లౌడ్ నిల్వ'), breadcrumbs: [dashboard] },
+    'officer-records': { title: t('Saved Records & Storage', 'సేవ్ చేసిన రికార్డులు & స్టోరేజ్'), breadcrumbs: [dashboard] },
     knowledge: { title: t('Knowledge Base', 'జ్ఞాన భాండాగారం'), breadcrumbs: [dashboard] },
     forms: { title: t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్'), breadcrumbs: [dashboard] },
     'forms-library': { title: t('Forms & Library', 'ఫారాలు & లైబ్రరీ'), breadcrumbs: [dashboard] },
@@ -609,6 +521,7 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     subsidy: { title: t('Subsidy & Schemes', 'సబ్సిడీ & పథకాలు'), breadcrumbs: [dashboard] },
     analytics: { title: t('Reports', 'నివేదికలు'), breadcrumbs: [dashboard] },
     settings: { title: t('Settings', 'సెట్టింగులు'), breadcrumbs: [dashboard] },
+    'all-modules': { title: t('All Modules', 'అన్ని మాడ్యూల్‌లు'), breadcrumbs: [dashboard] },
   };
 
   return meta[page] || { title: t('Dashboard', 'డ్యాష్‌బోర్డ్'), breadcrumbs: [{ label: t('Dashboard', 'డ్యాష్‌బోర్డ్') }] };
@@ -630,62 +543,3 @@ function subsidyTitle(page: string) {
   };
   return titles[page] || 'Subsidy & Schemes';
 }
-
-function translateMenu(label: string) {
-  const labels: Record<string, string> = {
-    Overview: 'అవలోకనం',
-    'Statutory & Enforcement': 'చట్టబద్ధమైన & అమలు',
-    'Field Advisory & Diagnostics': 'ఫీల్డ్ అడ్వైజరీ & నిర్ధారణ',
-    'Field Operations & Duties': 'ఫీల్డ్ విధులు & కార్యకలాపాలు',
-    'Knowledge & Portals': 'జ్ఞాన భాండాగారం & పోర్టల్స్',
-    'Records & Archives': 'రికార్డులు & ఆర్కైవ్',
-    Dashboard: 'డ్యాష్‌బోర్డ్',
-    'Command Center': 'కమాండ్ సెంటర్',
-    'Stock Analytics': 'స్టాక్ విశ్లేషణలు',
-    'Stock Receipts & Sales': 'స్టాక్ రసీట్లు & అమ్మకాలు',
-    'Stock Inventory': 'స్టాక్ ఇన్వెంటరీ',
-    'My Stock Entry': 'నా స్టాక్ ఎంట్రీ',
-    'Dealers Directory': 'డీలర్ల డైరెక్టరీ',
-    'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
-    'Farmer Database': 'రైతుల డేటాబేస్',
-    'Officer Toolkit': 'ఆఫీసర్ టూల్‌కిట్',
-    'Records & Cloud Storage': 'రికార్డులు & క్లౌడ్ నిల్వ',
-    'Field Tools': 'క్షేత్ర పరికరాలు',
-    'Field Tools Hub': 'క్షేత్ర పరికరాల హబ్',
-    'Government Portals': 'ప్రభుత్వ పోర్టల్స్',
-    'Smart Sampling': 'స్మార్ట్ సాంప్లింగ్',
-    'Forms & Library': 'ఫారాలు & లైబ్రరీ',
-    'Farm Calculators': 'వ్యవసాయ కాలిక్యులేటర్లు',
-    'Fertilizer Calculator': 'ఎరువుల కాలిక్యులేటర్',
-    'Acts & Orders': 'చట్టాలు & ఉత్తర్వులు',
-    'Seed Rate Calculator': 'విత్తన మోతాదు కాలిక్యులేటర్',
-    'Plant Population Calculator': 'మొక్కల జనాభా కాలిక్యులేటర్',
-    'Pesticide Calculator': 'పురుగుమందుల కాలిక్యులేటర్',
-    'Area Calculator': 'ఎకరాల కాలిక్యులేటర్',
-    'GOs & Circulars': 'జి.ఓ.లు & సర్క్యులర్లు',
-    'Quality Control': 'నాణ్యత నియంత్రణ',
-    'Agrochemicals Database': 'వ్యవసాయ రసాయనాల భాండాగారం',
-    Agrochemicals: 'వ్యవసాయ రసాయనాలు',
-    'Farm Mechanization': 'వ్యవసాయ యాంత్రీకరణ',
-    'Office Records': 'కార్యాలయ రికార్డులు',
-    'Document Repository': 'పత్రాల భాండాగారం',
-    'Subsidy & Schemes': 'సబ్సిడీ & పథకాలు',
-    'Tour Diary': 'టూర్ డైరీ',
-    'Officer Contacts': 'అధికారుల పరిచయాలు',
-    'License Services': 'లైసెన్స్ సేవలు',
-    'Inspection & Enforcement': 'తనిఖీ & అమలు',
-    'Enforcement Tracker': 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్',
-    'Crop Doctor': 'పంట డాక్టర్',
-    'Knowledge Base': 'జ్ఞాన భాండాగారం',
-    Reports: 'నివేదికలు',
-    NFSM: 'ఎన్.ఎఫ్.ఎస్.ఎం',
-    'State Seed Cell': 'రాష్ట్ర విత్తన కార్యాలయం',
-    Seeds: 'విత్తనాలు',
-    Pesticides: 'పురుగుమందులు',
-    Fertilizers: 'ఎరువులు',
-    Analytics: 'విశ్లేషణలు',
-    Settings: 'సెట్టింగులు',
-  };
-  return labels[label] ?? label;
-}
-
