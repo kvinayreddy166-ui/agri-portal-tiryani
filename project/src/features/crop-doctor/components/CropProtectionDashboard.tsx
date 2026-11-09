@@ -147,7 +147,7 @@ export function CropProtectionDashboard({
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder={label('Search crop, pest, disease, weed or symptom', language)}
+          placeholder={label('Search crop, pest or disease', language)}
           className="h-10 w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-3 text-sm font-bold text-slate-900 shadow-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
         />
       </div>

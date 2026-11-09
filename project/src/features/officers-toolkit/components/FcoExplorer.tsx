@@ -187,7 +187,7 @@ export function FcoExplorer({
               value={term}
               onChange={(event) => setTerm(event.target.value)}
               onKeyDown={(event) => { if (event.key === 'Enter' && term.trim()) saveRecent(term.trim()); }}
-              placeholder="Search clauses, sections, definitions, forms, schedules, keywords..."
+              placeholder="Search clauses, sections, keywords..."
               className="w-full min-w-0 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100"
             />
             {term && (

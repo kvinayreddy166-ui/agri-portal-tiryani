@@ -314,7 +314,7 @@ export function GosCirculars() {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('Search by title, description or file name…', 'శీర్షిక, వివరణ లేదా ఫైల్ పేరుతో వెతకండి…')}
+            placeholder={t('Search title or file name…', 'శీర్షిక లేదా ఫైల్ పేరు వెతకండి…')}
             className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm font-semibold text-slate-800 shadow-xs outline-none transition placeholder:font-medium placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-500 dark:focus:ring-emerald-900/30"
           />
         </div>

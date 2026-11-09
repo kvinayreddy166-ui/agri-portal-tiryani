@@ -294,17 +294,30 @@ export class OfficerReportExportService {
 
   /**
    * Builds the officer identity lines shown under the report title:
-   * name + designation + qualification on the first line, jurisdiction on the second.
+   * name + qualification + designation on the first line, jurisdiction on the second.
    */
   private static officerMetaLines(options: ReportExportOptions): { officerLine: string; detailLine: string } {
-    const designation = options.designation?.trim() || 'Agricultural Officer';
-    const qualification = options.qualification?.trim() || '—';
+    const name = options.officerName?.trim() || 'Agricultural Officer';
+    const designation = options.designation?.trim() || '';
+    const qualification = options.qualification?.trim() || '';
+    const parts = [name];
+    const seen = new Set([name.toLowerCase()]);
+
+    for (const part of [qualification, designation]) {
+      const clean = part === '—' ? '' : part;
+      if (!clean) continue;
+      const key = clean.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      parts.push(clean);
+    }
+
     const jurisdiction = [options.location, options.district]
       .map((v) => (v || '').trim())
       .filter((v, i, a) => v.length > 0 && a.indexOf(v) === i)
       .join(', ') || 'Telangana';
     return {
-      officerLine: `Name: ${options.officerName || 'Agricultural Officer'}  |  Designation: ${designation}  |  ${qualification}`,
+      officerLine: parts.join(', '),
       detailLine: `Jurisdiction: ${jurisdiction}`,
     };
   }
@@ -327,6 +340,9 @@ export class OfficerReportExportService {
       comm === 'pesticide' ? 'Pesticide_' : '';
 
     const isSample = cat === 'sample';
+    const isStopSales = cat === 'stop_sales';
+    const isSeizures = cat === 'seizures';
+    const isScnMemos = cat === 'scn_memos';
     const isOrder = cat === 'order';
     const isNotice = cat === 'notice';
     const isInspection = cat === 'inspection';
@@ -336,6 +352,30 @@ export class OfficerReportExportService {
         mainTitle: 'GOVERNMENT OF TELANGANA — DEPARTMENT OF AGRICULTURE',
         subTitle: `OFFICIAL STATUTORY ${commodityPrefix}SAMPLING REGISTER & CONSOLIDATED REPORT`,
         filenameBase: `Official_${commodityFilePrefix}Sampling_Register_Report`,
+      };
+    }
+
+    if (isStopSales) {
+      return {
+        mainTitle: 'GOVERNMENT OF TELANGANA — DEPARTMENT OF AGRICULTURE',
+        subTitle: `STATUTORY ${commodityPrefix}STOP SALE & REVOCATION ORDERS REGISTER`,
+        filenameBase: `Statutory_${commodityFilePrefix}Stop_Sale_Orders_Register`,
+      };
+    }
+
+    if (isSeizures) {
+      return {
+        mainTitle: 'GOVERNMENT OF TELANGANA — DEPARTMENT OF AGRICULTURE',
+        subTitle: `STATUTORY ${commodityPrefix}SEIZURE ORDERS REGISTER`,
+        filenameBase: `Statutory_${commodityFilePrefix}Seizure_Orders_Register`,
+      };
+    }
+
+    if (isScnMemos) {
+      return {
+        mainTitle: 'GOVERNMENT OF TELANGANA — DEPARTMENT OF AGRICULTURE',
+        subTitle: `STATUTORY ${commodityPrefix}SHOW CAUSE NOTICES & MEMOS REGISTER`,
+        filenameBase: `Statutory_${commodityFilePrefix}SCN_Memos_Register`,
       };
     }
 
@@ -350,8 +390,8 @@ export class OfficerReportExportService {
     if (isNotice) {
       return {
         mainTitle: 'GOVERNMENT OF TELANGANA — DEPARTMENT OF AGRICULTURE',
-        subTitle: `STATUTORY ${commodityPrefix}SHOW CAUSE NOTICES REGISTER & REPORT`,
-        filenameBase: `Show_Cause_${commodityFilePrefix}Notices_Register`,
+        subTitle: `STATUTORY ${commodityPrefix}SHOW CAUSE NOTICES & MEMOS REGISTER`,
+        filenameBase: `Statutory_${commodityFilePrefix}SCN_Memos_Register`,
       };
     }
 

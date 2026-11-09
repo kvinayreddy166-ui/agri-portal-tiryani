@@ -257,7 +257,7 @@ export default function StockReceiptsSales() {
           </select>
           <label className="relative md:col-span-2">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-            <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search dealer, IFMS, product, batch, lot, remarks" className="w-full rounded-lg border border-slate-300 dark:border-slate-600 py-2 pl-9 pr-3 text-sm font-bold" />
+            <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search dealer, product, batch" className="w-full rounded-lg border border-slate-300 dark:border-slate-600 py-2 pl-9 pr-3 text-sm font-bold" />
           </label>
         </div>
       </section>

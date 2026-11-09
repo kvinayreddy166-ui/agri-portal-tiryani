@@ -450,7 +450,7 @@ export function ActsAndOrders() {
           bookmarks={bookmarks}
           badgeLabel="Act Sections"
           accent="amber"
-          searchPlaceholder="Search Section 21, 21(1)(d), misbranded, Section 29, Schedule..."
+          searchPlaceholder="Search Section 21 or 29..."
           onTabChange={setFcoActiveTab}
           onSearchChange={(value) => {
             setQuery(value);
@@ -476,7 +476,7 @@ export function ActsAndOrders() {
           bookmarks={bookmarks}
           badgeLabel="Rules"
           accent="amber"
-          searchPlaceholder="Search Rule 27, 10A, Form V(A), labelling, Appendix B, expired..."
+          searchPlaceholder="Search Rule 27 or 10A..."
           onTabChange={setFcoActiveTab}
           onSearchChange={(value) => {
             setQuery(value);
@@ -576,7 +576,7 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search Form III, Form V(A), Appendix B, licence, seizure, register..."
+            placeholder="Search form, clause or register..."
             className={`w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
           />
         </div>
@@ -626,7 +626,7 @@ function FertilizerClausesPanel({
   activeTab,
   bookmarks,
   badgeLabel = 'Clauses',
-  searchPlaceholder = 'Search Clause 28, 28(2), stop sale, Form J, Schedule II...',
+  searchPlaceholder = 'Search Clause 28 or Form J...',
   accent = 'sky',
   bare = false,
   simpleHeader = false,
@@ -754,7 +754,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search schedule, part, sampling, tolerance, biofertiliser..."
+            placeholder="Search schedule or tolerance..."
             className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           />
         </div>
@@ -1497,7 +1497,7 @@ function FertilizerFormsPanel({
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search form number, title, clause, category..."
+            placeholder="Search form no. or clause..."
             className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           />
         </div>
@@ -1728,7 +1728,7 @@ const fertilizerEnforcementConfig: EnforcementDutiesConfig = {
   offences: fcoOffenceEntries,
   offencesTitle: 'FCO Offences & Penal Provisions',
   offencesSubtitle: 'Searchable offence reference with FCO contravention and ECA punishment provisions.',
-  offenceSearchPlaceholder: 'Search offence, FCO provision, ECA punishment...',
+  offenceSearchPlaceholder: 'Search offence or provision...',
   offencesEmpty: 'No FCO offence entry matches the current search.',
   sourceNote: 'Source: Central Fertilizer Quality Control & Training Institute (CFQCTI), Faridabad — Duties and Responsibilities of Enforcement Officers.',
   excelFilename: 'fco-offences-penal-provisions.xlsx',
@@ -1745,7 +1745,7 @@ const insecticideEnforcementConfig: EnforcementDutiesConfig = {
   offences: insecticideOffenceEntries,
   offencesTitle: 'Insecticide Offences & Penal Provisions',
   offencesSubtitle: 'Searchable offence reference with Insecticides Act sections, Rules and departmental enforcement examples.',
-  offenceSearchPlaceholder: 'Search offence, Section 29, Rule 10-A, misbranded...',
+  offenceSearchPlaceholder: 'Search offence or Section 29...',
   offencesEmpty: 'No insecticide offence entry matches the current search.',
   sourceNote: 'Source: Insecticides Act, 1968 (Sec. 20-24, 27-29) and Insecticides Rules, 1971 (Rules 27-34) with departmental enforcement workflow.',
   excelFilename: 'insecticide-offences-penal-provisions.xlsx',

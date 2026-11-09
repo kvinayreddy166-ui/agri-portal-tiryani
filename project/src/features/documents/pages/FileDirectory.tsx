@@ -282,7 +282,7 @@ export function FileDirectory() {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('Search files, folders, or subfolders...', 'ఫైళ్లు, ఫోల్డర్లు లేదా సబ్ ఫోల్డర్లు వెతకండి...')}
+            placeholder={t('Search files or folders...', 'ఫైళ్లు లేదా ఫోల్డర్లు వెతకండి...')}
             className="w-full rounded-xl border border-slate-300 py-3 pl-10 pr-4 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
           />
         </div>

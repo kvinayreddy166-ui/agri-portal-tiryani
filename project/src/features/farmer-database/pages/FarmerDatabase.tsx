@@ -604,7 +604,7 @@ export function FarmerDatabase() {
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 py-2.5 pl-9 pr-3 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-              placeholder={uiLabel('Search by farmer name, phone, PPB, Aadhaar, survey no or village', showTelugu)}
+              placeholder={uiLabel('Search name, phone, survey no...', showTelugu)}
             />
           </div>
           <MultiSelectFilter
@@ -1199,7 +1199,7 @@ function uiLabel(label: string, showTelugu: boolean) {
     'Farmer Database': 'రైతుల డేటాబేస్',
     'Farmer Search Database': 'రైతుల శోధన డేటాబేస్',
     'Search by farmer, family name, phone, PPB, Aadhaar, survey number, or village.': 'రైతు పేరు, కుటుంబ పేరు, ఫోన్, పి.పి.బి, ఆధార్, సర్వే నంబర్ లేదా గ్రామం ద్వారా వెతకండి.',
-    'Search by farmer name, phone, PPB, Aadhaar, survey no or village': 'రైతు పేరు, ఫోన్, పి.పి.బి, ఆధార్, సర్వే నంబర్ లేదా గ్రామం ద్వారా వెతకండి',
+    'Search name, phone, survey no...': 'రైతు పేరు, ఫోన్, పి.పి.బి, ఆధార్, సర్వే నంబర్ లేదా గ్రామం ద్వారా వెతకండి',
     'All villages': 'అన్ని గ్రామాలు',
     'All crops': 'అన్ని పంటలు',
     'Village-wise Total Farmers': 'గ్రామాల వారీ మొత్తం రైతులు',

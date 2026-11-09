@@ -290,7 +290,7 @@ export function CropPestInsecticideExplorer({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('Search chemical or brand (e.g. Coragen)...', 'రసాయనం లేదా బ్రాండ్ ద్వారా వెతకండి...')}
+              placeholder={t('Search chemical or brand...', 'రసాయనం లేదా బ్రాండ్ వెతకండి...')}
               className="w-full rounded-xl border border-slate-300 bg-slate-50 pl-9 pr-9 py-1.5 text-xs font-semibold text-slate-900 focus:border-rose-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             />
             {searchQuery && (

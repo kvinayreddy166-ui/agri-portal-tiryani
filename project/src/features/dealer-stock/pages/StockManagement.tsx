@@ -374,7 +374,7 @@ export function StockManagement() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-400 dark:focus:ring-emerald-900/40"
-                placeholder="Search dealer, fertilizer, wholesaler, or invoice"
+                placeholder="Search dealer or invoice"
               />
             </div>
             <div className="flex flex-wrap items-center gap-2">

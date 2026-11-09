@@ -703,6 +703,7 @@ export class OfficerCloudSyncService {
         .from('officer_inspections')
         .delete()
         .eq('officer_id', officerId)
+        .eq('inspection_type', commodity)
         .filter('findings_json->>id', 'eq', draftId);
       if (error) return false;
       await this.unlinkCaseRecord(officerId, `inspection:${draftId}`);
@@ -869,7 +870,6 @@ export class OfficerCloudSyncService {
 
   // ---------- Offline pending-record flush ----------
 
-  private static flushTimer: ReturnType<typeof setTimeout> | null = null;
   private static flushListenerRegistered = false;
   private static lastFlushAt = 0;
   private static flushing = false;

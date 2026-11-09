@@ -203,6 +203,28 @@ describe('OfficerReportExportService', () => {
       expect(title.subTitle).toContain('STATUTORY ENFORCEMENT ORDERS');
     });
 
+    it('returns category-specific titles for stop sales, seizures, and SCN/memos', () => {
+      const stopSales = OfficerReportExportService.getReportTitle({
+        activeTab: 'forms',
+        categoryFilter: 'stop_sales',
+        commodityFilter: 'fertilizer',
+      });
+      expect(stopSales.subTitle).toBe('STATUTORY FERTILIZER STOP SALE & REVOCATION ORDERS REGISTER');
+      expect(stopSales.filenameBase).toBe('Statutory_Fertilizer_Stop_Sale_Orders_Register');
+
+      const seizures = OfficerReportExportService.getReportTitle({
+        activeTab: 'forms',
+        categoryFilter: 'seizures',
+      });
+      expect(seizures.subTitle).toBe('STATUTORY SEIZURE ORDERS REGISTER');
+
+      const scnMemos = OfficerReportExportService.getReportTitle({
+        activeTab: 'forms',
+        categoryFilter: 'scn_memos',
+      });
+      expect(scnMemos.subTitle).toBe('STATUTORY SHOW CAUSE NOTICES & MEMOS REGISTER');
+    });
+
     it('returns official inspection report title', () => {
       const title = OfficerReportExportService.getReportTitle({
         activeTab: 'documents',

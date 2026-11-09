@@ -60,6 +60,24 @@ describe('OfficerDocumentArchiveService', () => {
     expect(result.documentId).toBe('existing-doc-id-123');
   });
 
+  it('skips archiving non-PDF documents', async () => {
+    const docxBlob = new Blob(['word content'], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
+
+    const result = await OfficerDocumentArchiveService.archiveGeneratedDocument(docxBlob, {
+      filename: 'Show_Cause_Notice.docx',
+      documentCategory: 'notice',
+      sourceModule: 'show_cause',
+      fileFormat: 'docx',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.skipped).toBe(true);
+    expect(result.compressionStatus).toBe('skipped');
+    expect(result.documentId).toBe('');
+  });
+
   it('enqueues into offline queue when Cloudflare worker is unreachable without failing caller', async () => {
     const dummyBlob = new Blob(['new unique pdf content'], { type: 'application/pdf' });
     const input: DocumentArchiveInput = {

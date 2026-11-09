@@ -391,7 +391,7 @@ export function StockInventory() {
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search dealer, firm, fertilizer, invoice, date"
+              placeholder="Search dealer, product, invoice"
               className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm font-semibold text-slate-950 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
             />
           </div>

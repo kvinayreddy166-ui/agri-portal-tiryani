@@ -72,6 +72,9 @@ export interface OfficerSampleDbRecord {
   batch_no?: string;
   covering_letter_json: Record<string, unknown>;
   lab_status: LabStatus;
+  dispatched_at?: string | null;
+  report_received_at?: string | null;
+  lab_report_ref?: string | null;
   created_at?: string;
   updated_at?: string;
 }

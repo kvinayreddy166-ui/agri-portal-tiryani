@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Bell, BellOff, Briefcase, CalendarClock, FlaskConical, Loader2, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Ban, Bell, BellOff, CalendarClock, FlaskConical, Loader2, PackageX, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useAuth } from '../../../shared/context/AuthContext';
 import {
@@ -9,12 +9,23 @@ import {
 } from '../../officers-toolkit/services/enforcementTrackerService';
 
 const NOTIFIED_KEY = 'agri-deadline-notified-date';
+const MUTED_KEY = 'agri-deadline-alerts-muted';
 
-function requestNotificationPermission(): void {
-  if (typeof Notification === 'undefined') return;
-  if (Notification.permission === 'default') {
-    void Notification.requestPermission();
+async function requestNotificationPermission(): Promise<NotificationPermission | null> {
+  if (typeof Notification === 'undefined') return null;
+  try {
+    return await Notification.requestPermission();
+  } catch {
+    return Notification.permission;
   }
+}
+
+function readMuted(): boolean {
+  return safeGet(MUTED_KEY) === '1';
+}
+
+function writeMuted(muted: boolean): void {
+  safeSet(MUTED_KEY, muted ? '1' : '0');
 }
 
 function fireDeadlineNotification(urgentCount: number, totalDue: number): void {
@@ -50,7 +61,7 @@ function safeSet(key: string, value: string): void {
 
 /**
  * Compact enforcement summary strip shown only to officers on the dashboard.
- * Shows open cases, urgent deadlines, active samples and high-risk dealers,
+ * Shows urgent deadlines, active samples and high-risk dealers,
  * plus optional browser notifications for approaching show-cause deadlines.
  */
 export function OfficerEnforcementStrip() {
@@ -59,6 +70,10 @@ export function OfficerEnforcementStrip() {
   const [data, setData] = useState<EnforcementData | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [alertsMuted, setAlertsMuted] = useState<boolean>(() => readMuted());
+  const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>(() =>
+    typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
+  );
   const notifiedRef = useRef(false);
 
   useEffect(() => {
@@ -83,7 +98,6 @@ export function OfficerEnforcementStrip() {
 
   const stats = useMemo(() => {
     if (!data) return null;
-    const openCases = data.cases.filter((c) => c.stage !== 'CLOSED').length;
     const deadlineItems = EnforcementTrackerService.buildDeadlineItems(data.orders);
     const pendingDeadlines = deadlineItems.filter(
       (d) => d.order.reply_status !== 'REPLIED' && d.order.reply_status !== 'WAIVED' && d.status !== 'CLOSED'
@@ -94,22 +108,47 @@ export function OfficerEnforcementStrip() {
     const highRiskDealers = EnforcementTrackerService.buildDealerScorecards(data).filter(
       (s) => s.riskLevel === 'HIGH' || s.riskLevel === 'CRITICAL'
     ).length;
-    return { openCases, urgentDeadlines: pendingDeadlines.length, urgentCount, activeSamples, highRiskDealers };
+    const stopSaleOrders = data.orders.filter((o) => o.order_type === 'stop_sale').length;
+    const seizureOrders = data.orders.filter((o) => o.order_type === 'seizure').length;
+    return { urgentDeadlines: pendingDeadlines.length, urgentCount, activeSamples, highRiskDealers, stopSaleOrders, seizureOrders };
   }, [data]);
 
   // Fire a once-per-day browser notification for urgent deadlines
   useEffect(() => {
-    if (!stats || notifiedRef.current || stats.urgentCount === 0) return;
+    if (!stats || notifiedRef.current || stats.urgentCount === 0 || alertsMuted) return;
     notifiedRef.current = true;
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       fireDeadlineNotification(stats.urgentCount, stats.urgentDeadlines);
     }
-  }, [stats]);
+  }, [stats, alertsMuted]);
 
   if (!isOfficerUser) return null;
 
-  const notificationSupported = typeof Notification !== 'undefined';
-  const notificationGranted = notificationSupported && Notification.permission === 'granted';
+  const notificationSupported = permission !== 'unsupported';
+  const notificationGranted = permission === 'granted';
+
+  const enableAlerts = async () => {
+    const result = await requestNotificationPermission();
+    if (result) setPermission(result);
+    if (result === 'granted') {
+      try {
+        new Notification('AGRONIX — Deadline alerts on', {
+          body: 'You will be notified about urgent enforcement deadlines.',
+          tag: 'agri-alerts-test',
+        });
+      } catch {
+        // notification test failed silently
+      }
+    }
+  };
+
+  const toggleAlerts = () => {
+    setAlertsMuted((prev) => {
+      const next = !prev;
+      writeMuted(next);
+      return next;
+    });
+  };
 
   return (
     <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm dark:border-emerald-900/60 dark:from-emerald-950/40 dark:to-slate-900">
@@ -121,18 +160,34 @@ export function OfficerEnforcementStrip() {
         {notificationSupported && !notificationGranted && (
           <button
             type="button"
-            onClick={requestNotificationPermission}
+            onClick={enableAlerts}
             className="flex items-center gap-1 rounded-lg border border-emerald-300 px-2 py-1 text-[10px] font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950"
           >
             <Bell className="h-3 w-3" />
             {t('Enable deadline alerts', 'గడువు హెచ్చరికలు ప్రారంభించండి')}
           </button>
         )}
-        {notificationGranted && (
-          <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+        {notificationGranted && alertsMuted && (
+          <button
+            type="button"
+            onClick={toggleAlerts}
+            className="flex items-center gap-1 text-[10px] font-bold text-red-600 transition hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+            title={t('Alerts off — click to re-enable', 'హెచ్చరికలు ఆఫ్ — మళ్లీ ప్రారంభించడానికి క్లిక్ చేయండి')}
+          >
+            <BellOff className="h-3 w-3" />
+            {t('Alerts off', 'హెచ్చరికలు ఆఫ్')}
+          </button>
+        )}
+        {notificationGranted && !alertsMuted && (
+          <button
+            type="button"
+            onClick={toggleAlerts}
+            className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 transition hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+            title={t('Click to turn off alerts', 'హెచ్చరికలను ఆఫ్ చేయడానికి క్లిక్ చేయండి')}
+          >
             <Bell className="h-3 w-3" />
             {t('Alerts on', 'హెచ్చరికలు ఆన్')}
-          </span>
+          </button>
         )}
         {!notificationSupported && (
           <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
@@ -152,61 +207,68 @@ export function OfficerEnforcementStrip() {
           {t('Could not load enforcement summary.', 'అమలు సారాంశం లోడ్ కాలేదు.')}
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Link
-            to="/officer-toolkit/enforcement-tracker?tab=cases"
-            className="group rounded-xl border border-slate-200 bg-white/80 p-3 transition hover:border-emerald-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/60"
-          >
-            <Briefcase className="mb-1 h-4 w-4 text-emerald-600" />
-            <p className="text-xl font-black text-slate-900 dark:text-white">{stats.openCases}</p>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
-              {t('Open cases', 'ఓపెన్ కేసులు')}
-            </p>
-          </Link>
-          <Link
-            to="/officer-toolkit/enforcement-tracker?tab=deadlines"
-            className={`group rounded-xl border p-3 transition hover:shadow-sm ${
-              stats.urgentCount > 0
-                ? 'border-red-200 bg-red-50/70 hover:border-red-300 dark:border-red-900/50 dark:bg-red-950/30'
-                : 'border-slate-200 bg-white/80 hover:border-emerald-300 dark:border-slate-700 dark:bg-slate-800/60'
-            }`}
-          >
-            <CalendarClock className={`mb-1 h-4 w-4 ${stats.urgentCount > 0 ? 'text-red-500' : 'text-emerald-600'}`} />
-            <p className={`text-xl font-black ${stats.urgentCount > 0 ? 'text-red-700 dark:text-red-300' : 'text-slate-900 dark:text-white'}`}>
-              {stats.urgentDeadlines}
-            </p>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
-              {stats.urgentCount > 0
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+          {[
+            {
+              to: '/officer-toolkit/enforcement-tracker?tab=deadlines',
+              icon: CalendarClock,
+              value: stats.urgentDeadlines,
+              sub: stats.urgentCount > 0
                 ? `${stats.urgentCount} ${t('urgent', 'అత్యవసరం')}`
-                : t('Deadlines due', 'గడువులు')}
-            </p>
-          </Link>
-          <Link
-            to="/officer-toolkit/enforcement-tracker?tab=samples"
-            className="group rounded-xl border border-slate-200 bg-white/80 p-3 transition hover:border-emerald-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/60"
-          >
-            <FlaskConical className="mb-1 h-4 w-4 text-emerald-600" />
-            <p className="text-xl font-black text-slate-900 dark:text-white">{stats.activeSamples}</p>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
-              {t('Active samples', 'యాక్టివ్ నమూనాలు')}
-            </p>
-          </Link>
-          <Link
-            to="/officer-toolkit/enforcement-tracker?tab=scorecards"
-            className={`group rounded-xl border p-3 transition hover:shadow-sm ${
-              stats.highRiskDealers > 0
-                ? 'border-amber-200 bg-amber-50/70 hover:border-amber-300 dark:border-amber-900/50 dark:bg-amber-950/30'
-                : 'border-slate-200 bg-white/80 hover:border-emerald-300 dark:border-slate-700 dark:bg-slate-800/60'
-            }`}
-          >
-            <AlertTriangle className={`mb-1 h-4 w-4 ${stats.highRiskDealers > 0 ? 'text-amber-500' : 'text-emerald-600'}`} />
-            <p className={`text-xl font-black ${stats.highRiskDealers > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-slate-900 dark:text-white'}`}>
-              {stats.highRiskDealers}
-            </p>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
-              {t('High-risk dealers', 'అధిక ప్రమాద డీలర్లు')}
-            </p>
-          </Link>
+                : t('Deadlines due', 'గడువులు'),
+              iconCls: 'text-red-500',
+              numCls: 'text-red-700 dark:text-red-300',
+              hoverCls: 'hover:border-red-300 dark:hover:border-red-700',
+            },
+            {
+              to: '/officer-toolkit/enforcement-tracker?tab=samples',
+              icon: FlaskConical,
+              value: stats.activeSamples,
+              sub: t('Active samples', 'యాక్టివ్ నమూనాలు'),
+              iconCls: 'text-sky-500',
+              numCls: 'text-sky-700 dark:text-sky-300',
+              hoverCls: 'hover:border-sky-300 dark:hover:border-sky-700',
+            },
+            {
+              to: '/officer-toolkit/enforcement-tracker?tab=scorecards',
+              icon: AlertTriangle,
+              value: stats.highRiskDealers,
+              sub: t('High-risk dealers', 'అధిక ప్రమాద డీలర్లు'),
+              iconCls: 'text-amber-500',
+              numCls: 'text-amber-700 dark:text-amber-300',
+              hoverCls: 'hover:border-amber-300 dark:hover:border-amber-700',
+            },
+            {
+              to: '/officer-toolkit/enforcement-tracker?tab=scorecards',
+              icon: Ban,
+              value: stats.stopSaleOrders,
+              sub: t('Stop sale orders', 'స్టాప్ సేల్ ఆర్డర్లు'),
+              iconCls: 'text-violet-500',
+              numCls: 'text-violet-700 dark:text-violet-300',
+              hoverCls: 'hover:border-violet-300 dark:hover:border-violet-700',
+            },
+            {
+              to: '/officer-toolkit/enforcement-tracker?tab=scorecards',
+              icon: PackageX,
+              value: stats.seizureOrders,
+              sub: t('Seizure orders', 'జబ్తు ఆర్డర్లు'),
+              iconCls: 'text-orange-500',
+              numCls: 'text-orange-700 dark:text-orange-300',
+              hoverCls: 'hover:border-orange-300 dark:hover:border-orange-700',
+            },
+          ].map((card) => (
+            <Link
+              key={card.to + card.sub}
+              to={card.to}
+              className={`group rounded-xl border border-slate-200 bg-white/80 p-3 transition hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/60 ${card.hoverCls}`}
+            >
+              <card.icon className={`mb-1 h-4 w-4 ${card.iconCls}`} />
+              <p className={`text-xl font-black ${card.numCls}`}>{card.value}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                {card.sub}
+              </p>
+            </Link>
+          ))}
         </div>
       )}
     </div>

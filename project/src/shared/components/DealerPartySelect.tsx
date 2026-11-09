@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import type { Dealer } from '../../types/database';
+import type { Dealer } from '../types/database';
+import { useAuth } from '../context/AuthContext';
 
 const MANUAL_VALUE = '__manual__';
 
@@ -27,6 +28,7 @@ export function DealerPartySelect({
   className = '',
 }: DealerPartySelectProps) {
   const [value, setValue] = useState('');
+  const { isAdminUser, isOfficerUser } = useAuth();
 
   const sorted = useMemo(
     () => [...dealers].sort((a, b) => a.dealer_name.localeCompare(b.dealer_name)),
@@ -43,6 +45,10 @@ export function DealerPartySelect({
       if (dealer) onPick(dealer);
     }
   };
+
+  // Dealer directory selection is only for officers/admins — public and
+  // dealer-login users get the plain manual-entry fields.
+  if (!isAdminUser && !isOfficerUser) return null;
 
   return (
     <label className={`block ${className}`}>

@@ -50,6 +50,7 @@ export function MandiPricesWidget() {
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
+  const [dateSortOrder, setDateSortOrder] = useState<'asc' | 'desc' | null>(null);
   const [districtFilter, setDistrictFilter] = useState('');
   const [commodityFilter, setCommodityFilter] = useState('');
   const [localOnly, setLocalOnly] = useState(false);
@@ -239,8 +240,16 @@ export function MandiPricesWidget() {
   }, [records, liveOnly, localOnly, districtFilter, commodityFilter, searchQuery]);
 
   const visibleRecords = useMemo(() => {
-    return filteredRecords.slice(0, visibleCount);
-  }, [filteredRecords, visibleCount]);
+    let sorted = filteredRecords;
+    if (dateSortOrder) {
+      sorted = [...filteredRecords].sort((a, b) => {
+        const dateA = arrivalToIso(a.arrival_date);
+        const dateB = arrivalToIso(b.arrival_date);
+        return dateSortOrder === 'asc' ? dateA.localeCompare(dateB) : dateB.localeCompare(dateA);
+      });
+    }
+    return sorted.slice(0, visibleCount);
+  }, [filteredRecords, visibleCount, dateSortOrder]);
 
   // Reset visibleCount back to top 10 when any filter or query changes
   useEffect(() => {
@@ -450,14 +459,14 @@ export function MandiPricesWidget() {
               className="w-full cursor-pointer rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs transition hover:border-emerald-500/50 hover:shadow-sm dark:border-slate-800 dark:bg-slate-800/80"
             >
               <div className="flex items-center justify-between">
-                <span className="min-w-0 truncate text-xs font-bold text-slate-700 dark:text-slate-300">
-                  {h.emoji} {h.title}
-                </span>
-                {isLive && (
-                  <span className="rounded bg-emerald-500/20 px-1 py-0.5 text-[9px] font-black text-emerald-700 dark:text-emerald-300">
-                    Live
+                <div className="flex items-center gap-0.5 min-w-0">
+                  {isLive && (
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" title={t('Live today', 'ఈరోజు లైవ్')} />
+                  )}
+                  <span className="truncate text-xs font-bold text-slate-700 dark:text-slate-300">
+                    {h.emoji} {h.title}
                   </span>
-                )}
+                </div>
                 {diff !== null && diff !== 0 && !isLive && (
                   <span
                     className={`inline-flex items-center text-[10px] font-black ${
@@ -527,13 +536,13 @@ export function MandiPricesWidget() {
           {[
             { label: t('🌱 Cotton', '🌱 పత్తి'), filter: 'Cotton' },
             { label: t('🌾 Paddy', '🌾 వరి'), filter: 'Paddy' },
-            { label: t('Jowar', 'జొన్నలు'), filter: 'Jowar' },
+            { label: t('🌾 Jowar', '🌾 జొన్నలు'), filter: 'Jowar' },
             { label: t('🫘 Red Gram', '🫘 కంది'), filter: 'Red Gram' },
             { label: t('🟡 Soya Bean', '🟡 సోయాబీన్'), filter: 'Soya' },
             { label: t('🌽 Maize', '🌽 మక్కజొన్న'), filter: 'Maize' },
             { label: t('🌰 Chana (Gram)', '🌰 శనగలు (చనా)'), filter: 'Bengal Gram' },
             { label: t('🌶️ Chilli', '🌶️ మిర్చి'), filter: 'Chilli' },
-            { label: t('Turmeric', 'పసుపు'), filter: 'Turmeric' },
+            { label: t('🟠 Turmeric', '🟠 పసుపు'), filter: 'Turmeric' },
           ].map((pill) => {
             const active = isPillActive(pill.filter);
             return (
@@ -627,16 +636,25 @@ export function MandiPricesWidget() {
 
         {/* Mandi Price Table */}
         <div className="overflow-x-auto rounded-xl border border-slate-200/80 bg-slate-50/50 shadow-xs dark:border-slate-800 dark:bg-slate-900/40">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-[10px]">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-100/80 text-[11px] font-black uppercase tracking-wider text-slate-600 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300">
-                <th className="py-2.5 pl-3 pr-3">{t('Commodity & Variety', 'పంట & రకం')}</th>
-                <th className="py-2.5 pr-3">{t('Market & District', 'మార్కెట్ & జిల్లా')}</th>
-                <th className="py-2.5 pr-3 text-right">{t('Min (₹)', 'కనిష్ట')}</th>
-                <th className="py-2.5 pr-3 text-right">{t('Max (₹)', 'గరిష్ట')}</th>
-                <th className="py-2.5 pr-3 text-right">{t('Modal (₹/qtl)', 'మోడల్ ధర')}</th>
-                <th className="py-2.5 pr-3 text-center">{t('MSP Status', 'MSP పోలిక')}</th>
-                <th className="py-2.5 pr-3 text-right">{t('Date', 'తేదీ')}</th>
+              <tr className="border-b border-slate-200 bg-slate-100/80 text-[11px] font-black tracking-wider text-slate-600 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300">
+                <th className="py-2.5 pl-4 pr-4">{t('Commodity', 'పంట')}</th>
+                <th className="py-2.5 pr-4">{t('Market & District', 'మార్కెట్ & జిల్లా')}</th>
+                <th className="py-2.5 pr-4 text-right">{t('Price Range', 'ధర పరిధి')}</th>
+                <th className="py-2.5 pr-4 text-right">{t('Modal Price', 'మోడల్ ధర')}</th>
+                <th className="py-2.5 pr-6 text-center">{t('MSP', 'MSP')}</th>
+                <th
+                  className="py-2.5 pr-6 text-right cursor-pointer"
+                  onClick={() => setDateSortOrder(dateSortOrder === 'asc' ? 'desc' : dateSortOrder === 'desc' ? null : 'asc')}
+                >
+                  <div className="flex items-center justify-end gap-1">
+                    {t('Date', 'తేదీ')}
+                    <span className="text-[10px]">
+                      {dateSortOrder === 'asc' ? '↑' : dateSortOrder === 'desc' ? '↓' : '↕'}
+                    </span>
+                  </div>
+                </th>
                 {isAdminUser && <th className="py-2.5 pr-3 text-center">{t('Action', 'చర్య')}</th>}
               </tr>
             </thead>
@@ -660,7 +678,7 @@ export function MandiPricesWidget() {
                     }`}
                   >
                     {/* Commodity */}
-                    <td className="py-3 pl-3 pr-3">
+                    <td className="py-3 pl-4 pr-4">
                       <div className="flex items-center gap-1.5">
                         <span className="font-bold text-slate-900 dark:text-white">
                           {r.commodity}
@@ -671,50 +689,33 @@ export function MandiPricesWidget() {
                           </span>
                         )}
                         {!r.isCustom && !r.isIndicative && r.arrival_date && (
-                          <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-black text-emerald-800 dark:text-emerald-300">
-                            {t('Live', 'లైవ్')}
-                          </span>
-                        )}
-                        {r.isIndicative && (
-                          <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
-                            {t('Indicative', 'సూచిక')}
-                          </span>
+                          <span className="h-2 w-2 rounded-full bg-emerald-500" title={t('Live today', 'ఈరోజు లైవ్')} />
                         )}
                       </div>
-                      <span className="block text-[11px] text-slate-500 dark:text-slate-400">
-                        {r.variety || '—'}
-                      </span>
                     </td>
 
                     {/* Market & District */}
-                    <td className="py-3 pr-3">
+                    <td className="py-3 pr-4">
                       <div className="flex items-center gap-1.5">
                         <span className="font-semibold text-slate-800 dark:text-slate-200">
                           {r.market}
                         </span>
-                        {r.isLocal && (
-                          <span className="inline-flex items-center rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
-                            {t('Local', 'స్థానిక')}
-                          </span>
-                        )}
                       </div>
                       <span className="block text-[10px] font-medium text-slate-400">
                         {r.district}
                       </span>
                     </td>
 
-                    {/* Min Price */}
-                    <td className="py-3 pr-3 text-right font-medium text-slate-600 dark:text-slate-300">
-                      ₹{r.min_price.toLocaleString('en-IN')}
-                    </td>
-
-                    {/* Max Price */}
-                    <td className="py-3 pr-3 text-right font-medium text-slate-600 dark:text-slate-300">
-                      ₹{r.max_price.toLocaleString('en-IN')}
+                    {/* Price Range */}
+                    <td className="py-3 pr-4 text-right font-medium text-slate-600 dark:text-slate-300">
+                      <div className="flex flex-col items-end">
+                        <span>₹{r.min_price.toLocaleString('en-IN')}</span>
+                        <span>₹{r.max_price.toLocaleString('en-IN')}</span>
+                      </div>
                     </td>
 
                     {/* Modal Price */}
-                    <td className="py-3 pr-3 text-right">
+                    <td className="py-3 pr-4 text-right">
                       <span className="inline-flex items-center gap-0.5 text-sm font-black text-emerald-700 dark:text-emerald-300">
                         <IndianRupee className="h-3.5 w-3.5" />
                         {r.modal_price.toLocaleString('en-IN')}
@@ -722,7 +723,7 @@ export function MandiPricesWidget() {
                     </td>
 
                     {/* MSP Comparison Status */}
-                    <td className="py-3 pr-3 text-center">
+                    <td className="py-3 pr-6 text-center">
                       {effectiveMsp ? (
                         <div className="inline-flex flex-col items-center">
                           <span
@@ -747,13 +748,16 @@ export function MandiPricesWidget() {
                     </td>
 
                     {/* Date */}
-                    <td className="py-3 pr-3 text-right text-[11px] text-slate-500 dark:text-slate-400">
-                      {formatDateLabel(arrivalToIso(r.arrival_date))}
+                    <td className="py-3 pr-6 text-right text-[11px] text-slate-500 dark:text-slate-400">
+                      <div className="flex flex-col items-end">
+                        <span>{formatDateLabel(arrivalToIso(r.arrival_date)).split(' ')[0]}</span>
+                        <span>{formatDateLabel(arrivalToIso(r.arrival_date)).split(' ').slice(1).join(' ')}</span>
+                      </div>
                     </td>
 
                     {/* Officer delete action */}
                     {isAdminUser && (
-                      <td className="py-3 pr-3 text-center">
+                      <td className="py-3 pr-4 text-center">
                         {r.isCustom && (
                           <button
                             onClick={() => handleDeletePrice(r.id)}

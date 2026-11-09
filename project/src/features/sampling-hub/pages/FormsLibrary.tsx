@@ -740,7 +740,7 @@ export function FormsLibrary() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t('Search forms, acts, orders & manuals...', 'ఫారాలు, చట్టాలు, ఆర్డర్లు & మాన్యువల్స్ వెతకండి...')}
+            placeholder={t('Search forms, acts or manuals...', 'ఫారాలు, చట్టాలు వెతకండి...')}
             className="w-full rounded-xl border border-slate-200/90 bg-white dark:bg-slate-900 dark:border-slate-800 py-2.5 pl-10 pr-4 text-sm text-slate-950 dark:text-white outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
           />
         </div>

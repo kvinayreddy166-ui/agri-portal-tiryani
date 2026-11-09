@@ -194,7 +194,7 @@ export function InsecticideExplorer({
               value={term}
               onChange={(event) => setTerm(event.target.value)}
               onKeyDown={(event) => { if (event.key === 'Enter' && term.trim()) saveRecent(term.trim()); }}
-              placeholder="Search sections, rules, definitions, forms, keywords..."
+              placeholder="Search sections, rules, keywords..."
               className="w-full min-w-0 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100"
             />
             {term && (

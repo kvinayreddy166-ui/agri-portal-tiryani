@@ -745,7 +745,7 @@ export function PublicOfficerTools() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t('🔍 Search forms, acts, orders & manuals...', '🔍 ఫారాలు, చట్టాలు, ఆర్డర్లు & మాన్యువల్స్ వెతకండి...')}
+                  placeholder={t('🔍 Search forms, acts or manuals...', '🔍 ఫారాలు, చట్టాలు వెతకండి...')}
                   className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-950 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 />
               </div>

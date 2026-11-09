@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Archive,
   AlertTriangle,
@@ -240,6 +241,66 @@ function getDocCodeNo(doc: OfficerDocumentArchiveRecord): string {
   );
 }
 
+type SavedRecordsCategoryFilter =
+  | 'all'
+  | 'stop_sales'
+  | 'seizures'
+  | 'scn_memos'
+  | 'inspection'
+  | 'sample'
+  | 'tour_diary';
+
+const normalizeSavedCategoryText = (value: unknown) =>
+  String(value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+export function getRecordSavedCategory(record: UnifiedOfficerRecord): string {
+  if (record.category !== 'order') return record.category;
+
+  const subType = normalizeSavedCategoryText(record.subType);
+  if (subType.includes('seizure')) return 'seizures';
+  if (subType.includes('showcause') || subType === 'scn' || subType.includes('memo') || subType === 'notice') {
+    return 'scn_memos';
+  }
+  if (subType.includes('stopsale') || subType.includes('revocation') || subType === 'revoke') {
+    return 'stop_sales';
+  }
+
+  const title = normalizeSavedCategoryText(record.title);
+  if (title.includes('seizure')) return 'seizures';
+  if (title.includes('showcause') || title.includes('scn')) return 'scn_memos';
+  if (title.includes('stopsale') || title.includes('revocation')) return 'stop_sales';
+  return 'order';
+}
+
+export function getDocumentSavedCategory(doc: OfficerDocumentArchiveRecord): string {
+  const category = doc.document_category;
+  if (category !== 'order' && category !== 'notice') return category;
+
+  const sourceModule = normalizeSavedCategoryText(doc.source_module);
+  if (sourceModule.includes('showcause')) return 'scn_memos';
+  if (sourceModule.includes('seizure')) return 'seizures';
+  if (sourceModule.includes('stopsale') || sourceModule.includes('revocation')) return 'stop_sales';
+
+  const searchableText = normalizeSavedCategoryText(
+    [doc.document_name, doc.original_filename, doc.document_number, JSON.stringify(doc.metadata_json ?? {})]
+      .filter(Boolean)
+      .join(' ')
+  );
+  if (searchableText.includes('showcause')) return 'scn_memos';
+  if (searchableText.includes('seizure')) return 'seizures';
+  if (searchableText.includes('stopsale') || searchableText.includes('revocation')) return 'stop_sales';
+
+  return category === 'notice' ? 'scn_memos' : category;
+}
+
+export function getEnforcementTrackerHref(categoryFilter: string): string | null {
+  if (categoryFilter === 'scn_memos') return '/officer-toolkit/enforcement-tracker?tab=deadlines';
+  if (categoryFilter === 'stop_sales' || categoryFilter === 'seizures') {
+    return '/officer-toolkit/enforcement-tracker?tab=scorecards';
+  }
+  return null;
+}
+
 export function OfficerRecordsHub() {
   const { user, officerProfile } = useAuth();
   const { t } = useLanguage();
@@ -277,7 +338,7 @@ export function OfficerRecordsHub() {
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<SavedRecordsCategoryFilter>('all');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | '7days' | '30days'>('all');
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [monthFilter, setMonthFilter] = useState<string>('all');
@@ -410,6 +471,7 @@ export function OfficerRecordsHub() {
   // Sync status for local (not-yet-cloud) form records
   const pendingSyncCount = useMemo(() => records.filter((r) => !r.synced).length, [records]);
   const cloudRecordCount = useMemo(() => records.filter((r) => r.synced).length, [records]);
+  const enforcementTrackerHref = getEnforcementTrackerHref(categoryFilter);
 
   // Manual "Sync now" — re-push every local-only record to Supabase
   const handleSyncNow = async () => {
@@ -443,7 +505,7 @@ export function OfficerRecordsHub() {
     try {
       const url = await OfficerDocumentArchiveService.previewDocument(doc);
       setPreviewDoc({ doc, url });
-    } catch (err) {
+    } catch {
       alert(t('Unable to load document preview. You can still download the file.', 'పత్రం ప్రివ్యూ లోడ్ చేయడం సాధ్యపడలేదు. మీరు ఫైల్‌ను డౌన్‌లోడ్ చేసుకోవచ్చు.'));
     }
   };
@@ -451,7 +513,7 @@ export function OfficerRecordsHub() {
   const handleDownload = async (doc: OfficerDocumentArchiveRecord) => {
     try {
       await OfficerDocumentArchiveService.downloadDocument(doc);
-    } catch (err) {
+    } catch {
       alert(t('Download failed. Please check network connection.', 'డౌన్‌లోడ్ విఫలమైంది. దయచేసి నెట్‌వర్క్ తనిఖీ చేయండి.'));
     }
   };
@@ -548,7 +610,7 @@ export function OfficerRecordsHub() {
   // Filtered Documents
   const filteredDocuments = useMemo(() => {
     return documents.filter((doc) => {
-      if (categoryFilter !== 'all' && doc.document_category !== categoryFilter) return false;
+      if (categoryFilter !== 'all' && getDocumentSavedCategory(doc) !== categoryFilter) return false;
 
       // Commodity filter (sample documents only)
       if (commodityFilter !== 'all') {
@@ -595,7 +657,7 @@ export function OfficerRecordsHub() {
   // Filtered Form Records
   const filteredRecords = useMemo(() => {
     return records.filter((rec) => {
-      if (categoryFilter !== 'all' && rec.category !== categoryFilter) return false;
+      if (categoryFilter !== 'all' && getRecordSavedCategory(rec) !== categoryFilter) return false;
       if (commodityFilter !== 'all' && rec.commodity !== commodityFilter) return false;
 
       // Year / Month / Quick-date filters (recordDate may be ISO or DD-MM-YYYY)
@@ -859,18 +921,8 @@ export function OfficerRecordsHub() {
             </div>
           </div>
 
-          {/* Secondary 4-metric row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-2.5 text-center dark:border-slate-800 dark:bg-slate-800/40">
-              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Total PDFs', 'మొత్తం పీడీఎఫ్')}</div>
-              <div className="mt-1 text-base font-black text-slate-800 dark:text-slate-200">{storageStats.totalPdfs}</div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-2.5 text-center dark:border-slate-800 dark:bg-slate-800/40">
-              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Total DOCX', 'మొత్తం వర్డ్')}</div>
-              <div className="mt-1 text-base font-black text-slate-800 dark:text-slate-200">{storageStats.totalDocx}</div>
-            </div>
-
+          {/* Secondary metric row */}
+          <div className="grid grid-cols-2 gap-2.5">
             <div className={`rounded-xl border p-2.5 text-center ${
               storageStats.pendingUploads > 0
                 ? 'border-amber-200 bg-amber-50/70 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
@@ -928,7 +980,7 @@ export function OfficerRecordsHub() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t('Search by name, number, firm, product, or module...', 'పేరు, నంబర్, డీలర్, ఉత్పత్తి లేదా మాడ్యూల్ ద్వారా వెతకండి...')}
+            placeholder={t('Search name, firm or product...', 'పేరు, డీలర్ లేదా ఉత్పత్తి వెతకండి...')}
             className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:focus:ring-emerald-900/40"
           />
         </div>
@@ -937,16 +989,27 @@ export function OfficerRecordsHub() {
           {/* Category Filter */}
           <select
             value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
+            onChange={(e) => setCategoryFilter(e.target.value as SavedRecordsCategoryFilter)}
             className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
           >
             <option value="all">{t('All Categories', 'అన్ని విభాగాలు')}</option>
-            <option value="order">{t('Statutory Orders', 'ఉత్తర్వులు')}</option>
-            <option value="notice">{t('Show Cause Notices', 'నోటీసులు')}</option>
+            <option value="stop_sales">{t('Stop Sales', 'స్టాప్ సేల్‌లు')}</option>
+            <option value="seizures">{t('Seizures', 'జబ్తులు')}</option>
+            <option value="scn_memos">{t('SCN/Memos', 'SCN/మెమోలు')}</option>
             <option value="inspection">{t('Inspections', 'తనిఖీలు')}</option>
             <option value="sample">{t('Sample Memos', 'సాంప్లింగ్ మెమోలు')}</option>
             <option value="tour_diary">{t('Tour Diaries', 'పర్యటన డైరీలు')}</option>
           </select>
+
+          {enforcementTrackerHref && (
+            <Link
+              to={enforcementTrackerHref}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span>{t('Open Tracker', 'ట్రాకర్ తెరవండి')}</span>
+            </Link>
+          )}
 
           {/* Commodity filter — applies to sample documents and all form records */}
           <select
@@ -1886,9 +1949,9 @@ export function OfficerRecordsHub() {
                   },
                 ];
 
-                const grouped: { title: string; te: string; entries: [string, unknown][] }[] = GROUP_DEFS.map((g) => ({
+                const grouped = GROUP_DEFS.map((g) => ({
                   ...g,
-                  entries: [],
+                  entries: [] as [string, unknown][],
                 }));
                 const otherEntries: [string, unknown][] = [];
 

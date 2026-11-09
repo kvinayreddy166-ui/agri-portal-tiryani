@@ -55,6 +55,11 @@ export interface ArchiveResult {
   error?: string;
 }
 
+interface OfficerDocumentArchiveTable {
+  insert: (row: unknown) => PromiseLike<{ error: { message?: string } | null }>;
+  upsert?: (row: unknown, options?: { onConflict?: string }) => PromiseLike<{ error: { message?: string } | null }>;
+}
+
 export class OfficerDocumentArchiveService {
   /**
    * Resolves the Cloudflare Worker URL
@@ -137,18 +142,12 @@ export class OfficerDocumentArchiveService {
     fileBlob: Blob,
     input: DocumentArchiveInput
   ): Promise<ArchiveResult> {
-    const user = await this.getCurrentUser();
-    const userId = user?.id || 'anonymous';
-    const documentId = crypto.randomUUID();
-    const documentDate = input.documentDate || new Date().toISOString().slice(0, 10);
-    const mimeType = input.mimeType || fileBlob.type || (input.fileFormat === 'pdf' ? 'application/pdf' : 'application/octet-stream');
-    const originalSize = fileBlob.size;
     const fileFormat = normalizeFileFormat(input.fileFormat, input.filename);
 
-    // PDF is the canonical archived format. DOCX/XLSX exports are alternate
+    // PDF is the only archived format. DOCX/XLSX/TXT exports are alternate
     // renderings of the same issued record — archiving them creates duplicate
     // files in Records, so they are skipped here.
-    if (fileFormat === 'docx' || fileFormat === 'xlsx') {
+    if (fileFormat !== 'pdf') {
       return {
         success: true,
         documentId: '',
@@ -161,6 +160,13 @@ export class OfficerDocumentArchiveService {
         skipped: true,
       };
     }
+
+    const user = await this.getCurrentUser();
+    const userId = user?.id || 'anonymous';
+    const documentId = crypto.randomUUID();
+    const documentDate = input.documentDate || new Date().toISOString().slice(0, 10);
+    const mimeType = input.mimeType || fileBlob.type || 'application/pdf';
+    const originalSize = fileBlob.size;
 
     // 1. Process File Bytes & Intelligent Reversible Compression
     const rawBuffer = await fileBlob.arrayBuffer();
@@ -405,9 +411,9 @@ export class OfficerDocumentArchiveService {
           metadata_json: input.metadata || {},
         };
 
-        const table = supabase.from('officer_document_archive');
-        const { error: dbError } = typeof (table as any).upsert === 'function'
-          ? await (table as any).upsert(row, { onConflict: 'id' })
+        const table = supabase.from('officer_document_archive') as unknown as OfficerDocumentArchiveTable;
+        const { error: dbError } = typeof table.upsert === 'function'
+          ? await table.upsert(row, { onConflict: 'id' })
           : await table.insert(row);
 
         if (dbError) {
@@ -1341,9 +1347,9 @@ export class OfficerDocumentArchiveService {
         metadata_json: doc.metadata,
       };
 
-      const table = supabase.from('officer_document_archive');
-      if (typeof (table as any).upsert === 'function') {
-        await (table as any).upsert(row, { onConflict: 'id' });
+      const table = supabase.from('officer_document_archive') as unknown as OfficerDocumentArchiveTable;
+      if (typeof table.upsert === 'function') {
+        await table.upsert(row, { onConflict: 'id' });
       } else {
         await table.insert(row);
       }
