@@ -604,7 +604,7 @@ export function OfficerContacts() {
               title="Officer Contacts"
               subtitle="Telangana Agriculture Department"
               icon={Phone}
-              onBack={!user ? () => navigate('/dashboard') : undefined}
+              onBack={!user ? () => navigate('/officer-toolkit') : undefined}
             />
           ) : (
             <ToolkitPageHeader
@@ -614,7 +614,7 @@ export function OfficerContacts() {
               title="Officer Contacts"
               subtitle="Telangana Agriculture Department"
               fallbackPath="/dashboard"
-              onBack={() => navigate('/dashboard')}
+              onBack={() => navigate('/officer-toolkit')}
               className="mb-0"
             />
           )}

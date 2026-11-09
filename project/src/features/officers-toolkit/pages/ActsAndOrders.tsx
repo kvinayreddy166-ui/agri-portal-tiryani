@@ -200,7 +200,7 @@ export function ActsAndOrders() {
       closeLegalArea();
       return;
     }
-    navigate('/dashboard');
+    navigate('/officer-toolkit');
   };
 
   const activeAreaCard = selectedLegalArea ? legalAreaCards.find((item) => item.id === selectedLegalArea) : null;

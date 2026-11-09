@@ -271,7 +271,7 @@ export function InspectionEnforcementHub() {
           title={t('Inspection & Enforcement', 'తనిఖీ & అమలు')}
           subtitle={t('Inspection proforma, memo & show cause notice, stop sale & seizure orders', 'విత్తనం, ఎరువు & పురుగుమందు తనిఖీ ప్రొఫార్మా, మెమోలు, షోకాజ్ నోటీసులు & జప్తి ఉత్తర్వులు')}
           icon={ClipboardCheck}
-          onBack={!user ? () => navigate('/dashboard') : undefined}
+          onBack={!user ? () => navigate('/officer-toolkit') : undefined}
         />
       ) : (
         <ToolkitPageHeader
@@ -280,7 +280,7 @@ export function InspectionEnforcementHub() {
           eyebrow={t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్')}
           title={t('Inspection & Enforcement', 'తనిఖీ & అమలు')}
           fallbackPath="/dashboard"
-          onBack={() => navigate('/dashboard')}
+          onBack={() => navigate('/officer-toolkit')}
           className="mb-4"
         />
       )}

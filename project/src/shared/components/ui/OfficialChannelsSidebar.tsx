@@ -39,11 +39,11 @@ type Channel = {
   icon: React.ReactNode;
 };
 
-function ChannelButton({ channel, placement }: { channel: Channel; placement: 'left' | 'top' }) {
+function ChannelButton({ channel, placement, delayClass = '' }: { channel: Channel; placement: 'left' | 'top'; delayClass?: string }) {
   const { t } = useLanguage();
   const isTop = placement === 'top';
   return (
-    <div className="group/btn relative">
+    <div className={`group/btn relative animate-pop-in ${delayClass}`}>
       <a
         href={channel.href}
         target="_blank"
@@ -116,10 +116,15 @@ export function OfficialChannelsSidebar({
     },
   ];
 
+  const inlineDelays = ['delay-100', 'delay-200', 'delay-300'];
   const buttons = channels.map((channel, index) => (
     <Fragment key={channel.href}>
       {!inline && index > 0 && <div className="my-0.5 h-px w-6 bg-slate-200/80 dark:bg-slate-700/60" />}
-      <ChannelButton channel={channel} placement={inline ? 'top' : 'left'} />
+      <ChannelButton
+        channel={channel}
+        placement={inline ? 'top' : 'left'}
+        delayClass={inline ? inlineDelays[index] || '' : ''}
+      />
     </Fragment>
   ));
 

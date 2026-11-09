@@ -26,7 +26,7 @@ import {
 } from './router/navigation';
 import { GlobalAppLoader, PageLoader, SafeSuspense } from './router/loading';
 import { PageSwitch, PublicPageSwitch } from './router/PageSwitch';
-import { Layout, Login } from './router/lazyPages';
+import { Layout, Login, LandingPage } from './router/lazyPages';
 
 import { safeStorage } from '../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../features/officers-toolkit/services/officerCloudSyncService';
@@ -45,6 +45,26 @@ function AppContent() {
     location.pathname === '/acreage-calculator';
   useAppScrollRestoration(location, navigationType);
   useInitialBackFallback(location, loading, Boolean(user));
+
+  // On page refresh / browser reload, direct to landing page once on mount
+  const hasCheckedReloadRef = useRef(false);
+  useEffect(() => {
+    if (hasCheckedReloadRef.current) return;
+    hasCheckedReloadRef.current = true;
+
+    try {
+      const navEntries = performance.getEntriesByType('navigation');
+      const isReload = navEntries.length > 0
+        ? (navEntries[0] as PerformanceNavigationTiming).type === 'reload'
+        : (performance as unknown as { navigation?: { type?: number } }).navigation?.type === 1;
+
+      if (isReload && window.location.pathname !== '/') {
+        navigate('/', { replace: true });
+      }
+    } catch {
+      // Ignore
+    }
+  }, [navigate]);
 
   // Flush officer records created offline once connectivity returns
   useEffect(() => {
@@ -147,6 +167,7 @@ function AppContent() {
     if (
       loading ||
       user ||
+      currentPage === 'landing' ||
       currentPage === 'dashboard' ||
       PUBLIC_VIEW_PAGES.has(currentPage) ||
       PUBLIC_PAGES.has(currentPage) ||
@@ -157,7 +178,7 @@ function AppContent() {
       location.pathname === '/privacy-policy' ||
       location.pathname === '/terms-conditions'
     ) return;
-    navigateToPage('dashboard', { replace: true });
+    navigateToPage('landing', { replace: true });
   }, [currentPage, loading, location.pathname, navigateToPage, user]);
 
   // On sign-out, always land on the login screen — even when the current page
@@ -203,11 +224,27 @@ function AppContent() {
   }
 
   if (!user) {
+    if (location.pathname === '/login') {
+      return (
+        <SafeSuspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
+          <Login />
+        </SafeSuspense>
+      );
+    }
+
+    if (location.pathname === '/' || location.pathname === '/home' || location.pathname === '/landing') {
+      return (
+        <SafeSuspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
+          <LandingPage />
+        </SafeSuspense>
+      );
+    }
+
     if (PUBLIC_PAGES.has(currentPage)) {
       return (
         <PublicPageSwitch
           currentPage={currentPage}
-          onPublicShellHome={() => navigateToPage('dashboard')}
+          onPublicShellHome={() => navigateToPage('landing')}
         />
       );
     }

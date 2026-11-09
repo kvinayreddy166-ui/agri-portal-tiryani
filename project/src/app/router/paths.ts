@@ -1,5 +1,8 @@
 export const PUBLIC_VIEW_PAGES = new Set(['dealers']);
 export const PUBLIC_AUTH_ROUTES = new Set([
+  '/',
+  '/home',
+  '/landing',
   '/login',
   '/register',
   '/officer-register',
@@ -36,6 +39,8 @@ export const PUBLIC_AUTH_ROUTES = new Set([
 
 // Page keys renderable without authentication (handled by PublicPageSwitch).
 export const PUBLIC_PAGES = new Set([
+  'landing',
+  'home',
   'register',
   'officer-register',
   'forgot-password',
@@ -67,6 +72,9 @@ export const PUBLIC_PAGES = new Set([
 ]);
 
 export const PAGE_PATHS: Record<string, string> = {
+  landing: '/',
+  login: '/login',
+  home: '/home',
   dashboard: '/dashboard',
   register: '/register',
   'officer-register': '/register',
@@ -142,7 +150,7 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
     return '/dashboard';
   }
   if (pathname === '/officer-toolkit') {
-    return isAuthenticated ? '/dashboard' : '/login';
+    return isAuthenticated ? '/dashboard' : '/';
   }
   if (pathname === '/admin/officer-contacts') {
     return '/officer-toolkit/officer-contacts';
@@ -170,10 +178,10 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
     return '/officer-toolkit/inspection-enforcement';
   }
   if (pathname.startsWith('/officer-toolkit/')) {
-    return '/dashboard';
+    return isAuthenticated ? '/dashboard' : '/officer-toolkit';
   }
   if (pathname === '/forms' || pathname === '/acreage-calculator' || pathname === '/agrochemicals') {
-    return '/dashboard';
+    return isAuthenticated ? '/dashboard' : '/officer-toolkit';
   }
   if (isAuthenticated && pathname !== '/dashboard' && pathname !== '/' && pathname !== '/login') {
     return '/dashboard';
@@ -222,6 +230,9 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
 }
 
 export const VALID_PAGES = new Set([
+  'landing',
+  'home',
+  'login',
   'dashboard',
   'register',
   'officer-register',
@@ -326,7 +337,8 @@ const SUBPAGE_ALIASES: Record<string, string> = { 'smart-sampling': 'forms', 'sa
 export function resolvePageFromLocation(location: { pathname: string; search: string; hash: string }): string {
   try {
     const legacyPage = new URLSearchParams(location.search).get('page');
-    const routePage = location.pathname.replace(/^\/+/, '') || 'dashboard';
+    const rawPath = location.pathname.replace(/^\/+/, '');
+    const routePage = !rawPath || rawPath === 'landing' || rawPath === 'home' ? 'landing' : rawPath;
     const hashPage = location.hash.replace(/^#\/?/, '');
 
     // Handle nested routes for officer toolkit

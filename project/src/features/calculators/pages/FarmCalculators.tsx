@@ -130,7 +130,7 @@ export function FarmCalculators() {
             title={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
             subtitle={t('Area, Plant, Seed and Fertilizer Calculations', 'విస్తీరణ, మొక్కలు, విత్తనం మరియు ఎరువుల లెక్కలు')}
             icon={Calculator}
-            onBack={!user ? () => navigate('/dashboard') : undefined}
+            onBack={!user ? () => navigate('/officer-toolkit') : undefined}
             actions={!user ? <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" /> : undefined}
           />
         ) : (
@@ -142,7 +142,7 @@ export function FarmCalculators() {
           title={t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
           subtitle={t('Area, Plant, Seed and Fertilizer Calculations', 'విస్తీరణ, మొక్కలు, విత్తనం మరియు ఎరువుల లెక్కలు')}
           fallbackPath="/dashboard"
-          onBack={() => navigate('/dashboard')}
+          onBack={() => navigate('/officer-toolkit')}
           actions={
             <LanguageToggle
               language={language}

@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 
 export const Login = lazy(() => import('../../features/auth/pages/Login').then((m) => ({ default: m.Login })));
+export const LandingPage = lazy(() => import('../../features/auth/pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 export const OfficerSignUp = lazy(() => import('../../features/auth/pages/OfficerSignUp').then((m) => ({ default: m.OfficerSignUp })));
 export const ForgotPassword = lazy(() => import('../../features/auth/pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword })));
 export const Layout = lazy(() => import('../Layout').then((m) => ({ default: m.Layout })));

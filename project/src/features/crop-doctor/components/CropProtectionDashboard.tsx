@@ -109,14 +109,14 @@ export function CropProtectionDashboard({
           title={label('Crop Doctor', language)}
           subtitle={label('Crop, pest, disease, weed and nutrient deficiency guidance for field officers.', language)}
           icon={Stethoscope}
-          onBack={!user ? () => navigate('/dashboard') : undefined}
+          onBack={!user ? () => navigate('/officer-toolkit') : undefined}
         />
       ) : (
       <section className="relative overflow-hidden rounded-2xl border border-emerald-200 dark:border-emerald-800/50 bg-gradient-to-br from-emerald-800 via-green-700 to-emerald-800 p-4 text-white shadow-sm sm:p-5">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/70 via-white/50 to-white/70" />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-3.5">
-            <BackButton onClick={() => navigate('/dashboard')} tone="solid" className="mt-1 shrink-0" />
+            <BackButton onClick={() => navigate('/officer-toolkit')} tone="solid" className="mt-1 shrink-0" />
             <div className="min-w-0 flex-1">
               <div className="flex items-start gap-3">
                 <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">

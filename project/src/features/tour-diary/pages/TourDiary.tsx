@@ -1789,7 +1789,7 @@ export function TourDiary() {
             title={t('Tour Diary', 'టూర్ డైరీ')}
             subtitle={t('Manage your monthly tour diaries', 'మీ నెలవారీ టూర్ డైరీలను నిర్వహించండి')}
             icon={NotebookPen}
-            onBack={!user ? () => navigate('/login') : undefined}
+            onBack={!user ? () => navigate('/officer-toolkit') : undefined}
           />
 
           {/* Action Cards - Modern Mobile-First Design */}

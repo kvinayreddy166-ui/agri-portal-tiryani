@@ -24,7 +24,7 @@ const pixelSizeMap = {
 export const PortalLogo = React.memo(function PortalLogo({ size = 'md', className = '' }: PortalLogoProps) {
   return (
     <div
-      className={`shrink-0 overflow-hidden rounded-full bg-white shadow-lg ring-2 ring-emerald-500/30 ${sizeMap[size]} ${className}`}
+      className={`shrink-0 overflow-hidden rounded-full bg-white shadow-lg ring-2 ring-gold-400/60 ${sizeMap[size]} ${className}`}
       style={{
         willChange: 'transform, box-shadow',
         backfaceVisibility: 'hidden',

@@ -36,6 +36,7 @@ import {
   KnowledgeSearch,
   KnowledgeSettings,
   KnowledgeUpload,
+  LandingPage,
   LicenseServices,
   ModuleDirectory,
   OfficerContacts,
@@ -74,6 +75,13 @@ interface PageSwitchProps {
 
 export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser = false, onNavigate }: PageSwitchProps) {
   switch (currentPage) {
+    case 'landing':
+    case 'home':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <LandingPage />
+        </SafeSuspense>
+      );
     case 'register':
     case 'officer-register':
       return (
@@ -326,6 +334,13 @@ function PublicToolkitPage({ children, hideLogo = false }: { children: React.Rea
 // Pages reachable without authentication. Returns null when the page is not public.
 export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageSwitchProps) {
   switch (currentPage) {
+    case 'landing':
+    case 'home':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <LandingPage />
+        </SafeSuspense>
+      );
     case 'register':
     case 'officer-register':
       return (

@@ -1039,7 +1039,7 @@ export function LicenseServices() {
           title={t('License Services', 'లైసెన్స్ సేవలు')}
           subtitle={t('Challan Details', 'చలాన్ వివరాలు')}
           icon={FileCheck}
-          onBack={() => navigate('/dashboard')}
+          onBack={() => navigate('/officer-toolkit')}
         />
 
         {/* Toast Notification */}
