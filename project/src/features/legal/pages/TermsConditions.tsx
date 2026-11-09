@@ -37,8 +37,8 @@ export function TermsConditions() {
 
           <div className="p-6 sm:p-8 space-y-6 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('1. Acceptance of Terms', '1. Acceptance of Terms')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('1. Acceptance of Terms', '1. Acceptance of Terms')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'By accessing or using AGRONIX, you agree to be bound by these Terms & Conditions. If you do not agree with any part of these terms, please do not use our services.',
                   'By accessing or using AGRONIX, you agree to be bound by these Terms & Conditions. If you do not agree with any part of these terms, please do not use our services.'
@@ -47,8 +47,8 @@ export function TermsConditions() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('2. User Accounts', '2. User Accounts')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('2. User Accounts', '2. User Accounts')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to provide accurate and complete information during registration.',
                   'You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to provide accurate and complete information during registration.'
@@ -57,8 +57,8 @@ export function TermsConditions() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('3. Acceptable Use', '3. Acceptable Use')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('3. Acceptable Use', '3. Acceptable Use')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'You agree not to misuse the platform, including but not limited to: attempting to gain unauthorized access, interfering with the operation of the system, uploading harmful content, or using the service for any illegal purpose.',
                   'You agree not to misuse the platform, including but not limited to: attempting to gain unauthorized access, interfering with the operation of the system, uploading harmful content, or using the service for any illegal purpose.'
@@ -67,8 +67,8 @@ export function TermsConditions() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('4. Intellectual Property', '4. Intellectual Property')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('4. Intellectual Property', '4. Intellectual Property')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'All content, features, and functionality of AGRONIX are owned by K. Vinay Reddy, M.Sc (Ag), and are protected by intellectual property laws. You may not copy, modify, distribute, or create derivative works without permission.',
                   'All content, features, and functionality of AGRONIX are owned by K. Vinay Reddy, M.Sc (Ag), and are protected by intellectual property laws. You may not copy, modify, distribute, or create derivative works without permission.'
@@ -77,8 +77,8 @@ export function TermsConditions() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('5. Service Availability', '5. Service Availability')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('5. Service Availability', '5. Service Availability')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'We strive to maintain the availability of our services but do not guarantee uninterrupted access. We reserve the right to modify, suspend, or discontinue any part of the service at any time.',
                   'We strive to maintain the availability of our services but do not guarantee uninterrupted access. We reserve the right to modify, suspend, or discontinue any part of the service at any time.'
@@ -87,8 +87,8 @@ export function TermsConditions() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('6. Limitation of Liability', '6. Limitation of Liability')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('6. Limitation of Liability', '6. Limitation of Liability')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'To the maximum extent permitted by law, we shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the service.',
                   'To the maximum extent permitted by law, we shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the service.'
@@ -97,8 +97,8 @@ export function TermsConditions() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('7. Termination', '7. Termination')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('7. Termination', '7. Termination')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'We may terminate or suspend your access to the service immediately, without prior notice, for conduct that we believe violates these Terms & Conditions or is harmful to other users, us, or third parties.',
                   'We may terminate or suspend your access to the service immediately, without prior notice, for conduct that we believe violates these Terms & Conditions or is harmful to other users, us, or third parties.'
@@ -107,8 +107,8 @@ export function TermsConditions() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('8. Changes to Terms', '8. Changes to Terms')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('8. Changes to Terms', '8. Changes to Terms')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'We reserve the right to modify these Terms & Conditions at any time. Changes will be effective immediately upon posting to this page. Your continued use of the service after changes constitutes acceptance of the revised terms.',
                   'We reserve the right to modify these Terms & Conditions at any time. Changes will be effective immediately upon posting to this page. Your continued use of the service after changes constitutes acceptance of the revised terms.'
@@ -117,8 +117,8 @@ export function TermsConditions() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('9. Governing Law', '9. Governing Law')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('9. Governing Law', '9. Governing Law')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'These Terms & Conditions shall be governed by and construed in accordance with the laws of India.',
                   'These Terms & Conditions shall be governed by and construed in accordance with the laws of India.'
@@ -127,8 +127,8 @@ export function TermsConditions() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('10. Contact', '10. Contact')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('10. Contact', '10. Contact')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'For questions about these Terms & Conditions, please contact:',
                   'For questions about these Terms & Conditions, please contact:'

@@ -97,7 +97,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
 
   const userMeta = (user?.user_metadata ?? {}) as { name?: string; full_name?: string; display_name?: string; designation?: string };
   const profileName = officerProfile?.full_name || userMeta.full_name || userMeta.name || userMeta.display_name || user?.email?.split('@')[0] || 'User';
-  const profileRole = officerProfile?.designation || userMeta.designation || (isAdminUser ? t('Administrator', 'నిర్వాహకుడు') : isDealerUser ? dealerName || t('Dealer', 'డీలర్') : isOfficer ? t('Agricultural Officer', 'వ్యవసాయ అధికారి') : t('View access', 'చూడే ప్రవేశం'));
+  const profileRole = officerProfile?.designation || userMeta.designation || (isAdminUser ? t('Administrator', 'నిర్వాహకుడు') : isDealerUser ? dealerName || t('Dealer', 'డీలర్') : isOfficer ? t('Agriculture Officer', 'వ్యవసాయ అధికారి') : t('View access', 'చూడే ప్రవేశం'));
 
   const menuItemIds = useMemo(() => new Set(MODULE_MENU_ITEMS.map((item) => item.id)), []);
 

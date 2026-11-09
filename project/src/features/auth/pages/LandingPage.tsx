@@ -330,7 +330,7 @@ export function LandingPage() {
 
               <p className="max-w-2xl text-sm leading-relaxed text-justify text-emerald-100/90 sm:text-base">
                 {t(
-                  'A high-performance platform uniting Agricultural Officers, authorized Input Dealers, and Farmers. From statutory inspections (Seeds, Fertilizers, Insecticides) to precision farm calculators and AI diagnostic advisory — built to work 100% offline in the field.',
+                  'A high-performance platform uniting Agriculture Officers, authorized Input Dealers, and Farmers. From statutory inspections (Seeds, Fertilizers, Insecticides) to precision farm calculators and AI diagnostic advisory — built to work 100% offline in the field.',
                   'వ్యవసాయ అధికారులు, అధీకృత డీలర్లు మరియు రైతులకు అనుసంధాన వేదిక. చట్టబద్ధ తనిఖీలు (విత్తనాలు, ఎరువులు, పురుగుమందులు), శాస్త్రీయ కాలిక్యులేటర్లు మరియు AI పంట సలహాలతో — క్షేత్రస్థాయిలో 100% ఆఫ్‌లైన్‌లో పనిచేసేలా రూపొందించబడింది.'
                 )}
               </p>
@@ -669,7 +669,7 @@ export function LandingPage() {
                 </h3>
                 <p className="max-w-2xl text-xs text-justify text-emerald-100 sm:text-sm">
                   {t(
-                    'Farmers can file instant grievances directly with the Agricultural Officer. Our enforcement team verifies dealer stocks, investigates quality complaints, and enforces statutory consumer protections.',
+                    'Farmers can file instant grievances directly with the Agriculture Officer. Our enforcement team verifies dealer stocks, investigates quality complaints, and enforces statutory consumer protections.',
                     'రైతులు తమ సమస్యలను నేరుగా వ్యవసాయ అధికారులకు తెలియజేయవచ్చు. మా తనిఖీ బృందం డీలర్ స్టాక్‌ను తనిఖీ చేసి, నాణ్యతా లోపాలపై విచారణ జరిపి రైతులకు చట్టబద్ధ రక్షణ కల్పిస్తుంది.'
                   )}
                 </p>
@@ -747,7 +747,7 @@ export function LandingPage() {
               </div>
               <p className="max-w-md text-xs leading-relaxed text-slate-500 dark:text-slate-400">
                 {t(
-                  'An integrated governance and precision agriculture platform supporting Agricultural Officers, Input Retailers, and Farmers. Built with offline-first PWA architecture and enterprise security.',
+                  'An integrated governance and precision agriculture platform supporting Agriculture Officers, Input Retailers, and Farmers. Built with offline-first PWA architecture and enterprise security.',
                   'వ్యవసాయ అధికారులు, డీలర్లు మరియు రైతులకు సహాయపడే సమగ్ర పాలన మరియు శాస్త్రీయ వ్యవసాయ వేదిక. ఆఫ్‌లైన్-ఫస్ట్ PWA సాంకేతికతతో భద్రంగా రూపొందించబడింది.'
                 )}
               </p>

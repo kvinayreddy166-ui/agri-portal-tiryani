@@ -46,25 +46,7 @@ function AppContent() {
   useAppScrollRestoration(location, navigationType);
   useInitialBackFallback(location, loading, Boolean(user));
 
-  // On page refresh / browser reload, direct to landing page once on mount
-  const hasCheckedReloadRef = useRef(false);
-  useEffect(() => {
-    if (hasCheckedReloadRef.current) return;
-    hasCheckedReloadRef.current = true;
 
-    try {
-      const navEntries = performance.getEntriesByType('navigation');
-      const isReload = navEntries.length > 0
-        ? (navEntries[0] as PerformanceNavigationTiming).type === 'reload'
-        : (performance as unknown as { navigation?: { type?: number } }).navigation?.type === 1;
-
-      if (isReload && window.location.pathname !== '/') {
-        navigate('/', { replace: true });
-      }
-    } catch {
-      // Ignore
-    }
-  }, [navigate]);
 
   // Flush officer records created offline once connectivity returns
   useEffect(() => {
@@ -185,18 +167,19 @@ function AppContent() {
   // is publicly viewable. The ref ensures this only fires for the
   // authenticated → signed-out transition, so visitors who never logged in can
   // keep browsing public pages undisturbed.
-  const wasAuthenticatedRef = useRef(false);
+    const wasAuthenticatedRef = useRef(Boolean(user));
   useEffect(() => {
     if (user) {
       wasAuthenticatedRef.current = true;
       return;
     }
-    if (!wasAuthenticatedRef.current) return;
+    // Only redirect if user was authenticated and has now signed out (and auth check is complete)
+    if (!wasAuthenticatedRef.current || loading || !authChecked) return;
     wasAuthenticatedRef.current = false;
     if (location.pathname !== '/login' && location.pathname !== '/') {
       navigate('/login', { replace: true });
     }
-  }, [location.pathname, navigate, user]);
+  }, [authChecked, loading, location.pathname, navigate, user]);
 
   useEffect(() => {
     if (loading || user) return;

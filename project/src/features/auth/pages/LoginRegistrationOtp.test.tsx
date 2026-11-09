@@ -38,7 +38,7 @@ describe('Login — Agricultural Officer Registration with Resend OTP', () => {
     expect(html).toContain('Officer Sign In');
     expect(html).toContain('Registered Email Address');
     expect(html).toContain('Sign In as Officer');
-    expect(html).toContain('Sign Up as Officer');
+    expect(html).not.toContain('Sign Up as Officer');
     expect(html).not.toContain('Official Email OTP (Instant)');
     expect(html).not.toContain('Password Login');
   });

@@ -61,7 +61,35 @@ describe('mandiPrices service', () => {
 
       expect(getCommodityMSP('Jowar (White)')?.msp).toBe(4023);
       expect(getCommodityMSP('Sorghum')?.msp).toBe(4023);
-      expect(getCommodityMSP('Maldandi')?.msp).toBe(4023);
+      expect(getCommodityMSP('Maldandi')?.msp).toBe(4073);
+
+      // 2026-27 Kharif & Rabi MSP benchmarks
+      expect(getCommodityMSP('Bajra')?.msp).toBe(2900);
+      expect(getCommodityMSP('Maize')?.msp).toBe(2410);
+      expect(getCommodityMSP('Ragi')?.msp).toBe(5205);
+      expect(getCommodityMSP('Moong')?.msp).toBe(8780);
+      expect(getCommodityMSP('Urad')?.msp).toBe(8200);
+      expect(getCommodityMSP('Groundnut')?.msp).toBe(7517);
+      expect(getCommodityMSP('Sunflower Seed')?.msp).toBe(8343);
+      expect(getCommodityMSP('Sesamum')?.msp).toBe(10346);
+      expect(getCommodityMSP('Nigerseed')?.msp).toBe(10052);
+      expect(getCommodityMSP('Cotton', 'Medium Staple')?.msp).toBe(8267);
+      expect(getCommodityMSP('Cotton', 'Long Staple')?.msp).toBe(8667);
+      expect(getCommodityMSP('Wheat')?.msp).toBe(2585);
+      expect(getCommodityMSP('Barley')?.msp).toBe(2150);
+      expect(getCommodityMSP('Gram')?.msp).toBe(5875);
+      expect(getCommodityMSP('Masur (Lentil)')?.msp).toBe(7000);
+      expect(getCommodityMSP('Rapeseed / Mustard')?.msp).toBe(6200);
+      expect(getCommodityMSP('Safflower')?.msp).toBe(6540);
+      expect(getCommodityMSP('Jute')?.msp).toBe(5925);
+      expect(getCommodityMSP('Copra', 'Milling')?.msp).toBe(12027);
+      expect(getCommodityMSP('Copra', 'Ball')?.msp).toBe(12500);
+
+      // Non-MSP commodities must return null (MSP blank, no illustrative figures)
+      expect(getCommodityMSP('Chilli (Dry)')).toBeNull();
+      expect(getCommodityMSP('Turmeric')).toBeNull();
+      expect(getCommodityMSP('Tomato')).toBeNull();
+      expect(getCommodityMSP('Onion')).toBeNull();
     });
   });
 

@@ -138,6 +138,7 @@ export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
 };
 
 export const QUALIFICATION_OPTIONS = [
+  { label: 'Diploma (Ag.)', value: 'Diploma (Ag.)' },
   { label: 'B.Sc (Ag.)', value: 'B.Sc (Ag.)' },
   { label: 'M.Sc (Ag.)', value: 'M.Sc (Ag.)' },
   { label: 'Ph.D (Ag.)', value: 'Ph.D (Ag.)' },

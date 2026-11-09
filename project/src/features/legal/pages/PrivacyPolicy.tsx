@@ -37,8 +37,8 @@ export function PrivacyPolicy() {
 
           <div className="p-6 sm:p-8 space-y-6 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('1. Data Collection', '1. Data Collection')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('1. Data Collection', '1. Data Collection')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'AGRONIX collects and stores personal information you provide when registering as an agricultural officer, including name, email, phone number, employee ID, and location information. We also collect usage data and device information to improve our services.',
                   'AGRONIX collects and stores personal information you provide when registering as an agricultural officer, including name, email, phone number, employee ID, and location information. We also collect usage data and device information to improve our services.'
@@ -47,8 +47,8 @@ export function PrivacyPolicy() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('2. Data Usage', '2. Data Usage')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('2. Data Usage', '2. Data Usage')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'We use your information to provide and improve our services, authenticate your identity, generate statutory documents, and maintain records for official purposes. We may also use your information to communicate with you about updates and changes to our services.',
                   'We use your information to provide and improve our services, authenticate your identity, generate statutory documents, and maintain records for official purposes. We may also use your information to communicate with you about updates and changes to our services.'
@@ -57,8 +57,8 @@ export function PrivacyPolicy() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('3. Data Security', '3. Data Security')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('3. Data Security', '3. Data Security')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, disclosure, alteration, or destruction. However, no method of transmission over the Internet or electronic storage is 100% secure.',
                   'We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, disclosure, alteration, or destruction. However, no method of transmission over the Internet or electronic storage is 100% secure.'
@@ -67,8 +67,8 @@ export function PrivacyPolicy() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('4. Data Sharing', '4. Data Sharing')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('4. Data Sharing', '4. Data Sharing')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'We do not sell, trade, or rent your personal information to third parties. We may share your information with government agencies as required by law or with your consent for legitimate purposes.',
                   'We do not sell, trade, or rent your personal information to third parties. We may share your information with government agencies as required by law or with your consent for legitimate purposes.'
@@ -77,8 +77,8 @@ export function PrivacyPolicy() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('5. Your Rights', '5. Your Rights')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('5. Your Rights', '5. Your Rights')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'You have the right to access, correct, or delete your personal information. You may also opt out of certain communications from us. To exercise these rights, please contact us through the official channels provided on this platform.',
                   'You have the right to access, correct, or delete your personal information. You may also opt out of certain communications from us. To exercise these rights, please contact us through the official channels provided on this platform.'
@@ -87,8 +87,8 @@ export function PrivacyPolicy() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('6. Changes to Policy', '6. Changes to Policy')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('6. Changes to Policy', '6. Changes to Policy')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'We may update this privacy policy from time to time. Changes will be posted on this page with an updated revision date.',
                   'We may update this privacy policy from time to time. Changes will be posted on this page with an updated revision date.'

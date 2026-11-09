@@ -17,7 +17,7 @@ import { supabase } from '../../../shared/lib/supabase';
 import { safeStorage } from '../../../shared/lib/safeStorage';
 
 const EDGE_FUNCTION_BASE = `${import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '') || 'https://api.supabase.co'}/functions/v1`;
-const CACHE_PREFIX = 'mandi-prices:v8:';
+const CACHE_PREFIX = 'mandi-prices:v9:';
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 const TIMEOUT_MS = 10000;
 const CUSTOM_PRICES_STORAGE_KEY = 'agronix_custom_mandi_prices';
@@ -62,78 +62,217 @@ export interface MandiPricesQuery {
  * Ministry of Agriculture & Farmers Welfare, GoI / Government of Telangana
  */
 export const CROP_MSP_BENCHMARKS: Record<string, { msp: number; bonus?: number; note?: string }> = {
-  'Cotton': { msp: 8667, note: 'Long Staple MSP ₹8,667; Medium Staple ₹8,267 (MS 2026-27)' },
-  'Paddy(Dhan)(Common)': { msp: 2441, bonus: 500, note: 'MSP ₹2,441 + ₹500 Telangana Fine Rice Bonus' },
-  'Paddy(Dhan)(Grade A)': { msp: 2461, bonus: 500, note: 'MSP ₹2,461 + ₹500 Telangana Fine Rice Bonus' },
-  'Paddy': { msp: 2461, bonus: 500, note: 'MSP ₹2,461 + ₹500 Telangana Fine Rice Bonus' },
-  'Soya Bean': { msp: 5708, note: 'MSP ₹5,708/quintal (MS 2026-27)' },
-  'Soyabean': { msp: 5708, note: 'MSP ₹5,708/quintal (MS 2026-27)' },
-  'Red Gram': { msp: 8450, note: 'MSP ₹8,450/quintal (Tur/Arhar, MS 2026-27)' },
-  'Arhar (Tur/Red Gram)': { msp: 8450, note: 'MSP ₹8,450/quintal (MS 2026-27)' },
-  'Jowar(Sorghum)': { msp: 4023, note: 'MSP ₹4,023/quintal (Hybrid: ₹4,023 / Maldandi: ₹4,073, MS 2026-27)' },
-  'Jowar': { msp: 4023, note: 'MSP ₹4,023/quintal (Hybrid: ₹4,023 / Maldandi: ₹4,073, MS 2026-27)' },
-  'Sorghum': { msp: 4023, note: 'MSP ₹4,023/quintal (MS 2026-27)' },
-  'Maize': { msp: 2410, note: 'MSP ₹2,410/quintal (Makka, MS 2026-27)' },
-  'Bengal Gram(Gram)': { msp: 5958, note: 'MSP ₹5,958/quintal (Chana, MS 2027-28)' },
-  'Bengal Gram': { msp: 5958, note: 'MSP ₹5,958/quintal (Chana, MS 2027-28)' },
-  'Chana': { msp: 5958, note: 'MSP ₹5,958/quintal (MS 2027-28)' },
-  'Gram': { msp: 5958, note: 'MSP ₹5,958/quintal (Chana, MS 2027-28)' },
-  'Groundnut': { msp: 7517, note: 'MSP ₹7,517/quintal (MS 2026-27)' },
-  'Green Gram': { msp: 8682, note: 'MSP ₹8,682/quintal (Moong, MS 2026-27)' },
-  'Moong(Green Gram)': { msp: 8682, note: 'MSP ₹8,682/quintal (MS 2026-27)' },
-  'Black Gram': { msp: 7400, note: 'MSP ₹7,400/quintal (Urad, MS 2026-27)' },
-  'Urad(Black Gram)': { msp: 7400, note: 'MSP ₹7,400/quintal (MS 2026-27)' },
-  'Bajra': { msp: 2625, note: 'MSP ₹2,625/quintal (Pearl Millet, MS 2026-27)' },
-  'Ragi': { msp: 4290, note: 'MSP ₹4,290/quintal (Finger Millet, MS 2026-27)' },
-  'Sunflower': { msp: 7280, note: 'MSP ₹7,280/quintal (MS 2026-27)' },
-  'Sesamum': { msp: 9267, note: 'MSP ₹9,267/quintal (Til, MS 2026-27)' },
-  'Chilli (Dry)': { msp: 0, note: 'Market driven (No Central MSP)' },
-  'Turmeric': { msp: 0, note: 'National Turmeric Board Benchmark' },
-  'Tomato': { msp: 0, note: 'Perishable Horticulture Crop' },
-  'Onion': { msp: 0, note: 'Perishable Horticulture Crop' },
+  // Kharif & Rabi MSP 2026-27 Schedule
+  'Paddy (Common)': { msp: 2441, bonus: 500, note: 'MSP ₹2,441/qtl (+ ₹500 Telangana Fine Rice Bonus)' },
+  'Paddy (Grade A)': { msp: 2461, bonus: 500, note: 'MSP ₹2,461/qtl (+ ₹500 Telangana Fine Rice Bonus)' },
+  'Paddy(Dhan)(Common)': { msp: 2441, bonus: 500, note: 'MSP ₹2,441/qtl (+ ₹500 Telangana Fine Rice Bonus)' },
+  'Paddy(Dhan)(Grade A)': { msp: 2461, bonus: 500, note: 'MSP ₹2,461/qtl (+ ₹500 Telangana Fine Rice Bonus)' },
+  'Paddy': { msp: 2461, bonus: 500, note: 'MSP ₹2,461/qtl (Grade A: ₹2,461 / Common: ₹2,441)' },
+  'Jowar (Hybrid)': { msp: 4023, note: 'MSP ₹4,023/quintal (2026-27)' },
+  'Jowar (Maldandi)': { msp: 4073, note: 'MSP ₹4,073/quintal (2026-27)' },
+  'Jowar(Sorghum)': { msp: 4023, note: 'MSP ₹4,023/quintal (Hybrid: ₹4,023 / Maldandi: ₹4,073)' },
+  'Jowar': { msp: 4023, note: 'MSP ₹4,023/quintal (Hybrid: ₹4,023 / Maldandi: ₹4,073)' },
+  'Sorghum': { msp: 4023, note: 'MSP ₹4,023/quintal (Hybrid: ₹4,023 / Maldandi: ₹4,073)' },
+  'Bajra': { msp: 2900, note: 'MSP ₹2,900/quintal (Pearl Millet, 2026-27)' },
+  'Maize': { msp: 2410, note: 'MSP ₹2,410/quintal (Makka, 2026-27)' },
+  'Ragi': { msp: 5205, note: 'MSP ₹5,205/quintal (Finger Millet, 2026-27)' },
+  'Tur (Arhar)': { msp: 8450, note: 'MSP ₹8,450/quintal (2026-27)' },
+  'Red Gram': { msp: 8450, note: 'MSP ₹8,450/quintal (Tur/Arhar, 2026-27)' },
+  'Arhar (Tur/Red Gram)': { msp: 8450, note: 'MSP ₹8,450/quintal (2026-27)' },
+  'Moong': { msp: 8780, note: 'MSP ₹8,780/quintal (Green Gram, 2026-27)' },
+  'Green Gram': { msp: 8780, note: 'MSP ₹8,780/quintal (Moong, 2026-27)' },
+  'Moong(Green Gram)': { msp: 8780, note: 'MSP ₹8,780/quintal (2026-27)' },
+  'Urad': { msp: 8200, note: 'MSP ₹8,200/quintal (Black Gram, 2026-27)' },
+  'Black Gram': { msp: 8200, note: 'MSP ₹8,200/quintal (Urad, 2026-27)' },
+  'Urad(Black Gram)': { msp: 8200, note: 'MSP ₹8,200/quintal (2026-27)' },
+  'Groundnut (in shell)': { msp: 7517, note: 'MSP ₹7,517/quintal (2026-27)' },
+  'Groundnut': { msp: 7517, note: 'MSP ₹7,517/quintal (in shell, 2026-27)' },
+  'Soyabean (Yellow)': { msp: 5708, note: 'MSP ₹5,708/quintal (2026-27)' },
+  'Soyabean': { msp: 5708, note: 'MSP ₹5,708/quintal (2026-27)' },
+  'Soya Bean': { msp: 5708, note: 'MSP ₹5,708/quintal (2026-27)' },
+  'Sunflower Seed': { msp: 8343, note: 'MSP ₹8,343/quintal (2026-27)' },
+  'Sunflower': { msp: 8343, note: 'MSP ₹8,343/quintal (2026-27)' },
+  'Sesamum': { msp: 10346, note: 'MSP ₹10,346/quintal (Til, 2026-27)' },
+  'Nigerseed': { msp: 10052, note: 'MSP ₹10,052/quintal (2026-27)' },
+  'Cotton (Medium Staple)': { msp: 8267, note: 'MSP ₹8,267/quintal (2026-27)' },
+  'Cotton (Long Staple)': { msp: 8667, note: 'MSP ₹8,667/quintal (2026-27)' },
+  'Cotton': { msp: 8667, note: 'Long Staple: ₹8,667 / Medium Staple: ₹8,267 (2026-27)' },
+  'Wheat': { msp: 2585, note: 'MSP ₹2,585/quintal (2026-27)' },
+  'Barley': { msp: 2150, note: 'MSP ₹2,150/quintal (2026-27)' },
+  'Gram': { msp: 5875, note: 'MSP ₹5,875/quintal (Chana/Bengal Gram, 2026-27)' },
+  'Bengal Gram': { msp: 5875, note: 'MSP ₹5,875/quintal (Gram, 2026-27)' },
+  'Bengal Gram(Gram)': { msp: 5875, note: 'MSP ₹5,875/quintal (Gram, 2026-27)' },
+  'Chana': { msp: 5875, note: 'MSP ₹5,875/quintal (Gram, 2026-27)' },
+  'Masur (Lentil)': { msp: 7000, note: 'MSP ₹7,000/quintal (2026-27)' },
+  'Masur': { msp: 7000, note: 'MSP ₹7,000/quintal (Lentil, 2026-27)' },
+  'Lentil': { msp: 7000, note: 'MSP ₹7,000/quintal (2026-27)' },
+  'Rapeseed / Mustard': { msp: 6200, note: 'MSP ₹6,200/quintal (2026-27)' },
+  'Mustard': { msp: 6200, note: 'MSP ₹6,200/quintal (2026-27)' },
+  'Rapeseed': { msp: 6200, note: 'MSP ₹6,200/quintal (2026-27)' },
+  'Safflower': { msp: 6540, note: 'MSP ₹6,540/quintal (2026-27)' },
+  'Jute': { msp: 5925, note: 'MSP ₹5,925/quintal (2026-27)' },
+  'Copra (Milling)': { msp: 12027, note: 'MSP ₹12,027/quintal (2026-27)' },
+  'Copra (Ball)': { msp: 12500, note: 'MSP ₹12,500/quintal (2026-27)' },
+  'Copra': { msp: 12027, note: 'Milling: ₹12,027 / Ball: ₹12,500 (2026-27)' },
 };
 
 /**
- * Find MSP for a given commodity name.
+ * Find MSP for a given commodity name and optional variety.
+ * Returns null if the commodity has no official MSP (e.g. Chilli, Turmeric, Vegetables).
  */
-export function getCommodityMSP(commodity: string): { msp: number; bonus?: number; note?: string } | null {
+export function getCommodityMSP(
+  commodity: string,
+  variety?: string
+): { msp: number; bonus?: number; note?: string } | null {
   if (!commodity) return null;
   const normalized = commodity.trim().toLowerCase();
+  const vNorm = (variety || '').trim().toLowerCase();
+  const combined = `${normalized} ${vNorm}`;
 
-  // Fast direct keyword checks to handle various naming conventions from Mandi APMCs
-  if (normalized.includes('cotton') || normalized.includes('kapas')) return CROP_MSP_BENCHMARKS['Cotton'];
-  if (normalized.includes('jowar') || normalized.includes('sorghum') || normalized.includes('maldandi') || normalized.includes('jola')) {
-    return CROP_MSP_BENCHMARKS['Jowar'];
+  // Explicit check: Non-MSP horticulture / cash crops must return null (MSP blank)
+  if (
+    normalized.includes('turmeric') ||
+    normalized.includes('chilli') ||
+    normalized.includes('mirchi') ||
+    normalized.includes('tomato') ||
+    normalized.includes('onion') ||
+    normalized.includes('potato') ||
+    normalized.includes('ginger') ||
+    normalized.includes('garlic') ||
+    normalized.includes('coriander') ||
+    normalized.includes('lime') ||
+    normalized.includes('lemon') ||
+    normalized.includes('sweet orange') ||
+    normalized.includes('mosambi') ||
+    (normalized.includes('coconut') && !normalized.includes('copra'))
+  ) {
+    return null;
   }
-  if (normalized.includes('paddy') || normalized.includes('dhan')) {
-    if (normalized.includes('grade a') || normalized.includes('superfine')) {
-      return CROP_MSP_BENCHMARKS['Paddy(Dhan)(Grade A)'];
+
+  // Cotton: check if medium or long staple
+  if (normalized.includes('cotton') || normalized.includes('kapas')) {
+    if (combined.includes('medium') || combined.includes('desi')) {
+      return CROP_MSP_BENCHMARKS['Cotton (Medium Staple)'];
     }
-    return CROP_MSP_BENCHMARKS['Paddy(Dhan)(Common)'];
+    if (combined.includes('long') || combined.includes('h-4') || combined.includes('bunny') || combined.includes('brahma')) {
+      return CROP_MSP_BENCHMARKS['Cotton (Long Staple)'];
+    }
+    return CROP_MSP_BENCHMARKS['Cotton'];
   }
-  if (normalized.includes('red gram') || normalized.includes('tur') || normalized.includes('arhar') || normalized.includes('kandi')) {
-    return CROP_MSP_BENCHMARKS['Red Gram'];
-  }
-  if (normalized.includes('green gram') || normalized.includes('moong') || normalized.includes('pesalu')) {
-    return CROP_MSP_BENCHMARKS['Green Gram'];
-  }
-  if (normalized.includes('black gram') || normalized.includes('urad') || normalized.includes('minumulu') || normalized.includes('urd')) {
-    return CROP_MSP_BENCHMARKS['Black Gram'];
-  }
-  if (normalized.includes('soya') || normalized.includes('soybean')) return CROP_MSP_BENCHMARKS['Soya Bean'];
-  if (normalized.includes('maize') || normalized.includes('makka') || normalized.includes('corn')) return CROP_MSP_BENCHMARKS['Maize'];
-  if (normalized.includes('chana') || normalized.includes('bengal gram') || (normalized.includes('gram') && !normalized.includes('red gram') && !normalized.includes('green gram') && !normalized.includes('black gram'))) return CROP_MSP_BENCHMARKS['Bengal Gram(Gram)'];
-  if (normalized.includes('groundnut') || normalized.includes('peanut')) return CROP_MSP_BENCHMARKS['Groundnut'];
-  if (normalized.includes('bajra') || normalized.includes('sajja')) return CROP_MSP_BENCHMARKS['Bajra'];
-  if (normalized.includes('ragi') || normalized.includes('finger millet')) return CROP_MSP_BENCHMARKS['Ragi'];
-  if (normalized.includes('sunflower')) return CROP_MSP_BENCHMARKS['Sunflower'];
-  if (normalized.includes('sesamum') || normalized.includes('til') || normalized.includes('nuvvulu')) return CROP_MSP_BENCHMARKS['Sesamum'];
 
+  // Jowar: check if maldandi or hybrid
+  if (normalized.includes('jowar') || normalized.includes('sorghum') || normalized.includes('jola')) {
+    if (combined.includes('maldandi')) {
+      return CROP_MSP_BENCHMARKS['Jowar (Maldandi)'];
+    }
+    return CROP_MSP_BENCHMARKS['Jowar (Hybrid)'];
+  }
+  if (normalized.includes('maldandi')) {
+    return CROP_MSP_BENCHMARKS['Jowar (Maldandi)'];
+  }
+
+  // Paddy: check if Grade A or Common
+  if (normalized.includes('paddy') || normalized.includes('dhan')) {
+    if (combined.includes('grade a') || combined.includes('superfine') || combined.includes('fine') || combined.includes('bpt')) {
+      return CROP_MSP_BENCHMARKS['Paddy (Grade A)'];
+    }
+    return CROP_MSP_BENCHMARKS['Paddy (Common)'];
+  }
+
+  // Copra: check if ball or milling
+  if (normalized.includes('copra')) {
+    if (combined.includes('ball')) {
+      return CROP_MSP_BENCHMARKS['Copra (Ball)'];
+    }
+    return CROP_MSP_BENCHMARKS['Copra (Milling)'];
+  }
+
+  // Pulses
+  if (
+    normalized.includes('red gram') ||
+    normalized.includes('arhar') ||
+    normalized.includes('kandi') ||
+    normalized.includes('pigeonpea') ||
+    (/tur/i.test(normalized) && !normalized.includes('turmeric'))
+  ) {
+    return CROP_MSP_BENCHMARKS['Tur (Arhar)'];
+  }
+  if (normalized.includes('green gram') || normalized.includes('moong') || normalized.includes('pesalu') || normalized.includes('mung')) {
+    return CROP_MSP_BENCHMARKS['Moong'];
+  }
+  if (normalized.includes('black gram') || normalized.includes('urad') || normalized.includes('minumulu') || /urd/i.test(normalized)) {
+    return CROP_MSP_BENCHMARKS['Urad'];
+  }
+  if (normalized.includes('masur') || normalized.includes('lentil') || normalized.includes('masoor')) {
+    return CROP_MSP_BENCHMARKS['Masur (Lentil)'];
+  }
+  if (
+    normalized.includes('chana') ||
+    normalized.includes('bengal gram') ||
+    normalized.includes('chickpea') ||
+    (/gram/i.test(normalized) &&
+      !normalized.includes('red gram') &&
+      !normalized.includes('green gram') &&
+      !normalized.includes('black gram') &&
+      !normalized.includes('horse gram'))
+  ) {
+    return CROP_MSP_BENCHMARKS['Gram'];
+  }
+
+  // Oilseeds
+  if (normalized.includes('groundnut') || normalized.includes('peanut') || normalized.includes('palli')) {
+    return CROP_MSP_BENCHMARKS['Groundnut (in shell)'];
+  }
+  if (normalized.includes('soya') || normalized.includes('soybean')) {
+    return CROP_MSP_BENCHMARKS['Soyabean (Yellow)'];
+  }
+  if (normalized.includes('sunflower')) {
+    return CROP_MSP_BENCHMARKS['Sunflower Seed'];
+  }
+  if (normalized.includes('sesamum') || normalized.includes('til') || normalized.includes('nuvvulu') || normalized.includes('gingelly')) {
+    return CROP_MSP_BENCHMARKS['Sesamum'];
+  }
+  if (normalized.includes('nigerseed') || normalized.includes('niger')) {
+    return CROP_MSP_BENCHMARKS['Nigerseed'];
+  }
+  if (normalized.includes('mustard') || normalized.includes('rapeseed') || normalized.includes('sarson') || /rai/i.test(normalized)) {
+    return CROP_MSP_BENCHMARKS['Rapeseed / Mustard'];
+  }
+  if (normalized.includes('safflower') || normalized.includes('kusuma') || normalized.includes('kardi')) {
+    return CROP_MSP_BENCHMARKS['Safflower'];
+  }
+
+  // Cereals & Millets
+  if (normalized.includes('bajra') || normalized.includes('sajja') || normalized.includes('cumbu') || normalized.includes('pearl millet')) {
+    return CROP_MSP_BENCHMARKS['Bajra'];
+  }
+  if (normalized.includes('maize') || normalized.includes('makka') || normalized.includes('corn')) {
+    return CROP_MSP_BENCHMARKS['Maize'];
+  }
+  if (normalized.includes('ragi') || normalized.includes('finger millet') || normalized.includes('chodi')) {
+    return CROP_MSP_BENCHMARKS['Ragi'];
+  }
+  if (normalized.includes('wheat') || normalized.includes('gehun')) {
+    return CROP_MSP_BENCHMARKS['Wheat'];
+  }
+  if (normalized.includes('barley') || /jau/i.test(normalized)) {
+    return CROP_MSP_BENCHMARKS['Barley'];
+  }
+
+  // Commercial / Fibres
+  if (/jute/i.test(normalized)) {
+    return CROP_MSP_BENCHMARKS['Jute'];
+  }
+
+  // Exact or direct entry match against official table
   for (const [key, val] of Object.entries(CROP_MSP_BENCHMARKS)) {
-    if (normalized.includes(key.toLowerCase()) || key.toLowerCase().includes(normalized)) {
+    const kLow = key.toLowerCase();
+    if (normalized === kLow || normalized.startsWith(kLow) || kLow.startsWith(normalized)) {
       return val;
     }
   }
+
+  // Not an MSP commodity — keep blank, do not show illustrative/placeholder figure
   return null;
 }
 
@@ -188,7 +327,7 @@ export function saveCustomMandiPrice(
   record: Omit<MandiPriceRecord, 'id' | 'created_at' | 'isCustom'>
 ): MandiPriceRecord {
   const existing = getCustomMandiPrices();
-  const mspInfo = getCommodityMSP(record.commodity);
+  const mspInfo = getCommodityMSP(record.commodity, record.variety);
   const msp = mspInfo?.msp || 0;
   const mspDifference = msp > 0 ? record.modal_price - msp : undefined;
 
@@ -879,7 +1018,7 @@ export function getVerifiedMandiPrices(state = 'Telangana'): MandiPriceRecord[] 
   const chosenBaseline = isAP ? apBaseline : isTG ? tgBaseline : fallbackNationalBaseline;
 
   return chosenBaseline.map((r, i) => {
-    const mspInfo = getCommodityMSP(r.commodity);
+    const mspInfo = getCommodityMSP(r.commodity, r.variety);
     const msp = mspInfo?.msp || 0;
     const mspDifference = msp > 0 ? r.modal - msp : undefined;
 
@@ -1087,7 +1226,7 @@ function normalizeRecords(raw: unknown, defaultState = 'Telangana'): MandiPriceR
       const rawModal = num(rec.modal_price || rec.Modal_Price);
       const modal = rawModal > 0 ? rawModal : max_price > 0 ? max_price : min_price;
 
-      const mspInfo = getCommodityMSP(commodity);
+      const mspInfo = getCommodityMSP(commodity, str(rec.variety || rec.Variety));
       const msp = mspInfo?.msp || 0;
       const mspDifference = msp > 0 && modal > 0 ? modal - msp : undefined;
 
@@ -1205,7 +1344,7 @@ export function buildMandiWhatsAppText(
     rendered += 1;
 
     const commodity = matches[0].commodity;
-    const mspInfo = getCommodityMSP(commodity);
+    const mspInfo = getCommodityMSP(commodity, matches[0].variety);
     lines.push(cropHeaderFor(commodity, matches[0].variety));
     if (mspInfo?.msp) {
       const bonusText = mspInfo.bonus ? ` (+₹${mspInfo.bonus} Telangana Bonus)` : '';

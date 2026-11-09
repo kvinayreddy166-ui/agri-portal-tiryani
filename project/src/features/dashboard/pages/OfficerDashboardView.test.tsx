@@ -193,7 +193,7 @@ describe('Dashboard — Officer vs Admin view isolation', () => {
     expect(html).not.toContain('Command Center');
     expect(html).not.toContain('Office Records');
     expect(html).not.toContain('Document Repository');
-    expect(html).not.toContain('Dealers Directory');
+    expect(html).toContain('Dealers Directory');
     expect(html).not.toContain('Quality Control');
     expect(html).not.toContain('Farmer Database');
     expect(html).not.toContain('Reports');

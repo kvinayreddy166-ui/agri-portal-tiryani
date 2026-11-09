@@ -37,8 +37,8 @@ export function Disclaimer() {
 
           <div className="p-6 sm:p-8 space-y-6 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('1. Information Accuracy', '1. Information Accuracy')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('1. Information Accuracy', '1. Information Accuracy')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'AGRONIX provides agricultural information, tools, and resources for informational purposes only. While we strive to maintain accurate and up-to-date information, we do not guarantee the completeness, accuracy, or reliability of any content.',
                   'AGRONIX provides agricultural information, tools, and resources for informational purposes only. While we strive to maintain accurate and up-to-date information, we do not guarantee the completeness, accuracy, or reliability of any content.'
@@ -47,8 +47,8 @@ export function Disclaimer() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('2. Professional Advice', '2. Professional Advice')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('2. Professional Advice', '2. Professional Advice')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'The information provided on this platform should not be considered as professional agricultural, legal, or financial advice. Always consult with qualified professionals before making important decisions regarding crop management, pest control, or regulatory compliance.',
                   'The information provided on this platform should not be considered as professional agricultural, legal, or financial advice. Always consult with qualified professionals before making important decisions regarding crop management, pest control, or regulatory compliance.'
@@ -57,8 +57,8 @@ export function Disclaimer() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('3. Limitation of Liability', '3. Limitation of Liability')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('3. Limitation of Liability', '3. Limitation of Liability')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'The developers of this system shall not be liable for any direct, indirect, incidental, special, or consequential damages arising from the use of this system or reliance on its information.',
                   'The developers of this system shall not be liable for any direct, indirect, incidental, special, or consequential damages arising from the use of this system or reliance on its information.'
@@ -67,8 +67,8 @@ export function Disclaimer() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('4. External Links', '4. External Links')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('4. External Links', '4. External Links')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'AGRONIX may contain links to external websites or resources. We are not responsible for the content, privacy policies, or practices of any third-party websites.',
                   'AGRONIX may contain links to external websites or resources. We are not responsible for the content, privacy policies, or practices of any third-party websites.'
@@ -77,8 +77,8 @@ export function Disclaimer() {
             </section>
 
             <section>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">{t('5. Changes to Disclaimer', '5. Changes to Disclaimer')}</h2>
-              <p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2 text-left">{t('5. Changes to Disclaimer', '5. Changes to Disclaimer')}</h2>
+              <p className="text-justify leading-relaxed text-slate-600 dark:text-slate-300">
                 {t(
                   'We reserve the right to modify this disclaimer at any time. Changes will be effective immediately upon posting to this page.',
                   'We reserve the right to modify this disclaimer at any time. Changes will be effective immediately upon posting to this page.'

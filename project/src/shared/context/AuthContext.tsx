@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, ReactNode, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, isAdmin, isTestUser, isDealerUser, isOfficerUser, getDealerIdFromUser, clearPersistedSupabaseAuth } from '../lib/supabase';
+import { safeStorage } from '../lib/safeStorage';
 import {
   DEALER_DEFAULT_PASSWORD,
   dealerEmailFromPhone,
@@ -69,20 +70,56 @@ async function recordDealerLogin(dealerId: string | null) {
   }
 }
 
+function getInitialPersistedSession(): { session: Session | null; user: User | null } {
+  if (typeof window === 'undefined') return { session: null, user: null };
+  try {
+    for (let i = 0; i < safeStorage.length; i++) {
+      const key = safeStorage.key(i);
+      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        const raw = safeStorage.getItem(key);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const sess = (parsed?.currentSession || parsed) as Session;
+          if (sess?.user) {
+            return { session: sess, user: sess.user };
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Could not read cached session:', err);
+  }
+  return { session: null, user: null };
+}
+
+function getInitialCachedProfile(): OfficerProfile | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = safeStorage.getItem('tiryani_officer_profile');
+    if (raw) {
+      return JSON.parse(raw) as OfficerProfile;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false);
-  const [appReady, setAppReady] = useState(false);
-  const [isAdminUser, setIsAdminUser] = useState(false);
-  const [isTestUserFlag, setIsTestUserFlag] = useState(false);
-  const [isDealerUserFlag, setIsDealerUserFlag] = useState(false);
-  const [isOfficerUserFlag, setIsOfficerUserFlag] = useState(false);
-  const [officerProfile, setOfficerProfile] = useState<OfficerProfile | null>(null);
-  const [dealerId, setDealerId] = useState<string | null>(null);
-  const [dealerName, setDealerName] = useState<string | null>(null);
-  const authCheckedRef = useRef(false);
+    const initial = useRef(getInitialPersistedSession()).current;
+  const [user, setUser] = useState<User | null>(() => initial.user);
+  const [session, setSession] = useState<Session | null>(() => initial.session);
+  const [loading, setLoading] = useState(() => !initial.user);
+  const [authChecked, setAuthChecked] = useState(() => Boolean(initial.user));
+  const [appReady, setAppReady] = useState(() => Boolean(initial.user));
+  const [isAdminUser, setIsAdminUser] = useState(() => isAdmin(initial.user?.email));
+  const [isTestUserFlag, setIsTestUserFlag] = useState(() => isTestUser(initial.user?.email));
+  const [isDealerUserFlag, setIsDealerUserFlag] = useState(() => isDealerUser(initial.user));
+  const [isOfficerUserFlag, setIsOfficerUserFlag] = useState(() => isOfficerUser(initial.user) || isAdmin(initial.user?.email));
+  const [officerProfile, setOfficerProfile] = useState<OfficerProfile | null>(getInitialCachedProfile);
+  const [dealerId, setDealerId] = useState<string | null>(() => (isDealerUser(initial.user) ? getDealerIdFromUser(initial.user) : null));
+  const [dealerName, setDealerName] = useState<string | null>(() => (isDealerUser(initial.user) ? ((initial.user?.user_metadata?.dealer_name as string) || null) : null));
+  const authCheckedRef = useRef(Boolean(initial.user));
 
   const fetchOfficerProfile = useCallback(async (targetUser: User | null) => {
     if (!targetUser) {
@@ -114,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isExplicitOfficer || isCurrentAdmin) {
       const fallbackProfile: OfficerProfile = {
         id: targetUser.id,
-        full_name: (targetUser.user_metadata?.full_name as string) || (isCurrentAdmin ? 'K. Vinay Reddy' : 'Agricultural Officer'),
+        full_name: (targetUser.user_metadata?.full_name as string) || (isCurrentAdmin ? 'K. Vinay Reddy' : 'Agriculture Officer'),
         designation: (targetUser.user_metadata?.designation as string) || (isCurrentAdmin ? 'MAO' : 'AEO'),
         hrms_id: (targetUser.user_metadata?.hrms_id as string) || '',
         qualification: (targetUser.user_metadata?.qualification as string) || '',
@@ -144,8 +181,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!mounted || completed) return;
       completed = true;
       window.clearTimeout(startupTimer);
-      applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
-      void fetchOfficerProfile(sess?.user ?? null);
+      if (sess) {
+        applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
+        void fetchOfficerProfile(sess.user);
+      } else if (!initial.session) {
+        applySession(null, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
+        void fetchOfficerProfile(null);
+      }
       setLoading(false);
       setAuthChecked(true);
       authCheckedRef.current = true;
@@ -171,9 +213,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           finishLoading(null);
         });
 
-      const authState = supabase.auth.onAuthStateChange((_event, sess) => {
-        applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
-        void fetchOfficerProfile(sess?.user ?? null);
+      const authState = supabase.auth.onAuthStateChange((event, sess) => {
+        if (event === 'SIGNED_OUT') {
+          applySession(null, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
+          setOfficerProfile(null);
+          setIsOfficerUserFlag(false);
+          safeStorage.removeItem('tiryani_officer_profile');
+        } else if (sess) {
+          applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
+          void fetchOfficerProfile(sess.user);
+        }
         if (!authCheckedRef.current) {
           finishLoading(sess);
           return;

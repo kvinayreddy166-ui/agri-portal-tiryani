@@ -191,13 +191,13 @@ export function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50/60 via-slate-50 to-slate-100 py-8 px-4 sm:px-6 lg:px-8 dark:from-emerald-950/20 dark:via-slate-950 dark:to-slate-950">
-      <div className="mx-auto max-w-lg">
+    <div className="min-h-screen bg-slate-50 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 dark:bg-slate-950 flex flex-col justify-center transition-colors">
+      <div className="mx-auto w-full max-w-lg">
         {/* Navigation & Language Top Bar */}
         <div className="flex items-center justify-between mb-6">
           <Link
             to="/login"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-2xs transition hover:bg-slate-50 hover:text-emerald-800 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>{t('Back to Login', 'లాగిన్‌కు తిరిగి వెళ్ళండి')}</span>
@@ -205,21 +205,26 @@ export function ForgotPassword() {
           <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
         </div>
 
-        {/* Main Card */}
-        <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xl shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900">
+        {/* Main Card with Rich Header Banner */}
+        <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xl shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900 transition-colors">
           {/* Header Banner */}
-          <div className="relative overflow-hidden bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 p-6 text-white">
+          <div className="relative overflow-hidden bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 p-6 sm:p-7 text-white">
             <div className="pointer-events-none absolute inset-0 opacity-15 [background-image:radial-gradient(rgba(255,255,255,0.9)_1px,transparent_1px)] [background-size:16px_16px]" />
-            <div className="relative flex items-center gap-3">
-              <div className="inline-flex rounded-xl bg-white/10 p-2 backdrop-blur-xs ring-1 ring-white/20">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gold-400/15 blur-2xl" />
+
+            <div className="relative flex items-center gap-3.5">
+              <div className="inline-flex rounded-xl bg-white/10 p-2.5 backdrop-blur-xs ring-1 ring-white/20 shadow-sm shrink-0">
                 <PortalLogo size="md" />
               </div>
-              <div>
+              <div className="min-w-0">
+                <span className="text-[10px] font-black tracking-wider uppercase text-gold-300 font-[var(--font-stylish)]">
+                  {t('AGRONIX', 'అగ్రోనిక్స్')} &middot; {t('Security Desk', 'సెక్యూరిటీ డెస్క్')}
+                </span>
                 <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                   {t('Reset Password', 'పాస్‌వర్డ్ రీసెట్')}
                 </h1>
-                <p className="text-xs text-emerald-200 mt-0.5">
-                  {t('Verify your registered email with Resend OTP', 'నమోదైన ఇమెయిల్‌ను OTP తో ధృవీకరించండి')}
+                <p className="text-xs text-emerald-200/90 mt-0.5 truncate">
+                  {t('Verify your registered official email with instant OTP', 'నమోదైన అధికారిక ఇమెయిల్‌ను OTP తో ధృవీకరించండి')}
                 </p>
               </div>
             </div>

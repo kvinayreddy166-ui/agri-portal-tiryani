@@ -145,7 +145,13 @@ export function Login() {
             <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-800 via-gold-400 to-emerald-800" />
             
             <div className="flex items-center justify-between mb-3">
-              <Link to="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-emerald-700 dark:text-slate-400 dark:hover:text-emerald-300 transition-colors"><Home className="h-3.5 w-3.5" />Home</Link>
+              <Link
+                to="/"
+                className="group inline-flex items-center gap-1.5 rounded-full border border-emerald-200/90 bg-emerald-50/80 px-3 py-1 text-xs font-bold text-emerald-800 shadow-2xs backdrop-blur-xs transition hover:border-emerald-300 hover:bg-emerald-100 hover:text-emerald-900 active:scale-95 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+              >
+                <Home className="h-3.5 w-3.5 text-emerald-700 transition-transform group-hover:scale-110 dark:text-emerald-400" />
+                <span>{t('Home', 'హోమ్')}</span>
+              </Link>
               <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
             </div>
 

@@ -11,13 +11,13 @@ interface AuthStepperProps {
 }
 
 /**
- * Horizontal step indicator used by the auth flows (sign-up, password reset).
+ * Clean, modern horizontal step indicator for auth header banners.
  * Renders numbered badges that turn into checks, with progress-filled connectors.
  */
 export function AuthStepper({ steps, currentIndex, finished = false }: AuthStepperProps) {
   return (
     <div
-      className="mt-6 flex items-center gap-1.5 border-t border-emerald-700/60 pt-4 sm:gap-2"
+      className="mt-6 flex items-center gap-1.5 border-t border-emerald-700/60 pt-4 sm:gap-2.5"
       role="list"
       aria-label="Progress"
     >
@@ -30,7 +30,7 @@ export function AuthStepper({ steps, currentIndex, finished = false }: AuthStepp
               <div
                 aria-hidden="true"
                 className={`h-0.5 flex-1 rounded-full transition-colors duration-500 ${
-                  done || finished ? 'bg-emerald-400' : 'bg-emerald-800'
+                  done || finished ? 'bg-emerald-400' : 'bg-emerald-800/80'
                 }`}
               />
             )}
@@ -39,17 +39,21 @@ export function AuthStepper({ steps, currentIndex, finished = false }: AuthStepp
                 aria-current={active ? 'step' : undefined}
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-black transition-colors duration-300 ${
                   done
-                    ? 'bg-emerald-500 text-white'
+                    ? 'bg-emerald-500 text-white shadow-xs'
                     : active
-                      ? 'bg-gold-400 text-emerald-950 ring-2 ring-gold-300/60'
-                      : 'bg-emerald-800/80 text-emerald-300'
+                      ? 'bg-gold-400 text-emerald-950 ring-2 ring-gold-300/70 shadow-sm'
+                      : 'bg-emerald-900/90 text-emerald-300 border border-emerald-700/60'
                 }`}
               >
                 {done ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : i + 1}
               </span>
               <span
                 className={`hidden truncate text-[11px] font-semibold sm:inline ${
-                  done || active ? 'text-emerald-100' : 'text-emerald-400/60'
+                  active
+                    ? 'text-white font-bold'
+                    : done
+                      ? 'text-emerald-200'
+                      : 'text-emerald-400/70'
                 }`}
               >
                 {label}
