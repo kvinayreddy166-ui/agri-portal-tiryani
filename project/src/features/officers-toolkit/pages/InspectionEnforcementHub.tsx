@@ -9,6 +9,7 @@ import type { SavedPestStopSaleOrder } from '../components/PesticideStopSaleEntr
 import type { SavedFertStopSaleOrder } from '../components/FertilizerStopSaleEntry';
 import type { SavedSeedStopSaleOrder } from '../components/SeedStopSaleEntry';
 import type { NoticeCategory } from '../data/showCauseViolationData';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 
 const ShowCauseNoticeEntry = lazy(() => import('../components/ShowCauseNoticeEntry').then((m) => ({ default: m.ShowCauseNoticeEntry })));
 const PesticideStopSaleEntry = lazy(() => import('../components/PesticideStopSaleEntry').then((m) => ({ default: m.PesticideStopSaleEntry })));
@@ -23,7 +24,7 @@ const SeedStopSaleRevokeEntry = lazy(() => import('../components/SeedStopSaleRev
 
 const LazySubLoader = () => (
   <div className="flex items-center justify-center p-8">
-    <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-700" />
+    <Spinner size="lg" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
   </div>
 );
 

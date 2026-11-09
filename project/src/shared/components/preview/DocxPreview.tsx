@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, ExternalLink, FileType } from 'lucide-react';
 import mammoth from 'mammoth';
+import { Spinner } from '../ui/Spinner';
 
 interface DocxPreviewProps {
   file: File;
@@ -108,7 +109,7 @@ export function DocxPreview({ file, onClose, onDownload, className = '' }: DocxP
         {loading && (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
-              <div className="mb-2 h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+              <Spinner size="lg" className="text-emerald-600 dark:text-emerald-400 mb-2" label="Loading" />
               <p className="text-sm font-semibold text-slate-600">Loading document...</p>
             </div>
           </div>

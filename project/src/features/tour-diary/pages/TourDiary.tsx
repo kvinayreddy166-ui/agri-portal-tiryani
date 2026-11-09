@@ -43,6 +43,7 @@ import {
 import { generateTourDiaryPdf } from '../lib/tourDiaryPdf';
 import { exportTourDiaryExcel } from '../lib/tourDiaryExcel';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 
 function formatOptionalTime(time?: string | null): string {
   return time ? formatTime(time) : '';
@@ -1773,7 +1774,7 @@ export function TourDiary() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-950 flex items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-700" />
+        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
       </div>
     );
   }

@@ -17,6 +17,7 @@ import {
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { safeStorage, clearUserStorage } from '../../../shared/lib/safeStorage';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 
 interface OfficerRow {
   id: string;
@@ -379,7 +380,7 @@ export function Settings() {
 
           {loadingOfficers ? (
             <div className="py-8 text-center text-gray-500 dark:text-slate-400 text-sm">
-              <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <Spinner size="md" className="text-emerald-600 dark:text-emerald-400 mx-auto mb-2" label="Loading" />
               Loading officer accounts...
             </div>
           ) : adminOfficers.length === 0 ? (
@@ -503,7 +504,7 @@ export function Settings() {
               >
                 {adminDeleting ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Spinner size="xs" className="text-white" label="Loading" />
                     Deleting...
                   </>
                 ) : (
@@ -562,7 +563,7 @@ export function Settings() {
               >
                 {deleting ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Spinner size="xs" className="text-white" label="Loading" />
                     Deleting...
                   </>
                 ) : (

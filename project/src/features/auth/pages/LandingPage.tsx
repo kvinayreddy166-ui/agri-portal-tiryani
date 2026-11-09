@@ -29,7 +29,6 @@ import {
   Zap,
 } from 'lucide-react';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
-import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { OfficialChannelsSidebar } from '../../../shared/components/ui/OfficialChannelsSidebar';
 import { FloatingActions } from '../../../shared/components/ui/FloatingActions';
 import { useLanguage } from '../../../shared/context/LanguageContext';
@@ -282,13 +281,33 @@ export function LandingPage() {
               <span>{t('Public Toolkit', 'పబ్లిక్ టూల్‌కిట్')}</span>
             </button>
 
-            {/* Language toggle */}
-            <LanguageToggle
-              language={language}
-              onClick={toggleLanguage}
-              accent="emerald"
-              label={language === 'en' ? 'తెలుగులో చూడండి' : 'View in English'}
-            />
+            {/* Animated language toggle */}
+            <div
+              role="group"
+              aria-label={language === 'en' ? 'Swap to Telugu' : 'Swap to English'}
+              className="relative flex h-8 items-center rounded-full border border-gold-300/70 bg-gold-50/80 p-0.5 shadow-[0_1px_3px_rgba(216,155,24,0.15)]"
+            >
+              <span
+                aria-hidden="true"
+                className={`absolute left-0.5 top-0.5 h-7 w-[calc(50%-2px)] rounded-full bg-gradient-to-r from-gold-400 to-amber-500 shadow-md transition-transform duration-300 ease-[cubic-bezier(0.34,1.4,0.64,1)] ${language === 'te' ? 'translate-x-[calc(100%+0px)]' : 'translate-x-0'}`}
+              />
+              <button
+                type="button"
+                onClick={() => language !== 'en' && toggleLanguage()}
+                aria-pressed={language === 'en'}
+                className={`relative z-10 flex h-7 w-9 items-center justify-center rounded-full text-[10px] font-black transition-colors duration-200 ${language === 'en' ? 'text-emerald-950' : 'text-gold-700 hover:text-gold-800'}`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => language !== 'te' && toggleLanguage()}
+                aria-pressed={language === 'te'}
+                className={`relative z-10 flex h-7 w-9 items-center justify-center rounded-full text-[10px] font-black transition-colors duration-200 ${language === 'te' ? 'text-emerald-950' : 'text-gold-700 hover:text-gold-800'}`}
+              >
+                తె
+              </button>
+            </div>
 
             {/* Login button */}
             <button

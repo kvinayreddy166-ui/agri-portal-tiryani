@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ZoomIn, ZoomOut, ChevronLeft, ChevronRight, X, ExternalLink, FileText } from 'lucide-react';
 import { renderPdfPage, validatePdf } from '../../utils/pdfHelpers';
 import { cleanupObjectUrl, downloadBlob, makeSafeFileName } from '../../utils/fileCleanup';
+import { Spinner } from '../ui/Spinner';
 
 interface PdfPreviewProps {
   file: File;
@@ -185,7 +186,7 @@ export function PdfPreview({ file, onClose, onDownload, className = '' }: PdfPre
         {loading && (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
-              <div className="mb-2 h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+              <Spinner size="lg" className="text-emerald-600 dark:text-emerald-400 mb-2" label="Loading" />
               <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Loading PDF...</p>
             </div>
           </div>

@@ -6,10 +6,12 @@ self-contained.
 | # | Title | Severity | Category | Status |
 |---|-------|----------|----------|--------|
 | 001 | Landing page logo entrance animation | LOW | Missed opportunities | TODO |
+| 002 | Unify loading spinner language | MEDIUM | Cohesion & tokens | DONE |
 
 ## Recommended order
 
-1. **001** — standalone, no dependencies. Safe to run alone.
+1. **002** — mechanical, high-leverage: one CSS line + ~18 spinner swaps.
+2. **001** — standalone, no dependencies. Safe to run alone.
 
 ## Notes
 

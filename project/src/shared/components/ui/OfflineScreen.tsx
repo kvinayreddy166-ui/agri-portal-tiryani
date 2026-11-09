@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { WifiOff, RefreshCw } from 'lucide-react';
 import { checkNetworkOnline } from '../../lib/networkStatus';
-import { PortalLogo } from './PortalLogo';
 
 export const OfflineScreen = React.memo(function OfflineScreen() {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
-  const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   const syncOnlineStatus = useCallback(async () => {
     const isUp = await checkNetworkOnline();
@@ -18,6 +18,7 @@ export const OfflineScreen = React.memo(function OfflineScreen() {
     };
     const handleBrowserOffline = () => {
       setOnline(false);
+      setDismissed(false);
     };
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
@@ -42,55 +43,50 @@ export const OfflineScreen = React.memo(function OfflineScreen() {
 
   useEffect(() => {
     if (online) {
-      setVisible(false);
+      setDismissed(false);
       return;
     }
-
-    const showTimer = window.setTimeout(() => setVisible(true), 40);
     const probeTimer = window.setInterval(() => {
       void syncOnlineStatus();
     }, 4000);
-
-    return () => {
-      window.clearTimeout(showTimer);
-      window.clearInterval(probeTimer);
-    };
+    return () => window.clearInterval(probeTimer);
   }, [online, syncOnlineStatus]);
 
-  if (online) return null;
+  if (online || dismissed) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-[#f2f7f3] p-6 text-center dark:bg-slate-950">
-      <div
-        className={`flex max-w-md flex-col items-center transition duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
-          visible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-10 scale-95 opacity-0'
-        }`}
-      >
-        <div
-          className={`relative mb-10 transition delay-100 duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
-            visible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-          }`}
-        >
-          <div className="pointer-events-none absolute inset-0 -m-6 flex items-center justify-center">
-            <div className="h-36 w-36 animate-ping rounded-full bg-emerald-500/15" />
-          </div>
-          <div className="pointer-events-none absolute inset-0 -m-3 flex items-center justify-center">
-            <div className="h-28 w-28 animate-pulse rounded-full bg-emerald-400/10" />
-          </div>
-          <div className={visible ? 'login-logo-hero' : ''}>
-            <PortalLogo size="xl" className="mx-auto !h-28 !w-28 shadow-xl ring-emerald-500/40" />
-          </div>
+    <div className="pointer-events-none fixed inset-x-0 top-3 z-[9999] flex justify-center px-4">
+      <div className="pointer-events-auto flex w-full max-w-sm animate-pop-in items-center gap-3 rounded-2xl border border-amber-200 bg-white/95 px-4 py-3 shadow-xl shadow-slate-950/15 backdrop-blur-md dark:border-amber-800/50 dark:bg-slate-900/95">
+        <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
+          <WifiOff className="h-4.5 w-4.5" />
+          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 animate-ping rounded-full bg-amber-400" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-black text-slate-900 dark:text-white">
+            {typeof navigator !== 'undefined' && !navigator.onLine
+              ? 'You are offline'
+              : 'Connection unstable'}
+          </p>
+          <p className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            Cached data still works — changes will sync when online
+          </p>
         </div>
-
-        <p
-          className={`text-xl font-black leading-snug tracking-tight text-slate-950 transition delay-200 duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] dark:text-white sm:text-2xl ${
-            visible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'
-          }`}
+        <button
+          type="button"
+          onClick={() => void syncOnlineStatus()}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-emerald-600 dark:hover:bg-slate-800"
+          aria-label="Retry connection"
+          title="Retry"
         >
-          AGRONIX is offline
-          <br />
-          Please reconnect and reopen the app
-        </p>
+          <RefreshCw className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          className="shrink-0 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
+        >
+          OK
+        </button>
       </div>
     </div>
   );

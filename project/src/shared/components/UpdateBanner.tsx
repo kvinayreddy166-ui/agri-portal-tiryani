@@ -84,7 +84,7 @@ export function UpdateBanner() {
       overlay.className = 'fixed inset-0 z-[10000] flex items-center justify-center bg-white dark:bg-slate-900';
       overlay.innerHTML = `
         <div class="flex flex-col items-center gap-4">
-          <div class="h-12 w-12 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
+          <svg viewBox="0 0 24 24" fill="none" class="animate-spinner h-12 w-12 text-emerald-600" aria-hidden="true"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-opacity="0.12" stroke-width="2"/><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="14 45.7" transform="rotate(-90 12 12)"/></svg>
           <p class="text-lg font-semibold text-slate-700">Updating AGRONIX...</p>
         </div>
       `;

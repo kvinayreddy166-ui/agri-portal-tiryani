@@ -17,6 +17,7 @@ import {
   fertilizerMtsToBags,
   formatReportDateLabel,
 } from '../lib/stockInventory';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 
 const LazyStockChart = lazy(() => import('../components/LazyStockChart'));
 
@@ -510,7 +511,7 @@ export function StockInventory() {
           </span>
         </div>
         <div className="h-48">
-          <Suspense fallback={<div className="flex h-full items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" /></div>}>
+          <Suspense fallback={<div className="flex h-full items-center justify-center"><Spinner size="md" className="text-emerald-600 dark:text-emerald-400" label="Loading" /></div>}>
             <LazyStockChart data={chartRows} />
           </Suspense>
         </div>
@@ -518,7 +519,7 @@ export function StockInventory() {
 
       {loading ? (
         <div className="flex h-48 items-center justify-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+          <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
         </div>
       ) : filteredRows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 p-12 text-center text-slate-500 dark:border-slate-600">

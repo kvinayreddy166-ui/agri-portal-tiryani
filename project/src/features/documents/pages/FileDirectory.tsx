@@ -7,6 +7,7 @@ import { FileActionButtons } from '../../../shared/components/ui/FileActionButto
 import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 import { inferFileTypeFromName, getFileTypeLabel } from '../../../shared/lib/fileTypes';
 import { cachedSupabaseRows } from '../../../shared/lib/offlineCache';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 
 interface UnifiedFile {
   id: string;
@@ -259,7 +260,7 @@ export function FileDirectory() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
       </div>
     );
   }

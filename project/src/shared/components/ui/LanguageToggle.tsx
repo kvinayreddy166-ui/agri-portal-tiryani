@@ -2,7 +2,7 @@ import React from 'react';
 import { Languages } from 'lucide-react';
 
 type LanguageToggleTone = 'light' | 'solid';
-type LanguageToggleAccent = 'violet' | 'emerald' | 'teal';
+type LanguageToggleAccent = 'violet' | 'emerald' | 'teal' | 'gold';
 
 type LanguageToggleProps = {
   language: 'en' | 'te';
@@ -22,12 +22,15 @@ const lightAccentClass: Record<LanguageToggleAccent, string> = {
     'border-emerald-200 bg-emerald-50/80 text-emerald-700 shadow-[0_1px_3px_rgba(5,150,105,0.12)] hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60',
   teal:
     'border-emerald-200 bg-emerald-50/80 text-emerald-700 shadow-[0_1px_3px_rgba(13,148,136,0.12)] hover:bg-emerald-100 hover:text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60',
+  gold:
+    'border-gold-300 bg-gold-50/80 text-gold-700 shadow-[0_1px_3px_rgba(216,155,24,0.15)] hover:bg-gold-100 hover:text-gold-800 dark:border-gold-700/60 dark:bg-gold-950/60 dark:text-gold-300 dark:hover:bg-gold-900/60',
 };
 
 const accentFocusClass: Record<LanguageToggleAccent, string> = {
   violet: 'focus:ring-violet-200 dark:focus:ring-violet-900/50',
   emerald: 'focus:ring-emerald-200 dark:focus:ring-emerald-900/50',
   teal: 'focus:ring-emerald-200 dark:focus:ring-emerald-900/50',
+  gold: 'focus:ring-gold-200 dark:focus:ring-gold-900/50',
 };
 
 export function LanguageToggle({ language, onClick, tone = 'light', accent = 'violet', className = '', label }: LanguageToggleProps) {

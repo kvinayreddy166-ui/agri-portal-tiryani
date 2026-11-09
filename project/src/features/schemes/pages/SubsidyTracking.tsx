@@ -7,6 +7,7 @@ import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { uploadPortalFile } from '../../../shared/lib/uploadFile';
 import { FileActionButtons } from '../../../shared/components/ui/FileActionButtons';
 import { inferFileTypeFromName } from '../../../shared/lib/fileTypes';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 
 export type SubsidyProgram = 'nfsm' | 'state_seed_cell';
 
@@ -142,7 +143,7 @@ export function SubsidyTracking({ program: programProp, initialProgram = 'nfsm',
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
       </div>
     );
   }

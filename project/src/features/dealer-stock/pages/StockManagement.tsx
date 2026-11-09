@@ -10,6 +10,7 @@ import { useVirtualRows } from '../../../shared/hooks/useVirtualRows';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue, type ExcelRow } from '../../../shared/utils/excelTotals';
 import { createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 
 const LazyFertilizerChart = lazy(() => import('../components/LazyFertilizerChart'));
 
@@ -306,7 +307,7 @@ export function StockManagement() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-emerald-600"></div>
+        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
       </div>
     );
   }
@@ -554,7 +555,7 @@ export function StockManagement() {
                     Fertilizer-wise Receipts Chart
                   </h2>
                   <div className="h-64 md:h-72">
-                    <Suspense fallback={<div className="flex h-full items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" /></div>}>
+                    <Suspense fallback={<div className="flex h-full items-center justify-center"><Spinner size="md" className="text-amber-600 dark:text-amber-400" label="Loading" /></div>}>
                       <LazyFertilizerChart data={chartRows} />
                     </Suspense>
                   </div>

@@ -17,6 +17,7 @@ import { useLanguage } from '../../../shared/context/LanguageContext';
 import { getCropIntelligence } from '../../crop-doctor/lib/cropIntelligence';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 interface CropPageProps {
   cropType: string;
 }
@@ -207,7 +208,7 @@ export function CropPage({ cropType }: CropPageProps) {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
       </div>
     );
   }

@@ -21,6 +21,7 @@ import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { QualityControlSample, QualityControlTarget } from '../../../shared/types/database';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 
 interface QualityControlProps {
   category: 'seeds' | 'pesticides' | 'fertilizers';
@@ -260,7 +261,7 @@ export function QualityControl({ category }: QualityControlProps) {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-emerald-600"></div>
+        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
       </div>
     );
   }

@@ -893,6 +893,11 @@ button {
   animation: spinnerRotate 0.8s linear infinite;
 }
 
+/* Keep Tailwind animate-spin (Loader2 icons, misc) in sync with .animate-spinner */
+.animate-spin {
+  animation-duration: 0.8s;
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* Gentler, not zero — loading state must remain perceivable */
   .animate-spinner {

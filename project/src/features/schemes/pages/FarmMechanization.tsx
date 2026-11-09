@@ -14,6 +14,7 @@ import { FileActionButtons } from '../../../shared/components/ui/FileActionButto
 import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { FarmMechanizationDocument } from '../../../shared/types/database';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 
 const financialYears = ['2025-2026', '2026-2027', '2027-2028', '2028-2029', '2029-2030'];
 
@@ -131,7 +132,7 @@ export function FarmMechanization() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-emerald-600"></div>
+        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
       </div>
     );
   }

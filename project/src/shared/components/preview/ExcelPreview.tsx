@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, ExternalLink, ChevronLeft, ChevronRight, FileSpreadsheet } from 'lucide-react';
+import { Spinner } from '../ui/Spinner';
 
 interface ExcelPreviewProps {
   file: File;
@@ -152,7 +153,7 @@ export function ExcelPreview({ file, onClose, onDownload, className = '' }: Exce
         {loading && (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
-              <div className="mb-2 h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent" />
+              <Spinner size="lg" className="mb-2 text-emerald-600 dark:text-emerald-400" label="Loading" />
               <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Loading spreadsheet...</p>
             </div>
           </div>

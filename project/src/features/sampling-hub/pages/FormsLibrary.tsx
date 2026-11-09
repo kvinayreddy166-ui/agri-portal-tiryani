@@ -15,6 +15,7 @@ import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { classifyPublicForm, comparePublicForms, PUBLIC_FORM_SUBGROUPS, type PublicFormSubGroup, type PublicFormGroupMeta } from '../../auth/pages/PublicOfficerTools';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 const folders = [
   { id: 'fertilizers', label: 'Fertilizer', telugu: 'ఎరువులు', icon: FlaskConical, tone: 'sky' },
   { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు', icon: Sprout, tone: 'emerald' },
@@ -516,7 +517,7 @@ export function FormsLibrary() {
     if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
       </div>
     );
   }

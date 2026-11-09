@@ -11,6 +11,7 @@ import {
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../../../shared/utils/excelTotals';
 import { createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 
 type DealerProfile = {
   id: string;
@@ -269,7 +270,7 @@ export default function StockReceiptsSales() {
         </div>
         {loading ? (
           <div className="flex h-48 items-center justify-center">
-            <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+            <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
           </div>
         ) : (
           <div className="table-scroll">

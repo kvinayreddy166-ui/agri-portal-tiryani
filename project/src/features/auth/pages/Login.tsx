@@ -15,7 +15,6 @@ import {
   Store,
 } from 'lucide-react';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
-import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { DEALER_DEFAULT_PASSWORD } from '../lib/dealerAuth';
 import { translateDealerLoginError } from '../lib/dealerLoginMessages';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -24,6 +23,7 @@ import { recordSiteHit } from '../../../shared/lib/siteHits';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TurnstileWidget, type TurnstileWidgetHandle } from '../../../shared/components/security/TurnstileWidget';
 import { isTurnstileEnabled } from '../../../shared/lib/turnstile';
+import { Spinner } from '../../../shared/components/ui/Spinner';
 
 const PublicOfficerTools = React.lazy(() => import('./PublicOfficerTools').then((m) => ({ default: m.PublicOfficerTools })));
 
@@ -131,7 +131,7 @@ export function Login() {
 
   if (showStatutoryForms || showFormsLibrary || calculatorOpen || fertilizerCalculatorOpen) {
     return (
-      <React.Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950"><div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" /></div>}>
+      <React.Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950"><Spinner size="lg" className="text-emerald-600 dark:text-emerald-400" label="Loading" /></div>}>
         <PublicOfficerTools />
       </React.Suspense>
     );
@@ -147,12 +147,38 @@ export function Login() {
             <div className="flex items-center justify-between mb-3">
               <Link
                 to="/"
-                className="group inline-flex items-center gap-1.5 rounded-full border border-emerald-200/90 bg-emerald-50/80 px-3 py-1 text-xs font-bold text-emerald-800 shadow-2xs backdrop-blur-xs transition hover:border-emerald-300 hover:bg-emerald-100 hover:text-emerald-900 active:scale-95 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+                className="group inline-flex h-8 items-center gap-1.5 rounded-full border border-emerald-200/90 bg-emerald-50/80 px-3 text-xs font-bold text-emerald-800 shadow-2xs backdrop-blur-xs transition hover:border-emerald-300 hover:bg-emerald-100 hover:text-emerald-900 active:scale-95 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
               >
                 <Home className="h-3.5 w-3.5 text-emerald-700 transition-transform group-hover:scale-110 dark:text-emerald-400" />
                 <span>{t('Home', 'హోమ్')}</span>
               </Link>
-              <LanguageToggle language={language} onClick={toggleLanguage} accent="emerald" />
+              {/* Animated language toggle */}
+              <div
+                role="group"
+                aria-label={language === 'en' ? 'Swap to Telugu' : 'Swap to English'}
+                className="relative flex h-8 items-center rounded-full border border-emerald-200/70 bg-emerald-50/80 p-0.5 shadow-[0_1px_3px_rgba(5,150,105,0.12)]"
+              >
+                <span
+                  aria-hidden="true"
+                  className={`absolute left-0.5 top-0.5 h-7 w-[calc(50%-2px)] rounded-full bg-gradient-to-r from-emerald-500 to-emerald-700 shadow-md transition-transform duration-300 ease-[cubic-bezier(0.34,1.4,0.64,1)] ${language === 'te' ? 'translate-x-[calc(100%+0px)]' : 'translate-x-0'}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => language !== 'en' && toggleLanguage()}
+                  aria-pressed={language === 'en'}
+                  className={`relative z-10 flex h-7 w-9 items-center justify-center rounded-full text-[10px] font-black transition-colors duration-200 ${language === 'en' ? 'text-white' : 'text-emerald-700 hover:text-emerald-800'}`}
+                >
+                  EN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => language !== 'te' && toggleLanguage()}
+                  aria-pressed={language === 'te'}
+                  className={`relative z-10 flex h-7 w-9 items-center justify-center rounded-full text-[10px] font-black transition-colors duration-200 ${language === 'te' ? 'text-white' : 'text-emerald-700 hover:text-emerald-800'}`}
+                >
+                  తె
+                </button>
+              </div>
             </div>
 
             <div className="w-full">
