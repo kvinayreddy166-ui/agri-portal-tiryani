@@ -29,6 +29,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
+import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { OfficialChannelsSidebar } from '../../../shared/components/ui/OfficialChannelsSidebar';
 import { FloatingActions } from '../../../shared/components/ui/FloatingActions';
 import { useLanguage } from '../../../shared/context/LanguageContext';
@@ -37,10 +38,10 @@ import { useAuth } from '../../../shared/context/AuthContext';
 /* ───────────────────────────── Static Data ───────────────────────────── */
 
 const STATS = [
-  { value: '30+', label: 'Operational Districts', sub: 'Regional Framework', icon: Globe },
-  { value: '30+', label: 'Digital Modules', sub: 'Integrated System', icon: Zap },
-  { value: '7', label: 'Precision Calculators', sub: 'Dosage, Seed, Area & Yield', icon: Calculator },
-  { value: '100%', label: 'Offline Capable', sub: 'PWA for Rural Field Areas', icon: Smartphone },
+  { value: '30+', label: 'Operational Districts', labelTe: 'కార్యాచరణ జిల్లాలు', sub: 'Regional Framework', subTe: 'ప్రాంతీయ వ్యవస్థ', icon: Globe },
+  { value: '30+', label: 'Digital Modules', labelTe: 'డిజిటల్ మాడ్యూల్స్', sub: 'Integrated System', subTe: 'సమీకృత వ్యవస్థ', icon: Zap },
+  { value: '7', label: 'Precision Calculators', labelTe: 'వ్యవసాయ కాలిక్యులేటర్లు', sub: 'Dosage, Seed, Area & Yield', subTe: 'ఎరువులు, విత్తనాలు & దిగుబడి', icon: Calculator },
+  { value: '100%', label: 'Offline Capable', labelTe: 'ఆఫ్‌లైన్ పనితీరు', sub: 'PWA for Rural Field Areas', subTe: 'గ్రామీణ ప్రాంతాల కోసం PWA', icon: Smartphone },
 ];
 
 const MODULE_HIGHLIGHTS = [
@@ -51,6 +52,7 @@ const MODULE_HIGHLIGHTS = [
     desc: 'Instant digital inspection for Seed, Fertilizer & Pesticide dealers. Issue stop-sale notices, Form VIII & Form J seizure orders with cloud backup.',
     descTe: 'విత్తన, ఎరువుల & పురుగుమందుల డీలర్ల తనిఖీలు, స్టాప్ సేల్ ఆర్డర్లు, ఫారం VIII & J రికార్డులను నిర్వహించండి.',
     badge: 'Statutory',
+    badgeTe: 'చట్టబద్ధం',
     badgeColor: 'emerald',
     route: '/officer-toolkit/inspection-enforcement',
     requiresAuth: true,
@@ -62,6 +64,7 @@ const MODULE_HIGHLIGHTS = [
     desc: 'Exhaustive repository of fertilizers, insecticides, fungicides & herbicides with fertilizer standards, active formulations, and pre-harvest intervals.',
     descTe: 'ఎరువులు, పురుగుమందులు & తెగుళ్ల నివారణ రసాయనాల ఎరువుల ప్రమాణాలు, మోతాదులు మరియు సిఫార్సులు.',
     badge: 'Public Reference',
+    badgeTe: 'ప్రజా సమాచారం',
     badgeColor: 'gold',
     route: '/officer-toolkit/agrochemicals',
     requiresAuth: false,
@@ -73,6 +76,7 @@ const MODULE_HIGHLIGHTS = [
     desc: 'Precision scientific tools for fertilizer dosage (N-P-K), seed rate per acre, plant population spacing, irrigation water requirements, and crop profitability.',
     descTe: 'ఎరువుల మోతాదు, విత్తన మోతాదు, మొక్కల సాంద్రత, నీటి అవసరాలు మరియు లాభదాయకత కాలిక్యులేటర్లు.',
     badge: 'Free Tools',
+    badgeTe: 'ఉచిత సాధనాలు',
     badgeColor: 'emerald',
     route: '/officer-toolkit/farm-calculators',
     requiresAuth: false,
@@ -84,6 +88,7 @@ const MODULE_HIGHLIGHTS = [
     desc: 'Diagnostic guides for major crops (Cotton, Paddy, Maize, Pulses, Chilli) identifying insect pests, fungal diseases, and micro-nutrient deficiencies with cures.',
     descTe: 'పత్తి, వరి, మొక్కజొన్న, మిరప తదితర పంటల తెగుళ్లు, పురుగులు మరియు పోషక లోపాల సకాల నిర్ధారణ.',
     badge: 'Diagnostics',
+    badgeTe: 'పంట నిర్ధారణ',
     badgeColor: 'gold',
     route: '/officer-toolkit/crop-doctor',
     requiresAuth: false,
@@ -95,6 +100,7 @@ const MODULE_HIGHLIGHTS = [
     desc: 'Instant legal lookup for Seeds Act 1966, Insecticides Act 1968, Fertilizer regulations, and Essential Commodities Act with section citations.',
     descTe: 'సీడ్స్ యాక్ట్ 1966, ఇన్సెక్టిసైడ్స్ యాక్ట్ 1968, ఎరువుల నియంత్రణలు మరియు అత్యవసర సరుకుల చట్టం సమగ్ర మార్గదర్శకాలు.',
     badge: 'Legal Ready Reckoner',
+    badgeTe: 'చట్టాల గైడ్',
     badgeColor: 'emerald',
     route: '/officer-toolkit/acts-and-orders',
     requiresAuth: false,
@@ -106,6 +112,7 @@ const MODULE_HIGHLIGHTS = [
     desc: 'Ask questions in natural language and receive grounded answers sourced directly from official circulars, departmental GOs, and crop protection manuals.',
     descTe: 'ప్రభుత్వ జీవోలు, మార్గదర్శకాలు మరియు అధికారిక వ్యవసాయ పత్రాల నుండి AI ద్వారా ఖచ్చితమైన సమాధానాలు.',
     badge: 'AI Powered',
+    badgeTe: 'AI ఆధారితం',
     badgeColor: 'gold',
     route: '/login',
     requiresAuth: true,
@@ -117,6 +124,7 @@ const MODULE_HIGHLIGHTS = [
     desc: 'End-to-end statutory sample collection workflow with GPS location tagging, dealer acknowledgement generation, and auto-filled Form P & Form J.',
     descTe: 'విత్తనాలు, ఎరువులు మరియు పురుగుమందుల నమూనా సేకరణ మరియు చట్టబద్ధ రసీదుల డిజిటల్ తయారీ.',
     badge: 'Compliance',
+    badgeTe: 'నిబంధనల పాలన',
     badgeColor: 'emerald',
     route: '/officer-toolkit/forms-library',
     requiresAuth: false,
@@ -128,6 +136,7 @@ const MODULE_HIGHLIGHTS = [
     desc: 'Integrated databases for authorized input dealers, subsidy machinery allocations, soil health records, and daily officer field tour diaries.',
     descTe: 'లైసెన్స్ పొందిన డీలర్లు, సబ్సిడీ యంత్రాలు, మట్టి పరీక్ష రికార్డులు మరియు టూర్ డైరీ నిర్వహణ.',
     badge: 'Enterprise Hub',
+    badgeTe: 'కేంద్ర పోర్టల్',
     badgeColor: 'gold',
     route: '/login',
     requiresAuth: true,
@@ -144,6 +153,8 @@ const ECOSYSTEM_TABS = [
     headlineTe: 'అధికారుల క్షేత్రస్థాయి చట్టబద్ధ విధులు & సాధనాలు',
     description:
       'Engineered specifically for Mandal Agriculture Officers (MAOs), Assistant Director of Agriculture (ADAs), District Agriculture Officers (DAOs), and Quality Control Inspectors.',
+    descriptionTe:
+      'మండల వ్యవసాయ అధికారులు (MAO), సహాయ వ్యవసాయ సంచాలకులు (ADA), జిల్లా వ్యవసాయ అధికారులు (DAO) మరియు క్వాలిటీ కంట్రోల్ ఇన్‌స్పెక్టర్ల కోసం ప్రత్యేకంగా రూపొందించబడింది.',
     features: [
       'Digital dealer inspections with instant printable PDF notices',
       'Statutory stop sale orders & seizure tracking under fertilizer regulations',
@@ -151,22 +162,38 @@ const ECOSYSTEM_TABS = [
       'Section-by-section ready reckoner for Seed & Insecticide Acts',
       'Daily field tour diary with offline storage & automatic cloud sync',
     ],
+    featuresTe: [
+      'తక్షణ ప్రింట్ చేయగల PDF నోటీసులతో డిజిటల్ డీలర్ తనిఖీలు',
+      'ఎరువుల నియంత్రణ నిబంధనల ప్రకారం స్టాప్ సేల్ ఆర్డర్లు & సీజ్ రికార్డులు',
+      'జియో-ట్యాగ్డ్ రసీదులతో కూడిన స్మార్ట్ నమూనా (శాంప్లింగ్) సేకరణ',
+      'విత్తన & పురుగుమందుల చట్టాల సమగ్ర సెక్షన్-వారీ గైడ్ (రెడీ రెకనర్)',
+      'ఆఫ్‌లైన్ స్టోరేజ్ & ఆటో క్లౌడ్ సింక్‌తో రోజువారీ ఫీల్డ్ టూర్ డైరీ',
+    ],
   },
   {
     id: 'dealers',
     label: 'Input Dealers & Retailers',
-    labelTe: 'డీలర్లు & అమ్మకందారులు',
+    labelTe: 'డీలర్లు & రిటైలర్లు',
     icon: Users,
     headline: 'Stock Receipts, Compliance & Inventory Transparency',
-    headlineTe: 'స్టాక్ రసీదులు, నిల్వలు & విక్రయాల సమాచారం',
+    headlineTe: 'స్టాక్ రసీదులు, నిబంధనల పాలన & పారదర్శక నిల్వలు',
     description:
       'Dedicated portal for registered seed, fertilizer, and pesticide dealers to monitor supplies, maintain statutory compliance, and streamline documentation.',
+    descriptionTe:
+      'నమోదిత విత్తన, ఎరువుల మరియు పురుగుమందుల డీలర్ల కోసం ప్రత్యేక పోర్టల్ — సరఫరాల పర్యవేక్షణ, చట్టబద్ధ నిబంధనల పాటింపు మరియు సులభతర రికార్డుల నిర్వహణ.',
     features: [
       'Digital stock verification and receipt acknowledgements',
       'Real-time allocation visibility for subsidized inputs',
       'Instant access to licensing services and renewal forms',
       'Verified chemical safety sheets & expiry tracking',
       'Simplified compliance reporting to district authorities',
+    ],
+    featuresTe: [
+      'డిజిటల్ స్టాక్ ధ్రువీకరణ మరియు రసీదుల ఆమోదం',
+      'సబ్సిడీ ఎరువులు మరియు విత్తనాల సరఫరా వివరాల ప్రత్యక్ష వీక్షణ',
+      'లైసెన్సింగ్ సేవలు మరియు రెన్యువల్ ఫారాల తక్షణ లభ్యత',
+      'రసాయన భద్రతా సూచికలు మరియు గడువు తేదీల (ఎక్స్‌పైరీ) ట్రాకింగ్',
+      'జిల్లా అధికారులకు సులభతర చట్టబద్ధ నివేదికల సమర్పణ',
     ],
   },
   {
@@ -175,9 +202,11 @@ const ECOSYSTEM_TABS = [
     labelTe: 'రైతులు & పౌరులు',
     icon: Sprout,
     headline: 'Public Diagnostics, Precision Calculators & Grievance Desk',
-    headlineTe: 'ఉచిత వ్యవసాయ సేవలు, కాలిక్యులేటర్లు & ఫిర్యాదులు',
+    headlineTe: 'ఉచిత పంట వ్యాధి నిర్ధారణ, కాలిక్యులేటర్లు & సమస్యల పరిష్కారం',
     description:
       'Zero-barrier access to precision agricultural tools without requiring a login. Designed for rural farmers to maximize yield and protect crop health.',
+    descriptionTe:
+      'ఎలాంటి లాగిన్ అవసరం లేకుండా నేరుగా ఆధునిక వ్యవసాయ సాధనాలను ఉపయోగించుకోవచ్చు. రైతులు అధిక దిగుబడి సాధించి పంట ఆరోగ్యాన్ని కాపాడుకోవడానికి రూపొందించబడింది.',
     features: [
       'Scientific fertilizer dosage calculator for specific crops & acres',
       'Instant disease diagnostic guide & photo recommendations',
@@ -185,23 +214,22 @@ const ECOSYSTEM_TABS = [
       'Verified list of licensed agricultural input dealers in the district',
       'Direct grievance lodging for spurious inputs or supply shortages',
     ],
+    featuresTe: [
+      'పంటలు మరియు విస్తీర్ణానికి తగిన శాస్త్రీయ ఎరువుల మోతాదు కాలిక్యులేటర్',
+      'తక్షణ పంట తెగుళ్లు, వ్యాధుల నిర్ధారణ గైడ్ మరియు ఫోటో సిఫార్సులు',
+      'సరైన పంట సాంద్రత కోసం విత్తన మోతాదు మరియు నాటే దూరం కాలిక్యులేటర్లు',
+      'జిల్లాలోని లైసెన్స్ పొందిన డీలర్ల ధ్రువీకృత జాబితా',
+      'నకిలీ ఉత్పత్తులు లేదా సరఫరా కొరతపై నేరుగా ఫిర్యాదు నమోదు చేసే సదుపాయం',
+    ],
   },
 ];
-
-const SAMPLE_CROPS: Record<string, { n: number; p: number; k: number; seed: string; water: string }> = {
-  Cotton: { n: 120, p: 60, k: 60, seed: '0.9 - 1.2 kg/acre (Hybrid BG-II)', water: '650 - 750 mm' },
-  Paddy: { n: 100, p: 50, k: 50, seed: '20 - 25 kg/acre (Transplanted)', water: '1100 - 1250 mm' },
-  Maize: { n: 120, p: 60, k: 40, seed: '7.5 - 8.0 kg/acre (Hybrid)', water: '500 - 600 mm' },
-  Chilli: { n: 150, p: 60, k: 80, seed: '200 - 300 g/acre (Seedling)', water: '700 - 800 mm' },
-  Redgram: { n: 20, p: 50, k: 0, seed: '4.0 - 5.0 kg/acre', water: '350 - 450 mm' },
-};
 
 /* ───────────────────────────── Component ───────────────────────────── */
 
 export function LandingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { language, t } = useLanguage();
+  const { language, toggleLanguage, t } = useLanguage();
 
   // Landing page is light-only: strip the global dark class while mounted
   // and restore the user's theme when navigating away.
@@ -215,15 +243,8 @@ export function LandingPage() {
   }, []);
 
   const [activeTab, setActiveTab] = useState<'officers' | 'dealers' | 'farmers'>('officers');
-  const [selectedCrop, setSelectedCrop] = useState<string>('Cotton');
-  const [acresInput, setAcresInput] = useState<number>(1);
 
   const currentTab = ECOSYSTEM_TABS.find((tab) => tab.id === activeTab) || ECOSYSTEM_TABS[0];
-  const cropData = SAMPLE_CROPS[selectedCrop] || SAMPLE_CROPS['Cotton'];
-
-  const ureaBags = Math.round(((cropData.n * acresInput) / 0.46 / 45) * 10) / 10;
-  const dapBags = Math.round(((cropData.p * acresInput) / 0.46 / 50) * 10) / 10;
-  const mopBags = Math.round(((cropData.k * acresInput) / 0.60 / 50) * 10) / 10;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100">
@@ -241,10 +262,10 @@ export function LandingPage() {
             </div>
             <div className="min-w-0">
               <span className="block truncate text-lg font-black tracking-tight text-emerald-800 dark:text-gold-300 font-[var(--font-stylish)]">
-                {t('AGRONIX', 'అగ్రోనిక్స్')}
+                AGRONIX
               </span>
               <p className="truncate text-[10px] font-medium italic tracking-wide text-gold-600 dark:text-gold-400">
-                {t('Agriculture Meets Intelligence', 'వ్యవసాయం & మేధస్సు')}
+                Agriculture Meets Intelligence
               </p>
             </div>
           </button>
@@ -260,6 +281,14 @@ export function LandingPage() {
               <Sprout className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               <span>{t('Public Toolkit', 'పబ్లిక్ టూల్‌కిట్')}</span>
             </button>
+
+            {/* Language toggle */}
+            <LanguageToggle
+              language={language}
+              onClick={toggleLanguage}
+              accent="emerald"
+              label={language === 'en' ? 'తెలుగులో చూడండి' : 'View in English'}
+            />
 
             {/* Login button */}
             <button
@@ -302,7 +331,7 @@ export function LandingPage() {
               <p className="max-w-2xl text-sm leading-relaxed text-justify text-emerald-100/90 sm:text-base">
                 {t(
                   'A high-performance platform uniting Agricultural Officers, authorized Input Dealers, and Farmers. From statutory inspections (Seeds, Fertilizers, Insecticides) to precision farm calculators and AI diagnostic advisory — built to work 100% offline in the field.',
-                  'వ్యవసాయเตอรี่, డీలర్లు మరియు రైతులకు అవసరమైన చట్టబద్ధ తనిఖీలు, ఎరువుల నియంత్రణ, స్మార్ట్ కాలిక్యులేటర్లు మరియు ఆర్టిఫిషియల్ ఇంటెలిజెన్స్ సలహాల సమగ్ర పోర్టల్.'
+                  'వ్యవసాయ అధికారులు, అధీకృత డీలర్లు మరియు రైతులకు అనుసంధాన వేదిక. చట్టబద్ధ తనిఖీలు (విత్తనాలు, ఎరువులు, పురుగుమందులు), శాస్త్రీయ కాలిక్యులేటర్లు మరియు AI పంట సలహాలతో — క్షేత్రస్థాయిలో 100% ఆఫ్‌లైన్‌లో పనిచేసేలా రూపొందించబడింది.'
                 )}
               </p>
 
@@ -320,20 +349,11 @@ export function LandingPage() {
 
                 <button
                   type="button"
-                  onClick={() => navigate('/register')}
-                  className="group inline-flex items-center gap-2 rounded-2xl border border-gold-400/50 bg-gradient-to-r from-gold-500/15 via-amber-500/10 to-transparent px-5 py-3.5 text-sm font-bold text-gold-300 backdrop-blur-md transition hover:border-gold-300 hover:bg-gold-500/25 active:scale-[0.98] cursor-pointer"
-                >
-                  <UserPlus className="h-4 w-4 text-gold-400 transition-transform group-hover:scale-110" />
-                  <span>{t('New Officer Sign Up', 'కొత్త అధికారి నమోదు')}</span>
-                </button>
-
-                <button
-                  type="button"
                   onClick={() => navigate('/officer-toolkit')}
                   className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3.5 text-sm font-bold text-white backdrop-blur-md transition hover:border-white/40 hover:bg-white/20 active:scale-[0.98] cursor-pointer"
                 >
                   <Sprout className="h-4 w-4 text-emerald-300" />
-                  <span>{t('Explore Public Tools', 'ఉచిత పరికరాలు')}</span>
+                  <span>{t('Explore Public Tools', 'ఉచిత సాధనాలు')}</span>
                 </button>
               </div>
 
@@ -341,111 +361,63 @@ export function LandingPage() {
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4 text-xs font-semibold text-emerald-200/80">
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-gold-400" />
-                  <span>{t('FCO 1985, Seeds Act 1966, Insecticide Act 1968 Ready', 'FCO 1985, విత్తన చట్టం 1966, పురుగుమందుల చట్టం 1968')}</span>
+                  <span>{t('FCO 1985, Seeds Act 1966, Insecticide Act 1968 Ready', 'FCO 1985, విత్తనాల చట్టం 1966, పురుగుమందుల చట్టం 1968 నిబంధనలు')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-gold-400" />
-                  <span>{t('Zero-Loss Offline Sync', 'ఆఫ్‌లైన్ వర్కింగ్ సపోర్ట్')}</span>
+                  <span>{t('Zero-Loss Offline Sync', 'పూర్తి ఆఫ్‌లైన్ వర్కింగ్ & ఆటో సింక్')}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-gold-400" />
-                  <span>{t('English & Telugu Support', 'ద్విభాషా సదుపాయం')}</span>
+                  <span>{t('English & Telugu Support', 'తెలుగు & ఇంగ్లీష్ ద్విభాషా సదుపాయం')}</span>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Hero Interactive Teaser Card */}
+            {/* Right Column: Officer Registration Card */}
             <div className="lg:col-span-5">
               <div className="rounded-3xl border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-xl sm:p-6">
                 <div className="mb-4 flex items-center justify-between gap-2 border-b border-white/10 pb-3">
                   <div className="flex items-center gap-2">
-                    <span className="flex h-3 w-3 rounded-full bg-emerald-400" />
+                    <span className="flex h-3 w-3 rounded-full bg-gold-400" />
                     <span className="text-xs font-bold uppercase tracking-wider text-gold-300">
-                      {t('Quick Crop Calculator', 'త్వరిత పంట కాలిక్యులేటర్')}
+                      {t('Officer Registration', 'అధికారి నమోదు')}
                     </span>
                   </div>
                   <span className="shrink-0 text-[10px] font-bold text-emerald-200">
-                    {t('Live Estimation', 'ఖచ్చితమైన మోతాదు')}
+                    {t('Official Portal', 'అధికారిక పోర్టల్')}
                   </span>
                 </div>
 
-                {/* Crop Selector Buttons */}
-                <div className="mb-4">
-                  <label htmlFor="hero-crop-select" className="mb-1.5 block text-xs font-semibold text-emerald-100">
-                    {t('Select Major Crop', 'పంటను ఎంచుకోండి')}
-                  </label>
-                  <div id="hero-crop-select" className="grid grid-cols-3 gap-1.5 sm:grid-cols-5 lg:grid-cols-3" role="group" aria-label={t('Select crop', 'పంటను ఎంచుకోండి')}>
-                    {Object.keys(SAMPLE_CROPS).map((crop) => (
-                      <button
-                        key={crop}
-                        type="button"
-                        onClick={() => setSelectedCrop(crop)}
-                        aria-pressed={selectedCrop === crop}
-                        className={`cursor-pointer rounded-xl px-2 py-2 text-xs font-bold transition ${
-                          selectedCrop === crop
-                            ? 'bg-gradient-to-r from-gold-400 to-amber-500 text-emerald-950 shadow-md font-black'
-                            : 'bg-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        {crop}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <p className="mb-4 text-xs leading-relaxed text-justify text-emerald-100/85 sm:text-sm">
+                  {t(
+                    'Register as a Government Agriculture Officer to access statutory inspection tools, forms, notices, dealer stock reconciliation, and offline field sync.',
+                    'చట్టబద్ధ తనిఖీ సాధనాలు, ఫారాలు, నోటీసులు, డీలర్ స్టాక్ సమన్వయం మరియు ఆఫ్‌లైన్ ఫీల్డ్ సింక్ సేవల కోసం ప్రభుత్వ వ్యవసాయ అధికారిగా నమోదు చేసుకోండి.'
+                  )}
+                </p>
 
-                {/* Acre Input */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between gap-2 text-xs font-semibold text-emerald-100">
-                    <label htmlFor="hero-acres">{t('Land Area (Acres)', 'భూమి విస్తీర్ణం (ఎకరాలు)')}</label>
-                    <span className="shrink-0 font-bold text-gold-300">{acresInput} {acresInput === 1 ? 'Acre' : 'Acres'}</span>
-                  </div>
-                  <input
-                    id="hero-acres"
-                    type="range"
-                    min="1"
-                    max="10"
-                    step="0.5"
-                    value={acresInput}
-                    onChange={(e) => setAcresInput(parseFloat(e.target.value))}
-                    className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-lg bg-emerald-950/60 accent-gold-400"
-                  />
-                  <div className="mt-1 flex justify-between text-[10px] text-emerald-300/60">
-                    <span>1 Acre</span>
-                    <span>5 Acres</span>
-                    <span>10 Acres</span>
-                  </div>
-                </div>
-
-                {/* Instant Output Pill Cards */}
-                <div className="grid grid-cols-3 gap-2 rounded-2xl bg-emerald-950/70 p-3 ring-1 ring-white/10">
-                  <div className="min-w-0 text-center">
-                    <p className="truncate text-[10px] font-bold text-emerald-300">Urea (45kg)</p>
-                    <p className="text-lg font-black text-white">{ureaBags} <span className="text-[10px] font-normal text-emerald-200">bags</span></p>
-                  </div>
-                  <div className="min-w-0 border-x border-white/10 text-center">
-                    <p className="truncate text-[10px] font-bold text-emerald-300">DAP (50kg)</p>
-                    <p className="text-lg font-black text-white">{dapBags} <span className="text-[10px] font-normal text-emerald-200">bags</span></p>
-                  </div>
-                  <div className="min-w-0 text-center">
-                    <p className="truncate text-[10px] font-bold text-emerald-300">MOP (50kg)</p>
-                    <p className="text-lg font-black text-white">{mopBags} <span className="text-[10px] font-normal text-emerald-200">bags</span></p>
-                  </div>
-                </div>
-
-                {/* Seed & Water note */}
-                <div className="mt-3 flex flex-col gap-1 text-[11px] text-emerald-200/80 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="min-w-0">Seed: <strong className="text-white">{cropData.seed}</strong></span>
-                  <span className="shrink-0">Water: <strong className="text-white">{cropData.water}</strong></span>
-                </div>
-
+                {/* Officer Registration CTA */}
                 <button
                   type="button"
-                  onClick={() => navigate('/officer-toolkit/fertilizer-calculator')}
-                  className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/15 py-2.5 text-xs font-bold text-white transition hover:bg-white/25 cursor-pointer"
+                  onClick={() => navigate('/register')}
+                  className="group/reg flex w-full cursor-pointer items-center gap-3 rounded-xl bg-gradient-to-r from-gold-400/90 via-amber-400/90 to-gold-500/90 p-3.5 text-left shadow-lg shadow-gold-950/20 ring-1 ring-gold-300/40 transition hover:from-gold-300 hover:via-amber-300 hover:to-gold-400 active:scale-[0.99]"
                 >
-                  <Calculator className="h-4 w-4 text-gold-300" />
-                  <span>{t('Open Full Fertilizer Calculator', 'పూర్తి కాలిక్యులేటర్ తెరవండి')}</span>
-                  <ChevronRight className="h-3.5 w-3.5" />
+                  <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-900/90 text-gold-300 shadow-inner transition-transform duration-300 group-hover/reg:scale-110 group-hover/reg:-rotate-3">
+                    <span className="absolute inset-0 animate-ping rounded-xl bg-gold-300/30" />
+                    <UserPlus className="relative h-5 w-5" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-1.5">
+                      <span className="truncate text-sm font-black text-emerald-950">
+                        {t('New Agriculture Officer Registration', 'కొత్త వ్యవసాయ అధికారి నమోదు')}
+                      </span>
+                      <Sparkles className="h-3.5 w-3.5 shrink-0 text-emerald-800" />
+                    </span>
+                    <span className="block truncate text-[11px] font-semibold text-emerald-900/80">
+                      {t('DAO / ADA / MAO / AEO — verified email access', 'DAO / ADA / MAO / AEO — ధ్రువీకరించబడిన ఇమెయిల్ లాగిన్')}
+                    </span>
+                  </span>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-emerald-950 transition-transform duration-300 group-hover/reg:translate-x-1" />
                 </button>
               </div>
             </div>
@@ -466,67 +438,21 @@ export function LandingPage() {
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-800 transition-transform group-hover:scale-110 dark:bg-emerald-950/60 dark:text-emerald-300">
                     <s.icon className="h-4.5 w-4.5" />
                   </span>
-                  <span className="text-right text-[10px] font-bold leading-tight text-slate-500 dark:text-slate-400">{s.sub}</span>
+                  <span className="text-right text-[10px] font-bold leading-tight text-slate-500 dark:text-slate-400">
+                    {language === 'te' ? s.subTe : s.sub}
+                  </span>
                 </div>
                 <p className="text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">{s.value}</p>
-                <p className="mt-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">{s.label}</p>
+                <p className="mt-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+                  {language === 'te' ? s.labelTe : s.label}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ──────────────── Compact Officer Sign-Up Strip ──────────────── */}
-      <section className="bg-white py-10 dark:bg-slate-900/40 sm:py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <button
-            type="button"
-            onClick={() => navigate('/register')}
-            className="group relative flex w-full cursor-pointer items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-900 p-4 text-left shadow-xl shadow-emerald-900/25 ring-1 ring-emerald-600/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-emerald-900/30 sm:gap-5 sm:p-5"
-          >
-            {/* Ambient glows */}
-            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gold-400/20 blur-3xl transition-transform duration-500 group-hover:scale-125" />
-            <div className="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-emerald-400/20 blur-3xl" />
-            <div className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:radial-gradient(rgba(255,255,255,0.9)_1px,transparent_1px)] [background-size:18px_18px]" />
-
-            {/* Animated officer badge */}
-            <div className="relative shrink-0">
-              <span className="absolute inset-0 animate-ping rounded-2xl bg-gold-400/40" />
-              <span className="absolute -inset-1 animate-pulse rounded-2xl bg-white/20" />
-              <span className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-gold-300 via-gold-400 to-amber-500 text-emerald-950 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 sm:h-14 sm:w-14">
-                <ShieldCheck className="h-6 w-6 sm:h-7 sm:w-7" />
-              </span>
-            </div>
-
-            {/* Copy */}
-            <div className="relative min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-sm font-black tracking-tight text-white sm:text-base">
-                  {t('New Agriculture Officer Registration', 'కొత్త వ్యవసాయ అధికారి నమోదు')}
-                </h3>
-                <span className="inline-flex items-center gap-1 rounded-full bg-gold-400/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-gold-300 ring-1 ring-gold-400/40">
-                  <Sparkles className="h-3 w-3" />
-                  {t('Official', 'అధికారిక')}
-                </span>
-              </div>
-              <p className="mt-0.5 truncate text-xs text-emerald-100/80 sm:text-sm">
-                {t(
-                  'DAO / ADA / MAO / AEO — verified email access to inspections, Form VIII notices & offline sync',
-                  'DAO / ADA / MAO / AEO — తనిఖీలు, ఫారం VIII నోటీసులు & ఆఫ్‌లైన్ సింక్'
-                )}
-              </p>
-            </div>
-
-            {/* CTA */}
-            <span className="relative inline-flex shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-gold-300 to-amber-400 px-4 py-2.5 text-xs font-black text-emerald-950 shadow-lg shadow-gold-950/30 transition-all duration-300 group-hover:scale-[1.04] group-hover:shadow-xl sm:text-sm">
-              <UserPlus className="h-4 w-4" />
-              <span className="hidden sm:inline">{t('Sign Up Now', 'ఇప్పుడే నమోదు')}</span>
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </span>
-          </button>
-        </div>
-      </section>
-
+      {/* ──────────────── Ecosystem Tabs ──────────────── */}
       {/* ──────────────── Who Is Agronix For (Interactive 3-Pillar Ecosystem) ──────────────── */}
       <section className="border-b border-slate-200/80 bg-white py-12 dark:border-slate-800 dark:bg-slate-900/60 sm:py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -580,11 +506,11 @@ export function LandingPage() {
                   {language === 'te' ? currentTab.headlineTe : currentTab.headline}
                 </h3>
                 <p className="text-sm leading-relaxed text-justify text-slate-600 dark:text-slate-300">
-                  {currentTab.description}
+                  {language === 'te' ? currentTab.descriptionTe : currentTab.description}
                 </p>
 
                 <ul className="space-y-2.5 pt-2">
-                  {currentTab.features.map((feat, i) => (
+                  {(language === 'te' ? currentTab.featuresTe : currentTab.features).map((feat, i) => (
                     <li key={i} className="flex items-start gap-2.5 text-xs font-semibold text-slate-700 sm:text-sm dark:text-slate-200">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                       <span>{feat}</span>
@@ -598,7 +524,11 @@ export function LandingPage() {
                 <div className="w-full max-w-sm rounded-2xl border border-emerald-200 bg-white p-6 shadow-lg dark:border-slate-800 dark:bg-slate-900">
                   <div className="mb-4 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
                     <span className="truncate text-xs font-black uppercase text-emerald-800 dark:text-gold-300">
-                      {activeTab === 'officers' ? 'MAO / ADA Desk' : activeTab === 'dealers' ? 'Stock & Allocation' : 'Farmer Advisory'}
+                      {activeTab === 'officers'
+                        ? t('MAO / ADA Desk', 'MAO / ADA డెస్క్')
+                        : activeTab === 'dealers'
+                        ? t('Stock & Allocation', 'స్టాక్ & కేటాయింపులు')
+                        : t('Farmer Advisory', 'రైతు సలహా కేంద్రం')}
                     </span>
                     <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-500" />
                   </div>
@@ -609,9 +539,13 @@ export function LandingPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-bold text-slate-800 dark:text-white">
-                          {activeTab === 'officers' ? 'Form VIII (Sampling Notice)' : activeTab === 'dealers' ? 'Dealer Quota Receipt #2026' : 'Crop Diagnostic: Cotton BG-II'}
+                          {activeTab === 'officers'
+                            ? t('Form VIII (Sampling Notice)', 'ఫారం VIII (శాంప్లింగ్ నోటీసు)')
+                            : activeTab === 'dealers'
+                            ? t('Dealer Quota Receipt #2026', 'డీలర్ కోటా రసీదు #2026')
+                            : t('Crop Diagnostic: Cotton BG-II', 'పంట నిర్ధారణ: పత్తి BG-II')}
                         </p>
-                        <p className="truncate text-[10px] text-slate-400">Kumuram Bheem Asifabad</p>
+                        <p className="truncate text-[10px] text-slate-400">{t('Kumuram Bheem Asifabad', 'కొమరం భీమ్ ఆసిఫాబాద్')}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800">
@@ -620,9 +554,13 @@ export function LandingPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-bold text-slate-800 dark:text-white">
-                          {activeTab === 'officers' ? 'Stop Sale Order Generator' : activeTab === 'dealers' ? 'Fertilizer POS Reconciliation' : 'Optimal N-P-K & Micronutrient Dosing'}
+                          {activeTab === 'officers'
+                            ? t('Stop Sale Order Generator', 'స్టాప్ సేల్ ఆర్డర్ జెనరేటర్')
+                            : activeTab === 'dealers'
+                            ? t('Fertilizer POS Reconciliation', 'ఎరువుల POS రికార్డుల సరిపోలిక')
+                            : t('Optimal N-P-K & Micronutrient Dosing', 'ఖచ్చితమైన N-P-K & పోషకాల మోతాదు')}
                         </p>
-                        <p className="truncate text-[10px] text-slate-400">Verified Fertilizer Spec</p>
+                        <p className="truncate text-[10px] text-slate-400">{t('Verified Fertilizer Spec', 'ధ్రువీకృత ఎరువుల ప్రమాణాలు')}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800">
@@ -631,9 +569,13 @@ export function LandingPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-bold text-slate-800 dark:text-white">
-                          {activeTab === 'officers' ? 'Enforcement Tracker & Case Log' : activeTab === 'dealers' ? 'License Renewal Status: Active' : 'Official Officer Directory Support'}
+                          {activeTab === 'officers'
+                            ? t('Enforcement Tracker & Case Log', 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్ & కేసుల రికార్డు')
+                            : activeTab === 'dealers'
+                            ? t('License Renewal Status: Active', 'లైసెన్స్ స్థితి: యాక్టివ్')
+                            : t('Official Officer Directory Support', 'అధికారుల సంప్రదింపుల మద్దతు')}
                         </p>
-                        <p className="truncate text-[10px] text-slate-400">Statutory Standard</p>
+                        <p className="truncate text-[10px] text-slate-400">{t('Statutory Standard', 'చట్టబద్ధ నిబంధనల ప్రమాణం')}</p>
                       </div>
                     </div>
                   </div>
@@ -684,7 +626,7 @@ export function LandingPage() {
                           : 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-800'
                       }`}
                     >
-                      {mod.badge}
+                      {language === 'te' && mod.badgeTe ? mod.badgeTe : mod.badge}
                     </span>
                   </div>
 
@@ -702,7 +644,7 @@ export function LandingPage() {
                     onClick={() => navigate(mod.route)}
                     className="flex w-full cursor-pointer items-center justify-between text-xs font-bold text-emerald-700 transition hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300"
                   >
-                    <span>{mod.requiresAuth ? t('Access via Sign In', 'లాగిన్ ద్వారా ప్రవేశించండి') : t('Open Tool Directly', 'పరికరము చూడండి')}</span>
+                    <span>{mod.requiresAuth ? t('Access via Sign In', 'లాగిన్ ద్వారా ప్రవేశించండి') : t('Open Tool Directly', 'సాధనాన్ని తెరవండి')}</span>
                     <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
@@ -720,15 +662,15 @@ export function LandingPage() {
               <div className="space-y-3 md:col-span-8">
                 <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-gold-300 backdrop-blur-md">
                   <HelpCircle className="h-3.5 w-3.5" />
-                  <span>{t('Farmer Grievance & Assistance', 'రైతు సమస్యల పరిష్కారం')}</span>
+                  <span>{t('Farmer Grievance & Assistance', 'రైతు సమస్యల పరిష్కారం & సహాయం')}</span>
                 </div>
                 <h3 className="text-2xl font-black tracking-tight sm:text-3xl">
-                  {t('Facing Fertilizer Shortages or Seed Quality Issues?', 'ఎరువుల కొరత లేదా నకిలీ విత్తనాల సమస్యలు ఉన్నాయా?')}
+                  {t('Facing Fertilizer Shortages or Seed Quality Issues?', 'ఎరువుల కొరత లేదా నాణ్యత సమస్యలు ఎదుర్కొంటున్నారా?')}
                 </h3>
                 <p className="max-w-2xl text-xs text-justify text-emerald-100 sm:text-sm">
                   {t(
                     'Farmers can file instant grievances directly with the Agricultural Officer. Our enforcement team verifies dealer stocks, investigates quality complaints, and enforces statutory consumer protections.',
-                    'రైతులు తమ సమస్యలను నేరుగా అధికారులకు తెలియజేయవచ్చు. తనిఖీ బృందం డీలర్ స్టాక్‌ను తనిఖీ చేసి చర్యలు తీసుకుంటుంది.'
+                    'రైతులు తమ సమస్యలను నేరుగా వ్యవసాయ అధికారులకు తెలియజేయవచ్చు. మా తనిఖీ బృందం డీలర్ స్టాక్‌ను తనిఖీ చేసి, నాణ్యతా లోపాలపై విచారణ జరిపి రైతులకు చట్టబద్ధ రక్షణ కల్పిస్తుంది.'
                   )}
                 </p>
               </div>
@@ -740,7 +682,7 @@ export function LandingPage() {
                   className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 py-3.5 text-xs font-bold text-white transition hover:bg-white/20 active:scale-[0.98] sm:text-sm"
                 >
                   <UserCheck className="h-4 w-4 text-gold-300" />
-                  <span>{t('View Agriculture Officers Directory', 'అధికారుల సంప్రదింపు వివరాలు')}</span>
+                  <span>{t('View Agriculture Officers Directory', 'వ్యవసాయ అధికారుల డైరెక్టరీ')}</span>
                 </button>
               </div>
             </div>
@@ -756,12 +698,12 @@ export function LandingPage() {
           </div>
 
           <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-            {t('Ready to Experience Modern Agricultural Management?', 'ఆధునిక వ్యవసాయ నిర్వహణను ప్రారంభించండి')}
+            {t('Ready to Experience Modern Agricultural Management?', 'ఆధునిక వ్యవసాయ పరిపాలనా వ్యవస్థను ఉపయోగించండి')}
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-slate-600 dark:text-slate-400">
             {t(
               'Sign in with your officer credentials, dealer phone number, or explore free public advisory tools.',
-              'మీ అధికారి ఈమెయిల్ లేదా డీలర్ ఫోన్ నంబర్‌తో లాగిన్ అవ్వండి లేదా ఉచిత టూల్స్ ఉపయోగించండి.'
+              'మీ అధికారి వివరాలు లేదా డీలర్ మొబైల్ నంబర్‌తో లాగిన్ అవ్వండి, లేదా ఉచిత వ్యవసాయ సలహా సాధనాలను నేరుగా ఉపయోగించండి.'
             )}
           </p>
 
@@ -780,7 +722,7 @@ export function LandingPage() {
               onClick={() => navigate('/register')}
               className="inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-slate-300 bg-white px-7 py-3.5 text-sm font-bold text-slate-800 shadow-xs transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
             >
-              <span>{t('Register as New Officer', 'కొత్త అధికారి నమోదు')}</span>
+              <span>{t('Register as New Officer', 'కొత్త అధికారిగా నమోదు చేసుకోండి')}</span>
             </button>
           </div>
         </div>
@@ -799,16 +741,19 @@ export function LandingPage() {
                     AGRONIX
                   </span>
                   <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-                    Information Management System
+                    {t('Information Management System', 'సమాచార నిర్వహణ వ్యవస్థ')}
                   </p>
                 </div>
               </div>
               <p className="max-w-md text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                An integrated governance and precision agriculture platform supporting Agricultural Officers, Input Retailers, and Farmers. Built with offline-first PWA architecture and enterprise security.
+                {t(
+                  'An integrated governance and precision agriculture platform supporting Agricultural Officers, Input Retailers, and Farmers. Built with offline-first PWA architecture and enterprise security.',
+                  'వ్యవసాయ అధికారులు, డీలర్లు మరియు రైతులకు సహాయపడే సమగ్ర పాలన మరియు శాస్త్రీయ వ్యవసాయ వేదిక. ఆఫ్‌లైన్-ఫస్ట్ PWA సాంకేతికతతో భద్రంగా రూపొందించబడింది.'
+                )}
               </p>
               <p className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-800 dark:text-emerald-400">
                 <MapPin className="h-3.5 w-3.5" />
-                Kumuram Bheem Asifabad District
+                {t('Kumuram Bheem Asifabad District', 'కొమరం భీమ్ ఆసిఫాబాద్ జిల్లా')}
               </p>
             </div>
 
@@ -820,27 +765,27 @@ export function LandingPage() {
               <ul className="mt-3 space-y-2 text-xs font-medium text-slate-600 dark:text-slate-400">
                 <li>
                   <button type="button" onClick={() => navigate('/officer-toolkit/fertilizer-calculator')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
-                    Fertilizer Calculator
+                    {t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')}
                   </button>
                 </li>
                 <li>
                   <button type="button" onClick={() => navigate('/officer-toolkit/crop-doctor')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
-                    Crop Doctor Diagnostics
+                    {t('Crop Doctor Diagnostics', 'క్రాప్ డాక్టర్ వ్యాధి నిర్ధారణ')}
                   </button>
                 </li>
                 <li>
                   <button type="button" onClick={() => navigate('/officer-toolkit/agrochemicals')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
-                    Agrochemicals Database
+                    {t('Agrochemicals Database', 'వ్యవసాయ రసాయనాల సమాచారం')}
                   </button>
                 </li>
                 <li>
                   <button type="button" onClick={() => navigate('/officer-toolkit/acts-and-orders')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
-                    Acts & Ready Reckoners
+                    {t('Acts & Ready Reckoners', 'చట్టాలు & రెడీ రెకనర్')}
                   </button>
                 </li>
                 <li>
                   <button type="button" onClick={() => navigate('/dealers')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
-                    Dealers Directory
+                    {t('Dealers Directory', 'డీలర్ల డైరెక్టరీ')}
                   </button>
                 </li>
               </ul>
@@ -854,22 +799,22 @@ export function LandingPage() {
               <ul className="mt-3 space-y-2 text-xs font-medium text-slate-600 dark:text-slate-400">
                 <li>
                   <button type="button" onClick={() => navigate('/login')} className="cursor-pointer font-bold text-emerald-700 hover:underline dark:text-emerald-400">
-                    Officer Sign In &rarr;
+                    {t('Officer Sign In →', 'అధికారుల లాగిన్ →')}
                   </button>
                 </li>
                 <li>
                   <button type="button" onClick={() => navigate('/login')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
-                    Dealer Portal Sign In
+                    {t('Dealer Portal Sign In', 'డీలర్ పోర్టల్ లాగిన్')}
                   </button>
                 </li>
                 <li>
                   <button type="button" onClick={() => navigate('/register')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
-                    New Officer Sign Up
+                    {t('New Officer Sign Up', 'కొత్త అధికారి నమోదు')}
                   </button>
                 </li>
                 <li>
                   <button type="button" onClick={() => navigate('/forgot-password')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
-                    Reset Password
+                    {t('Reset Password', 'పాస్‌వర్డ్ రీసెట్')}
                   </button>
                 </li>
               </ul>
@@ -880,22 +825,25 @@ export function LandingPage() {
             <OfficialChannelsSidebar inline />
             <div className="mt-5 flex flex-wrap items-center justify-center gap-4 text-xs font-semibold">
               <button type="button" onClick={() => navigate('/disclaimer')} className="cursor-pointer text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300">
-                Disclaimer
+                {t('Disclaimer', 'నిరాకరణ (Disclaimer)')}
               </button>
               <span className="text-slate-300 dark:text-slate-700">&bull;</span>
               <button type="button" onClick={() => navigate('/privacy-policy')} className="cursor-pointer text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300">
-                Privacy Policy
+                {t('Privacy Policy', 'గోప్యతా విధానం')}
               </button>
               <span className="text-slate-300 dark:text-slate-700">&bull;</span>
               <button type="button" onClick={() => navigate('/terms-conditions')} className="cursor-pointer text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300">
-                Terms & Conditions
+                {t('Terms & Conditions', 'నిబంధనలు & షరతులు')}
               </button>
             </div>
             <p className="mt-3">
-              &copy; 2026 AGRONIX &middot; Information Management System
+              &copy; 2026 Agronix, {t('All Rights Reserved.', 'సర్వ హక్కులు ప్రత్యేకించబడ్డాయి.')}
             </p>
             <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
-              Developed and maintained by K. Vinay Reddy, MAO, Tiryani &middot; Kumuram Bheem Asifabad District
+              {t(
+                'Developed & maintained by K. Vinay Reddy, MAO, Tiryani · Kumuram Bheem Asifabad District',
+                'రూపకల్పన & నిర్వహణ: కె. వినయ్ రెడ్డి, MAO, తిర్యాణి · కొమరం భీమ్ ఆసిఫాబాద్ జిల్లా'
+              )}
             </p>
           </div>
         </div>

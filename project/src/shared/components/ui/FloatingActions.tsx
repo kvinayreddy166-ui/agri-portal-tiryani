@@ -77,6 +77,7 @@ export function FloatingActions() {
   const [appInstalled, setAppInstalled] = useState(
     () => typeof window !== 'undefined' && (window.matchMedia?.('(display-mode: standalone)')?.matches || Boolean((window.navigator as Navigator & { standalone?: boolean })?.standalone))
   );
+  const showInstallButton = !appInstalled;
 
   const [grievance, setGrievance] = useState({
     farmer_name: '',
@@ -158,7 +159,7 @@ export function FloatingActions() {
     }
 
     window.location.href = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setGrievanceStatus(t('Complaint prepared for email. Please send it from your mail app.', 'Complaint prepared for email. Please send it from your mail app.'));
+    setGrievanceStatus(t('Complaint prepared for email. Please send it from your mail app.', 'ఫిర్యాదు ఈమెయిల్ సిద్ధం చేయబడింది. దయచేసి మీ మెయిల్ యాప్ నుండి పంపండి.'));
     setGrievance({
       farmer_name: '',
       mobile: '',
@@ -174,7 +175,7 @@ export function FloatingActions() {
 
   const handleInstallApp = async () => {
     if (appInstalled) {
-      setInstallMessage(t('App is already installed.', 'App is already installed.'));
+      setInstallMessage(t('App is already installed.', 'యాప్ ఇప్పటికే ఇన్‌స్టాల్ చేయబడింది.'));
       return;
     }
 
@@ -185,7 +186,7 @@ export function FloatingActions() {
         setInstallPrompt(null);
         setInstallMessage(
           choice.outcome === 'accepted'
-            ? t('Installing app...', 'Installing app...')
+            ? t('Installing app...', 'యాప్ ఇన్‌స్టాల్ అవుతోంది...')
             : t('Install cancelled. Tap Install App again when the browser prompt is available.', 'ఇన్‌స్టాల్ రద్దు చేయబడింది. బ్రౌజర్ ప్రాంప్ట్ అందుబాటులో ఉన్నప్పుడు మళ్లీ Install App నొక్కండి.')
         );
       } catch {
@@ -212,16 +213,20 @@ export function FloatingActions() {
 
   return (
     <>
-      {/* Install App — floating bottom-left (hidden once installed) */}
-      {!appInstalled && (
+      {/* Install App — floating bottom-left (only when install is possible) */}
+      {showInstallButton && (
       <>
       <button
         type="button"
         onClick={handleInstallApp}
-        className="fixed bottom-4 left-4 z-50 inline-flex max-w-[calc(100vw-9rem)] animate-slide-up items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 via-emerald-600 to-green-600 px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-emerald-600/30 ring-1 ring-white/10 backdrop-blur transition hover:-translate-y-0.5 hover:from-emerald-400 hover:via-emerald-500 hover:to-green-500"
+        aria-label={t('Install App', 'యాప్ ఇన్‌స్టాల్ చేయండి')}
+        title={t('Install App', 'యాప్ ఇన్‌స్టాల్ చేయండి')}
+        className="fixed bottom-4 left-4 z-50 inline-flex animate-slide-up items-center gap-2 rounded-full bg-gradient-to-r from-gold-300 via-gold-400 to-amber-300 py-3 pl-3 pr-4 text-sm font-bold text-emerald-950 shadow-xl shadow-amber-500/30 ring-1 ring-gold-200/60 backdrop-blur transition hover:-translate-y-0.5 hover:from-gold-200 hover:via-gold-300 hover:to-amber-200"
       >
-        <Smartphone className="h-5 w-5" />
-        {t('Install App', 'యాప్ ఇన్‌స్టాల్ చేయండి')}
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-900/15">
+          <Smartphone className="h-3.5 w-3.5" />
+        </span>
+        {t('Install', 'ఇన్‌స్టాల్')}
       </button>
       {installMessage && (
         <div className="fixed bottom-20 left-4 z-50 max-w-xs animate-pop-in rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xl shadow-slate-950/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
@@ -259,7 +264,7 @@ export function FloatingActions() {
                   <div>
                     <h3 className="text-base font-black tracking-tight">{t('Farmer Grievance', 'రైతు ఫిర్యాదు')}</h3>
                     <p className="text-[11px] font-semibold text-emerald-100/80">
-                      {t('Fertilizer, seed & scheme issues — we respond fast', 'ఎరువు, విత్తనం & పథకాల సమస్యలు — త్వరిత రెండు')}
+                      {t('Fertilizer, seed & scheme issues — we respond fast', 'ఎరువులు, విత్తనాలు & పథకాల సమస్యలపై త్వరిత స్పందన')}
                     </p>
                   </div>
                 </div>
