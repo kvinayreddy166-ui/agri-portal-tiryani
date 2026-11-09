@@ -2,24 +2,85 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   CalendarDays,
   Cloud,
+  CloudDrizzle,
+  CloudFog,
+  CloudLightning,
+  CloudMoon,
   CloudRain,
+  CloudSun,
   Droplets,
   Eye,
   MapPin,
+  Moon,
   RefreshCw,
+  Snowflake,
   Sun,
   Sunset,
   Sunrise,
   Thermometer,
   Wind,
 } from 'lucide-react';
-import { Spinner } from '../../../shared/components/ui/Spinner';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import {
   getRealtimeWeather,
   RealtimeWeatherData,
 } from '../services/weatherService';
 import { detectUserLocation, getDefaultUserLocation, resolveUserLocation, UserLocation } from '../services/userLocation';
+
+function WeatherConditionIcon({
+  code,
+  iconUrl,
+  description,
+  size = 'lg',
+}: {
+  code?: string;
+  iconUrl?: string;
+  description?: string;
+  size?: 'sm' | 'md' | 'lg';
+}) {
+  const isLg = size === 'lg';
+  const iconSizeClass = isLg ? 'h-8 w-8' : size === 'md' ? 'h-6 w-6' : 'h-5 w-5';
+  const containerClass = isLg
+    ? 'flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/20 p-2.5 ring-1 ring-white/30 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.2)]'
+    : 'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800/80 ring-1 ring-slate-200/60 dark:ring-slate-700/60 shadow-sm';
+
+  const c = (code || '').trim().toLowerCase();
+
+  let iconNode = <Sun className={`${iconSizeClass} text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]`} />;
+
+  if (c === '01n') {
+    iconNode = <Moon className={`${iconSizeClass} text-amber-200 fill-amber-200/30 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]`} />;
+  } else if (c === '01d') {
+    iconNode = <Sun className={`${iconSizeClass} text-amber-300 fill-amber-300/30 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]`} />;
+  } else if (c === '02n') {
+    iconNode = <CloudMoon className={`${iconSizeClass} text-amber-200 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]`} />;
+  } else if (c === '02d') {
+    iconNode = <CloudSun className={`${iconSizeClass} text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]`} />;
+  } else if (c === '03d' || c === '03n' || c === '04d' || c === '04n') {
+    iconNode = <Cloud className={`${iconSizeClass} ${isLg ? 'text-sky-200' : 'text-sky-500 dark:text-sky-400'} drop-shadow-[0_0_6px_rgba(186,230,253,0.5)]`} />;
+  } else if (c === '09d' || c === '09n') {
+    iconNode = <CloudDrizzle className={`${iconSizeClass} ${isLg ? 'text-cyan-300' : 'text-cyan-600 dark:text-cyan-400'} drop-shadow-[0_0_6px_rgba(103,232,249,0.5)]`} />;
+  } else if (c === '10d' || c === '10n') {
+    iconNode = <CloudRain className={`${iconSizeClass} ${isLg ? 'text-sky-300' : 'text-sky-600 dark:text-sky-400'} drop-shadow-[0_0_6px_rgba(125,211,252,0.5)]`} />;
+  } else if (c === '11d' || c === '11n') {
+    iconNode = <CloudLightning className={`${iconSizeClass} text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]`} />;
+  } else if (c === '13d' || c === '13n') {
+    iconNode = <Snowflake className={`${iconSizeClass} ${isLg ? 'text-sky-100' : 'text-sky-400'} drop-shadow-[0_0_6px_rgba(224,242,254,0.5)]`} />;
+  } else if (c === '50d' || c === '50n') {
+    iconNode = <CloudFog className={`${iconSizeClass} ${isLg ? 'text-teal-200' : 'text-teal-500'} drop-shadow-[0_0_6px_rgba(153,246,228,0.5)]`} />;
+  } else if (iconUrl) {
+    iconNode = (
+      <img
+        src={iconUrl}
+        alt={description || 'Weather condition'}
+        className={`${iconSizeClass} drop-shadow-md`}
+        loading="eager"
+      />
+    );
+  }
+
+  return <div className={containerClass}>{iconNode}</div>;
+}
 
 export function WeatherWidget() {
   const { t } = useLanguage();
@@ -78,12 +139,43 @@ export function WeatherWidget() {
 
   if (loading) {
     return (
-      <div className="portal-card flex h-64 items-center justify-center rounded-2xl p-6">
-        <div className="flex flex-col items-center gap-3">
-          <Spinner size="lg" className="text-emerald-600 dark:text-emerald-400" label="Loading weather" />
-          <p className="text-xs font-semibold text-slate-500">
-            {t('Connecting to real-time weather feed...', 'లైవ్ వాతావరణ సమాచారం సేకరిస్తున్నాం...')}
-          </p>
+      <div className="portal-card overflow-hidden rounded-2xl border border-slate-200/90 shadow-sm dark:border-slate-800 min-h-[380px] animate-pulse">
+        {/* Header Skeleton */}
+        <div className="relative rounded-t-2xl bg-gradient-to-br from-teal-950 via-teal-900 to-emerald-900 px-5 py-4 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-white/20" />
+              <div className="space-y-1.5">
+                <div className="h-4 w-36 rounded-md bg-white/30" />
+                <div className="h-3 w-24 rounded-md bg-emerald-200/20" />
+              </div>
+            </div>
+            <div className="h-7 w-28 rounded-full bg-white/20" />
+          </div>
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="h-9 w-24 rounded-xl bg-slate-200 dark:bg-slate-800" />
+              <div className="h-4 w-32 rounded-md bg-slate-200 dark:bg-slate-800" />
+            </div>
+            <div className="h-14 w-14 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800/60" />
+            <div className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800/60" />
+            <div className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800/60" />
+            <div className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800/60" />
+          </div>
+
+          <div className="flex items-center justify-center pt-2">
+            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+              {t('Connecting to real-time weather feed...', 'లైవ్ వాతావరణ సమాచారం సేకరిస్తున్నాం...')}
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -178,16 +270,12 @@ export function WeatherWidget() {
         {/* Current Weather Overview Banner */}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-xl bg-white/10 p-3.5 ring-1 ring-white/10 backdrop-blur-md">
           <div className="flex items-center gap-3.5">
-            {weather.iconUrl ? (
-              <img
-                src={weather.iconUrl}
-                alt={weather.description}
-                className="h-14 w-14 drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)] filter"
-                loading="eager"
-              />
-            ) : (
-              <Sun className="h-12 w-12 text-gold-300" />
-            )}
+            <WeatherConditionIcon
+              code={weather.iconCode}
+              iconUrl={weather.iconUrl}
+              description={weather.description}
+              size="lg"
+            />
             <div>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-black text-white sm:text-4xl">{weather.temp}°C</span>
@@ -198,8 +286,8 @@ export function WeatherWidget() {
               <p className="text-sm font-semibold capitalize text-emerald-100">
                 {weather.description}
               </p>
-              <p className="text-xs text-emerald-200/70">
-                {t('Today range', 'ఈరోజు పరిధి')}: {weather.tempMax}°C / {weather.tempMin}°C
+              <p className="mt-1 text-xs text-emerald-100/90 font-medium">
+                {t('Today range', 'ఈరోజు పరిధి')}: <strong className="font-bold text-white">{weather.tempMax}°C</strong> / <span className="text-emerald-200">{weather.tempMin}°C</span>
               </p>
             </div>
           </div>
@@ -340,16 +428,12 @@ export function WeatherWidget() {
                       {label}
                     </p>
                     <div className="my-1.5 flex justify-center">
-                      {day.iconUrl ? (
-                        <img
-                          src={day.iconUrl}
-                          alt={day.description}
-                          className="h-10 w-10 drop-shadow-sm"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <CloudRain className="h-8 w-8 text-cyan-600" />
-                      )}
+                      <WeatherConditionIcon
+                        code={day.iconCode}
+                        iconUrl={day.iconUrl}
+                        description={day.description}
+                        size="md"
+                      />
                     </div>
                     <p className="text-xs font-semibold capitalize line-clamp-1 text-slate-700 dark:text-slate-300" title={day.description}>
                       {day.description}

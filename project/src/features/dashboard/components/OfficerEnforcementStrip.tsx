@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AlertTriangle, Ban, Bell, BellOff, CalendarClock, FlaskConical, Loader2, PackageX, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { safeStorage } from '../../../shared/lib/safeStorage';
 import {
   EnforcementTrackerService,
   type EnforcementData,
@@ -44,19 +45,11 @@ function fireDeadlineNotification(urgentCount: number, totalDue: number): void {
 }
 
 function safeGet(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
+  return safeStorage.getItem(key);
 }
 
 function safeSet(key: string, value: string): void {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // storage unavailable
-  }
+  safeStorage.setItem(key, value);
 }
 
 /**

@@ -34,7 +34,7 @@ export default defineConfig({
       resolveDependencies: (_filename, deps) =>
         deps.filter((dep) => {
           // Never preload heavy secondary libraries on initial load to keep main thread fast
-          if (/(vendor-pdf|vendor-doc|vendor-chart|vendor-xlsx|vendor-tensorflow|vendor-purify|office|html2canvas|purify|exceljs)/.test(dep)) {
+          if (/(vendor-pdf|vendor-doc|vendor-chart|vendor-xlsx|vendor-tensorflow|vendor-purify|data-agrochemicals|data-statutory|office|html2canvas|purify|exceljs)/.test(dep)) {
             return false;
           }
           if (/page-(?!dashboard)/.test(dep)) {
@@ -49,7 +49,7 @@ export default defineConfig({
     sourcemap: false,
     target: 'es2022',
     reportCompressedSize: false,
-    chunkSizeWarningLimit: 500,
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         // Add hash to chunk filenames for cache busting
@@ -71,9 +71,20 @@ export default defineConfig({
           if (id.includes('xlsx') || id.includes('exceljs')) {
             return 'vendor-xlsx';
           }
-          // Group React libraries
-          if (/node_modules[\/\\](react|react-dom|react-router|react-router-dom|scheduler)[\/\\]/.test(id)) {
+          // Group React & routing libraries
+          if (/node_modules[\/\\](react|react-dom|react-router|react-router-dom|react-helmet-async|scheduler)[\/\\]/.test(id)) {
             return 'vendor-react';
+          }
+          // Group Lucide icons together to eliminate 80+ micro-chunks
+          if (id.includes('lucide-react')) {
+            return 'vendor-icons';
+          }
+          // Group heavy static datasets into dedicated on-demand data chunks
+          if (id.includes('features/agrochemicals/data') || id.includes('features\\agrochemicals\\data')) {
+            return 'data-agrochemicals';
+          }
+          if (id.includes('features/officers-toolkit/data') || id.includes('features\\officers-toolkit\\data')) {
+            return 'data-statutory-acts';
           }
           // Group chart libraries
           if (id.includes('recharts')) {

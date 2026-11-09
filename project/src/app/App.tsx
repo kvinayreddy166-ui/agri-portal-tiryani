@@ -24,7 +24,7 @@ import {
   useAppScrollRestoration,
   useInitialBackFallback,
 } from './router/navigation';
-import { GlobalAppLoader, PageLoader, SafeSuspense } from './router/loading';
+import { GlobalAppLoader, LandingPageSkeleton, PageLoader, SafeSuspense } from './router/loading';
 import { PageSwitch, PublicPageSwitch } from './router/PageSwitch';
 import { Layout, Login, LandingPage } from './router/lazyPages';
 
@@ -217,7 +217,7 @@ function AppContent() {
 
     if (location.pathname === '/' || location.pathname === '/home' || location.pathname === '/landing') {
       return (
-        <SafeSuspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
+        <SafeSuspense fallback={<LandingPageSkeleton />}>
           <LandingPage />
         </SafeSuspense>
       );

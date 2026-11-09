@@ -426,7 +426,7 @@ export function LandingPage() {
       </section>
 
       {/* ──────────────── Stats Band (light section — no overlap) ──────────────── */}
-      <section className="border-b border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900/60">
+      <section className="border-b border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900/60 [content-visibility:auto] [contain-intrinsic-size:1px_160px]">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             {STATS.map((s) => (
@@ -454,7 +454,7 @@ export function LandingPage() {
 
       {/* ──────────────── Ecosystem Tabs ──────────────── */}
       {/* ──────────────── Who Is Agronix For (Interactive 3-Pillar Ecosystem) ──────────────── */}
-      <section className="border-b border-slate-200/80 bg-white py-12 dark:border-slate-800 dark:bg-slate-900/60 sm:py-14">
+      <section className="border-b border-slate-200/80 bg-white py-12 dark:border-slate-800 dark:bg-slate-900/60 sm:py-14 [content-visibility:auto] [contain-intrinsic-size:1px_650px]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
@@ -587,7 +587,7 @@ export function LandingPage() {
       </section>
 
       {/* ──────────────── Core Capabilities & Modules Grid ──────────────── */}
-      <section className="bg-slate-50 py-12 dark:bg-slate-950 sm:py-14">
+      <section className="bg-slate-50 py-12 dark:bg-slate-950 sm:py-14 [content-visibility:auto] [contain-intrinsic-size:1px_800px]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-100 px-3 py-1 text-xs font-bold text-gold-900 dark:bg-gold-950 dark:text-gold-300">
@@ -655,7 +655,7 @@ export function LandingPage() {
       </section>
 
       {/* ──────────────── Direct Grievance & Public Helpdesk ──────────────── */}
-      <section className="border-t border-slate-200/80 bg-white py-14 dark:border-slate-800 dark:bg-slate-900/40 sm:py-16">
+      <section className="border-t border-slate-200/80 bg-white py-14 dark:border-slate-800 dark:bg-slate-900/40 sm:py-16 [content-visibility:auto] [contain-intrinsic-size:1px_350px]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl border border-emerald-900/10 bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 p-8 text-white shadow-xl dark:border-emerald-800/40 sm:p-12">
             <div className="grid items-center gap-8 md:grid-cols-12">
@@ -729,7 +729,7 @@ export function LandingPage() {
       </section>
 
       {/* ──────────────── Professional Footer ──────────────── */}
-      <footer className="border-t border-slate-200 bg-white pt-12 pb-8 dark:border-slate-800 dark:bg-slate-950">
+      <footer className="border-t border-slate-200 bg-white pt-12 pb-8 dark:border-slate-800 dark:bg-slate-950 [content-visibility:auto] [contain-intrinsic-size:1px_400px]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {/* Brand column */}

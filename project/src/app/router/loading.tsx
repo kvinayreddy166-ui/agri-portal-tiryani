@@ -46,7 +46,70 @@ export function GlobalAppLoader({ hideLogo = false }: { hideLogo?: boolean }) {
 }
 
 export function PageLoader({ hideLogo = false }: { hideLogo?: boolean }) {
-  return <GlobalAppLoader hideLogo={hideLogo} />;
+  return (
+    <div className="flex min-h-[50vh] w-full flex-col items-center justify-center gap-4 p-8 text-center">
+      {!hideLogo && <PortalLogo size="lg" />}
+      <Spinner size="lg" className="text-emerald-700 dark:text-emerald-400" label="Loading page" />
+      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+        Loading...
+      </p>
+    </div>
+  );
+}
+
+export function LandingPageSkeleton() {
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <header className="sticky top-0 z-50 border-b border-emerald-900/10 bg-white/85 backdrop-blur-lg dark:border-slate-800 dark:bg-slate-950/85">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <PortalLogo size="sm" />
+            <div>
+              <span className="block text-lg font-black tracking-tight text-emerald-800 dark:text-gold-300 font-[var(--font-stylish)]">
+                AGRONIX
+              </span>
+              <p className="text-[10px] font-medium italic tracking-wide text-gold-600 dark:text-gold-400">
+                Agriculture Meets Intelligence
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden md:block h-8 w-24 rounded-xl bg-slate-200/80 dark:bg-slate-800 animate-pulse" />
+            <div className="h-9 w-24 rounded-xl bg-gradient-to-r from-emerald-700 to-emerald-800 animate-pulse" />
+          </div>
+        </div>
+      </header>
+
+      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-950 text-white min-h-[520px]">
+        <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-10 sm:px-6 sm:pb-16 sm:pt-14 lg:px-8 lg:pb-20 lg:pt-16">
+          <div className="grid items-center gap-10 lg:grid-cols-12">
+            <div className="space-y-6 lg:col-span-7">
+              <div className="h-7 w-64 rounded-full bg-emerald-900/80 border border-gold-400/20 animate-pulse" />
+              <div className="space-y-3">
+                <div className="h-10 sm:h-12 w-4/5 rounded-xl bg-white/10 animate-pulse" />
+                <div className="h-10 sm:h-12 w-3/5 rounded-xl bg-gold-400/20 animate-pulse" />
+              </div>
+              <div className="h-20 w-full max-w-2xl rounded-xl bg-emerald-100/10 animate-pulse" />
+              <div className="flex flex-wrap gap-3 pt-2">
+                <div className="h-12 w-48 rounded-2xl bg-gold-400/30 animate-pulse" />
+                <div className="h-12 w-40 rounded-2xl bg-white/10 animate-pulse" />
+              </div>
+            </div>
+            <div className="lg:col-span-5">
+              <div className="rounded-3xl border border-white/15 bg-white/10 p-5 sm:p-6 min-h-[300px] animate-pulse">
+                <div className="h-6 w-3/4 rounded-lg bg-white/20 mb-4" />
+                <div className="space-y-3">
+                  <div className="h-12 w-full rounded-xl bg-white/10" />
+                  <div className="h-12 w-full rounded-xl bg-white/10" />
+                  <div className="h-12 w-full rounded-xl bg-white/10" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 

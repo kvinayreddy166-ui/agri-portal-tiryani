@@ -17,7 +17,6 @@ import {
   X,
 } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
-import { Spinner } from '../../../shared/components/ui/Spinner';
 import { useAuth } from '../../../shared/context/AuthContext';
 import {
   ALL_ANDHRA_PRADESH_DISTRICTS,
@@ -347,16 +346,62 @@ export function MandiPricesWidget() {
 
   if (loading) {
     return (
-      <div className="portal-card flex h-56 items-center justify-center rounded-2xl p-6">
-        <div className="flex flex-col items-center gap-3">
-          <Spinner size="lg" className="text-emerald-600 dark:text-emerald-400" label="Loading mandi prices" />
-          <p className="text-xs font-semibold text-slate-500">
-            {selectedState === 'Telangana'
-              ? t('Loading Telangana Mandi Prices...', 'తెలంగాణ మండి ధరలు లోడ్ అవుతున్నాయి...')
-              : selectedState === 'Andhra Pradesh'
-                ? t('Loading Andhra Pradesh Mandi Prices...', 'ఆంధ్రప్రదేశ్ మండి ధరలు లోడ్ అవుతున్నాయి...')
-                : t(`Loading ${selectedState} Mandi Prices...`, `${selectedState} మండి ధరలు లోడ్ అవుతున్నాయి...`)}
-          </p>
+      <div className="portal-card overflow-hidden rounded-2xl border border-slate-200/90 shadow-sm dark:border-slate-800 min-h-[620px] animate-pulse">
+        {/* Header Banner Skeleton */}
+        <div className="relative rounded-t-2xl bg-gradient-to-br from-emerald-900 via-teal-900 to-green-800 px-5 py-4 text-white">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-white/20" />
+              <div className="space-y-1.5">
+                <div className="h-5 w-48 rounded-md bg-white/30" />
+                <div className="h-3 w-32 rounded-md bg-emerald-200/20" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-28 rounded-full bg-white/20" />
+              <div className="h-8 w-8 rounded-lg bg-white/20" />
+            </div>
+          </div>
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="p-4 sm:p-5 space-y-4">
+          {/* Commodity Cards Skeleton */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800/60" />
+            <div className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800/60" />
+            <div className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800/60" />
+            <div className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800/60" />
+          </div>
+
+          {/* Filter Bar Skeleton */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            <div className="h-9 w-48 rounded-xl bg-slate-100 dark:bg-slate-800/60" />
+            <div className="h-9 w-32 rounded-xl bg-slate-100 dark:bg-slate-800/60" />
+            <div className="h-9 w-32 rounded-xl bg-slate-100 dark:bg-slate-800/60" />
+          </div>
+
+          {/* Table Placeholder Skeleton */}
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+            <div className="h-10 bg-slate-100/80 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800" />
+            <div className="divide-y divide-slate-100 dark:divide-slate-800 p-2 space-y-2">
+              <div className="h-8 rounded bg-slate-50 dark:bg-slate-900/60" />
+              <div className="h-8 rounded bg-slate-50 dark:bg-slate-900/60" />
+              <div className="h-8 rounded bg-slate-50 dark:bg-slate-900/60" />
+              <div className="h-8 rounded bg-slate-50 dark:bg-slate-900/60" />
+              <div className="h-8 rounded bg-slate-50 dark:bg-slate-900/60" />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center pt-2">
+            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+              {selectedState === 'Telangana'
+                ? t('Loading Telangana Mandi Prices...', 'తెలంగాణ మండి ధరలు లోడ్ అవుతున్నాయి...')
+                : selectedState === 'Andhra Pradesh'
+                  ? t('Loading Andhra Pradesh Mandi Prices...', 'ఆంధ్రప్రదేశ్ మండి ధరలు లోడ్ అవుతున్నాయి...')
+                  : t(`Loading ${selectedState} Mandi Prices...`, `${selectedState} మండి ధరలు లోడ్ అవుతున్నాయి...`)}
+            </p>
+          </div>
         </div>
       </div>
     );

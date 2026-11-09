@@ -57,10 +57,14 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
   const isOfficer = isOfficerUser || (!isAdminUser && !isDealerUser);
 
   const handleNavigation = (page: string) => {
-    const replaceDrawerEntry = sidebarOpen;
+    const replaceOverlayEntry = sidebarOpen || profileOpen || langOpen;
     sidebarOverlay.releaseOverlay();
     setSidebarOpen(false);
-    onNavigate(page, { replace: replaceDrawerEntry });
+    profileOverlay.releaseOverlay();
+    setProfileOpen(false);
+    langOverlay.releaseOverlay();
+    setLangOpen(false);
+    onNavigate(page, { replace: replaceOverlayEntry });
   };
 
   const toggleSidebar = () => {
@@ -242,7 +246,6 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                     type="button"
                     role="menuitem"
                     onClick={() => {
-                      profileOverlay.closeOverlay();
                       handleNavigation('settings');
                     }}
                     className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-bold text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-slate-800"

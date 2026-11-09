@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, ReactNode, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, isAdmin, isTestUser, isDealerUser, isOfficerUser, getDealerIdFromUser, clearPersistedSupabaseAuth } from '../lib/supabase';
-import { safeStorage } from '../lib/safeStorage';
+import { safeStorage, setStorageActiveUser } from '../lib/safeStorage';
 import {
   DEALER_DEFAULT_PASSWORD,
   dealerEmailFromPhone,
@@ -52,6 +52,7 @@ function applySession(
 ) {
   const newSession = session;
   const newUser = newSession?.user ?? null;
+  setStorageActiveUser(newUser?.id ?? null);
   setSession(newSession);
   setUser(newUser);
   setIsAdminUser(isAdmin(newUser?.email));
@@ -81,6 +82,7 @@ function getInitialPersistedSession(): { session: Session | null; user: User | n
           const parsed = JSON.parse(raw);
           const sess = (parsed?.currentSession || parsed) as Session;
           if (sess?.user) {
+            setStorageActiveUser(sess.user.id);
             return { session: sess, user: sess.user };
           }
         }
@@ -530,6 +532,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     clearPersistedSupabaseAuth();
+    setStorageActiveUser(null);
     if (typeof window !== 'undefined') {
       try {
         window.dispatchEvent(new CustomEvent('agronix:officer_user_logout'));

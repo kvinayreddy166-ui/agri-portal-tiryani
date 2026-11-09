@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { safeStorage, clearUserStorage } from '../../../shared/lib/safeStorage';
 
 interface OfficerRow {
   id: string;
@@ -128,12 +129,13 @@ export function Settings() {
 
       // Clear local caches
       try {
-        localStorage.removeItem('tiryani_officer_records');
-        localStorage.removeItem('tiryani_officer_profile');
-        localStorage.removeItem('tiryani_cached_inspections');
-        localStorage.removeItem('tiryani_cached_samples');
-        localStorage.removeItem('tiryani_cached_orders');
-        localStorage.removeItem('tiryani_sample_targets_cache');
+        clearUserStorage(user.id);
+        safeStorage.removeItem('tiryani_officer_records');
+        safeStorage.removeItem('tiryani_officer_profile');
+        safeStorage.removeItem('tiryani_cached_inspections');
+        safeStorage.removeItem('tiryani_cached_samples');
+        safeStorage.removeItem('tiryani_cached_orders');
+        safeStorage.removeItem('tiryani_sample_targets_cache');
       } catch (storageErr) {
         console.warn('Storage cleanup warning:', storageErr);
       }
