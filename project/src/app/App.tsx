@@ -4,7 +4,7 @@ import { LanguageProvider } from '../shared/context/LanguageContext';
 import { ThemeProvider } from '../shared/context/ThemeContext';
 import { GlobalMobileDatePickerProvider } from '../shared/components/ui/DateInput';
 import { confirmDiscardIfDirty } from '../features/officers-toolkit/inspection/useDirtyGuard';
-import { BrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
+import { BrowserRouter, Navigate, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { SEO, OrganizationSchema } from '../shared/components/seo/SEO';
 
@@ -38,6 +38,7 @@ function AppContent() {
   const [isHydrated, setIsHydrated] = useState(true);
   const [forceAppShell, setForceAppShell] = useState(false);
   const currentPathIsPublic = PUBLIC_AUTH_ROUTES.has(location.pathname) || location.pathname.startsWith('/officer-toolkit/') || location.pathname === '/' || location.pathname === '/login' || location.pathname === '/disclaimer' || location.pathname === '/privacy-policy' || location.pathname === '/terms-conditions';
+  const isPublicToolkitPath = location.pathname === '/officer-toolkit' || location.pathname.startsWith('/officer-toolkit/');
   const hideCalculatorLogo =
     location.pathname === '/officer-toolkit/fertilizer-calculator' ||
     location.pathname === '/officer-toolkit/acreage-calculator' ||
@@ -198,10 +199,7 @@ function AppContent() {
   // Auth-required officer-toolkit routes render different content for signed-in
   // officers vs visitors. Wait for the auth check there so refresh doesn't flash
   // the wrong view — other toolkit pages are identical either way, render instantly.
-  const officerPathNeedsAuth =
-    location.pathname === '/officer-toolkit/my-records' ||
-    location.pathname === '/officer-toolkit/enforcement-tracker' ||
-    location.pathname === '/enforcement-tracker';
+  const officerPathNeedsAuth = isPublicToolkitPath || location.pathname === '/enforcement-tracker';
   if (!user && loading && officerPathNeedsAuth) {
     return <GlobalAppLoader hideLogo={hideCalculatorLogo} />;
   }
@@ -221,6 +219,13 @@ function AppContent() {
           <LandingPage />
         </SafeSuspense>
       );
+    }
+
+    if (isPublicToolkitPath) {
+      if (!authChecked) {
+        return <GlobalAppLoader hideLogo={hideCalculatorLogo} />;
+      }
+      return <Navigate to="/login" replace />;
     }
 
     if (PUBLIC_PAGES.has(currentPage)) {

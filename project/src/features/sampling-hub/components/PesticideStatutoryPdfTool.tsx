@@ -24,8 +24,10 @@ import {
   TELANGANA_DISTRICTS,
   DESIGNATION_OPTIONS,
   getMandalsForDistrict,
+  getDivisionsForDistrict,
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, withOthersOption, getAssistantDirectorLocationError } from '../../../shared/data/assistantDirectorLocation';
+import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -146,6 +148,8 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'district', label: 'DISTRICT', type: 'select', options: withOthersOption(TELANGANA_DISTRICTS.map(d => ({ label: d, value: d }))) },
       { key: 'manualDistrict', label: 'ENTER DISTRICT NAME', placeholder: 'Enter district name' },
       { key: 'manualDivision', label: 'DIVISION', placeholder: 'Enter Division Name', condition: (values) => isAssistantDirectorOfAgriculture(values.designation) && !isAssistantDirectorOfAgricultureT(values.designation) },
+      { key: 'division', label: 'DIVISION', type: 'select', options: [], condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
+      { key: 'customDivision', label: 'ENTER DIVISION NAME', placeholder: 'Enter Division Name', condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) && values.division === 'Others' },
       { key: 'mandal', label: 'MANDAL', type: 'select', options: [], dynamicLabel: true, condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
       { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name', condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
       { key: 'sampleDrawingMandal', label: 'PLACE OF COLLECTION (MANDAL)', type: 'select', options: [], condition: (values) => isAssistantDirectorOfAgriculture(values.designation) },
@@ -241,7 +245,26 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   const [values, setValues] = useState<PesticidePdfValues>(() => {
     try {
       const saved = safeStorage.getItem(STORAGE_KEY);
-      return saved ? { ...initialPesticidePdfValues, ...JSON.parse(saved) } : initialPesticidePdfValues;
+      const loaded = saved ? { ...initialPesticidePdfValues, ...JSON.parse(saved) } : { ...initialPesticidePdfValues };
+      // Restore saved covering letter division so it shows in Inspector Details
+      try {
+        const savedCL = safeStorage.getItem(PESTICIDE_COVERING_LETTER_DETAILS_KEY);
+        if (savedCL) {
+          const parsedCL = JSON.parse(savedCL);
+          if (parsedCL.division) {
+            const divisionMatch = loaded.district && loaded.district !== 'Others'
+              ? getDivisionsForDistrict(loaded.district).find((d) => d.toLowerCase() === String(parsedCL.division).toLowerCase())
+              : undefined;
+            if (divisionMatch) {
+              loaded.division = divisionMatch;
+            } else {
+              loaded.division = 'Others';
+              loaded.customDivision = parsedCL.division;
+            }
+          }
+        }
+      } catch {}
+      return loaded;
     } catch {
       return initialPesticidePdfValues;
     }
@@ -274,6 +297,12 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       officerPhone: '',
     };
   });
+  // Division is now captured in Inspector Details (values.division); keep it as
+  // the source for the covering letter so PDF/Word output stays unchanged.
+  const coveringLetterDetailsForModal = useMemo(
+    () => ({ ...coveringLetterDetails, division: values.division === 'Others' ? values.customDivision : values.division }),
+    [coveringLetterDetails, values.division, values.customDivision]
+  );
   const [message, setMessage] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [pdfPreview, setPdfPreview] = useState<{ url: string; name: string } | null>(null);
@@ -401,6 +430,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
         next.manualDistrict = '';
         next.manualMandal = '';
         next.division = '';
+        next.customDivision = '';
         next.manualDivision = '';
         next.sampleDrawingMandal = '';
         next.manualPlaceOfCollection = '';
@@ -430,6 +460,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       }
       if (key === 'division') {
         next.manualDivision = '';
+        next.customDivision = '';
         next.sampleDrawingMandal = '';
         next.manualPlaceOfCollection = '';
       }
@@ -530,7 +561,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     try {
       // Exclude covering letter fields from draft - they are independently persisted
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftValues } = values as any;
+      const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, customDivision, officerPhone, ...draftValues } = values as any;
       const nextDrafts = upsertDraft(savedDrafts, { name, values: draftValues, updatedAt: String(Date.now()) });
       safeStorage.setItem(DRAFTS_KEY, JSON.stringify(nextDrafts));
       setSavedDrafts(nextDrafts);
@@ -559,12 +590,12 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     const draft = savedDrafts.find((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!draft) return;
     // Preserve current covering letter details - they are independently persisted
-    const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone } = values;
+    const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, customDivision, officerPhone } = values;
     const loadedValues = { 
       ...initialPesticidePdfValues, 
       ...draft.values,
       // Restore covering letter details
-      financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone 
+      financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, customDivision, officerPhone 
     };
     
     // Reconstruct activeIngredients array based on technical name for combination products
@@ -1029,6 +1060,10 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                       if (field.key === 'manualDivision' && field.condition && !field.condition(values)) {
                         return null;
                       }
+                      // Hide manual division entry unless "Others" is selected
+                      if (field.key === 'customDivision' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
                       // Hide office field unless designation is "Asst. Director of Agriculture (T)"
                       if (field.key === 'office' && field.condition && !field.condition(values)) {
                         return null;
@@ -1051,6 +1086,12 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                       }
                       // Get mandal options based on selected district
                       let fieldOptions = field.options;
+                      if (field.key === 'division') {
+                        const divisions = values.district && values.district !== 'Others'
+                          ? getDivisionsForDistrict(values.district)
+                          : [];
+                        fieldOptions = withOthersOption(divisions.map(d => ({ label: d, value: d })));
+                      }
                       if (field.key === 'mandal') {
                         if (values.district && values.district !== 'Others') {
                           fieldOptions = withOthersOption(getMandalsForDistrict(values.district).map(m => ({ label: m, value: m })));
@@ -1262,7 +1303,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
           pinCode: values.pincode,
           phone: '',
         }}
-        coveringLetterDetails={coveringLetterDetails}
+        coveringLetterDetails={coveringLetterDetailsForModal}
         onMetadataChange={(metadata) => {
           setCoveringLetterDetails({
             financialYear: metadata.year,
@@ -1355,6 +1396,23 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
     : field.label;
   
   const selectOptions = options || field.options || [];
+
+  if (field.key === 'manualDivision') {
+    return (
+      <div>
+        <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide text-slate-600">
+          <span>{displayLabel}</span>
+        </div>
+        <DivisionPicker
+          district={effectiveLocationValue(values?.district ?? '', values?.manualDistrict ?? '')}
+          value={value}
+          onChange={onChange}
+          selectClassName={commonClass}
+          inputClassName={commonClass}
+        />
+      </div>
+    );
+  }
 
   const inputElement = field.type === 'textarea' ? (
     <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={2} placeholder={field.placeholder} className={commonClass} />

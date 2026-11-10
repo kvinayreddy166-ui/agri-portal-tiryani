@@ -54,7 +54,6 @@ const MODULE_HIGHLIGHTS = [
     badgeTe: 'చట్టబద్ధం',
     badgeColor: 'emerald',
     route: '/officer-toolkit/inspection-enforcement',
-    requiresAuth: true,
   },
   {
     icon: FlaskConical,
@@ -66,7 +65,6 @@ const MODULE_HIGHLIGHTS = [
     badgeTe: 'ప్రజా సమాచారం',
     badgeColor: 'gold',
     route: '/officer-toolkit/agrochemicals',
-    requiresAuth: false,
   },
   {
     icon: Calculator,
@@ -78,7 +76,6 @@ const MODULE_HIGHLIGHTS = [
     badgeTe: 'ఉచిత సాధనాలు',
     badgeColor: 'emerald',
     route: '/officer-toolkit/farm-calculators',
-    requiresAuth: false,
   },
   {
     icon: Stethoscope,
@@ -90,7 +87,6 @@ const MODULE_HIGHLIGHTS = [
     badgeTe: 'పంట నిర్ధారణ',
     badgeColor: 'gold',
     route: '/officer-toolkit/crop-doctor',
-    requiresAuth: false,
   },
   {
     icon: Scale,
@@ -102,7 +98,6 @@ const MODULE_HIGHLIGHTS = [
     badgeTe: 'చట్టాల గైడ్',
     badgeColor: 'emerald',
     route: '/officer-toolkit/acts-and-orders',
-    requiresAuth: false,
   },
   {
     icon: BookOpen,
@@ -113,8 +108,7 @@ const MODULE_HIGHLIGHTS = [
     badge: 'AI Powered',
     badgeTe: 'AI ఆధారితం',
     badgeColor: 'gold',
-    route: '/login',
-    requiresAuth: true,
+    route: '/knowledge',
   },
   {
     icon: FileCheck,
@@ -126,7 +120,6 @@ const MODULE_HIGHLIGHTS = [
     badgeTe: 'నిబంధనల పాలన',
     badgeColor: 'emerald',
     route: '/officer-toolkit/forms-library',
-    requiresAuth: false,
   },
   {
     icon: Database,
@@ -137,8 +130,7 @@ const MODULE_HIGHLIGHTS = [
     badge: 'Enterprise Hub',
     badgeTe: 'కేంద్ర పోర్టల్',
     badgeColor: 'gold',
-    route: '/login',
-    requiresAuth: true,
+    route: '/dealers',
   },
 ];
 
@@ -203,9 +195,9 @@ const ECOSYSTEM_TABS = [
     headline: 'Public Diagnostics, Precision Calculators & Grievance Desk',
     headlineTe: 'ఉచిత పంట వ్యాధి నిర్ధారణ, కాలిక్యులేటర్లు & సమస్యల పరిష్కారం',
     description:
-      'Zero-barrier access to precision agricultural tools without requiring a login. Designed for rural farmers to maximize yield and protect crop health.',
+      'Access to precision agricultural tools, diagnostics and grievance support through the portal. Designed for rural farmers to maximize yield and protect crop health.',
     descriptionTe:
-      'ఎలాంటి లాగిన్ అవసరం లేకుండా నేరుగా ఆధునిక వ్యవసాయ సాధనాలను ఉపయోగించుకోవచ్చు. రైతులు అధిక దిగుబడి సాధించి పంట ఆరోగ్యాన్ని కాపాడుకోవడానికి రూపొందించబడింది.',
+      'పోర్టల్ ద్వారా ఆధునిక వ్యవసాయ సాధనాలు, నిర్ధారణలు మరియు సమస్యల పరిష్కార మద్దతు. రైతులు అధిక దిగుబడి సాధించి పంట ఆరోగ్యాన్ని కాపాడుకోవడానికి రూపొందించబడింది.',
     features: [
       'Scientific fertilizer dosage calculator for specific crops & acres',
       'Instant disease diagnostic guide & photo recommendations',
@@ -271,16 +263,6 @@ export function LandingPage() {
 
           {/* Nav links & actions */}
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            {/* Quick public tools anchor */}
-            <button
-              type="button"
-              onClick={() => navigate('/officer-toolkit')}
-              className="hidden items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-emerald-700 dark:hover:bg-slate-800 md:inline-flex cursor-pointer"
-            >
-              <Sprout className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              <span>{t('Public Toolkit', 'పబ్లిక్ టూల్‌కిట్')}</span>
-            </button>
-
             {/* Animated language toggle */}
             <div
               role="group"
@@ -366,14 +348,6 @@ export function LandingPage() {
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => navigate('/officer-toolkit')}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3.5 text-sm font-bold text-white backdrop-blur-md transition hover:border-white/40 hover:bg-white/20 active:scale-[0.98] cursor-pointer"
-                >
-                  <Sprout className="h-4 w-4 text-emerald-300" />
-                  <span>{t('Explore Public Tools', 'ఉచిత సాధనాలు')}</span>
-                </button>
               </div>
 
               {/* Badges / Trust points */}
@@ -396,50 +370,37 @@ export function LandingPage() {
             {/* Right Column: Officer Registration Card */}
             <div className="lg:col-span-5">
               <div className="rounded-3xl border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-xl sm:p-6">
-                <div className="mb-4 flex items-center justify-between gap-2 border-b border-white/10 pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-3 w-3 rounded-full bg-gold-400" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-gold-300">
-                      {t('Officer Registration', 'అధికారి నమోదు')}
-                    </span>
-                  </div>
-                  <span className="shrink-0 text-[10px] font-bold text-emerald-200">
-                    {t('Official Portal', 'అధికారిక పోర్టల్')}
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-400/15 text-gold-300 ring-1 ring-gold-300/30">
+                    <UserCheck className="h-5 w-5" />
                   </span>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-black text-white">{t('Officer Registration', 'అధికారి నమోదు')}</h3>
+                    <p className="truncate text-[11px] font-semibold text-emerald-200/70">
+                      {t('DAO · ADA · MAO · AEO — verified email access', 'DAO · ADA · MAO · AEO — ధ్రువీకరించిన ఇమెయిల్')}
+                    </p>
+                  </div>
                 </div>
 
-                <p className="mb-4 text-xs leading-relaxed text-justify text-emerald-100/85 sm:text-sm">
+                <p className="mt-4 text-xs leading-relaxed text-emerald-100/85 sm:text-sm">
                   {t(
-                    'Register as a Government Agriculture Officer to access statutory inspection tools, forms, notices, dealer stock reconciliation, and offline field sync.',
-                    'చట్టబద్ధ తనిఖీ సాధనాలు, ఫారాలు, నోటీసులు, డీలర్ స్టాక్ సమన్వయం మరియు ఆఫ్‌లైన్ ఫీల్డ్ సింక్ సేవల కోసం ప్రభుత్వ వ్యవసాయ అధికారిగా నమోదు చేసుకోండి.'
+                    'Register as an Agriculture Officer for statutory inspection tools, forms, notices, dealer stock reconciliation, and offline field sync.',
+                    'చట్టబద్ధ తనిఖీ సాధనాలు, ఫారాలు, నోటీసులు, డీలర్ స్టాక్ సమన్వయం మరియు ఆఫ్‌లైన్ ఫీల్డ్ సింక్ సేవల కోసం వ్యవసాయ అధికారి‌గా నమోదు చేసుకోండి.'
                   )}
                 </p>
 
-                {/* Officer Registration CTA */}
                 <button
                   type="button"
                   onClick={() => navigate('/register')}
-                  className="group/reg flex w-full cursor-pointer items-center gap-3 rounded-xl bg-gradient-to-r from-gold-400/90 via-amber-400/90 to-gold-500/90 p-3.5 text-left shadow-lg shadow-gold-950/20 ring-1 ring-gold-300/40 transition hover:from-gold-300 hover:via-amber-300 hover:to-gold-400 active:scale-[0.99]"
+                  className="group mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 px-5 py-3 text-sm font-black text-emerald-950 shadow-lg shadow-gold-950/25 transition hover:from-gold-300 hover:to-amber-400 active:scale-[0.98]"
                 >
-                  <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-900/90 text-gold-300 shadow-inner transition-transform duration-300 group-hover/reg:scale-110 group-hover/reg:-rotate-3">
-                    <span className="absolute inset-0 animate-ping rounded-xl bg-gold-300/30" />
-                    <UserPlus className="relative h-5 w-5" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-1.5">
-                      <span className="truncate text-sm font-black text-emerald-950">
-                        {t('New Agriculture Officer Registration', 'కొత్త వ్యవసాయ అధికారి నమోదు')}
-                      </span>
-                      <Sparkles className="h-3.5 w-3.5 shrink-0 text-emerald-800" />
-                    </span>
-                    <span className="block truncate text-[11px] font-semibold text-emerald-900/80">
-                      {t('DAO / ADA / MAO / AEO — verified email access', 'DAO / ADA / MAO / AEO — ధ్రువీకరించబడిన ఇమెయిల్ లాగిన్')}
-                    </span>
-                  </span>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-emerald-950 transition-transform duration-300 group-hover/reg:translate-x-1" />
+                  <UserPlus className="h-4 w-4" />
+                  <span>{t('Register as Agriculture Officer', 'వ్యవసాయ అధికారిగా నమోదు చేసుకోండి')}</span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       </section>
@@ -660,10 +621,10 @@ export function LandingPage() {
                 <div className="mt-auto border-t border-slate-100 pt-3 dark:border-slate-800">
                   <button
                     type="button"
-                    onClick={() => navigate(mod.route)}
+                    onClick={() => navigate(user ? mod.route : '/login')}
                     className="flex w-full cursor-pointer items-center justify-between text-xs font-bold text-emerald-700 transition hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300"
                   >
-                    <span>{mod.requiresAuth ? t('Access via Sign In', 'లాగిన్ ద్వారా ప్రవేశించండి') : t('Open Tool Directly', 'సాధనాన్ని తెరవండి')}</span>
+                    <span>{t('Open Module', 'మాడ్యూల్ తెరవండి')}</span>
                     <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
@@ -697,7 +658,7 @@ export function LandingPage() {
               <div className="flex flex-col gap-3 sm:flex-row md:col-span-4 md:flex-col">
                 <button
                   type="button"
-                  onClick={() => navigate('/officer-toolkit/officer-contacts')}
+                  onClick={() => navigate(user ? '/officer-toolkit/officer-contacts' : '/login')}
                   className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-6 py-3.5 text-xs font-bold text-white transition hover:bg-white/20 active:scale-[0.98] sm:text-sm"
                 >
                   <UserCheck className="h-4 w-4 text-gold-300" />
@@ -721,8 +682,8 @@ export function LandingPage() {
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-slate-600 dark:text-slate-400">
             {t(
-              'Sign in with your officer credentials, dealer phone number, or explore free public advisory tools.',
-              'మీ అధికారి వివరాలు లేదా డీలర్ మొబైల్ నంబర్‌తో లాగిన్ అవ్వండి, లేదా ఉచిత వ్యవసాయ సలహా సాధనాలను నేరుగా ఉపయోగించండి.'
+              'Sign in with your officer credentials or dealer phone number to access all portal tools.',
+              'అన్ని పోర్టల్ సాధనాలను ఉపయోగించుకోవడానికి మీ అధికారి వివరాలు లేదా డీలర్ మొబైల్ నంబర్‌తో లాగిన్ అవ్వండి.'
             )}
           </p>
 
@@ -779,26 +740,26 @@ export function LandingPage() {
             {/* Quick Links */}
             <div>
               <p className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
-                {t('Public Tools', 'ఉచిత సాధనాలు')}
+                {t('Quick Tools', 'త్వరిత సాధనాలు')}
               </p>
               <ul className="mt-3 space-y-2 text-xs font-medium text-slate-600 dark:text-slate-400">
                 <li>
-                  <button type="button" onClick={() => navigate('/officer-toolkit/fertilizer-calculator')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
+                  <button type="button" onClick={() => navigate(user ? '/officer-toolkit/fertilizer-calculator' : '/login')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
                     {t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్')}
                   </button>
                 </li>
                 <li>
-                  <button type="button" onClick={() => navigate('/officer-toolkit/crop-doctor')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
+                  <button type="button" onClick={() => navigate(user ? '/officer-toolkit/crop-doctor' : '/login')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
                     {t('Crop Doctor Diagnostics', 'క్రాప్ డాక్టర్ వ్యాధి నిర్ధారణ')}
                   </button>
                 </li>
                 <li>
-                  <button type="button" onClick={() => navigate('/officer-toolkit/agrochemicals')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
+                  <button type="button" onClick={() => navigate(user ? '/officer-toolkit/agrochemicals' : '/login')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
                     {t('Agrochemicals Database', 'వ్యవసాయ రసాయనాల సమాచారం')}
                   </button>
                 </li>
                 <li>
-                  <button type="button" onClick={() => navigate('/officer-toolkit/acts-and-orders')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
+                  <button type="button" onClick={() => navigate(user ? '/officer-toolkit/acts-and-orders' : '/login')} className="cursor-pointer hover:text-emerald-700 dark:hover:text-emerald-300">
                     {t('Acts & Ready Reckoners', 'చట్టాలు & రెడీ రెకనర్')}
                   </button>
                 </li>

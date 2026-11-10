@@ -90,10 +90,13 @@ function shouldAttemptRecovery() {
 }
 
 /**
- * Registers the app service worker (if missing), tells active workers to clear
- * runtime caches and precache the offline shell, and prunes stale cache buckets.
- * Deliberately does NOT call update() or SKIP_WAITING — update checks run in
- * checkForUpdates and activation stays user-approved via the update banner.
+ * Registers the app service worker (if missing), asks active workers to
+ * precache the offline shell, and prunes stale cache buckets.
+ * Deliberately does NOT clear runtime caches here — /assets/* entries are
+ * content-hashed and must survive reloads or offline cold starts have no
+ * cached entry bundle. Clearing is reserved for explicit recovery paths
+ * (recoverFromStaleAssets, clearAppCacheAndReload). Also does NOT call
+ * update() or SKIP_WAITING — activation stays user-approved via the banner.
  */
 async function syncServiceWorker() {
   try {
@@ -103,7 +106,6 @@ async function syncServiceWorker() {
     );
 
     await Promise.all(appRegistrations.map(async (registration) => {
-      try { registration.active?.postMessage({ type: 'CLEAR_RUNTIME_CACHES' }); } catch {}
       try { registration.active?.postMessage({ type: 'PRECACHE_OFFLINE' }); } catch {}
     }));
 

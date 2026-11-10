@@ -120,6 +120,7 @@ export type FertilizerPdfValues = {
   memoNumber: string;
   memoDate: string;
   division: string;
+  customDivision: string;
   officerPhone: string;
 };
 
@@ -249,6 +250,7 @@ export const initialFertilizerPdfValues: FertilizerPdfValues = {
   memoNumber: '',
   memoDate: '',
   division: '',
+  customDivision: '',
   officerPhone: '',
 };
 

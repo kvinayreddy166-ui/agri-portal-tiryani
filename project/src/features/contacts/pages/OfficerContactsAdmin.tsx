@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Plus, RefreshCw, Search, Trash2, Upload, Phone, User, Building2 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
+import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 
 type OfficerType = 'AEO' | 'MAO' | 'ADA' | 'DAO';
 
@@ -430,11 +431,13 @@ export function OfficerContactsAdmin() {
                   <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-500">
                     Division
                   </label>
-                  <input
+                  <DivisionPicker
+                    district={editing.district || ''}
                     value={editing.division || ''}
-                    onChange={(e) => setEditing({ ...editing, division: e.target.value })}
-                    placeholder="Division name"
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    onChange={(v) => setEditing({ ...editing, division: v })}
+                    selectClassName="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    inputClassName="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    inputPlaceholder="Division name"
                   />
                 </div>
                 <div>

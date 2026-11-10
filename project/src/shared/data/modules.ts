@@ -48,7 +48,7 @@ export const MODULE_MENU_ITEMS: ModuleMenuItem[] = [
   // Knowledge & Portals
   { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText, desc: 'Government orders and circulars', descTe: 'ప్రభుత్వ ఉత్తర్వులు & సర్క్యులర్లు' },
   { id: 'government-portals', label: 'Government Portals', icon: Globe, desc: 'Links to official government portals', descTe: 'అధికారిక ప్రభుత్వ పోర్టళ్ళ లింక్‌లు' },
-  { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen, desc: 'AI assistant over official agri documents', descTe: 'అధికారిక వ్యవసాయ పత్రాలపై AI అసిస్టెంట్' },
+  { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen, adminOnly: true, desc: 'AI assistant over official agri documents', descTe: 'అధికారిక వ్యవసాయ పత్రాలపై AI అసిస్టెంట్' },
 
   // Records & Admin
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true, desc: 'Uploaded documents and files', descTe: 'అప్‌లోడ్ చేసిన పత్రాలు & ఫైళ్లు' },

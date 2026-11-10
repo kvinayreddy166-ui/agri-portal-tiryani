@@ -36,10 +36,10 @@ export const TELANGANA_DISTRICTS = [
 
 export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
   'Adilabad': [
-    'Adilabad Rural', 'Adilabad Urban', 'Bazarhatnoor', 'Bela', 'Boath', 'Bheempoor', 'Gudihathnur', 'Ichoda', 'Jainad', 'Mavala', 'Neradigonda', 'Sirikonda', 'Talamadagu', 'Tamsi', 'Gadiguda', 'Inderavelly', 'Narnoor', 'Utnoor',
+    'Adilabad Rural', 'Adilabad Urban', 'Bazarhatnoor', 'Bela', 'Boath', 'Bheempur', 'Gudihathnur', 'Ichoda', 'Jainath', 'Mavala', 'Neradigonda', 'Sirikonda', 'Talamadagu', 'Tamsi', 'Gadiguda', 'Inderavelly', 'Narnoor', 'Utnoor',
   ],
   'Bhadradri Kothagudem': [
-    'Allapalli', 'Annapureddypally', 'Aswaraopeta', 'Chandrugonda', 'Chunchupally', 'Dammapeta', 'Gundala', 'Julurpad', 'Kothagudem', 'Laxmidevipalli', 'Mulakalapalle', 'Palvancha', 'Sujathanagar', 'Tekulapalle', 'Yellandu', 'Aswapuram', 'Bhadrachalam', 'Cherla', 'Burgampahad', 'Dummugudem', 'Karakagudem', 'Manuguru', 'Pinapaka',
+    'Allapalli', 'Annapureddypally', 'Aswaraopeta', 'Chandrugonda', 'Chunchupally', 'Dammapeta', 'Gundala', 'Julurpad', 'Kothagudem', 'Laxmidevipalli', 'Mulakalapally', 'Palvancha', 'Sujathanagar', 'Tekulapalli', 'Yellandu', 'Aswapuram', 'Bhadrachalam', 'Cherla', 'Burgampahad', 'Dummugudem', 'Karakagudem', 'Manuguru', 'Pinapaka',
   ],
   'Hanamkonda': [
     'Bheemadevarapalle', 'Dharmasagar', 'Elkathurthy', 'Hanamkonda', 'Hasanparthy', 'Inavole', 'Kamalapur', 'Kazipet', 'Velair', 'Atmakur', 'Damera', 'Nadikuda', 'Parkal', 'Shayampet',
@@ -48,7 +48,7 @@ export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
     'Amberpet', 'Asif Nagar', 'Bahadurpura', 'Bandlaguda', 'Charminar', 'Golkonda', 'Himayathnagar', 'Nampally', 'Saidabad', 'Ameerpet', 'Khairtabad', 'Maredpally', 'Musheerabad', 'Secunderabad', 'Shaikpet', 'Tirumalgiri',
   ],
   'Jagtial': [
-    'Beerpur', 'Buggaram', 'Dharmapuri', 'Gollapalle', 'Jagtial', 'Jagtial Rural', 'Kodimial', 'Mallial', 'Pegadapalle', 'Raikal', 'Sarangapur', 'Velgatoor', 'Ibrahimpatnam', 'Mallapur', 'Metpalli', 'Kathlapur', 'Korutla', 'Medipalle',
+    'Beerpur', 'Bheemaram', 'Buggaram', 'Dharmapuri', 'Endapalli', 'Gollapalle', 'Jagtial', 'Jagtial Rural', 'Kodimial', 'Mallial', 'Pegadapalle', 'Raikal', 'Sarangapur', 'Velgatoor', 'Ibrahimpatnam', 'Mallapur', 'Metpalli', 'Kathlapur', 'Korutla', 'Medipalle',
   ],
   'Jangaon': [
     'Bachannapeta', 'Devaruppala', 'Jangaon', 'Lingalaghanpur', 'Narmetta', 'Raghunathapalle', 'Tharigoppula', 'Chilpur', 'Kodakandla', 'Palakurthi', 'Station Ghanpur', 'Zaffergadh',
@@ -78,7 +78,7 @@ export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
     'Addakal', 'Balanagar', 'Bhoothpur', 'Chinna Chinthakunta', 'Devarkadara', 'Gandeed', 'Hanwada', 'Jadcherla', 'Koilkonda', 'Mahabubnagar(Rural)', 'Mahabubnagar(Urban)', 'Midjil', 'Mohammadabad', 'Musapet', 'Nawabpet', 'Rajapur',
   ],
   'Mancherial': [
-    'Bheemaram', 'Chennur', 'Dandepally', 'Hajipur', 'Jaipur', 'Jannaram', 'Kotapally', 'Luxettipet', 'Mancherial', 'Mandamarri', 'Naspur', 'Bellampally', 'Bheemini', 'Kannepally', 'Kasipet', 'Nennel', 'Tandur', 'Vempally',
+    'Bheemaram', 'Chennur', 'Dandepally', 'Hajipur', 'Jaipur', 'Jannaram', 'Kotapally', 'Luxettipet', 'Mancherial', 'Mandamarri', 'Naspur', 'Bellampally', 'Bheemini', 'Kannepally', 'Kasipet', 'Nennel', 'Tandur', 'Vemanpally',
   ],
   'Medak': [
     'Alladurg', 'Havelighanpur', 'Medak', 'Nizampet', 'Papannapet', 'Ramayampet', 'Regode', 'Shankarampet(A)', 'Shankarampet(R)', 'Tekmal', 'Chilipched', 'Kowdipalle', 'Kulcharam', 'Narsapur', 'Shivampet', 'Chegunta', 'Manoharabad', 'Masaipet', 'Narsingi', 'Tupran', 'Yeldurthy',
@@ -93,7 +93,7 @@ export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
     'Achampet', 'Amrabad', 'Balmoor', 'Lingal', 'Padra', 'Uppunuthala', 'Charakonda', 'Kalwakurthy', 'Urkonda', 'Vangoor', 'Veldanda', 'Kodair', 'Kollapur', 'Peddakothapalle', 'Pentlavelli', 'Bijinapalle', 'Nagarkurnool', 'Tadoor', 'Telkapalle', 'Thimmajipeta',
   ],
   'Nalgonda': [
-    'Chandampet', 'Chinthapalle', 'Devarakonda', 'Gundlapalle', 'Gurrampode', 'Kondamallapally', 'Marriguda', 'Nampalle', 'Neredugommu', 'Pedda adiserlapalle', 'Adavi devula palli', 'Anumula Haliya', 'Damaracherla', 'Madugulapally', 'Miryalaguda', 'Nidamanur', 'Peddavoora', 'Thripuraram', 'Tirumalagiri Sagar', 'Vemulapalle', 'Chandur', 'Chityala', 'Kangal', 'Kattangoor', 'Kethepalle', 'Munugode', 'Nakrekal', 'Narketpalle', 'Nalgonda', 'Saligouraram', 'Thipparthi',
+    'Chandampet', 'Chinthapalle', 'Devarakonda', 'Gattuppal', 'Gudipally', 'Gundlapalle', 'Gurrampode', 'Kondamallapally', 'Marriguda', 'Nampalle', 'Neredugommu', 'Pedda adiserlapalle', 'Adavi devula palli', 'Anumula Haliya', 'Damaracherla', 'Madugulapally', 'Miryalaguda', 'Nidamanur', 'Peddavoora', 'Thripuraram', 'Tirumalagiri Sagar', 'Vemulapalle', 'Chandur', 'Chityala', 'Kangal', 'Kattangoor', 'Kethepalle', 'Munugode', 'Nakrekal', 'Narketpalle', 'Nalgonda', 'Saligouraram', 'Thipparthi',
   ],
   'Narayanpet': [
     'Damaragidda', 'Dhanwada', 'Gundumal', 'Kosgi', 'Krishna', 'Kotthapally', 'Maddur', 'Maganoor', 'Makthal', 'Marikal', 'Narayanpet', 'Narva', 'Utkoor',
@@ -126,7 +126,7 @@ export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
     'Basheerabad', 'Bommaraspet', 'Doulthabad', 'Kodangal', 'Peddemul', 'Tandur', 'Yelal', 'Bantwaram', 'Doma', 'Dharur', 'Kotepally', 'Kulkacherla', 'Marpalle', 'Mominpet', 'Nawabpet', 'Pargi', 'Pudur', 'Vikarabad',
   ],
   'Wanaparthy': [
-    'Amarchinta', 'Atmakur', 'Chinnambavi', 'Ghanpur (Khilla)', 'Gopalpeta', 'Kothakota', 'Madanapur', 'Pangal', 'Pebbair', 'Peddamandadi', 'Revally', 'Srirangapur', 'Veepanagandla', 'Wanaparthy',
+    'Amarchinta', 'Atmakur', 'Chinnambavi', 'Ghanpur (Khilla)', 'Gopalpeta', 'Kothakota', 'Madanapur', 'Pangal', 'Pebbair', 'Peddamandadi', 'Revally', 'Srirangapur', 'Veepanagandla', 'Wanaparthy', 'Yedula',
   ],
   'Warangal': [
     'Geesugonda', 'Khila Warangal', 'Parvathagiri', 'Rayaparthy', 'Wardhannapet', 'Warangal', 'Sangem', 'Chennaraopet', 'Duggondi', 'Khanapur', 'Nallabelly', 'Narsampet', 'Nekkonda',
@@ -178,12 +178,12 @@ export const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {
   'Jogulamba Gadwal': ['Alampur', 'Gadwal', 'Ieeja'],
   'Kamareddy': ['Banswada', 'Bichkunda', 'Kamareddy', 'Yellareddy'],
   'Karimnagar': ['Choppadandi', 'Huzurabad', 'Karimnagar', 'Manakondur'],
-  'Khammam': ['Khammam Urban', 'Kusumanchi', 'Madhira', 'Sathupalle', 'Wyra'],
+  'Khammam': ['Khammam Urban', 'Kusumanchi', 'Madhira', 'Sathupalli', 'Wyra'],
   'Kumrambheem Asifabad': ['Asifabad', 'Kagaznagar', 'Penchikalpet', 'Sirpur U'],
   'Hyderabad': [],
   'Mahabubabad': ['Mahabubabad', 'Maripeda'],
   'Mahabubnagar': ['Devarkadara', 'Jadcherla', 'Mahabubnagar Rural'],
-  'Mancherial': ['Bellampalle', 'Bheemini', 'Chennur', 'Mancherial'],
+  'Mancherial': ['Bellampally', 'Bheemini', 'Chennur', 'Mancherial'],
   'Medak': ['Kowdipalle', 'Medak', 'Narsapur', 'Ramayampet'],
   'Medchal-Malkajgiri': ['Malkajgiri', 'Medchal'],
   'Mulugu': ['Eturnagaram', 'Mulugu'],
@@ -204,12 +204,28 @@ export const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {
   'Yadadri Bhuvanagiri': ['Alair', 'Bhongir', 'Yadagirigutta'],
 };
 
+function squashLocationKey(value: string): string {
+  return value.toLowerCase().replace(/[\s\-–—]+/g, '');
+}
+
+function lookupLocationMapping(mapping: Record<string, string[]>, key: string): string[] {
+  const direct = mapping[key];
+  if (direct) return direct;
+  const squashed = squashLocationKey(key);
+  const match = Object.keys(mapping).find((k) => squashLocationKey(k) === squashed);
+  return match ? mapping[match] : [];
+}
+
+function sortLocationNames(names: string[]): string[] {
+  return [...names].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
+}
+
 export function getDivisionsForDistrict(district: string): string[] {
-  return DISTRICT_DIVISION_MAPPING[district] || [];
+  return sortLocationNames(lookupLocationMapping(DISTRICT_DIVISION_MAPPING, district));
 }
 
 export function getMandalsForDistrict(district: string): string[] {
-  return TELANGANA_DISTRICT_MANDAL_MAPPING[district] || [];
+  return sortLocationNames(lookupLocationMapping(TELANGANA_DISTRICT_MANDAL_MAPPING, district));
 }
 
 // Division to Mandal mapping
@@ -224,7 +240,7 @@ export const DIVISION_MANDAL_MAPPING: Record<string, string[]> = {
   // Bhadradri Kothagudem District
   'Aswaraopeta': ['Aswaraopeta', 'Aswapuram', 'Chandrugonda', 'Dammapeta', 'Kamepalli', 'Kothagudem', 'Laxmipuram', 'Mulkalapalli', 'Sarapaka', 'Singareni', 'Tirumalayapalem', 'Yerrupalem'],
   'Bhadrachalam': ['Bhadrachalam', 'Burgumpadu', 'Charla', 'Cherla', 'Dummagudem', 'Kannaigudem', 'Koonavaram', 'Mallampalli', 'Manuguru', 'Narsapur', 'Parnasala', 'Rebbana', 'Tekulapalli', 'Temurpuram', 'Vemunuru', 'Venkatapuram', 'Yetapaka'],
-  'Kothagudem': ['Kothagudem', 'Palvoncha', 'Sathupalle', 'Tallada', 'Wyra'],
+  'Kothagudem': ['Allapalli', 'Annapureddypally', 'Chunchupally', 'Gundala', 'Julurpad', 'Kothagudem', 'Laxmidevipalli', 'Mulakalapalle', 'Palvancha', 'Sujathanagar', 'Tekulapalle'],
   'Manuguru': ['Manuguru'],
   'Yellandu': ['Yellandu'],
   
@@ -264,11 +280,11 @@ export const DIVISION_MANDAL_MAPPING: Record<string, string[]> = {
   'Manakondur': ['Kothapally', 'Manakondur', 'Ramadugu', 'Thimmapur'],
   
   // Khammam District
-  'Khammam Urban': ['Khammam', 'Bheemunipatnam', 'Bonakal', 'Chintakani', 'Enkoor', 'Kallur', 'Kamepalli', 'Kusumanchi', 'Madhira', 'Mudigonda', 'Nelakondapally', 'Penuballi', 'Sathupalle', 'Singareni', 'Tirumalayapalem', 'Vemsoor', 'Wyra', 'Yerrupalem'],
-  'Kusumanchi': ['Kusumanchi', 'Bheemunipatnam', 'Bonakal', 'Chintakani', 'Enkoor', 'Kallur', 'Kamepalli', 'Madhira', 'Mudigonda', 'Nelakondapally', 'Penuballi', 'Sathupalle', 'Singareni', 'Tirumalayapalem', 'Vemsoor', 'Wyra', 'Yerrupalem'],
-  'Madhira': ['Madhira', 'Bheemunipatnam', 'Bonakal', 'Chintakani', 'Enkoor', 'Kallur', 'Kamepalli', 'Kusumanchi', 'Mudigonda', 'Nelakondapally', 'Penuballi', 'Sathupalle', 'Singareni', 'Tirumalayapalem', 'Vemsoor', 'Wyra', 'Yerrupalem'],
-  'Sathupalle': ['Sathupalle', 'Bheemunipatnam', 'Bonakal', 'Chintakani', 'Enkoor', 'Kallur', 'Kamepalli', 'Kusumanchi', 'Madhira', 'Mudigonda', 'Nelakondapally', 'Penuballi', 'Singareni', 'Tirumalayapalem', 'Vemsoor', 'Wyra', 'Yerrupalem'],
-  'Wyra': ['Wyra', 'Bheemunipatnam', 'Bonakal', 'Chintakani', 'Enkoor', 'Kallur', 'Kamepalli', 'Kusumanchi', 'Madhira', 'Mudigonda', 'Nelakondapally', 'Penuballi', 'Sathupalle', 'Singareni', 'Tirumalayapalem', 'Vemsoor', 'Yerrupalem'],
+  'Khammam Urban': ['Khammam', 'Bheemunipatnam', 'Bonakal', 'Chintakani', 'Enkoor', 'Kallur', 'Kamepalli', 'Kusumanchi', 'Madhira', 'Mudigonda', 'Nelakondapally', 'Penuballi', 'Sathupalli', 'Singareni', 'Tirumalayapalem', 'Vemsoor', 'Wyra', 'Yerrupalem'],
+  'Kusumanchi': ['Kusumanchi', 'Bheemunipatnam', 'Bonakal', 'Chintakani', 'Enkoor', 'Kallur', 'Kamepalli', 'Madhira', 'Mudigonda', 'Nelakondapally', 'Penuballi', 'Sathupalli', 'Singareni', 'Tirumalayapalem', 'Vemsoor', 'Wyra', 'Yerrupalem'],
+  'Madhira': ['Madhira', 'Bheemunipatnam', 'Bonakal', 'Chintakani', 'Enkoor', 'Kallur', 'Kamepalli', 'Kusumanchi', 'Mudigonda', 'Nelakondapally', 'Penuballi', 'Sathupalli', 'Singareni', 'Tirumalayapalem', 'Vemsoor', 'Wyra', 'Yerrupalem'],
+  'Sathupalli': ['Sathupalli', 'Bheemunipatnam', 'Bonakal', 'Chintakani', 'Enkoor', 'Kallur', 'Kamepalli', 'Kusumanchi', 'Madhira', 'Mudigonda', 'Nelakondapally', 'Penuballi', 'Singareni', 'Tirumalayapalem', 'Vemsoor', 'Wyra', 'Yerrupalem'],
+  'Wyra': ['Wyra', 'Bheemunipatnam', 'Bonakal', 'Chintakani', 'Enkoor', 'Kallur', 'Kamepalli', 'Kusumanchi', 'Madhira', 'Mudigonda', 'Nelakondapally', 'Penuballi', 'Sathupalli', 'Singareni', 'Tirumalayapalem', 'Vemsoor', 'Yerrupalem'],
   
   // Kumrambheem Asifabad District
   'Asifabad': ['Asifabad', 'Bheemini', 'Kagaznagar', 'Kerameri', 'Koutala', 'Nennel', 'Penchikalpet', 'Sirpur U', 'Tiryani', 'Vempalle'],
@@ -286,10 +302,10 @@ export const DIVISION_MANDAL_MAPPING: Record<string, string[]> = {
   'Mahabubnagar Rural': ['Mahabubnagar Rural', 'Achampet', 'Alampur', 'Amarchinta', 'Atmakur', 'Balanagar', 'Bomraspet', 'ChinnaChintakunta', 'Dharur', 'Ghanpur', 'Itikyala', 'Kalwakurthy', 'Kollapur', 'Kothakota', 'Madanapur', 'Maddur', 'Manopad', 'Nagarkurnool', 'Pangal', 'Peddamandadi', 'Pebbair', 'Rajoli', 'Undavelli', 'Vijayapura', 'Wanaparthy'],
   
   // Mancherial District
-  'Bellampalle': ['Bellampalle', 'Bheemini', 'Chennur', 'Jaipur', 'Kasipet', 'Luxettipet', 'Mandamarri', 'Nennel', 'Sirsilla', 'Tiryani'],
-  'Bheemini': ['Bheemini', 'Asifabad', 'Bellampalle', 'Chennur', 'Jaipur', 'Kasipet', 'Luxettipet', 'Mandamarri', 'Nennel', 'Sirsilla', 'Tiryani'],
-  'Chennur': ['Chennur', 'Asifabad', 'Bellampalle', 'Bheemini', 'Jaipur', 'Kasipet', 'Luxettipet', 'Mandamarri', 'Nennel', 'Sirsilla', 'Tiryani'],
-  'Mancherial': ['Mancherial', 'Asifabad', 'Bellampalle', 'Bheemini', 'Chennur', 'Jaipur', 'Kasipet', 'Luxettipet', 'Mandamarri', 'Nennel', 'Sirsilla', 'Tiryani'],
+  'Bellampally': ['Bellampally', 'Bheemini', 'Chennur', 'Jaipur', 'Kasipet', 'Luxettipet', 'Mandamarri', 'Nennel', 'Sirsilla', 'Tiryani'],
+  'Bheemini': ['Bheemini', 'Asifabad', 'Bellampally', 'Chennur', 'Jaipur', 'Kasipet', 'Luxettipet', 'Mandamarri', 'Nennel', 'Sirsilla', 'Tiryani'],
+  'Chennur': ['Chennur', 'Asifabad', 'Bellampally', 'Bheemini', 'Jaipur', 'Kasipet', 'Luxettipet', 'Mandamarri', 'Nennel', 'Sirsilla', 'Tiryani'],
+  'Mancherial': ['Mancherial', 'Asifabad', 'Bellampally', 'Bheemini', 'Chennur', 'Jaipur', 'Kasipet', 'Luxettipet', 'Mandamarri', 'Nennel', 'Sirsilla', 'Tiryani'],
   
   // Medak District
   'Kowdipalle': ['Kowdipalle', 'Alladurg', 'Chegunta', 'Hathnoora', 'Kollur', 'Kondapak', 'Kulcharam', 'Medak', 'Narsapur', 'Papannapet', 'Ramayampet', 'Sangareddy', 'Shankarpally', 'Tekmal', 'Toopran', 'Yeldurthy'],
@@ -401,7 +417,7 @@ export const DIVISION_MANDAL_MAPPING: Record<string, string[]> = {
 };
 
 export function getMandalsForDivision(division: string): string[] {
-  return DIVISION_MANDAL_MAPPING[division] || [];
+  return sortLocationNames(DIVISION_MANDAL_MAPPING[division] || []);
 }
 
 export function isValidDistrictMandalPair(district: string, mandal: string): boolean {

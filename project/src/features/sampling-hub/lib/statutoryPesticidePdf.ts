@@ -86,6 +86,7 @@ export type PesticidePdfValues = {
   memoNumber: string;
   memoDate: string;
   division: string;
+  customDivision: string;
   officerPhone: string;
 };
 
@@ -165,6 +166,7 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   memoNumber: '',
   memoDate: '',
   division: '',
+  customDivision: '',
   officerPhone: '',
 };
 

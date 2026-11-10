@@ -12,6 +12,7 @@ import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
+import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 import {
   noticeCategoryConfigs,
   allShowCauseViolations,
@@ -560,8 +561,9 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                 <TextInput label="Enter District Name" value={form.manualDistrict} onChange={(value) => updateForm({ manualDistrict: value })} />
               )}
               {(isADAOfficer || isMAOOfficer) && (
-                <TextInput
+                <DivisionPicker
                   label="Division"
+                  district={form.district}
                   value={form.division}
                   onChange={(value) => updateForm({ division: value })}
                 />

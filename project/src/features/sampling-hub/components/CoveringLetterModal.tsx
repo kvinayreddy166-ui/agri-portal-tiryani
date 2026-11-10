@@ -1,7 +1,6 @@
 import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useState } from 'react';
 import { Eye, FileText, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
-import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 import { CoveringLetterExportButton, type CoveringLetterExportFormat } from './CoveringLetterExportButton';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
@@ -640,18 +639,6 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                       />
                     </div>
                   </>
-                )}
-                {!isAssistantDirectorOfAgriculture(officerDetails?.designation || '') && (
-                  <div>
-                    <label className="mb-1 block text-xs font-bold text-slate-600">DIVISION</label>
-                    <input
-                      type="text"
-                      value={metadata.division}
-                      onChange={(e) => setMetadata({ ...metadata, division: e.target.value })}
-                      placeholder="Enter Division Name"
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
-                    />
-                  </div>
                 )}
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-600">OFFICER PHONE NO.</label>

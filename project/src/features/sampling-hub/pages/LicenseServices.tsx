@@ -4,44 +4,7 @@ import { useLanguage } from '../../../shared/context/LanguageContext';
 import { FileText, ChevronRight, CheckCircle, ExternalLink, Copy, BadgeCheck, MapPin, KeyRound, Landmark, IndianRupee, Info, Store, ClipboardList, Sprout, ArrowUpRight, FileCheck, ReceiptText, FlaskConical, Bug, SlidersHorizontal } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
-import { TELANGANA_DISTRICTS } from '../../../shared/data/telanganaDistrictMandalData';
-
-// District to Division mapping
-const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {
-  'Adilabad': ['Adilabad Rural', 'Boath', 'Ichoda', 'Tamsi', 'Utnoor'],
-  'Bhadradri Kothagudem': ['Aswaraopeta', 'Bhadrachalam', 'Kothagudem', 'Manuguru', 'Yellandu'],
-  'Hanamkonda': ['Hanamkonda', 'Parkal'],
-  'Jagtial': ['Dharmapuri', 'Jagtial', 'Korutla'],
-  'Jangaon': ['Ghanpur Station', 'Jangaon', 'Palakurthi'],
-  'Jayashankar Bhupalpally': ['Bhupalpally', 'Mahadevpur'],
-  'Jogulamba Gadwal': ['Alampur', 'Gadwal', 'Ieeja'],
-  'Kamareddy': ['Banswada', 'Bichkunda', 'Kamareddy', 'Yellareddy'],
-  'Karimnagar': ['Choppadandi', 'Huzurabad', 'Karimnagar', 'Manakondur'],
-  'Khammam': ['Khammam Urban', 'Kusumanchi', 'Madhira', 'Sathupalle', 'Wyra'],
-  'Kumrambheem Asifabad': ['Asifabad', 'Kagaznagar', 'Penchikalpet', 'Sirpur U'],
-  'Hyderabad': [],
-  'Mahabubabad': ['Mahabubabad', 'Maripeda'],
-  'Mahabubnagar': ['Devarkadara', 'Jadcherla', 'Mahabubnagar Rural'],
-  'Mancherial': ['Bellampalle', 'Bheemini', 'Chennur', 'Mancherial'],
-  'Medak': ['Kowdipalle', 'Medak', 'Narsapur', 'Ramayampet'],
-  'Medchal–Malkajgiri': ['Malkajgiri', 'Medchal'],
-  'Mulugu': ['Eturnagaram', 'Mulugu'],
-  'Nagarkurnool': ['Achampet', 'Kalwakurthy', 'Kollapur', 'Nagarkurnool'],
-  'Nalgonda': ['Anumula', 'Devarakonda', 'Miryalaguda', 'Munugode', 'Nakrekal', 'Nalgonda'],
-  'Narayanpet': ['Kosgi', 'Makthal', 'Narayanpet'],
-  'Nirmal': ['Bhainsa', 'Khanapur', 'Mudhole', 'Nirmal'],
-  'Nizamabad': ['Armoor', 'Balkonda', 'Bheemgal', 'Bodhan', 'Indalwai', 'Nizamabad Rural', 'Nizamabad South', 'Rudrur'],
-  'Peddapalli': ['Manthani', 'Peddapalle', 'Ramagundam'],
-  'Rajanna Sircilla': ['Sircilla', 'Vemulawada'],
-  'Ranga Reddy': ['Amangal', 'Chevella', 'Ibrahimpatnam', 'Maheshwaram', 'Rajendranagar', 'Shadnagar'],
-  'Sangareddy': ['Andole', 'Narayankhed', 'Patancheru', 'Raikode', 'Sangareddy', 'Zahirabad'],
-  'Siddipet': ['Cheriyal', 'Dubbak', 'Gajwel', 'Husnabad', 'Mulug', 'Siddipet'],
-  'Suryapet': ['Huzurnagar', 'Kodad', 'Suryapet', 'Thungathurthy'],
-  'Vikarabad': ['Kodangal', 'Pargi', 'Tandur', 'Vikarabad'],
-  'Wanaparthy': ['Kothakota', 'Pangal', 'Wanaparthy'],
-  'Warangal': ['Narsampet', 'Wardhannapet'],
-  'Yadadri Bhuvanagiri': ['Alair', 'Bhongir', 'Yadagirigutta'],
-};
+import { TELANGANA_DISTRICTS, getDivisionsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
 
 // DDO Code mapping for Districts and Divisions
 const DISTRICT_DDO_CODES: Record<string, string> = {
@@ -97,10 +60,6 @@ const DIVISION_DDO_CODES: Record<string, Record<string, string>> = {
     'Chennur': '03030102001',
   },
 };
-
-function getDivisionsForDistrict(district: string): string[] {
-  return DISTRICT_DIVISION_MAPPING[district] || [];
-}
 
 type LicenseType = 'fertilizer' | 'seed' | 'insecticide';
 type ApplicationType = 'fresh' | 'renewal' | 'renewal_grace_period' | 'amendment' | 'duplicate' | 'pc_inclusion';
@@ -219,6 +178,8 @@ export function LicenseServices() {
   const [numberOfProducts, setNumberOfProducts] = useState<string>('');
   const [district, setDistrict] = useState<string>('');
   const [division, setDivision] = useState<string>('');
+  const [customDivision, setCustomDivision] = useState<string>('');
+  const resolvedDivision = division === 'Others' ? customDivision.trim() : division;
   const [ddoCode, setDdoCode] = useState<string>('');
   const [fertilizerAmendmentType, setFertilizerAmendmentType] = useState<FertilizerAmendmentType | ''>('');
   const [seedAmendmentType, setSeedAmendmentType] = useState<SeedAmendmentType | ''>('');
@@ -236,6 +197,7 @@ export function LicenseServices() {
     setNumberOfProducts('');
     setDistrict('');
     setDivision('');
+    setCustomDivision('');
     setDdoCode('');
     setFertilizerAmendmentType('');
     setSeedAmendmentType('');
@@ -252,12 +214,13 @@ export function LicenseServices() {
   // Reset division when district changes
   React.useEffect(() => {
     setDivision('');
+    setCustomDivision('');
   }, [district]);
 
   // Auto-fill DDO code based on district and division
   React.useEffect(() => {
-    if (division && district) {
-      const divisionDdoCode = DIVISION_DDO_CODES[district]?.[division];
+    if (resolvedDivision && district) {
+      const divisionDdoCode = DIVISION_DDO_CODES[district]?.[resolvedDivision];
       // Show only the division's own DDO code - never fall back to the district code for unmapped divisions
       setDdoCode(divisionDdoCode || '');
     } else if (district) {
@@ -270,7 +233,7 @@ export function LicenseServices() {
     } else {
       setDdoCode(''); // Clear when district is cleared
     }
-  }, [district, division]);
+  }, [district, resolvedDivision]);
 
   const showFertilizerAmendmentType = licenseType === 'fertilizer' && applicationType === 'amendment';
   const showSeedAmendmentType = licenseType === 'seed' && applicationType === 'amendment';
@@ -281,7 +244,7 @@ export function LicenseServices() {
     (applicationType === 'pc_inclusion' || areaType === 'manufacturing_license');
   const showDivision = licenseType === 'fertilizer' && (dealerType === 'retailer' || dealerType === 'coop_societies');
   const showChallanDetails = applicationType !== '' && district !== '' &&
-    (showDivision ? division !== '' : true) &&
+    (showDivision ? resolvedDivision !== '' : true) &&
     (licenseType === 'fertilizer' ? dealerType !== '' : true) &&
     (licenseType === 'insecticide' && (applicationType === 'pc_inclusion' || areaType === 'manufacturing_license') ? areaType !== '' && numberOfProducts !== '' : true) &&
     (licenseType === 'insecticide' && applicationType !== 'pc_inclusion' && areaType !== 'manufacturing_license' ? areaType !== '' : true);
@@ -408,6 +371,7 @@ export function LicenseServices() {
     setDealerType(type);
     if (type !== 'retailer') {
       setDivision(''); // Reset division when not retailer
+      setCustomDivision('');
     }
   };
 
@@ -426,6 +390,9 @@ export function LicenseServices() {
 
   const handleDivisionChange = (value: string) => {
     setDivision(value);
+    if (value !== 'Others') {
+      setCustomDivision('');
+    }
   };
 
   const handleFertilizerAmendmentTypeChange = (type: FertilizerAmendmentType) => {
@@ -762,10 +729,20 @@ export function LicenseServices() {
                       {getDivisionsForDistrict(district).map((div) => (
                         <option key={div} value={div}>{div}</option>
                       ))}
+                      <option value="Others">{t('Others', 'ఇతరులు')}</option>
                     </select>
                     <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <ChevronRight className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-slate-400" />
                   </div>
+                  {division === 'Others' && (
+                    <input
+                      type="text"
+                      value={customDivision}
+                      onChange={(e) => setCustomDivision(e.target.value)}
+                      placeholder={t('Enter division name', 'డివిజన్ పేరు నమోదు చేయండి')}
+                      className="mt-2 w-full rounded-xl border border-slate-200/90 bg-white py-2.5 px-3.5 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                    />
+                  )}
                 </div>
               ) : showNumberOfProducts ? (
                 <div>
@@ -862,7 +839,7 @@ export function LicenseServices() {
                   <div className="flex items-center gap-2">
                     <Landmark className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                      {t('DDO Code', 'DDO కోడ్')} {division ? `(${division})` : district ? `(${district})` : ''}
+                      {t('DDO Code', 'DDO కోడ్')} {resolvedDivision ? `(${resolvedDivision})` : district ? `(${district})` : ''}
                     </span>
                   </div>
                   <button
@@ -887,7 +864,7 @@ export function LicenseServices() {
                 <p className="font-mono text-lg font-black text-slate-900 dark:text-white tracking-wider">
                   {ddoCode || (
                     <span className="font-sans text-xs font-medium text-slate-400">
-                      {division ? t('DDO code not available for this division', 'ఈ డివిజన్‌కు DDO కోడ్ అందుబాటులో లేదు') : t('Select district/division', 'జిల్లా/డివిజన్ ఎంచుకోండి')}
+                      {resolvedDivision ? t('DDO code not available for this division', 'ఈ డివిజన్‌కు DDO కోడ్ అందుబాటులో లేదు') : t('Select district/division', 'జిల్లా/డివిజన్ ఎంచుకోండి')}
                     </span>
                   )}
                 </p>
@@ -1236,6 +1213,7 @@ export function LicenseServices() {
                     {getDivisionsForDistrict(district).map((div) => (
                       <option key={div} value={div}>{div}</option>
                     ))}
+                    <option value="Others">Others</option>
                   </select>
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
                     <MapPin className="h-5 w-5" />
@@ -1244,6 +1222,15 @@ export function LicenseServices() {
                     <ChevronRight className="h-4 w-4 rotate-90" />
                   </div>
                 </div>
+                {division === 'Others' && (
+                  <input
+                    type="text"
+                    value={customDivision}
+                    onChange={(e) => setCustomDivision(e.target.value)}
+                    placeholder="Enter division name"
+                    className="mt-2 w-full rounded-xl border border-slate-200/50 bg-white/80 px-4 py-3 text-sm text-slate-900 outline-none transition duration-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-blue-900/30"
+                  />
+                )}
               </div>
             )}
 
@@ -1349,7 +1336,7 @@ export function LicenseServices() {
                     </p>
                   ) : (
                     <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-                      {division
+                      {resolvedDivision
                         ? 'DDO code not available for this division'
                         : district
                           ? 'DDO code not available for this district'

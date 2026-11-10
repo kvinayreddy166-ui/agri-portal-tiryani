@@ -25,8 +25,10 @@ import {
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
   getMandalsForDistrict,
+  getDivisionsForDistrict,
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay, getAssistantDirectorLocationError } from '../../../shared/data/assistantDirectorLocation';
+import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -88,7 +90,7 @@ function getDefaultQuantity(values: FertilizerPdfValues): string {
 /** Drafts intentionally exclude the independently-persisted covering-letter fields. */
 type FertilizerDraftValues = Omit<
   FertilizerPdfValues,
-  'financialYear' | 'letterNumber' | 'letterDate' | 'authorityType' | 'memoNumber' | 'memoDate' | 'division' | 'officerPhone'
+  'financialYear' | 'letterNumber' | 'letterDate' | 'authorityType' | 'memoNumber' | 'memoDate' | 'division' | 'customDivision' | 'officerPhone'
 >;
 
 type SavedFertilizerDraft = {
@@ -564,6 +566,8 @@ const fertilizerFieldSections: SectionConfig[] = [
       { key: 'district', label: 'DISTRICT', type: 'select', options: withOthersOption(TELANGANA_DISTRICTS.map(d => ({ label: d, value: d }))) },
       { key: 'manualDistrict', label: 'ENTER DISTRICT NAME', placeholder: 'Enter district name' },
       { key: 'manualDivision', label: 'DIVISION', placeholder: 'Enter Division Name', condition: (values) => isAssistantDirectorOfAgriculture(values.designation) && !isAssistantDirectorOfAgricultureT(values.designation) },
+      { key: 'division', label: 'DIVISION', type: 'select', options: [], condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
+      { key: 'customDivision', label: 'ENTER DIVISION NAME', placeholder: 'Enter Division Name', condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) && values.division === 'Others' },
       { key: 'mandal', label: 'MANDAL', type: 'select', options: [], dynamicLabel: true, condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
       { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name', condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
       { key: 'placeOfCollectionMandal', label: 'PLACE OF COLLECTION (MANDAL)', type: 'select', options: [], condition: (values) => isAssistantDirectorOfAgriculture(values.designation) },
@@ -677,7 +681,17 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
           if (parsedCL.authorityType) loaded.authorityType = parsedCL.authorityType;
           if (parsedCL.daoMemoNumber) loaded.memoNumber = parsedCL.daoMemoNumber;
           if (parsedCL.daoMemoDate) loaded.memoDate = parsedCL.daoMemoDate;
-          if (parsedCL.division) loaded.division = parsedCL.division;
+          if (parsedCL.division) {
+            const divisionMatch = loaded.district && loaded.district !== 'Others'
+              ? getDivisionsForDistrict(loaded.district).find((d) => d.toLowerCase() === String(parsedCL.division).toLowerCase())
+              : undefined;
+            if (divisionMatch) {
+              loaded.division = divisionMatch;
+            } else {
+              loaded.division = 'Others';
+              loaded.customDivision = parsedCL.division;
+            }
+          }
           if (parsedCL.officePhone) loaded.officerPhone = parsedCL.officePhone;
         }
       } catch {}
@@ -699,7 +713,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     authorityType: values.authorityType,
     memoNumber: values.memoNumber,
     memoDate: values.memoDate,
-    division: values.division,
+    division: values.division === 'Others' ? values.customDivision : values.division,
     officerPhone: values.officerPhone,
   }), [
     values.financialYear,
@@ -709,6 +723,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     values.memoNumber,
     values.memoDate,
     values.division,
+    values.customDivision,
     values.officerPhone,
   ]);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -864,8 +879,13 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
         next.manualDistrict = '';
         next.manualMandal = '';
         next.manualDivision = '';
+        next.division = '';
+        next.customDivision = '';
         next.placeOfCollectionMandal = '';
         next.manualPlaceOfCollection = '';
+      }
+      if (key === 'division') {
+        next.customDivision = '';
       }
       if (key === 'mandal') {
         next.manualMandal = '';
@@ -1106,7 +1126,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     try {
       // Exclude covering letter fields from draft - they are independently persisted
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftValues } = values;
+      const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, customDivision, officerPhone, ...draftValues } = values;
       const isExisting = savedDrafts.some((item) => item.name.trim().toLowerCase() === code.toLowerCase());
       const nextDrafts = upsertFertilizerDraft(savedDrafts, { name: code, values: draftValues, updatedAt: String(Date.now()) });
       safeStorage.setItem(draftsKey, JSON.stringify(nextDrafts));
@@ -1141,12 +1161,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     const draft = savedDrafts.find((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!draft) return;
     // Preserve current covering letter details - they are independently persisted
-    const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone } = values;
+    const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, customDivision, officerPhone } = values;
     setValues(normalizeFertilizerValues({ 
       ...initialFertilizerPdfValues, 
       ...draft.values,
       // Restore covering letter details
-      financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone 
+      financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, customDivision, officerPhone 
     }));
     setSelectedDraftName(draft.name);
     setPreviewError(null);
@@ -1480,6 +1500,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       memoNumber: '',
       memoDate: '',
       division: '',
+      customDivision: '',
       officerPhone: '',
     }));
     setSelectedDraftName('');
@@ -1744,6 +1765,14 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                       if (field.key === 'manualDivision' && field.condition && !field.condition(values)) {
                         return null;
                       }
+                      // Hide covering letter division field for ADA designations (ADA uses manualDivision above)
+                      if (field.key === 'division' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
+                      // Hide manual division entry unless "Others" is selected
+                      if (field.key === 'customDivision' && field.condition && !field.condition(values)) {
+                        return null;
+                      }
                       // Hide office field unless Asst. Director of Agriculture (T) is selected
                       if (field.key === 'office' && field.condition && !field.condition(values)) {
                         return null;
@@ -1899,6 +1928,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                       }
                       // Get mandal options based on selected district
                       let fieldOptions = field.options;
+                      if (field.key === 'division') {
+                        const divisions = values.district && values.district !== 'Others'
+                          ? getDivisionsForDistrict(values.district)
+                          : [];
+                        fieldOptions = withOthersOption(divisions.map(d => ({ label: d, value: d })));
+                      }
                       if (field.key === 'mandal' && values.district && values.district !== 'Others') {
                         // Never use division options for ADA - ADA should only use manual Division entry
                         fieldOptions = withOthersOption(getMandalsForDistrict(values.district).map(m => ({ label: m, value: m })));
@@ -2047,7 +2082,8 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               authorityType: metadata.authorityType,
               memoNumber: metadata.daoMemoNumber,
               memoDate: metadata.daoMemoDate,
-              division: metadata.division,
+              division: prev.division === 'Others' ? 'Others' : metadata.division,
+              customDivision: prev.division === 'Others' ? metadata.division : prev.customDivision,
               officerPhone: metadata.officePhone,
             }));
           }}
@@ -2541,6 +2577,23 @@ function PdfInput({
     const selectedFlags = checkboxString.split(',').map(f => f.trim());
     return !selectedFlags.includes(field.displayFlag ?? '');
   })();
+
+  if (field.key === 'manualDivision') {
+    return (
+      <div>
+        <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300">
+          <span>{displayLabel}</span>
+        </div>
+        <DivisionPicker
+          district={effectiveLocationValue(values?.district ?? '', values?.manualDistrict ?? '')}
+          value={value}
+          onChange={onChange}
+          selectClassName={commonClass}
+          inputClassName={commonClass}
+        />
+      </div>
+    );
+  }
 
   const inputElement = field.type === 'textarea' ? (
     <textarea 

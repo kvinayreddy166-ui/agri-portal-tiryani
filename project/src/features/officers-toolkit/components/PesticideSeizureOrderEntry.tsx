@@ -33,6 +33,7 @@ import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiv
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
 import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
+import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 import type { Dealer } from '../../../shared/types/database';
 interface PestSeizureProductRow {
   id: string;
@@ -584,8 +585,9 @@ export function PesticideSeizureOrderEntry() {
             <TextInput label="Enter District Name" value={form.manualDistrict} onChange={(value) => updateForm({ manualDistrict: value })} />
           )}
           {(isADAOfficer || isMAOOfficer) && (
-            <TextInput
+            <DivisionPicker
               label="Division"
+              district={form.district}
               value={form.division}
               onChange={(value) => updateForm({ division: value })}
             />

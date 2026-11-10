@@ -353,6 +353,7 @@ export function TourDiary() {
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const [pdfPreview, setPdfPreview] = useState<{ blob: Blob; fileName: string } | null>(null);
   const [showMyDiariesDropdown, setShowMyDiariesDropdown] = useState(false);
+  const [diaryResetNonce, setDiaryResetNonce] = useState(0);
 
   const pdfPreviewUrl = useMemo(() => {
     if (!pdfPreview?.blob) return null;
@@ -708,7 +709,7 @@ export function TourDiary() {
     loadOfficerInfo();
     prefillOfficerDetailsFromProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, officerProfile]);
+  }, [user, officerProfile, diaryResetNonce]);
 
   // Load officer information — prefers the officer_profiles record (kept in
   // sync via Settings) over auth user_metadata.
@@ -1883,6 +1884,7 @@ export function TourDiary() {
                 setCustomDivision('');
                 setLastSavedState('');
                 setHasUnsavedChanges(false);
+                setDiaryResetNonce(n => n + 1);
                 // Reset to current month/year
                 setCurrentYear(new Date().getFullYear());
                 setCurrentMonth(new Date().getMonth() + 1);
@@ -1953,6 +1955,7 @@ export function TourDiary() {
                             setCustomDivision('');
                             setLastSavedState('');
                             setHasUnsavedChanges(false);
+                            setDiaryResetNonce(n => n + 1);
                             setCurrentYear(new Date().getFullYear());
                             setCurrentMonth(new Date().getMonth() + 1);
                             setShowMyDiariesDropdown(false);

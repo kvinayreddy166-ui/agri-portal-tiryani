@@ -19,6 +19,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
+import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
@@ -46,6 +47,8 @@ export function OfficerSignUp() {
   const { registerOfficer } = useAuth();
 
   const [step, setStep] = useState<SignUpStep>('details');
+  const [districtOtherMode, setDistrictOtherMode] = useState(false);
+  const [mandalOtherMode, setMandalOtherMode] = useState(false);
   const stepIndex = step === 'details' ? 0 : step === 'otp' ? 1 : 2;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -89,9 +92,14 @@ export function OfficerSignUp() {
     return true;
   };
 
-  const mandals = getMandalsForDistrict(OFFICER_DISTRICT_TO_MANDAL_KEY[form.district] || form.district);
+  const districtKey = OFFICER_DISTRICT_TO_MANDAL_KEY[form.district] || form.district;
+  const mandals = getMandalsForDistrict(districtKey);
   const showsMandal = officerShowsMandal(form.designation);
   const showsDivision = officerShowsDivision(form.designation);
+  const isDistrictOther = districtOtherMode || !OFFICER_DISTRICTS.includes(form.district);
+  const isMandalOther =
+    mandalOtherMode ||
+    (form.mandal !== '' && form.mandal !== 'District HQ' && !mandals.includes(form.mandal));
 
     const resolvedQualification = form.qualification === 'Others' ? form.qualificationOther.trim() : form.qualification;
   const resolvedDivision = form.division.trim();
@@ -420,25 +428,61 @@ export function OfficerSignUp() {
                   </div>
                 </div>
 
+                {/* District → Division → Mandal → Email */}
                 <div className="grid gap-3.5 sm:grid-cols-2">
                   <div>
                     <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
                       {t('District', 'జిల్లా')} *
                     </label>
                     <select
-                      value={form.district}
+                      value={isDistrictOther ? 'Others' : form.district}
                       onChange={(e) => {
                         const dist = e.target.value;
+                        if (dist === 'Others') {
+                          setDistrictOtherMode(true);
+                          setMandalOtherMode(false);
+                          setForm({ ...form, district: '', mandal: '', division: '' });
+                          return;
+                        }
+                        setDistrictOtherMode(false);
+                        setMandalOtherMode(false);
                         const distMandals = getMandalsForDistrict(OFFICER_DISTRICT_TO_MANDAL_KEY[dist] || dist);
-                        setForm({ ...form, district: dist, mandal: distMandals[0] || '' });
+                        setForm({ ...form, district: dist, mandal: distMandals[0] || '', division: '' });
                       }}
                       className="w-full rounded-xl border border-slate-200 bg-white dark:bg-slate-800/80 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     >
                       {OFFICER_DISTRICTS.map((d) => (
                         <option key={d} value={d}>{d}</option>
                       ))}
+                      <option value="Others">{t('Others', 'ఇతరులు')}</option>
                     </select>
+                    {isDistrictOther && (
+                      <input
+                        type="text"
+                        value={form.district}
+                        onChange={(e) => setForm({ ...form, district: e.target.value })}
+                        placeholder={t('Enter district name', 'జిల్లా పేరు నమోదు చేయండి')}
+                        className="mt-2 w-full rounded-xl border border-slate-200 bg-white dark:bg-slate-800/80 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      />
+                    )}
                   </div>
+
+                  {showsDivision && (
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                      {t('Division', 'డివిజన్')} *
+                    </label>
+                    <DivisionPicker
+                      key={districtKey}
+                      district={districtKey}
+                      value={form.division}
+                      onChange={(v) => setForm({ ...form, division: v })}
+                      selectClassName="w-full rounded-xl border border-slate-200 bg-white dark:bg-slate-800/80 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      inputClassName="mt-2 w-full rounded-xl border border-slate-200 bg-white dark:bg-slate-800/80 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      inputPlaceholder="e.g. Asifabad / Bellampalli"
+                    />
+                  </div>
+                  )}
 
                   {showsMandal && (
                   <div>
@@ -446,34 +490,34 @@ export function OfficerSignUp() {
                       {t('Mandal / Jurisdiction', 'మండలం / పరిధి')} *
                     </label>
                     <select
-                      value={form.mandal}
-                      onChange={(e) => setForm({ ...form, mandal: e.target.value })}
+                      value={isMandalOther ? 'Others' : form.mandal}
+                      onChange={(e) => {
+                        const m = e.target.value;
+                        if (m === 'Others') {
+                          setMandalOtherMode(true);
+                          setForm({ ...form, mandal: '' });
+                          return;
+                        }
+                        setMandalOtherMode(false);
+                        setForm({ ...form, mandal: m });
+                      }}
                       className="w-full rounded-xl border border-slate-200 bg-white dark:bg-slate-800/80 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     >
                       {mandals.map((m) => (
                         <option key={m} value={m}>{m}</option>
                       ))}
-                      <option value="District HQ">{t('District HQ / Others', 'జిల్లా కేంద్రం / ఇతరులు')}</option>
+                      <option value="District HQ">{t('District HQ', 'జిల్లా కేంద్రం')}</option>
+                      <option value="Others">{t('Others', 'ఇతరులు')}</option>
                     </select>
-                  </div>
-                  )}
-                </div>
-
-                {/* Division (after Mandal) & Email Address */}
-                <div className="grid gap-3.5 sm:grid-cols-2">
-                  {showsDivision && (
-                  <div>
-                    <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
-                      {t('Division', 'డివిజన్')} *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.division}
-                      onChange={(e) => setForm({ ...form, division: e.target.value })}
-                      placeholder={t('e.g. Asifabad / Bellampalli', 'ఉదా. ఆసిఫాబాద్ / బెల్లంపల్లి')}
-                      className="w-full rounded-xl border border-slate-200 bg-white dark:bg-slate-800/80 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
-                    />
+                    {isMandalOther && (
+                      <input
+                        type="text"
+                        value={form.mandal}
+                        onChange={(e) => setForm({ ...form, mandal: e.target.value })}
+                        placeholder={t('Enter mandal name', 'మండలం పేరు నమోదు చేయండి')}
+                        className="mt-2 w-full rounded-xl border border-slate-200 bg-white dark:bg-slate-800/80 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
+                      />
+                    )}
                   </div>
                   )}
 

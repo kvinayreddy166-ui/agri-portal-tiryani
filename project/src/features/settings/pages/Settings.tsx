@@ -20,6 +20,7 @@ import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { safeStorage, clearUserStorage } from '../../../shared/lib/safeStorage';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 import { getMandalsForDistrict, QUALIFICATION_OPTIONS } from '../../../shared/data/telanganaDistrictMandalData';
 import {
   OFFICER_DESIGNATION_OPTIONS,
@@ -454,13 +455,13 @@ export function Settings() {
                 {editShowsDivision && (
                   <div>
                     <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Division *</label>
-                    <input
-                      type="text"
-                      required={editShowsDivision}
+                    <DivisionPicker
+                      district={OFFICER_DISTRICT_TO_MANDAL_KEY[profileForm.district] || profileForm.district}
                       value={profileForm.division}
-                      onChange={(e) => setProfileForm({ ...profileForm, division: e.target.value })}
-                      placeholder="e.g. Asifabad / Bellampalli"
-                      className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                      onChange={(v) => setProfileForm({ ...profileForm, division: v })}
+                      selectClassName="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                      inputClassName="mt-2 w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                      inputPlaceholder="e.g. Asifabad / Bellampalli"
                     />
                   </div>
                 )}

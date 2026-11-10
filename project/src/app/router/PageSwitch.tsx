@@ -74,6 +74,7 @@ interface PageSwitchProps {
 }
 
 export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser = false, onNavigate }: PageSwitchProps) {
+  if (currentPage.startsWith('knowledge') && !isAdminUser) return <Dashboard />;
   switch (currentPage) {
     case 'landing':
     case 'home':

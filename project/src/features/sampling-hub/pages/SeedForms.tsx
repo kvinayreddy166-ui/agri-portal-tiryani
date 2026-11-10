@@ -7,11 +7,12 @@ import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { FilePreviewModal } from '../../../shared/components/ui/FilePreviewModal';
 import { SeedCoveringLetterModal } from '../components/SeedCoveringLetterModal';
-import { 
+import {
   QUALIFICATION_OPTIONS,
   TELANGANA_DISTRICTS,
   SEED_SAMPLE_DRAWAL_DESIGNATION_OPTIONS,
   getMandalsForDistrict,
+  getDivisionsForDistrict,
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
@@ -24,6 +25,7 @@ import { upsertCoveringLetterSample } from '../services/coveringLetterQueue';
 import { missingRequiredFields, requiredFieldsErrorMessage } from '../lib/statutoryRequiredFields';
 import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
 import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
+import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 import { useSampleTargets } from '../../../shared/hooks/useSampleTargets';
 import { SampleTargetSelect } from '../../../shared/components/SampleTargetSelect';
 import type { Dealer } from '../../../shared/types/database';
@@ -129,6 +131,7 @@ const initialSeedForm = {
   memoNumber: '',
   memoDate: '',
   division: '',
+  customDivision: '',
   officerPhone: '',
 };
 
@@ -157,7 +160,25 @@ export function SeedForms({
   const [form, setForm] = useState(() => {
     try {
       const saved = safeStorage.getItem(STORAGE_KEY);
-      const loaded = saved ? { ...initialSeedForm, ...JSON.parse(saved) } : initialSeedForm;
+      const loaded = saved ? { ...initialSeedForm, ...JSON.parse(saved) } : { ...initialSeedForm };
+      // Restore saved covering letter division so it shows in Inspector Details
+      try {
+        const savedCL = safeStorage.getItem('tiryani-seed-covering-letter-details');
+        if (savedCL) {
+          const parsedCL = JSON.parse(savedCL);
+          if (parsedCL.division) {
+            const divisionMatch = loaded.district && loaded.district !== 'Others'
+              ? getDivisionsForDistrict(loaded.district).find((d) => d.toLowerCase() === String(parsedCL.division).toLowerCase())
+              : undefined;
+            if (divisionMatch) {
+              loaded.division = divisionMatch;
+            } else {
+              loaded.division = 'Others';
+              loaded.customDivision = parsedCL.division;
+            }
+          }
+        }
+      } catch {}
       // Ensure manual edit flags are initialized for old saved drafts
       return {
         ...loaded,
@@ -197,6 +218,18 @@ export function SeedForms({
       officerPhone: '',
     };
   });
+  // Division is now captured in Inspector Details (form.division); keep it as
+  // the source for the covering letter so PDF/Word output stays unchanged.
+  const coveringLetterDetailsForModal = useMemo(
+    () => ({ ...coveringLetterDetails, division: form.division === 'Others' ? form.customDivision : form.division }),
+    [coveringLetterDetails, form.division, form.customDivision]
+  );
+  const divisionOptions = useMemo(() => {
+    const divisions = form.district && form.district !== 'Others'
+      ? getDivisionsForDistrict(form.district)
+      : [];
+    return withOthersOption(divisions.map((d) => ({ label: d, value: d })));
+  }, [form.district]);
   const [message, setMessage] = useState('');
   const [placeOfCollectionMandals, setPlaceOfCollectionMandals] = useState<any[]>([]);
   const isSavingDraft = useRef(false);
@@ -245,7 +278,10 @@ export function SeedForms({
       }
       if (key === 'district') {
         // Reset manual edit flags when district changes
-        return { ...current, district: value, mandal: '', manualDistrict: '', manualMandal: '', manualDivision: '', placeOfCollectionMandal: '', manualPlaceOfCollection: '', place: '', placeManuallyEdited: false, collectionPlaceManuallyEdited: false };
+        return { ...current, district: value, mandal: '', manualDistrict: '', manualMandal: '', manualDivision: '', division: '', customDivision: '', placeOfCollectionMandal: '', manualPlaceOfCollection: '', place: '', placeManuallyEdited: false, collectionPlaceManuallyEdited: false };
+      }
+      if (key === 'division') {
+        return { ...current, division: value, customDivision: '' };
       }
       if (key === 'mandal') {
         // Only for non-ADA designations (MAO, etc.)
@@ -370,7 +406,7 @@ export function SeedForms({
     isSavingDraft.current = true;
     try {
       // Exclude covering letter fields from draft - they are independently persisted
-      const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone, ...draftForm } = form;
+      const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, customDivision, officerPhone, ...draftForm } = form;
       const isExisting = savedDrafts.some((item: any) => item.name.trim().toLowerCase() === code.toLowerCase());
       const nextDrafts = upsertSeedDraft(savedDrafts, { name: code, form: draftForm, updatedAt: Date.now() });
       safeStorage.setItem(draftsKey, JSON.stringify(nextDrafts));
@@ -405,12 +441,12 @@ export function SeedForms({
     const draft = savedDrafts.find((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
     if (!draft) return;
     // Preserve current covering letter details - they are independently persisted
-    const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone } = form;
+    const { financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, customDivision, officerPhone } = form;
     setForm({ 
       ...initialSeedForm, 
       ...draft.form,
       // Restore covering letter details
-      financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, officerPhone 
+      financialYear, letterNumber, letterDate, authorityType, memoNumber, memoDate, division, customDivision, officerPhone 
     });
     setSelectedDraftName(draft.name);
     showLoaded('Draft Loaded Successfully', 'Your saved draft has been loaded successfully.', 4000);
@@ -693,7 +729,7 @@ export function SeedForms({
           {isAssistantDirectorOfAgriculture(form.designation) ? (
             <>
               {!isAssistantDirectorOfAgricultureT(form.designation) && (
-                <Input label="DIVISION" value={form.manualDivision} onChange={(value: any) => setField('manualDivision', value)} placeholder="Enter Division Name" />
+                <DivisionPicker label="DIVISION" district={effectiveLocationValue(form.district, form.manualDistrict)} value={form.manualDivision} onChange={(value: any) => setField('manualDivision', value)} inputPlaceholder="Enter Division Name" />
               )}
               <Select label="PLACE OF COLLECTION (MANDAL)" value={form.placeOfCollectionMandal} onChange={(value: any) => setField('placeOfCollectionMandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(placeOfCollectionMandals.map(toOption)) : [{ label: 'Others', value: 'Others' }]} />
               {form.placeOfCollectionMandal === 'Others' && <Input label="ENTER PLACE OF COLLECTION / MANDAL NAME" value={form.manualPlaceOfCollection} onChange={(value: any) => setField('manualPlaceOfCollection', value)} />}
@@ -702,6 +738,8 @@ export function SeedForms({
             <>
               <Select label="Mandal" value={form.mandal} onChange={(value: any) => setField('mandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(getMandalsForDistrict(form.district).map(toOption)) : [{ label: 'Others', value: 'Others' }]} />
               {form.mandal === 'Others' && <Input label="Enter mandal name" value={form.manualMandal} onChange={(value: any) => setField('manualMandal', value)} />}
+              <Select label="DIVISION" value={form.division} onChange={(value: any) => setField('division', value)} options={divisionOptions} />
+              {form.division === 'Others' && <Input label="Enter division name" value={form.customDivision} onChange={(value: any) => setField('customDivision', value)} />}
             </>
           )}
           <Input label="PIN CODE" value={form.pinCode} onChange={(value: any) => setField('pinCode', value)} />
@@ -870,7 +908,7 @@ export function SeedForms({
           pinCode: form.pinCode,
           phone: '',
         }}
-        coveringLetterDetails={coveringLetterDetails}
+        coveringLetterDetails={coveringLetterDetailsForModal}
         laboratoryAddress={resolved.labAddress}
         onMetadataChange={(metadata) => {
           setCoveringLetterDetails({
