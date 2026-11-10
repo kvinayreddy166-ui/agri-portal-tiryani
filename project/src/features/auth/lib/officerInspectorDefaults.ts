@@ -3,6 +3,7 @@ import {
   TELANGANA_DISTRICTS,
   QUALIFICATION_OPTIONS,
   getMandalsForDistrict,
+  getDivisionsForDistrict,
 } from '../../../shared/data/telanganaDistrictMandalData';
 import type { OfficerProfile } from '../types/officerAuth';
 
@@ -72,6 +73,7 @@ export interface OfficerInspectorPatch {
   manualMandal?: string;
   manualDivision?: string;
   division?: string;
+  customDivision?: string;
   officerPhone?: string;
   officerEmail?: string;
   officeAddress?: string;
@@ -120,6 +122,19 @@ function locationPatch(profile: OfficerProfile): OfficerInspectorPatch {
     } else {
       patch.mandal = 'Others';
       patch.manualMandal = mandal;
+    }
+  }
+
+  // Resolve the officer's division against the district's division list so
+  // module dropdowns receive a valid preset (or 'Others' + custom text).
+  if (division) {
+    const options = district ? getDivisionsForDistrict(district) : [];
+    const match = options.find((d) => d.toLowerCase() === division.toLowerCase());
+    if (match) {
+      patch.division = match;
+    } else {
+      patch.division = 'Others';
+      patch.customDivision = division;
     }
   }
   return patch;
@@ -242,6 +257,13 @@ export function applyOfficerProfileDefaults(profile: OfficerProfile | null | und
       // ADA officers use division entry rather than mandal
       ...(isAda ? { manualDivision: patch.manualDivision || patch.division } : {}),
     });
+    // Division is profile-owned: keep it in sync with signup/settings updates
+    // even when the draft already has a value.
+    if (!isAda && patch.division) {
+      const synced = { ...next, division: patch.division, customDivision: patch.customDivision || '' };
+      writeJson(key, synced);
+      continue;
+    }
     if (next !== base) writeJson(key, next);
   }
 
@@ -264,7 +286,8 @@ export function applyOfficerProfileDefaults(profile: OfficerProfile | null | und
 
   // 3. Covering letter metadata (division + officer phone)
   const letterPatch: Record<string, string> = {};
-  if (isAda && patch.division) letterPatch.division = patch.division;
+  const letterDivision = patch.division === 'Others' ? (patch.customDivision || '') : (patch.division || '');
+  if (letterDivision) letterPatch.division = letterDivision;
   if (patch.officerPhone) letterPatch.officerPhone = patch.officerPhone;
   if (patch.officerEmail) letterPatch.officerEmail = patch.officerEmail;
   for (const key of COVERING_LETTER_DETAIL_KEYS) {
