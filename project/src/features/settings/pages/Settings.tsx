@@ -13,11 +13,21 @@ import {
   Users,
   CheckCircle2,
   ShieldAlert,
+  Pencil,
+  X,
 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { safeStorage, clearUserStorage } from '../../../shared/lib/safeStorage';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { getMandalsForDistrict, QUALIFICATION_OPTIONS } from '../../../shared/data/telanganaDistrictMandalData';
+import {
+  OFFICER_DESIGNATION_OPTIONS,
+  OFFICER_DISTRICTS,
+  OFFICER_DISTRICT_TO_MANDAL_KEY,
+  officerShowsDivision,
+  officerShowsMandal,
+} from '../../auth/lib/officerProfileForm';
 
 interface OfficerRow {
   id: string;
@@ -36,10 +46,117 @@ interface OfficerRow {
 }
 
 export function Settings() {
-  const { isAdminUser, isOfficerUser, user, officerProfile, signOut } = useAuth();
+  const { isAdminUser, isOfficerUser, user, officerProfile, signOut, refreshOfficerProfile } = useAuth();
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Officer profile edit state
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileForm, setProfileForm] = useState({
+    fullName: '',
+    designation: 'AEO',
+    qualification: '',
+    hrmsId: '',
+    district: '',
+    mandal: '',
+    division: '',
+    phone: '',
+  });
+
+  const editMandals = getMandalsForDistrict(OFFICER_DISTRICT_TO_MANDAL_KEY[profileForm.district] || profileForm.district);
+  const editShowsMandal = officerShowsMandal(profileForm.designation);
+  const editShowsDivision = officerShowsDivision(profileForm.designation);
+  const qualificationOptions = QUALIFICATION_OPTIONS.some((q) => q.value === profileForm.qualification)
+    ? QUALIFICATION_OPTIONS
+    : [{ label: profileForm.qualification, value: profileForm.qualification }, ...QUALIFICATION_OPTIONS];
+  const mandalOptions = editMandals.includes(profileForm.mandal) || profileForm.mandal === 'District HQ'
+    ? editMandals
+    : [profileForm.mandal, ...editMandals];
+
+  const startEditProfile = () => {
+    if (!officerProfile) return;
+    setProfileForm({
+      fullName: officerProfile.full_name || '',
+      designation: officerProfile.designation || 'AEO',
+      qualification: officerProfile.qualification || '',
+      hrmsId: officerProfile.hrms_id || '',
+      district: officerProfile.district || '',
+      mandal: officerProfile.mandal || '',
+      division: officerProfile.division || '',
+      phone: officerProfile.phone || '',
+    });
+    setProfileError(null);
+    setEditingProfile(true);
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !officerProfile) return;
+    setProfileError(null);
+
+    const fullName = profileForm.fullName.trim();
+    const phone = profileForm.phone.trim().replace(/\D/g, '');
+    const mandal = editShowsMandal ? profileForm.mandal.trim() : 'District HQ';
+    const division = editShowsDivision ? profileForm.division.trim() : '';
+
+    if (!fullName || !profileForm.district || !profileForm.designation || (editShowsMandal && !mandal) || (editShowsDivision && !division) || !phone) {
+      setProfileError('Please fill in all mandatory fields.');
+      return;
+    }
+    if (!/^\d{10}$/.test(phone)) {
+      setProfileError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    setSavingProfile(true);
+    try {
+      const { error } = await supabase
+        .from('officer_profiles')
+        .upsert({
+          id: user.id,
+          full_name: fullName,
+          designation: profileForm.designation,
+          hrms_id: profileForm.hrmsId.trim() || null,
+          qualification: profileForm.qualification || null,
+          district: profileForm.district,
+          mandal,
+          division: division || null,
+          phone,
+          email: officerProfile.email || user.email || '',
+          role: officerProfile.role || 'officer',
+          status: officerProfile.status || 'active',
+        }, { onConflict: 'id' });
+
+      if (error) throw error;
+
+      // Keep auth user_metadata in sync for the fallback profile path
+      await supabase.auth.updateUser({
+        data: {
+          full_name: fullName,
+          designation: profileForm.designation,
+          hrms_id: profileForm.hrmsId.trim(),
+          qualification: profileForm.qualification,
+          district: profileForm.district,
+          mandal,
+          division,
+          phone,
+        },
+      });
+
+      await refreshOfficerProfile();
+      setEditingProfile(false);
+      setActionSuccessMessage('Profile updated successfully.');
+      setTimeout(() => setActionSuccessMessage(null), 6000);
+    } catch (err) {
+      console.error('Failed to update officer profile:', err);
+      setProfileError((err as Error)?.message || 'Failed to update profile. Please try again.');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   // Admin Officer Management state
   const [adminOfficers, setAdminOfficers] = useState<OfficerRow[]>([]);
@@ -229,10 +346,169 @@ export function Settings() {
       {/* Officer Profile Card */}
       {isOfficerUser && officerProfile && (
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <User className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Profile</h2>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <User className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Profile</h2>
+            </div>
+            {!editingProfile && (
+              <button
+                type="button"
+                onClick={startEditProfile}
+                className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Edit Profile
+              </button>
+            )}
           </div>
+
+          {editingProfile ? (
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              {profileError && (
+                <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/40 px-3 py-2 text-xs text-red-700 dark:text-red-300">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  {profileError}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={profileForm.fullName}
+                    onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
+                    className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Designation *</label>
+                  <select
+                    value={profileForm.designation}
+                    onChange={(e) => setProfileForm({ ...profileForm, designation: e.target.value })}
+                    className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                  >
+                    {OFFICER_DESIGNATION_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Qualification</label>
+                  <select
+                    value={profileForm.qualification}
+                    onChange={(e) => setProfileForm({ ...profileForm, qualification: e.target.value })}
+                    className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                  >
+                    <option value="">Select qualification</option>
+                    {qualificationOptions.map((q) => (
+                      <option key={q.value} value={q.value}>{q.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">HRMS ID</label>
+                  <input
+                    type="text"
+                    value={profileForm.hrmsId}
+                    onChange={(e) => setProfileForm({ ...profileForm, hrmsId: e.target.value })}
+                    className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">District *</label>
+                  <select
+                    value={profileForm.district}
+                    onChange={(e) => {
+                      const dist = e.target.value;
+                      const distMandals = getMandalsForDistrict(OFFICER_DISTRICT_TO_MANDAL_KEY[dist] || dist);
+                      setProfileForm({ ...profileForm, district: dist, mandal: distMandals[0] || profileForm.mandal });
+                    }}
+                    className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                  >
+                    {OFFICER_DISTRICTS.map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
+                {editShowsMandal && (
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Mandal / Jurisdiction *</label>
+                    <select
+                      value={profileForm.mandal}
+                      onChange={(e) => setProfileForm({ ...profileForm, mandal: e.target.value })}
+                      className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                    >
+                      {!mandalOptions.includes(profileForm.mandal) && profileForm.mandal && (
+                        <option value={profileForm.mandal}>{profileForm.mandal}</option>
+                      )}
+                      {mandalOptions.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                      <option value="District HQ">District HQ / Others</option>
+                    </select>
+                  </div>
+                )}
+                {editShowsDivision && (
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Division *</label>
+                    <input
+                      type="text"
+                      required={editShowsDivision}
+                      value={profileForm.division}
+                      onChange={(e) => setProfileForm({ ...profileForm, division: e.target.value })}
+                      placeholder="e.g. Asifabad / Bellampalli"
+                      className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                    />
+                  </div>
+                )}
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Mobile Number *</label>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    required
+                    value={profileForm.phone}
+                    onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                    placeholder="9949497506"
+                    className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Email</label>
+                  <input
+                    type="email"
+                    value={officerProfile.email}
+                    disabled
+                    className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/60 px-3 py-2.5 text-sm text-gray-500 dark:text-slate-400 cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={savingProfile}
+                  className="flex items-center gap-2 bg-emerald-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-800 transition-colors disabled:opacity-50"
+                >
+                  {savingProfile ? <Spinner size="xs" className="text-white" label="Loading" /> : <CheckCircle2 className="w-4 h-4" />}
+                  {savingProfile ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingProfile(false)}
+                  disabled={savingProfile}
+                  className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-start gap-3">
               <User className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
@@ -304,6 +580,7 @@ export function Settings() {
               </div>
             </div>
           </div>
+          )}
         </div>
       )}
 

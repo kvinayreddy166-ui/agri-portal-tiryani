@@ -14,6 +14,7 @@ import {
   X,
   Trash2,
   CalendarDays,
+  Target,
 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../../dealer-stock/lib/fertilizerStock';
@@ -23,6 +24,8 @@ import { Crop, Scheme, SchemeBeneficiary, MandalOverview } from '../../../shared
 import { MandiPricesWidget } from '../components/MandiPricesWidget';
 import { WeatherWidget } from '../components/WeatherWidget';
 import { OfficerEnforcementStrip } from '../components/OfficerEnforcementStrip';
+import { OfficerTargetsCard } from '../components/OfficerTargetsCard';
+import { TargetAllocationModal } from '../components/TargetAllocationModal';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { cachedSupabaseRows, cachedSupabaseValue } from '../../../shared/lib/offlineCache';
@@ -71,6 +74,7 @@ export const Dashboard = React.memo(function Dashboard() {
   const [schemeBeneficiaries, setSchemeBeneficiaries] = useState<SchemeBeneficiary[]>([]);
   const [mandalData, setMandalData] = useState<MandalOverview | null>(null);
   const [farmerStats, setFarmerStats] = useState<FarmerDashboardStats | null>(null);
+  const [targetsModalOpen, setTargetsModalOpen] = useState(false);
   const [loading, setLoading] = useState(isAdminUser);
   const [editingCrop, setEditingCrop] = useState<string | null>(null);
   const [editingScheme, setEditingScheme] = useState<string | null>(null);
@@ -282,6 +286,35 @@ export const Dashboard = React.memo(function Dashboard() {
       <div className="dashboard-rise dashboard-delay-2">
         <OfficerEnforcementStrip />
       </div>
+
+      {!isAdminUser && officerProfile && (
+        <div className="dashboard-rise dashboard-delay-2 space-y-4">
+          {(officerProfile.designation || '').toUpperCase() === 'DNO' && (
+            <button
+              type="button"
+              onClick={() => setTargetsModalOpen(true)}
+              className="group flex w-full items-center gap-3 rounded-xl border border-emerald-200/60 bg-white px-4 py-3 text-left shadow-sm transition-colors hover:border-emerald-400 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:hover:border-emerald-600"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white">
+                <Target className="h-4 w-4" strokeWidth={2.5} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-sm font-bold text-slate-900 dark:text-white">
+                  {t('Allocate Targets to Officers', 'అధికారులకు లక్ష్యాలు కేటాయించండి')}
+                </h3>
+                <p className="truncate text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {t('Assign numeric targets & sample codes to MAO/ADA officers by mandal', 'మండలం వారీగా MAO/ADA అధికారి లక్ష్యాలు & నమూనా కోడ్‌లు కేటాయించండి')}
+                </p>
+              </div>
+            </button>
+          )}
+          <OfficerTargetsCard />
+          <TargetAllocationModal
+            open={targetsModalOpen}
+            onClose={() => setTargetsModalOpen(false)}
+          />
+        </div>
+      )}
 
       {!hasAnyDashboardData ? (
         isAdminUser ? (

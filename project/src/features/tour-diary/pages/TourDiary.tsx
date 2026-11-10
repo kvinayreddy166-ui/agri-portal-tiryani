@@ -6,6 +6,8 @@ import { supabase } from '../../../shared/lib/supabase';
 import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, X, ClipboardList, Download, Printer } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
+import { statutoryDesignationForProfile, normalizeTelanganaDistrict } from '../../auth/lib/officerInspectorDefaults';
+import { OFFICER_DESIGNATION_OPTIONS } from '../../auth/lib/officerProfileForm';
 import { statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 import { deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
 import { getAllSavedDiaries, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, renameDraft } from '../lib/diaryStorage';
@@ -289,7 +291,7 @@ function DiaryDialog({ dialog, onResolve }: { dialog: DialogState; onResolve: (v
 
 export function TourDiary() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, officerProfile } = useAuth();
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
   
@@ -575,7 +577,6 @@ export function TourDiary() {
   // Initialize
   useEffect(() => {
     setMounted(true);
-    loadOfficerInfo();
     loadAllDrafts();
     loadCompletedDiaries();
     loadSavedDiaries();
@@ -701,22 +702,90 @@ export function TourDiary() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
-  // Load officer information from user metadata
-  async function loadOfficerInfo() {
+  // Load officer profile (officer_profiles table) whenever it changes, and
+  // prefill empty Officer Details fields from it.
+  useEffect(() => {
+    loadOfficerInfo();
+    prefillOfficerDetailsFromProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, officerProfile]);
+
+  // Load officer information — prefers the officer_profiles record (kept in
+  // sync via Settings) over auth user_metadata.
+  function loadOfficerInfo() {
     try {
-      if (user?.user_metadata) {
-        setOfficerInfo({
-          name: user.user_metadata.full_name || user.user_metadata.name || 'Officer',
-          designation: user.user_metadata.designation || 'Mandal Agriculture Officer',
-          office: user.user_metadata.office || 'Tiryani',
-          mandal: user.user_metadata.mandal || 'Tiryani',
-          division: user.user_metadata.division || '',
-          district: user.user_metadata.district || 'Kumram Bheem Asifabad'
-        });
-        setDivision(user.user_metadata.division || '');
-      }
+      const meta = user?.user_metadata || {};
+      const profile = officerProfile;
+      const designationRaw = profile?.designation || (meta.designation as string) || '';
+      const designationLabel = OFFICER_DESIGNATION_OPTIONS.find((o) => o.value === designationRaw)?.label || designationRaw;
+      setOfficerInfo({
+        name: profile?.full_name || (meta.full_name as string) || (meta.name as string) || 'Officer',
+        designation: statutoryDesignationForProfile(designationRaw) || designationLabel || 'Mandal Agriculture Officer',
+        office: (meta.office as string) || 'Tiryani',
+        mandal: profile?.mandal || (meta.mandal as string) || 'Tiryani',
+        division: profile?.division || (meta.division as string) || '',
+        district: normalizeTelanganaDistrict(profile?.district || (meta.district as string) || '') || profile?.district || (meta.district as string) || 'Kumram Bheem Asifabad'
+      });
+      setDivision((prev) => prev || profile?.division || (meta.division as string) || '');
     } catch (error) {
       console.error('Error loading officer info:', error);
+    }
+  }
+
+  // Prefill Officer Details form fields from the officer profile. Only fills
+  // fields that are still empty so drafts and manual entries always win.
+  function prefillOfficerDetailsFromProfile() {
+    const profile = officerProfile;
+    if (!profile) return;
+
+    if (!officerName && profile.full_name) setOfficerName(profile.full_name);
+
+    let effectiveDesignation = designation;
+    if (!effectiveDesignation && profile.designation) {
+      const statutory = statutoryDesignationForProfile(profile.designation);
+      const seed = SEED_DESIGNATION_OPTIONS.find((o) => o.value === statutory);
+      if (seed) {
+        setDesignation(seed.value);
+        effectiveDesignation = seed.value;
+      } else {
+        setDesignation('Others');
+        effectiveDesignation = 'Others';
+        const opt = OFFICER_DESIGNATION_OPTIONS.find((o) => o.value === profile.designation);
+        setCustomDesignation(opt ? opt.label : (profile.designation || statutory || ''));
+      }
+    }
+
+    if (!district) {
+      const districtNorm = normalizeTelanganaDistrict(profile.district || '');
+      if (districtNorm) {
+        setDistrict(districtNorm);
+      } else if (profile.district) {
+        setDistrict('Others');
+        setCustomDistrict(profile.district);
+      }
+    }
+
+    const districtKey = normalizeTelanganaDistrict(district || profile.district || '');
+    if (!districtKey) return;
+
+    const showMandal = effectiveDesignation === 'Mandal Agriculture Officer' || effectiveDesignation === 'Others' || effectiveDesignation === '';
+    const showDivision = effectiveDesignation !== 'District Agriculture Officer';
+
+    if (profile.mandal && showMandal && !mandal && !customMandal) {
+      if (profile.mandal === 'District HQ') {
+        setMandal('Others');
+        setCustomMandal('District HQ');
+      } else {
+        const match = getMandalsForDistrict(districtKey).find((m) => m.toLowerCase() === profile.mandal!.toLowerCase());
+        if (match) setMandal(match);
+        else { setMandal('Others'); setCustomMandal(profile.mandal); }
+      }
+    }
+
+    if (profile.division && showDivision && !division && !customDivision) {
+      const match = getDivisionsForDistrict(districtKey).find((d) => d.toLowerCase() === profile.division!.toLowerCase());
+      if (match) setDivision(match);
+      else { setDivision('Others'); setCustomDivision(profile.division); }
     }
   }
 

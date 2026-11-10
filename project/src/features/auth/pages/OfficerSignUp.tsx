@@ -24,6 +24,13 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { ResendOtpService } from '../services/resendOtpService';
 import { getMandalsForDistrict, QUALIFICATION_OPTIONS } from '../../../shared/data/telanganaDistrictMandalData';
+import {
+  OFFICER_DESIGNATION_OPTIONS,
+  OFFICER_DISTRICTS,
+  OFFICER_DISTRICT_TO_MANDAL_KEY,
+  officerShowsDivision,
+  officerShowsMandal,
+} from '../lib/officerProfileForm';
 
 import { AuthStepper } from '../components/AuthStepper';
 import { OtpInput } from '../components/OtpInput';
@@ -31,55 +38,12 @@ import { TurnstileWidget, type TurnstileWidgetHandle } from '../../../shared/com
 import { isTurnstileEnabled } from '../../../shared/lib/turnstile';
 import { isPasswordCompliant, PASSWORD_RULES, passwordPolicyErrorMessage } from '../../../shared/lib/passwordPolicy';
 
-const TELANGANA_DISTRICTS = [
-  'Adilabad',
-  'Bhadradri Kothagudem',
-  'Hanumakonda',
-  'Hyderabad',
-  'Jagtial',
-  'Jangaon',
-  'Jayashankar Bhupalpally',
-  'Jogulamba Gadwal',
-  'Kamareddy',
-  'Karimnagar',
-  'Khammam',
-  'Kumuram Bheem Asifabad',
-  'Mahabubabad',
-  'Mahabubnagar',
-  'Mancherial',
-  'Medak',
-  'Medchal-Malkajgiri',
-  'Mulugu',
-  'Nagarkurnool',
-  'Nalgonda',
-  'Narayanpet',
-  'Nirmal',
-  'Nizamabad',
-  'Peddapalli',
-  'Rajanna Sircilla',
-  'Rangareddy',
-  'Sangareddy',
-  'Siddipet',
-  'Suryapet',
-  'Vikarabad',
-  'Wanaparthy',
-  'Warangal',
-  'Yadadri Bhuvanagiri',
-];
-
-const DISTRICT_TO_MANDAL_KEY: Record<string, string> = {
-  'Hanamakonda': 'Hanamkonda',
-  'Kumuram Bheem Asifabad': 'Kumrambheem Asifabad',
-  'Medchal-Malkajgiri': 'Medchal–Malkajgiri',
-  'Rangareddy': 'Ranga Reddy',
-};
-
 type SignUpStep = 'details' | 'otp' | 'password' | 'completed';
 
 export function OfficerSignUp() {
   const navigate = useNavigate();
   const { language, toggleLanguage, t } = useLanguage();
-  const { registerOfficer, signIn } = useAuth();
+  const { registerOfficer } = useAuth();
 
   const [step, setStep] = useState<SignUpStep>('details');
   const stepIndex = step === 'details' ? 0 : step === 'otp' ? 1 : 2;
@@ -125,7 +89,9 @@ export function OfficerSignUp() {
     return true;
   };
 
-  const mandals = getMandalsForDistrict(DISTRICT_TO_MANDAL_KEY[form.district] || form.district);
+  const mandals = getMandalsForDistrict(OFFICER_DISTRICT_TO_MANDAL_KEY[form.district] || form.district);
+  const showsMandal = officerShowsMandal(form.designation);
+  const showsDivision = officerShowsDivision(form.designation);
 
     const resolvedQualification = form.qualification === 'Others' ? form.qualificationOther.trim() : form.qualification;
   const resolvedDivision = form.division.trim();
@@ -149,7 +115,7 @@ export function OfficerSignUp() {
     const email = form.email.trim().toLowerCase();
     const phone = form.phone.trim().replace(/\D/g, '');
 
-    if (!fullName || !email || !phone || !form.district || !form.mandal || !resolvedDivision || !resolvedQualification) {
+    if (!fullName || !email || !phone || !form.district || (showsMandal && !form.mandal) || (showsDivision && !resolvedDivision) || !resolvedQualification) {
       setError(t('Please fill in all mandatory fields.', 'దయచేసి అన్ని తప్పనిసరి వివరాలను పూరించండి.'));
       return;
     }
@@ -181,8 +147,8 @@ export function OfficerSignUp() {
         qualification: resolvedQualification,
         hrmsId: form.hrmsId.trim(),
         district: form.district,
-        mandal: form.mandal,
-        division: resolvedDivision,
+        mandal: showsMandal ? form.mandal : 'District HQ',
+        division: showsDivision ? resolvedDivision : '',
         phone,
       },
     });
@@ -269,8 +235,8 @@ export function OfficerSignUp() {
       hrms_id: form.hrmsId.trim(),
       qualification: resolvedQualification,
       district: form.district.trim(),
-      mandal: form.mandal.trim(),
-      division: resolvedDivision,
+      mandal: showsMandal ? form.mandal.trim() : 'District HQ',
+      division: showsDivision ? resolvedDivision : '',
       phone: form.phone.trim(),
       email: form.email.trim().toLowerCase(),
       password: trimmedPassword,
@@ -284,8 +250,6 @@ export function OfficerSignUp() {
       return;
     }
 
-    // Attempt sign-in with newly created credentials
-    await signIn(form.email.trim().toLowerCase(), trimmedPassword).catch(() => null);
     setLoading(false);
 
     setStep('completed');
@@ -298,11 +262,11 @@ export function OfficerSignUp() {
         {/* Navigation & Language Top Bar */}
         <div className="mb-6 flex items-center justify-between">
           <Link
-            to="/login"
+            to="/"
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-2xs transition hover:bg-slate-50 hover:text-emerald-800 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>{t('Back to Login', 'లాగిన్‌కు తిరిగి వెళ్ళండి')}</span>
+            <span>{t('Back to Home', 'హోమ్‌కు తిరిగి వెళ్ళండి')}</span>
           </Link>
           <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
         </div>
@@ -399,10 +363,9 @@ export function OfficerSignUp() {
                       onChange={(e) => setForm({ ...form, designation: e.target.value })}
                       className="w-full rounded-xl border border-slate-200 bg-white dark:bg-slate-800/80 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     >
-                      <option value="AEO">AEO (Agricultural Extension Officer)</option>
-                      <option value="MAO">MAO (Mandal Agriculture Officer)</option>
-                      <option value="ADA">ADA (Assistant Director of Agriculture)</option>
-                      <option value="DAO">DAO (District Agriculture Officer)</option>
+                      {OFFICER_DESIGNATION_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -466,17 +429,18 @@ export function OfficerSignUp() {
                       value={form.district}
                       onChange={(e) => {
                         const dist = e.target.value;
-                        const distMandals = getMandalsForDistrict(DISTRICT_TO_MANDAL_KEY[dist] || dist);
+                        const distMandals = getMandalsForDistrict(OFFICER_DISTRICT_TO_MANDAL_KEY[dist] || dist);
                         setForm({ ...form, district: dist, mandal: distMandals[0] || '' });
                       }}
                       className="w-full rounded-xl border border-slate-200 bg-white dark:bg-slate-800/80 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     >
-                      {TELANGANA_DISTRICTS.map((d) => (
+                      {OFFICER_DISTRICTS.map((d) => (
                         <option key={d} value={d}>{d}</option>
                       ))}
                     </select>
                   </div>
 
+                  {showsMandal && (
                   <div>
                     <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
                       {t('Mandal / Jurisdiction', 'మండలం / పరిధి')} *
@@ -492,10 +456,12 @@ export function OfficerSignUp() {
                       <option value="District HQ">{t('District HQ / Others', 'జిల్లా కేంద్రం / ఇతరులు')}</option>
                     </select>
                   </div>
+                  )}
                 </div>
 
                 {/* Division (after Mandal) & Email Address */}
                 <div className="grid gap-3.5 sm:grid-cols-2">
+                  {showsDivision && (
                   <div>
                     <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
                       {t('Division', 'డివిజన్')} *
@@ -509,6 +475,7 @@ export function OfficerSignUp() {
                       className="w-full rounded-xl border border-slate-200 bg-white dark:bg-slate-800/80 py-2.5 px-3 text-xs sm:text-sm text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                     />
                   </div>
+                  )}
 
                   <div>
                     <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
@@ -785,7 +752,9 @@ export function OfficerSignUp() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500 dark:text-slate-400">{t('Designation:', 'హోదా:')}</span>
-                    <strong className="text-slate-900 dark:text-white font-bold">{form.designation} ({form.mandal}, {form.district})</strong>
+                    <strong className="text-slate-900 dark:text-white font-bold">
+                      {form.designation} ({[showsMandal ? form.mandal : '', form.district].filter(Boolean).join(', ')})
+                    </strong>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500 dark:text-slate-400">{t('Registered Email:', 'నమోదైన ఇమెయిల్:')}</span>
@@ -800,20 +769,12 @@ export function OfficerSignUp() {
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={() => navigate('/dashboard')}
-                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 dark:bg-emerald-600 dark:hover:bg-emerald-500 py-3 text-xs sm:text-sm font-bold text-white shadow-xs hover:shadow active:scale-[0.99] transition"
-                  >
-                    <span>{t('Go to Dashboard', 'డాష్‌బోర్డ్‌కు వెళ్లండి')}</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={() => navigate('/login')}
-                    className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white py-3 text-xs sm:text-sm font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 transition"
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 dark:bg-emerald-600 dark:hover:bg-emerald-500 py-3 text-xs sm:text-sm font-bold text-white shadow-xs hover:shadow active:scale-[0.99] transition"
                   >
                     <LogIn className="h-4 w-4" />
                     <span>{t('Go to Login Page', 'లాగిన్ పేజీకి వెళ్లండి')}</span>
+                    <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
               </div>

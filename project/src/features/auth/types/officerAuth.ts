@@ -1,4 +1,4 @@
-export type OfficerDesignation = 'AEO' | 'MAO' | 'ADA' | 'DAO';
+export type OfficerDesignation = 'AEO' | 'MAO' | 'ADA' | 'DAO' | 'DNO';
 
 export interface OfficerProfile {
   id: string;

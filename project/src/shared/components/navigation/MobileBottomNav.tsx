@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Scale, TestTubes, BookOpen, LayoutGrid } from 'lucide-react';
+import { Home, Scale, TestTubes, Store, LayoutGrid } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface MobileBottomNavProps {
@@ -19,15 +19,15 @@ const ENFORCEMENT_PAGES = new Set([
 
 const SAMPLING_PAGES = new Set(['forms']);
 
-const LIBRARY_PAGES = new Set(['forms-library']);
+const DEALER_PAGES = new Set(['dealers']);
 
-type TabId = 'home' | 'enforcement' | 'sampling' | 'library' | 'more';
+type TabId = 'home' | 'enforcement' | 'sampling' | 'dealers' | 'more';
 
 function activeTabFor(page: string): TabId {
   if (page === 'dashboard' || page === 'dealer-portal') return 'home';
   if (ENFORCEMENT_PAGES.has(page)) return 'enforcement';
   if (SAMPLING_PAGES.has(page)) return 'sampling';
-  if (LIBRARY_PAGES.has(page)) return 'library';
+  if (DEALER_PAGES.has(page)) return 'dealers';
   return 'more';
 }
 
@@ -36,10 +36,10 @@ export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProp
   const active = activeTabFor(currentPage);
 
   const tabs: { id: TabId; label: string; labelTe: string; icon: typeof Home; target: string }[] = [
+    { id: 'dealers', label: 'Dealers', labelTe: 'డీలర్లు', icon: Store, target: 'dealers' },
+    { id: 'sampling', label: 'Sampling', labelTe: 'సాంప్లింగ్', icon: TestTubes, target: 'forms' },
     { id: 'home', label: 'Home', labelTe: 'హోమ్', icon: Home, target: 'dashboard' },
     { id: 'enforcement', label: 'Enforcement', labelTe: 'ఎన్‌ఫోర్స్‌మెంట్', icon: Scale, target: 'inspection-enforcement' },
-    { id: 'sampling', label: 'Sampling', labelTe: 'సాంప్లింగ్', icon: TestTubes, target: 'forms' },
-    { id: 'library', label: 'Library', labelTe: 'లైబ్రరీ', icon: BookOpen, target: 'forms-library' },
     { id: 'more', label: 'More', labelTe: 'మరిన్ని', icon: LayoutGrid, target: 'all-modules' },
   ];
 
