@@ -417,7 +417,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
       </main>
 
       {!isDealerUser && (
-        <MobileBottomNav currentPage={currentPage} onNavigate={(page) => handleNavigation(page)} />
+        <MobileBottomNav currentPage={currentPage} onNavigate={(page) => handleNavigation(page)} isAdminUser={isAdminUser} />
       )}
 
       <ConfirmDialog

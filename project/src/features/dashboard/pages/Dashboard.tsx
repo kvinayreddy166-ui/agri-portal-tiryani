@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import React, { lazy, Suspense, useCallback, useState, useEffect, useMemo } from 'react';
 import {
   Building2,
   MapPin,
@@ -10,6 +10,7 @@ import {
   PackageCheck,
   CalendarDays,
   Target,
+  Store,
 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../../dealer-stock/lib/fertilizerStock';
@@ -24,6 +25,14 @@ import { TargetAllocationModal } from '../components/TargetAllocationModal';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { cachedSupabaseValue } from '../../../shared/lib/offlineCache';
+import { groupDistrictCounts } from '../../../shared/utils/districts';
+
+const LazySimpleBarChart = lazy(() =>
+  import('../../../shared/components/charts/SimpleBarChart').then((module) => ({ default: module.SimpleBarChart }))
+);
+const LazyCategoryDonutChart = lazy(() =>
+  import('../../../shared/components/charts/CategoryDonutChart').then((module) => ({ default: module.CategoryDonutChart }))
+);
 
 type FarmerDashboardRow = {
   s_no?: number;
@@ -59,6 +68,8 @@ export const Dashboard = React.memo(function Dashboard() {
   const [mandalData, setMandalData] = useState<MandalOverview | null>(null);
   const [farmerStats, setFarmerStats] = useState<FarmerDashboardStats | null>(null);
   const [districtUserCounts, setDistrictUserCounts] = useState<{ district: string; count: number }[]>([]);
+  const [designationCounts, setDesignationCounts] = useState<{ name: string; count: number }[]>([]);
+  const [dealerCategoryData, setDealerCategoryData] = useState<{ name: string; count: number }[]>([]);
   const [targetsModalOpen, setTargetsModalOpen] = useState(false);
   const [loading, setLoading] = useState(isAdminUser || isElevatedOfficerUser);
   const fetchDashboardData = useCallback(async () => {
@@ -69,7 +80,7 @@ export const Dashboard = React.memo(function Dashboard() {
       return;
     }
     try {
-      const [contentRes, officersRes] = await Promise.all([
+      const [contentRes, officersRes, dealersRes] = await Promise.all([
         wantsOfficerWidgets
           ? cachedSupabaseValue<{ content: MandalOverview }>(
               'dashboard:mandal-overview:v2',
@@ -78,23 +89,42 @@ export const Dashboard = React.memo(function Dashboard() {
             )
           : Promise.resolve(null),
         wantsAdminCounts
-          ? supabase.from('officer_profiles').select('id, district').limit(10000)
-          : Promise.resolve({ data: [] as { id?: string; district?: string }[] }),
+          ? supabase.from('officer_profiles').select('id, district, designation').limit(10000)
+          : Promise.resolve({ data: [] as { id?: string; district?: string; designation?: string }[] }),
+        wantsAdminCounts
+          ? supabase.from('dealers').select('dealer_category, created_by').limit(10000)
+          : Promise.resolve({ data: [] as { dealer_category?: string | null; created_by?: string | null }[] }),
       ]);
 
       setMandalData(contentRes?.content || null);
 
-      const counts = new Map<string, number>();
+      const districtNames: string[] = [];
+      const desigCounts = new Map<string, number>();
       (officersRes.data || [])
         .filter((row) => row.id !== user?.id)
         .forEach((row) => {
-          const district = String(row.district || '').trim() || 'Not specified';
-          counts.set(district, (counts.get(district) || 0) + 1);
+          districtNames.push(String(row.district ?? ''));
+          const designation = String(row.designation || '').trim().toUpperCase() || 'Other';
+          desigCounts.set(designation, (desigCounts.get(designation) || 0) + 1);
         });
       setDistrictUserCounts(
-        Array.from(counts.entries())
-          .map(([district, count]) => ({ district, count }))
-          .sort((a, b) => b.count - a.count || a.district.localeCompare(b.district))
+        groupDistrictCounts(districtNames).map(({ name, count }) => ({ district: name, count }))
+      );
+      setDesignationCounts(
+        Array.from(desigCounts.entries())
+          .map(([name, count]) => ({ name, count }))
+          .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+      );
+
+      const catCounts = new Map<string, number>();
+      (dealersRes.data || []).forEach((row) => {
+        const category = dealerCategoryLabel(row.dealer_category);
+        catCounts.set(category, (catCounts.get(category) || 0) + 1);
+      });
+      setDealerCategoryData(
+        Array.from(catCounts.entries())
+          .map(([name, count]) => ({ name, count }))
+          .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
       );
       setLoading(false);
 
@@ -137,7 +167,8 @@ export const Dashboard = React.memo(function Dashboard() {
     isElevatedOfficerUser ||
     Boolean(mandalData) ||
     fertilizers.length > 0 ||
-    districtUserCounts.length > 0;
+    districtUserCounts.length > 0 ||
+    dealerCategoryData.length > 0;
 
   return (
     <div className="dashboard-shell space-y-6">
@@ -313,35 +344,90 @@ export const Dashboard = React.memo(function Dashboard() {
             <DashboardEmptyState message={t('No mandal overview data available', 'మండల వివరాల డేటా అందుబాటులో లేదు')} />
           ))}
 
-          {/* Registered Officers by District (Admin) */}
-          {isAdminUser && districtUserCounts.length > 0 && (
+          {/* Officer Analytics (Admin) */}
+          {isAdminUser && (districtUserCounts.length > 0 || designationCounts.length > 0) && (
             <div className="dashboard-rise dashboard-delay-2 portal-card p-4 sm:p-5">
+              <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+                <Users className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-[var(--font-heading)]">
+                  {t('Officer Analytics', 'అధికారి విశ్లేషణలు')}
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+              {districtUserCounts.length > 0 && (
+                <div className="lg:col-span-3">
               <div className="mb-4 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
-                <h2 className="flex items-center gap-2 text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-[var(--font-heading)]">
-                  <Users className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
+                <h2 className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+                  <Users className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
                   {t('Registered Officers by District', 'జిల్లా వారీగా నమోదు చేసినmektedir')}
                 </h2>
                 <span className="rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300">
                   {t('Total', 'మొత్తం')}: {districtUserCounts.reduce((sum, d) => sum + d.count, 0)}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-                {districtUserCounts.map(({ district, count }) => (
-                  <div
-                    key={district}
-                    className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90"
-                  >
-                    <p className="truncate text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                      {district}
-                    </p>
-                    <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white font-[var(--font-heading)]">
-                      {count}
-                    </p>
-                    <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-                      {t('officers', 'అధికారులు')}
-                    </p>
+              <div className="px-2 py-2">
+                <Suspense fallback={<div className="h-60 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
+                  <LazySimpleBarChart
+                    data={districtUserCounts.slice(0, 15).map(({ district, count }) => ({ name: district, count }))}
+                    dataKey="count"
+                    nameKey="name"
+                  />
+                </Suspense>
+              </div>
+                </div>
+              )}
+
+              {designationCounts.length > 0 && (
+                <div className="lg:col-span-2">
+                  <div className="mb-4 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+                    <h2 className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+                      <Users className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
+                      {t('Officers by Designation', 'హోదాల వారీగా అధికారి')}
+                    </h2>
+                    <span className="rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300">
+                      {designationCounts.length} {t('roles', 'పాత్రలు')}
+                    </span>
                   </div>
-                ))}
+                  <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
+                    <LazyCategoryDonutChart
+                      data={designationCounts}
+                      centerLabel={t('officers', 'అధికారులు')}
+                    />
+                  </Suspense>
+                </div>
+              )}
+              </div>
+            </div>
+          )}
+
+          {/* Dealer Analytics (Admin) */}
+          {isAdminUser && dealerCategoryData.length > 0 && (
+            <div className="dashboard-rise dashboard-delay-3 portal-card p-4 sm:p-5">
+              <div className="mb-4 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Store className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-[var(--font-heading)]">
+                    {t('Dealer Analytics', 'డీలర్ విశ్లేషణలు')}
+                  </h2>
+                </div>
+                <span className="rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300">
+                  {t('Total', 'మొత్తం')}: {dealerCategoryData.reduce((sum, d) => sum + d.count, 0)}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+                {dealerCategoryData.length > 0 && (
+                  <div className="lg:col-span-2">
+                    <h3 className="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">
+                      {t('Dealers by Category', 'వర్గం వారీగా డీలర్లు')}
+                    </h3>
+                    <Suspense fallback={<div className="h-56 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
+                      <LazyCategoryDonutChart
+                        data={dealerCategoryData}
+                        centerLabel={t('dealers', 'డీలర్లు')}
+                      />
+                    </Suspense>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -511,6 +597,19 @@ function searchableDashboardText(value: unknown) {
 function safeDashboardNumber(value: unknown) {
   const parsed = Number(String(value ?? '').replace(/,/g, '').trim());
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function dealerCategoryLabel(value: string | null | undefined) {
+  switch (value) {
+    case 'fertilizer':
+      return 'Fertilizer';
+    case 'seed':
+      return 'Seed';
+    case 'pesticide':
+      return 'Pesticides';
+    default:
+      return 'Other';
+  }
 }
 
 function formatDashboardNumber(value: number) {

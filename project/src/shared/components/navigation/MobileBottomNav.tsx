@@ -5,6 +5,7 @@ import { useLanguage } from '../../context/LanguageContext';
 interface MobileBottomNavProps {
   currentPage: string;
   onNavigate: (page: string) => void;
+  isAdminUser?: boolean;
 }
 
 const ENFORCEMENT_PAGES = new Set([
@@ -19,7 +20,7 @@ const ENFORCEMENT_PAGES = new Set([
 
 const SAMPLING_PAGES = new Set(['forms']);
 
-const DEALER_PAGES = new Set(['dealers']);
+const DEALER_PAGES = new Set(['dealers', 'dealer-management']);
 
 type TabId = 'home' | 'enforcement' | 'sampling' | 'dealers' | 'more';
 
@@ -31,12 +32,12 @@ function activeTabFor(page: string): TabId {
   return 'more';
 }
 
-export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProps) {
+export function MobileBottomNav({ currentPage, onNavigate, isAdminUser = false }: MobileBottomNavProps) {
   const { t } = useLanguage();
   const active = activeTabFor(currentPage);
 
   const tabs: { id: TabId; label: string; labelTe: string; icon: typeof Home; target: string }[] = [
-    { id: 'dealers', label: 'Dealers', labelTe: 'డీలర్లు', icon: Store, target: 'dealers' },
+    { id: 'dealers', label: 'Dealers', labelTe: 'డీలర్లు', icon: Store, target: isAdminUser ? 'dealer-management' : 'dealers' },
     { id: 'sampling', label: 'Sampling', labelTe: 'సాంప్లింగ్', icon: TestTubes, target: 'forms' },
     { id: 'home', label: 'Home', labelTe: 'హోమ్', icon: Home, target: 'dashboard' },
     { id: 'enforcement', label: 'Enforcement', labelTe: 'ఎన్‌ఫోర్స్‌మెంట్', icon: Scale, target: 'inspection-enforcement' },

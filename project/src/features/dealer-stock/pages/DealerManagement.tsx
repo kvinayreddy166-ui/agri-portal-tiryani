@@ -51,6 +51,8 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedDealerIds, setSelectedDealerIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
+  const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState('');
 
   const fetchDealers = useCallback(async () => {
     setLoading(true);
@@ -259,16 +261,22 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
     });
   };
 
-  const handleBulkDeleteDealers = async () => {
+  const handleBulkDeleteDealers = () => {
+    if (selectedDealerIds.size === 0) return;
+    setBulkDeleteConfirmText('');
+    setBulkDeleteConfirmOpen(true);
+  };
+
+  const executeBulkDeleteDealers = async () => {
     const ids = [...selectedDealerIds];
     if (ids.length === 0) return;
-    if (!confirm(`Are you sure you want to delete ${ids.length} dealer(s)?`)) return;
     setBulkDeleting(true);
     try {
       const { error } = await supabase.from('dealers').delete().in('id', ids);
       if (error) throw error;
       setDealers((prev) => prev.filter((d) => !selectedDealerIds.has(d.id)));
       setSelectedDealerIds(new Set());
+      setBulkDeleteConfirmOpen(false);
     } catch (error) {
       console.error('Error deleting dealers:', error);
       alert((error as { message?: string })?.message || 'Failed to delete dealers');
@@ -825,6 +833,65 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
           />
         )}
       </div>
+
+      {bulkDeleteConfirmOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-red-200 bg-white p-6 shadow-2xl dark:border-red-900/40 dark:bg-slate-900">
+            <div className="mb-4 flex items-center gap-2">
+              <Trash2 className="h-6 w-6 text-red-500" />
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                {t('Delete Dealers', 'డీలర్లను తొలగించండి')}
+              </h3>
+            </div>
+            <p className="mb-3 text-sm text-slate-600 dark:text-slate-300">
+              {t(
+                `You are about to permanently delete ${selectedDealerIds.size} dealer(s).`,
+                `${selectedDealerIds.size} డీలర్లను శాశ్వతంగా తొలగించబోతున్నారు.`
+              )}
+            </p>
+            <p className="mb-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+              {t(
+                'This action cannot be reversed. Dealer stock records and portal logins may be affected.',
+                'ఈ చర్యను రద్దు చేయలేము. డీలర్ స్టాక్ రికార్డులు మరియు పోర్టల్ లాగిన్‌లు ప్రభావితమవుతాయి.'
+              )}
+            </p>
+            <div className="mb-4">
+              <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-200">
+                {t('Type', 'టైప్ చేయండి')}{' '}
+                <span className="font-semibold text-red-600 dark:text-red-400">DELETE</span>{' '}
+                {t('to confirm:', 'నిర్ధారించడానికి:')}
+              </label>
+              <input
+                type="text"
+                value={bulkDeleteConfirmText}
+                onChange={(e) => setBulkDeleteConfirmText(e.target.value)}
+                placeholder={t('Type DELETE to confirm', 'నిర్ధారించడానికి DELETE టైప్ చేయండి')}
+                autoFocus
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setBulkDeleteConfirmOpen(false)}
+                disabled={bulkDeleting}
+                className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:text-slate-900 disabled:opacity-50 dark:text-slate-300 dark:hover:text-white"
+              >
+                {t('Cancel', 'రద్దు')}
+              </button>
+              <button
+                type="button"
+                onClick={executeBulkDeleteDealers}
+                disabled={bulkDeleting || bulkDeleteConfirmText.trim().toLowerCase() !== 'delete'}
+                className="flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                {bulkDeleting ? t('Deleting...', 'తొలగిస్తోంది...') : t('Delete Permanently', 'శాశ్వతంగా తొలగించండి')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

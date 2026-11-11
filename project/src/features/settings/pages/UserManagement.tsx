@@ -1,9 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Users, RefreshCw, Trash2, ShieldAlert, CheckCircle2, PauseCircle, PlayCircle, Download } from 'lucide-react';
+import React, { lazy, Suspense, useState, useEffect, useCallback, useMemo } from 'react';
+import { Users, RefreshCw, Trash2, ShieldAlert, CheckCircle2, PauseCircle, PlayCircle, Download, BarChart3 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { downloadCsv } from '../../../shared/utils/csvExport';
+import { groupDistrictCounts } from '../../../shared/utils/districts';
+
+const LazySimpleBarChart = lazy(() =>
+  import('../../../shared/components/charts/SimpleBarChart').then((module) => ({ default: module.SimpleBarChart }))
+);
+
 
 interface OfficerRow {
   id: string;
@@ -31,6 +37,8 @@ export function UserManagement() {
   const [suspendingId, setSuspendingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkActing, setBulkActing] = useState(false);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState('');
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
 
   const loadOfficerAccounts = useCallback(async () => {
@@ -138,6 +146,11 @@ export function UserManagement() {
 
   const selectedOfficers = adminOfficers.filter((o) => selectedIds.has(o.id));
 
+  const districtChartData = useMemo(
+    () => groupDistrictCounts(adminOfficers.map((o) => o.district), 'Unspecified').slice(0, 12),
+    [adminOfficers]
+  );
+
   const handleBulkStatus = async (nextStatus: 'active' | 'suspended') => {
     const targets = selectedOfficers.filter((o) => o.id !== user?.id);
     if (targets.length === 0) return;
@@ -163,10 +176,16 @@ export function UserManagement() {
     }
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     const targets = selectedOfficers.filter((o) => o.id !== user?.id);
     if (targets.length === 0) return;
-    if (!confirm(`Permanently delete ${targets.length} officer account(s)? This cannot be reversed.`)) return;
+    setBulkDeleteConfirmText('');
+    setBulkDeleteOpen(true);
+  };
+
+  const executeBulkDelete = async () => {
+    const targets = selectedOfficers.filter((o) => o.id !== user?.id);
+    if (targets.length === 0) return;
     setBulkActing(true);
     let failed = 0;
     for (const officer of targets) {
@@ -179,6 +198,7 @@ export function UserManagement() {
       }
     }
     setSelectedIds(new Set());
+    setBulkDeleteOpen(false);
     setBulkActing(false);
     setActionSuccessMessage(
       failed === 0
@@ -253,6 +273,27 @@ export function UserManagement() {
         <div className="flex items-center gap-2 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>{actionSuccessMessage}</span>
+        </div>
+      )}
+
+      {adminOfficers.length > 0 && (
+        <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300">
+                <BarChart3 className="h-4 w-4" />
+              </span>
+              <div>
+                <h2 className="text-sm font-bold text-gray-900 dark:text-white">Registered Officers by District</h2>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{adminOfficers.length} officer account(s) across {districtChartData.length} district(s)</p>
+              </div>
+            </div>
+          </div>
+          <div className="px-4 py-4">
+            <Suspense fallback={<div className="h-60 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
+              <LazySimpleBarChart data={districtChartData} dataKey="count" nameKey="name" />
+            </Suspense>
+          </div>
         </div>
       )}
 
@@ -508,6 +549,65 @@ export function UserManagement() {
                   <>
                     <Trash2 className="w-4 h-4" />
                     Delete Officer Permanently
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Bulk Delete Officer Confirmation Modal */}
+      {bulkDeleteOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-red-200 dark:border-red-900/40">
+            <div className="mb-4 flex items-center gap-2">
+              <ShieldAlert className="w-6 h-6 text-red-500" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete Officer Accounts</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-slate-300 mb-3">
+              You are deleting <strong className="text-gray-900 dark:text-white">{selectedOfficers.filter((o) => o.id !== user?.id).length} officer account(s)</strong>.
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-3 rounded-lg mb-4">
+              This will permanently delete these officers&apos; inspections, statutory orders, sampling memos, and auth accounts. This action cannot be reversed.
+            </p>
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-gray-700 dark:text-slate-200 mb-1.5">
+                Type <span className="font-semibold text-red-600 dark:text-red-400">DELETE</span> to confirm:
+              </label>
+              <input
+                type="text"
+                value={bulkDeleteConfirmText}
+                onChange={(e) => setBulkDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE to confirm"
+                autoFocus
+                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              />
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setBulkDeleteOpen(false)}
+                disabled={bulkActing}
+                className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={executeBulkDelete}
+                disabled={bulkActing || bulkDeleteConfirmText.trim().toLowerCase() !== 'delete'}
+                className="flex items-center gap-2 bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+              >
+                {bulkActing ? (
+                  <>
+                    <Spinner size="xs" className="text-white" label="Loading" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Delete Permanently
                   </>
                 )}
               </button>
