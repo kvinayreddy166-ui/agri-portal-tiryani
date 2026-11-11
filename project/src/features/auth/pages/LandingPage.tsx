@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   BookOpen,
+  Briefcase,
   Calculator,
   CheckCircle2,
   ChevronRight,
@@ -665,6 +666,224 @@ export function LandingPage() {
                   <span>{t('View Agriculture Officers Directory', 'వ్యవసాయ అధికారుల డైరెక్టరీ')}</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ──────────────── About the Developer ──────────────── */}
+      <section className="bg-white py-14 dark:bg-slate-950 sm:py-16 [content-visibility:auto] [contain-intrinsic-size:1px_900px]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+              <Sparkles className="h-3.5 w-3.5" />
+              {t('The Visionary', 'ఆవిష్కర్త')}
+            </span>
+            <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+              {t('About the Developer', 'డెవలపర్ గురించి')}
+            </h2>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+              {t('Bridging agricultural science with modern digital innovation', 'వ్యవసాయ శాస్త్రం & ఆధునిక డిజిటల్ నవీకరణకు అనుసంధానం')}
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-8 lg:grid-cols-12">
+            {/* Left Column: Profile Overview */}
+            <div className="space-y-6 lg:col-span-5">
+              {/* Profile Card */}
+              <div className="overflow-hidden rounded-3xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 via-emerald-50/60 to-emerald-50/25 p-6 shadow-sm shadow-emerald-100/50 dark:border-emerald-900/50 dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 sm:p-8">
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0">
+                    <img
+                      src="/developer-profile.jpg"
+                      alt="K. Vinay Reddy"
+                      className="h-20 w-20 rounded-2xl object-cover shadow-lg ring-4 ring-white dark:ring-slate-900"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white">
+                      K. Vinay Reddy, M.Sc. (Ag.)
+                    </h3>
+                    <p className="mt-1 text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                      {t('Founder & Developer – AGRONIX', 'వ్యవస్థాపకుడు & డెవలపర్ – AGRONIX')}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                        <Leaf className="h-3 w-3" />
+                        {t('Agricultural Professional', 'వ్యవసాయ నిపుణుడు')}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gold-100 px-2 py-0.5 text-[10px] font-bold text-gold-800 dark:bg-gold-950 dark:text-gold-300">
+                        <Zap className="h-3 w-3" />
+                        {t('Technology Enthusiast', 'సాంకేతిక ప్రియుడు')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-xs leading-relaxed text-justify text-slate-600 dark:text-slate-300 sm:text-sm">
+                  {t(
+                    'An agricultural science professional, researcher, government agricultural officer, and technology enthusiast with a multidisciplinary background spanning agricultural sciences, plant breeding, research, fertilizer marketing, agricultural administration, and digital application development.',
+                    'వ్యవసాయ శాస్త్ర నిపుణుడు, పరిశోధకుడు, ప్రభుత్వ వ్యవసాయ అధికారి మరియు సాంకేతిక ప్రియుడు — వ్యవసాయ శాస్త్రం, మొక్కల పెంపకం, పరిశోధన, ఎరువుల మార్కెటింగ్, వ్యవసాయ పాలన మరియు డిజిటల్ అప్లికేషన్ డెవలప్‌మెంట్‌లో బహుళ నైపుణ్యం.'
+                  )}
+                </p>
+
+                <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  <MapPin className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>{t('Mandal Agriculture Officer, Tiryani, Kumurambheem Asifabad District, Telangana', 'మండల వ్యవసాయ అధికారి, తిర్యాణి, కొమరం భీమ్ ఆసిఫాబాద్ జిల్లా, తెలంగాణ')}</span>
+                </div>
+              </div>
+
+              {/* Philosophy Card */}
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900/60">
+                <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                  {t('Professional Philosophy', 'వృత్తి తత్వం')}
+                </h4>
+                <p className="mt-2 text-xs leading-relaxed text-justify text-slate-600 dark:text-slate-300">
+                  {t(
+                    'Technology should solve real problems encountered in everyday agricultural work. Digital tools should be easy to understand, accessible, and convenient to use. Applications should prioritize accuracy, data integrity, security, and consistent performance.',
+                    'సాంకేతికత అసలైన సమస్యలను పరిష్కరించాలి. డిజిటల్ సాధనాలు సులభంగా అర్థమయ్యేలా, అందుబాటులో ఉండేలా ఉండాలి. అప్లికేషన్లు ఖచ్చితత్వం, డేటా పరిశీలత, భద్రత మరియు స్థిరమైన పనితీరును ప్రాధాన్యత ఇవ్వాలి.'
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: Journey Timeline */}
+            <div className="lg:col-span-7">
+              <div className="space-y-6">
+                {/* Academic Journey */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                      <BookOpen className="h-4 w-4" />
+                    </div>
+                    <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                      {t('Academic Journey', 'విద్యా ప్రస్థానం')}
+                    </h4>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex gap-3">
+                      <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-emerald-600 dark:bg-emerald-400" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">
+                          {t('Bachelor of Science in Agriculture (B.Sc. Agriculture)', 'బ్యాచిలర్ ఆఫ్ సైన్స్ ఇన్ అగ్రికల్చర్')}
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          Dr. Balasaheb Sawant Konkan Krishi Vidyapeeth — {t('First Class with Distinction', 'ఫస్ట్ క్లాస్ విత్ డిస్టింక్షన్')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-gold-600 dark:bg-gold-400" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">
+                          {t('Master of Science in Agriculture — Genetics & Plant Breeding', 'మాస్టర్ ఆఫ్ సైన్స్ ఇన్ అగ్రికల్చర్ — జెనెటిక్స్ & ప్లాంట్ బ్రీడింగ్')}
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          Professor Jayashankar Telangana Agricultural University (PJTSAU) — {t('ICAR NET Qualified, AIR 41', 'ICAR NET క్వాలిఫైడ్, AIR 41')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Career Timeline */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gold-100 text-gold-700 dark:bg-gold-950 dark:text-gold-300">
+                      <Briefcase className="h-4 w-4" />
+                    </div>
+                    <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                      {t('Professional Experience', 'వృత్తి అనుభవం')}
+                    </h4>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex gap-3">
+                      <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-emerald-600 dark:bg-emerald-400" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">
+                          {t('ICAR – Indian Institute of Maize Research (IIMR)', 'ICAR – ఇండియన్ ఇన్స్టిట్యూట్ ఆఫ్ మేజ్ రీసెర్చ్')}
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          {t('One Year — Maize Research & Crop Improvement', 'ఒక సంవత్సరం — మొక్కజొన్న పరిశోధన & పంట మెరుగుదల')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-sky-600 dark:bg-sky-400" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">
+                          {t('National Fertilizers Limited (NFL)', 'నేషనల్ ఫర్టిలైజర్స్ లిమిటెడ్')}
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          {t('One Year — Management Trainee (Marketing)', 'ఒక సంవత్సరం — మేనేజ్‌మెంట్ ట్రైనీ (మార్కెటింగ్)')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-gold-600 dark:bg-gold-400" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white">
+                          {t('Mandal Agriculture Officer (MAO)', 'మండల వ్యవసాయ అధికారి (MAO)')}
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          {t('Department of Agriculture, Government of Telangana — Current Posting: Tiryani Mandal', 'వ్యవసాయ శాఖ, తెలంగాణ ప్రభుత్వం — ప్రస్తుత పోస్టింగ్: తిర్యాణి మండల్')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Technical Skills */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+                      <Zap className="h-4 w-4" />
+                    </div>
+                    <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                      {t('Technical Expertise', 'సాంకేతిక నైపుణ్యం')}
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {[
+                      { label: 'React.js / TypeScript', icon: '⚛️' },
+                      { label: 'Supabase / PostgreSQL', icon: '🗄️' },
+                      { label: 'Vite / PWA', icon: '📱' },
+                      { label: 'Tailwind CSS', icon: '🎨' },
+                      { label: 'Cloudflare / Vercel', icon: '☁️' },
+                      { label: 'AI / LLM Integration', icon: '🤖' },
+                    ].map((skill) => (
+                      <div
+                        key={skill.label}
+                        className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                      >
+                        <span>{skill.icon}</span>
+                        <span>{skill.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Vision Statement */}
+          <div className="mt-10 rounded-3xl border border-emerald-200/70 bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 p-8 text-white shadow-xl dark:border-emerald-800/40 sm:p-10">
+            <div className="mx-auto max-w-3xl text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gold-400/15 text-gold-300 ring-1 ring-gold-300/30">
+                <Sparkles className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-black sm:text-2xl">
+                {t('The Vision Behind AGRONIX', 'AGRONIX వెనుక దృక్పథం')}
+              </h3>
+              <p className="mt-4 text-sm leading-relaxed text-justify text-emerald-100/90 sm:text-base">
+                {t(
+                  'To make agricultural administration smarter, more efficient, accessible, and technology-driven. Technology should not complicate agricultural work — it should simplify processes, reduce repetitive efforts, improve accessibility, and empower the people working at the grassroots level.',
+                  'వ్యవసాయ పాలనను మేధావిగా, సమర్థవంతంగా, అందుబాటులో మరియు సాంకేతికంగా ముందుకు తీసుకెళ్లాలి. సాంకేతికత వ్యవసాయ పనులను క్లిష్టతరం చేయకూడదు — ప్రక్రియలను సులభతరం చేయాలి, పునరావృత ప్రయత్నాలను తగ్గించాలి, అందుబాటును మెరుగుపరచాలి మరియు క్షేత్రస్థాయిలో పనిచేసే వ్యక్తులను శక్తివంతం చేయాలి.'
+                )}
+              </p>
+              <p className="mt-4 text-xs font-semibold text-gold-300">
+                {t('— K. Vinay Reddy, M.Sc. (Ag.)', '— కె. వినయ్ రెడ్డి, M.Sc. (Ag.)')}
+              </p>
             </div>
           </div>
         </div>
