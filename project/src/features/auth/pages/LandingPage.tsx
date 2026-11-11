@@ -701,10 +701,10 @@ export function LandingPage() {
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                      K. Vinay Reddy, M.Sc. (Ag.)
+                    <h3 className="text-lg font-black text-emerald-800 dark:text-gold-300 font-[var(--font-stylish)]">
+                      K. Vinay Reddy, M.Sc. (Ag)
                     </h3>
-                    <p className="mt-1 text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                    <p className="mt-1 text-sm font-bold text-gold-700 dark:text-gold-400">
                       {t('Founder & Developer – AGRONIX', 'వ్యవస్థాపకుడు & డెవలపర్ – AGRONIX')}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -875,7 +875,7 @@ export function LandingPage() {
               <h3 className="text-xl font-black sm:text-2xl">
                 {t('The Vision Behind AGRONIX', 'AGRONIX వెనుక దృక్పథం')}
               </h3>
-              <p className="mt-4 text-sm leading-relaxed text-justify text-emerald-100/90 sm:text-base">
+              <p className="mt-4 text-sm leading-relaxed text-justify font-serif text-emerald-100/90 sm:text-base">
                 {t(
                   'To make agricultural administration smarter, more efficient, accessible, and technology-driven. Technology should not complicate agricultural work — it should simplify processes, reduce repetitive efforts, improve accessibility, and empower the people working at the grassroots level.',
                   'వ్యవసాయ పాలనను మేధావిగా, సమర్థవంతంగా, అందుబాటులో మరియు సాంకేతికంగా ముందుకు తీసుకెళ్లాలి. సాంకేతికత వ్యవసాయ పనులను క్లిష్టతరం చేయకూడదు — ప్రక్రియలను సులభతరం చేయాలి, పునరావృత ప్రయత్నాలను తగ్గించాలి, అందుబాటును మెరుగుపరచాలి మరియు క్షేత్రస్థాయిలో పనిచేసే వ్యక్తులను శక్తివంతం చేయాలి.'
@@ -944,7 +944,7 @@ export function LandingPage() {
                   </p>
                 </div>
               </div>
-              <p className="max-w-md text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              <p className="max-w-md text-xs leading-relaxed text-justify text-slate-500 dark:text-slate-400">
                 {t(
                   'An integrated governance and precision agriculture platform supporting Agriculture Officers, Input Retailers, and Farmers. Built with offline-first PWA architecture and enterprise security.',
                   'వ్యవసాయ అధికారులు, డీలర్లు మరియు రైతులకు సహాయపడే సమగ్ర పాలన మరియు శాస్త్రీయ వ్యవసాయ వేదిక. ఆఫ్‌లైన్-ఫస్ట్ PWA సాంకేతికతతో భద్రంగా రూపొందించబడింది.'
