@@ -36,7 +36,7 @@ describe('splitTitleSegments', () => {
     // Desig: Mandal Agriculture Officer
     // Mandal: Chintalamanepally
     // Division: Kagaznagar
-    // District: Kumrambheem Asifabad
+    // District: Kumurambheem Asifabad
     // Month: October-2026
     const segments: TitleSegment[] = [
       { text: 'Tour Diary of ', bold: false },
@@ -48,7 +48,7 @@ describe('splitTitleSegments', () => {
       { text: ', Division: ', bold: false },
       { text: 'Kagaznagar', bold: true },
       { text: ', Dist: ', bold: false },
-      { text: 'Kumrambheem Asifabad', bold: true },
+      { text: 'Kumurambheem Asifabad', bold: true },
       { text: ' for the Month of ', bold: false },
       { text: 'October-2026', bold: true },
       { text: '.', bold: false },
@@ -62,7 +62,7 @@ describe('splitTitleSegments', () => {
 
     // Line 1 should cleanly break at the comma after the mandal
     expect(line1Text).toBe('Tour Diary of KUTHURU VINAY REDDY KUMRAM, Mandal Agriculture Officer, Chintalamanepally,');
-    expect(line2Text).toBe('Division: Kagaznagar, Dist: Kumrambheem Asifabad for the Month of October-2026.');
+    expect(line2Text).toBe('Division: Kagaznagar, Dist: Kumurambheem Asifabad for the Month of October-2026.');
 
     // Both lines must fit within printable table width (260 mm)
     const line1Width = lines[0].reduce((sum, t) => sum + t.width, 0);
@@ -90,7 +90,7 @@ describe('splitTitleSegments', () => {
       { text: ', Division: ', bold: false },
       { text: 'Kagaznagar Division', bold: true },
       { text: ', Dist: ', bold: false },
-      { text: 'Kumrambheem Asifabad District', bold: true },
+      { text: 'Kumurambheem Asifabad District', bold: true },
       { text: ' for the Month of ', bold: false },
       { text: 'October-2026', bold: true },
       { text: '.', bold: false },

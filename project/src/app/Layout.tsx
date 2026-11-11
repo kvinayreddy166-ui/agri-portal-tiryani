@@ -49,7 +49,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
     setShowSignOutConfirm(false);
     void signOut();
   };
-  const { user, isAdminUser, isDealerUser, isOfficerUser, officerProfile, dealerName, signOut } = useAuth();
+  const { user, isAdminUser, isElevatedOfficerUser, isDealerUser, isOfficerUser, officerProfile, dealerName, signOut } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
   const pageMeta = useMemo(() => getPageMeta(currentPage, t), [currentPage, t]);
@@ -109,7 +109,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
     if (menuItemIds.has(currentPage)) recordRecentModule(currentPage);
   }, [currentPage, menuItemIds]);
 
-  const visibleMenuItems = isDealerUser ? [] : getVisibleModuleItems(isAdminUser, isOfficerUser);
+  const visibleMenuItems = isDealerUser ? [] : getVisibleModuleItems(isAdminUser, isOfficerUser, isElevatedOfficerUser);
 
   return (
     <div className="min-h-screen bg-[#f2f7f3] dark:bg-slate-950">
@@ -447,22 +447,6 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
   const farmCalculators = { label: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), page: 'farm-calculators' };
   const inspectionsHub = { label: t('Inspection & Enforcement', 'తనిఖీ & అమలు'), page: 'inspection-enforcement' };
 
-  if (page.startsWith('quality-')) {
-    const title = qualityTitle(page);
-    return {
-      title,
-      breadcrumbs: [dashboard, { label: t('Quality Control', 'నాణ్యత నియంత్రణ'), page: 'quality' }],
-    };
-  }
-
-  if (page.startsWith('subsidy-')) {
-    const title = subsidyTitle(page);
-    return {
-      title,
-      breadcrumbs: [dashboard, { label: t('Subsidy & Schemes', 'సబ్సిడీ & పథకాలు'), page: 'subsidy' }],
-    };
-  }
-
   if (page.startsWith('knowledge-')) {
     const knowledgeTitles: Record<string, string> = {
       'knowledge-library': 'Document Library',
@@ -517,11 +501,9 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'officer-contacts-admin': { title: t('Officer Contacts Admin', 'అధికారుల పరిచయాల నిర్వహణ'), breadcrumbs: [dashboard, { label: t('Officer Contacts', 'అధికారుల పరిచయాలు'), page: 'officer-contacts' }] },
 
     'gos-circulars': { title: t('GOs & Circulars', 'జి.ఓ.లు & సర్క్యులర్లు'), breadcrumbs: [dashboard] },
-    quality: { title: t('Quality Control', 'నాణ్యత నియంత్రణ'), breadcrumbs: [dashboard] },
     'farm-mechanization': { title: t('Farm Mechanization', 'వ్యవసాయ యాంత్రీకరణ'), breadcrumbs: [dashboard] },
     excel: { title: t('Office Records', 'కార్యాలయ రికార్డులు'), breadcrumbs: [dashboard] },
     'file-directory': { title: t('Document Repository', 'పత్రాల భాండాగారం'), breadcrumbs: [dashboard] },
-    subsidy: { title: t('Subsidy & Schemes', 'సబ్సిడీ & పథకాలు'), breadcrumbs: [dashboard] },
     analytics: { title: t('Reports', 'నివేదికలు'), breadcrumbs: [dashboard] },
     settings: { title: t('Settings', 'సెట్టింగులు'), breadcrumbs: [dashboard] },
     'all-modules': { title: t('All Modules', 'అన్ని మాడ్యూల్‌లు'), breadcrumbs: [dashboard] },
@@ -530,19 +512,3 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
   return meta[page] || { title: t('Dashboard', 'డ్యాష్‌బోర్డ్'), breadcrumbs: [{ label: t('Dashboard', 'డ్యాష్‌బోర్డ్') }] };
 }
 
-function qualityTitle(page: string) {
-  const titles: Record<string, string> = {
-    'quality-seeds': 'Seeds',
-    'quality-pesticides': 'Pesticides',
-    'quality-fertilizers': 'Fertilizers',
-  };
-  return titles[page] || 'Quality Control';
-}
-
-function subsidyTitle(page: string) {
-  const titles: Record<string, string> = {
-    'subsidy-nfsm': 'NFSM',
-    'subsidy-state-seed': 'State Seed Cell',
-  };
-  return titles[page] || 'Subsidy & Schemes';
-}

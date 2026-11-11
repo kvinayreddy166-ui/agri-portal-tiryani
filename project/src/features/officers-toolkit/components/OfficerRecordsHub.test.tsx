@@ -43,6 +43,7 @@ describe('OfficerRecordsHub (Enhanced Cloudflare R2 Archive)', () => {
       authChecked: true,
       appReady: true,
       isAdminUser: false,
+      isElevatedOfficerUser: false,
       isTestUser: false,
       isDealerUser: false,
       isOfficerUser: true,
@@ -50,7 +51,7 @@ describe('OfficerRecordsHub (Enhanced Cloudflare R2 Archive)', () => {
         id: 'test-officer',
         full_name: 'V. Reddy',
         designation: 'MAO',
-        district: 'Kumuram Bheem Asifabad',
+        district: 'Kumurambheem Asifabad',
         mandal: 'Tiryani',
         phone: '9999999999',
         email: 'officer@telangana.gov.in',
@@ -205,7 +206,7 @@ describe('OfficerRecordsHub (Enhanced Cloudflare R2 Archive)', () => {
         referenceNumber: 'ORD-2026-001',
         entityName: 'Sri Balaji Agro Agencies',
         recordDate: '2026-11-07',
-        location: 'Tiryani, Kumuram Bheem Asifabad',
+        location: 'Tiryani, Kumurambheem Asifabad',
         details: {
           observations: 'Stock board missing; contravention of FCO 1985',
           products: [

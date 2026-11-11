@@ -62,7 +62,7 @@ export function OfficerSignUp() {
     qualificationOther: '',
     hrmsId: '',
     phone: '',
-    district: 'Kumuram Bheem Asifabad',
+    district: 'Kumurambheem Asifabad',
     mandal: 'Tiryani',
     division: '',
     divisionOther: '',

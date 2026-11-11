@@ -136,7 +136,7 @@ function readFormDraft(): PestSeizureFormState | null {
 function makeInitialForm(): PestSeizureFormState {
   const fy = currentFinancialYear();
   const statutory = readStatutoryDetails('pesticide');
-  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumuram Bheem Asifabad', statutory.manualDistrict || '');
+  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumurambheem Asifabad', statutory.manualDistrict || '');
   const resolvedMandal = resolveMandal(resolvedDistrict.district, statutory.mandal || 'Tiryani', statutory.manualMandal || '');
   return {
     refNumber: `REC/P/${fy}`,
@@ -162,7 +162,7 @@ export function buildSeizureModel(form: PestSeizureFormState): NoticeBlock[] {
   const officerDesignation = form.officerDesignation || 'Insecticide Inspector';
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || '________________';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || '________________';
-  const districtDisplay = districtValue.toLowerCase() === 'kumrambheem asifabad' ? 'Kumuram Bheem Asifabad' : districtValue;
+  const districtDisplay = ['kumurambheem asifabad', 'kumrambheem asifabad'].includes(districtValue.toLowerCase()) ? 'Kumurambheem Asifabad' : districtValue;
   const firmDisplay = form.firmName.trim() || '____________________________';
   const premisesInline = form.premisesAt.replace(/\s+/g, ' ').trim().replace(/,+$/, '');
   const premisesDisplay = `${premisesInline ? `${premisesInline}, ` : ''}${mandalValue} Mandal, ${districtDisplay} District`;

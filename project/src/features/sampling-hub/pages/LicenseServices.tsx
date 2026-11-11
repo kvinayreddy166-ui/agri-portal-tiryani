@@ -10,6 +10,7 @@ import { TELANGANA_DISTRICTS, getDivisionsForDistrict } from '../../../shared/da
 const DISTRICT_DDO_CODES: Record<string, string> = {
   'Adilabad': '01010102001',
   'Bhadradri Kothagudem': '09010102006',
+  'Hanumakonda': '12010102007',
   'Hanamkonda': '12010102007',
   'Jagtial': '06010102005',
   'Jangaon': '19010102017',
@@ -18,6 +19,7 @@ const DISTRICT_DDO_CODES: Record<string, string> = {
   'Kamareddy': '15010102003',
   'Karimnagar': '13010102001',
   'Khammam': '31010102002',
+  'Kumurambheem Asifabad': '02010102003',
   'Kumrambheem Asifabad': '02010102003',
   'Mahabubabad': '10010102001',
   'Mahabubnagar': '22010102001',
@@ -49,6 +51,11 @@ const DIVISION_DDO_CODES: Record<string, Record<string, string>> = {
   'Jayashankar Bhupalpally': {
     'Mahadevpur': '08030102001',
     'Bhupalpally': '08010102020',
+  },
+  'Kumurambheem Asifabad': {
+    'Asifabad': '02010102001',
+    'Kagaznagar': '02020102001',
+    'Sirpur U': '02010102002',
   },
   'Kumrambheem Asifabad': {
     'Asifabad': '02010102001',

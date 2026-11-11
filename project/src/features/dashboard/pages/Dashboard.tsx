@@ -7,12 +7,7 @@ import {
   CloudRain,
   Layers,
   TrendingUp,
-  Edit2,
   PackageCheck,
-  Plus,
-  Save,
-  X,
-  Trash2,
   CalendarDays,
   Target,
 } from 'lucide-react';
@@ -20,7 +15,7 @@ import { supabase } from '../../../shared/lib/supabase';
 import { DailyFertilizerStockSummary, fetchDailyFertilizerStockSummary } from '../../dealer-stock/lib/fertilizerStock';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
-import { Crop, Scheme, SchemeBeneficiary, MandalOverview } from '../../../shared/types/database';
+import { MandalOverview } from '../../../shared/types/database';
 import { MandiPricesWidget } from '../components/MandiPricesWidget';
 import { WeatherWidget } from '../components/WeatherWidget';
 import { OfficerEnforcementStrip } from '../components/OfficerEnforcementStrip';
@@ -28,7 +23,7 @@ import { OfficerTargetsCard } from '../components/OfficerTargetsCard';
 import { TargetAllocationModal } from '../components/TargetAllocationModal';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { Spinner } from '../../../shared/components/ui/Spinner';
-import { cachedSupabaseRows, cachedSupabaseValue } from '../../../shared/lib/offlineCache';
+import { cachedSupabaseValue } from '../../../shared/lib/offlineCache';
 
 type FarmerDashboardRow = {
   s_no?: number;
@@ -37,21 +32,13 @@ type FarmerDashboardRow = {
   aadhaar_no?: string;
   ppb_no?: string;
   phone_number?: string;
-  crop?: string;
   extent?: number;
   village_english?: string;
-};
-
-type FarmerDashboardCrop = {
-  id: string;
-  crop_name: string;
-  acreage: number;
 };
 
 type FarmerDashboardStats = {
   totalFarmers: number;
   totalExtent: number;
-  cropRows: FarmerDashboardCrop[];
 };
 
 let farmerDashboardStatsCache: FarmerDashboardStats | null = null;
@@ -65,173 +52,76 @@ function getTimeGreeting(): { en: string; te: string; emoji: string } {
 }
 
 export const Dashboard = React.memo(function Dashboard() {
-  const { isAdminUser, officerProfile } = useAuth();
+  const { isAdminUser, isElevatedOfficerUser, officerProfile, user } = useAuth();
   const { t } = useLanguage();
   const greeting = useMemo(() => getTimeGreeting(), []);
-  const [crops, setCrops] = useState<Crop[]>([]);
   const [fertilizers, setFertilizers] = useState<DailyFertilizerStockSummary[]>([]);
-  const [schemes, setSchemes] = useState<Scheme[]>([]);
-  const [schemeBeneficiaries, setSchemeBeneficiaries] = useState<SchemeBeneficiary[]>([]);
   const [mandalData, setMandalData] = useState<MandalOverview | null>(null);
   const [farmerStats, setFarmerStats] = useState<FarmerDashboardStats | null>(null);
+  const [districtUserCounts, setDistrictUserCounts] = useState<{ district: string; count: number }[]>([]);
   const [targetsModalOpen, setTargetsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(isAdminUser);
-  const [editingCrop, setEditingCrop] = useState<string | null>(null);
-  const [editingScheme, setEditingScheme] = useState<string | null>(null);
-  const [editingSchemeDetails, setEditingSchemeDetails] = useState<string | null>(null);
-  const [schemeForm, setSchemeForm] = useState({
-    scheme_name: '',
-    description: '',
-    benefits: '',
-    eligibility: '',
-  });
-  const [beneficiaryForm, setBeneficiaryForm] = useState({
-    scheme_id: '',
-    financial_year: '2025-26',
-    beneficiaries_count: '',
-    notes: '',
-  });
+  const [loading, setLoading] = useState(isAdminUser || isElevatedOfficerUser);
   const fetchDashboardData = useCallback(async () => {
-    if (!isAdminUser) {
+    const wantsOfficerWidgets = isElevatedOfficerUser;
+    const wantsAdminCounts = isAdminUser;
+    if (!wantsOfficerWidgets && !wantsAdminCounts) {
       setLoading(false);
       return;
     }
     try {
-      const [cropsRes, schemesRes, contentRes, beneficiariesRes] = await Promise.all([
-        cachedSupabaseRows<Crop>(
-          'dashboard:crops:v2',
-          () => supabase.from('crops').select('id, crop_name, acreage, description, image_url, created_at').order('crop_name'),
-          []
-        ),
-        cachedSupabaseRows<Scheme>(
-          'dashboard:schemes:v2',
-          () => supabase.from('schemes').select('id, scheme_name, description, benefits, eligibility, created_at, updated_at').order('scheme_name'),
-          []
-        ),
-        cachedSupabaseValue<{ content: MandalOverview }>(
-          'dashboard:mandal-overview:v2',
-          () => supabase.from('site_content').select('content').eq('section_name', 'mandal_overview').maybeSingle(),
-          null
-        ),
-        cachedSupabaseRows<SchemeBeneficiary>(
-          'dashboard:scheme-beneficiaries:v2',
-          () => supabase.from('scheme_beneficiaries').select('id, scheme_id, financial_year, beneficiaries_count, notes, created_at, created_by').order('financial_year', { ascending: false }).limit(80),
-          []
-        ),
+      const [contentRes, officersRes] = await Promise.all([
+        wantsOfficerWidgets
+          ? cachedSupabaseValue<{ content: MandalOverview }>(
+              'dashboard:mandal-overview:v2',
+              () => supabase.from('site_content').select('content').eq('section_name', 'mandal_overview').maybeSingle(),
+              null
+            )
+          : Promise.resolve(null),
+        wantsAdminCounts
+          ? supabase.from('officer_profiles').select('id, district').limit(10000)
+          : Promise.resolve({ data: [] as { id?: string; district?: string }[] }),
       ]);
 
-      setCrops(cropsRes);
-      setSchemes(schemesRes);
-      setSchemeBeneficiaries(beneficiariesRes);
       setMandalData(contentRes?.content || null);
+
+      const counts = new Map<string, number>();
+      (officersRes.data || [])
+        .filter((row) => row.id !== user?.id)
+        .forEach((row) => {
+          const district = String(row.district || '').trim() || 'Not specified';
+          counts.set(district, (counts.get(district) || 0) + 1);
+        });
+      setDistrictUserCounts(
+        Array.from(counts.entries())
+          .map(([district, count]) => ({ district, count }))
+          .sort((a, b) => b.count - a.count || a.district.localeCompare(b.district))
+      );
       setLoading(false);
 
-      const [dailyFertilizers, farmerStatsRes] = await Promise.all([
-        fetchDailyFertilizerStockSummary().catch(() => []),
-        fetchFarmerDashboardStats().catch(() => null),
-      ]);
-      setFertilizers(dailyFertilizers);
-      setFarmerStats(farmerStatsRes);
+      if (wantsOfficerWidgets) {
+        const [dailyFertilizers, farmerStatsRes] = await Promise.all([
+          fetchDailyFertilizerStockSummary().catch(() => []),
+          fetchFarmerDashboardStats().catch(() => null),
+        ]);
+        setFertilizers(dailyFertilizers);
+        setFarmerStats(farmerStatsRes);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setLoading(false);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.id, isAdminUser, isElevatedOfficerUser]);
 
   useEffect(() => {
     void fetchDashboardData();
   }, [fetchDashboardData]);
 
-  const dashboardCrops = farmerStats?.cropRows.length ? farmerStats.cropRows : crops;
-  const totalAcreage = farmerStats ? farmerStats.totalExtent : crops.reduce((sum, crop) => sum + extentToGuntas(crop.acreage), 0);
   const dashboardTotalFarmers = farmerStats?.totalFarmers ?? mandalData?.total_farmers ?? 0;
   const dashboardCultivableArea = farmerStats?.totalExtent ?? mandalData?.cultivable_area ?? 0;
   const dashboardRevenueVillages = 39;
   const highestFertilizerStock = Math.max(...fertilizers.map((item) => item.quantity_available), 1);
-  const openBeneficiaryForm = (schemeId: string) => {
-    setEditingScheme(schemeId);
-    setBeneficiaryForm({
-      scheme_id: schemeId,
-      financial_year: '2025-26',
-      beneficiaries_count: '',
-      notes: '',
-    });
-  };
-
-  const openSchemeEdit = (scheme: Scheme) => {
-    setEditingSchemeDetails(scheme.id);
-    setSchemeForm({
-      scheme_name: scheme.scheme_name,
-      description: scheme.description,
-      benefits: scheme.benefits,
-      eligibility: scheme.eligibility,
-    });
-  };
-
-  const saveSchemeDetails = async () => {
-    if (!editingSchemeDetails || !schemeForm.scheme_name.trim()) return;
-    const { error } = await supabase
-      .from('schemes')
-      .update({
-        scheme_name: schemeForm.scheme_name.trim(),
-        description: schemeForm.description.trim(),
-        benefits: schemeForm.benefits.trim(),
-        eligibility: schemeForm.eligibility.trim(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', editingSchemeDetails);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-    setEditingSchemeDetails(null);
-    void fetchDashboardData();
-  };
-
-  const deleteScheme = async (schemeId: string, schemeName: string) => {
-    if (!confirm(t(`Delete scheme "${schemeName}"?`, `"${schemeName}" పథకాన్ని తొలగించాలా?`))) return;
-    await supabase.from('scheme_beneficiaries').delete().eq('scheme_id', schemeId);
-    const { error } = await supabase.from('schemes').delete().eq('id', schemeId);
-    if (error) {
-      alert(error.message);
-      return;
-    }
-    void fetchDashboardData();
-  };
-
-  const deleteBeneficiary = async (id: string) => {
-    if (!confirm(t('Delete this beneficiary record?', 'ఈ లబ్ధిదారు రికార్డును తొలగించాలా?'))) return;
-    await supabase.from('scheme_beneficiaries').delete().eq('id', id);
-    void fetchDashboardData();
-  };
-
-  const saveBeneficiaryRecord = async () => {
-    if (!beneficiaryForm.scheme_id || !beneficiaryForm.financial_year.trim()) return;
-    const count = Number(beneficiaryForm.beneficiaries_count);
-    if (!Number.isFinite(count) || count < 0) {
-      alert(t('Please enter a valid beneficiary count', 'దయచేసి సరైన లబ్ధిదారుల సంఖ్య నమోదు చేయండి')); 
-      return;
-    }
-
-    const { error } = await supabase.from('scheme_beneficiaries').insert([{
-      scheme_id: beneficiaryForm.scheme_id,
-      financial_year: beneficiaryForm.financial_year.trim(),
-      beneficiaries_count: count,
-      notes: beneficiaryForm.notes.trim(),
-    }]);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    setEditingScheme(null);
-    setBeneficiaryForm({ scheme_id: '', financial_year: '2025-26', beneficiaries_count: '', notes: '' });
-    void fetchDashboardData();
-  };
 
   if (loading) {
     return (
@@ -244,10 +134,10 @@ export const Dashboard = React.memo(function Dashboard() {
   }
 
   const hasAnyDashboardData =
+    isElevatedOfficerUser ||
     Boolean(mandalData) ||
-    dashboardCrops.length > 0 ||
     fertilizers.length > 0 ||
-    schemes.length > 0;
+    districtUserCounts.length > 0;
 
   return (
     <div className="dashboard-shell space-y-6">
@@ -269,7 +159,7 @@ export const Dashboard = React.memo(function Dashboard() {
             {!isAdminUser && (
               <span className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
                 <MapPin className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
-                {officerProfile?.district || 'Kumuram Bheem Asifabad'}
+                {officerProfile?.district || 'Kumurambheem Asifabad'}
               </span>
             )}
             <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50/60 px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-2xs dark:border-emerald-900/60 dark:bg-slate-900 dark:text-emerald-300">
@@ -324,8 +214,8 @@ export const Dashboard = React.memo(function Dashboard() {
         ) : null
       ) : (
         <>
-          {/* Mandal Overview */}
-          {mandalData ? (
+          {/* Mandal Overview — officer-side widget, shown to the elevated officer only */}
+          {isElevatedOfficerUser && (mandalData ? (
             <div className="dashboard-rise dashboard-delay-2 portal-card p-4 sm:p-5">
               <div className="mb-4 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
                 <h2 className="flex items-center gap-2 text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-[var(--font-heading)]">
@@ -421,54 +311,42 @@ export const Dashboard = React.memo(function Dashboard() {
             </div>
           ) : (
             <DashboardEmptyState message={t('No mandal overview data available', 'మండల వివరాల డేటా అందుబాటులో లేదు')} />
-          )}
+          ))}
 
-          {/* Crop Statistics */}
-          {dashboardCrops.length > 0 ? (
+          {/* Registered Officers by District (Admin) */}
+          {isAdminUser && districtUserCounts.length > 0 && (
             <div className="dashboard-rise dashboard-delay-2 portal-card p-4 sm:p-5">
               <div className="mb-4 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
                 <h2 className="flex items-center gap-2 text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-[var(--font-heading)]">
-                  <TrendingUp className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
-                  {t('Major Crops', 'ప్రధాన పంటలు')}
+                  <Users className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
+                  {t('Registered Officers by District', 'జిల్లా వారీగా నమోదు చేసినmektedir')}
                 </h2>
                 <span className="rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300">
-                  {t('Total', 'మొత్తం')}: {formatDashboardNumber(totalAcreage)} {t('acres', 'ఎకరాలు')}
+                  {t('Total', 'మొత్తం')}: {districtUserCounts.reduce((sum, d) => sum + d.count, 0)}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-                {dashboardCrops.map((crop) => (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+                {districtUserCounts.map(({ district, count }) => (
                   <div
-                    key={crop.id}
-                    className="group relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90 cursor-pointer"
+                    key={district}
+                    className="rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/90"
                   >
-                    <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 to-emerald-600 opacity-60 group-hover:opacity-100 transition-opacity" />
-                    {isAdminUser && !farmerStats?.cropRows.length && (
-                      <button
-                        onClick={() => setEditingCrop(editingCrop === crop.id ? null : crop.id)}
-                        className="absolute right-2 top-2 rounded-md bg-slate-100 p-1 text-slate-500 opacity-0 transition-opacity hover:bg-slate-200 group-hover:opacity-100 dark:bg-slate-800 dark:text-slate-300"
-                        title={t('Edit crop', 'పంటను సవరించండి')}
-                      >
-                        <Edit2 className="h-3 w-3" />
-                      </button>
-                    )}
                     <p className="truncate text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                      {crop.crop_name}
+                      {district}
                     </p>
                     <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white font-[var(--font-heading)]">
-                      {formatDashboardNumber(crop.acreage)}
+                      {count}
                     </p>
                     <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
-                      {t('acres', 'ఎకరాలు')}
+                      {t('officers', 'అధికారులు')}
                     </p>
                   </div>
                 ))}
               </div>
             </div>
-          ) : (
-            <DashboardEmptyState message={t('No crop data available', 'No crop data available')} />
           )}
 
-          {fertilizers.length > 0 ? (
+          {isElevatedOfficerUser && (fertilizers.length > 0 ? (
             <div className="dashboard-rise dashboard-delay-3 portal-card p-3">
         <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -547,185 +425,8 @@ export const Dashboard = React.memo(function Dashboard() {
             </div>
           ) : (
             <DashboardEmptyState message={t('No fertilizer availability data available', 'ఎరువుల లభ్యత డేటా అందుబాటులో లేదు')} />
-          )}
+          ))}
 
-          {/* Government Schemes */}
-          {schemes.length > 0 ? (
-            <div className="dashboard-rise dashboard-delay-3 portal-card p-4">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <Users className="w-6 h-6 text-emerald-600" />
-          {t('Government Schemes', 'ప్రభుత్వ పథకాలు')}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {schemes.map((scheme, idx) => {
-            const schemeDots = ['bg-emerald-500', 'bg-blue-500', 'bg-amber-500', 'bg-teal-500'];
-            const eligibility =
-              scheme.scheme_name.trim().toLowerCase() === 'rythu bhima'
-                ? 'Age between 18-59 years'
-                : scheme.eligibility;
-            return (
-              <div key={scheme.id} className="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 group">
-                <div className="flex justify-between items-start gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${schemeDots[idx % 4]}`} aria-hidden="true" />
-                    <h3 className="font-bold text-base text-gray-900 dark:text-white">{scheme.scheme_name}</h3>
-                  </div>
-                  {isAdminUser && (
-                    <div className="flex shrink-0 gap-0.5 opacity-0 group-hover:opacity-100 transition">
-                      <button
-                        onClick={() => openBeneficiaryForm(scheme.id)}
-                        className="text-blue-600 hover:bg-blue-50 p-2 rounded"
-                        title={t('Add beneficiaries', 'లబ్ధిదారులను జోడించండి')}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => openSchemeEdit(scheme)}
-                        className="text-amber-600 hover:bg-amber-50 p-2 rounded"
-                        title={t('Edit scheme', 'పథకం సవరించు')}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteScheme(scheme.id, scheme.scheme_name)}
-                        className="text-red-600 hover:bg-red-50 p-2 rounded"
-                        title={t('Delete scheme', 'పథకం తొలగించు')}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {isAdminUser && editingSchemeDetails === scheme.id ? (
-                  <div className="mt-3 space-y-2">
-                    <input
-                      value={schemeForm.scheme_name}
-                      onChange={(e) => setSchemeForm({ ...schemeForm, scheme_name: e.target.value })}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                      placeholder={t('Scheme name', 'పథకం పేరు')}
-                    />
-                    <textarea
-                      value={schemeForm.description}
-                      onChange={(e) => setSchemeForm({ ...schemeForm, description: e.target.value })}
-                      rows={2}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                      placeholder={t('Description', 'వివరణ')}
-                    />
-                    <textarea
-                      value={schemeForm.benefits}
-                      onChange={(e) => setSchemeForm({ ...schemeForm, benefits: e.target.value })}
-                      rows={2}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                      placeholder={t('Benefits', 'ప్రయోజనాలు')}
-                    />
-                    <textarea
-                      value={schemeForm.eligibility}
-                      onChange={(e) => setSchemeForm({ ...schemeForm, eligibility: e.target.value })}
-                      rows={2}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                      placeholder={t('Eligibility', 'అర్హత')}
-                    />
-                    <div className="flex gap-1">
-                      <button type="button" onClick={saveSchemeDetails} className="rounded-lg bg-emerald-700 p-2 text-white">
-                        <Save className="h-4 w-4" />
-                      </button>
-                      <button type="button" onClick={() => setEditingSchemeDetails(null)} className="rounded-lg border border-slate-300 p-2 text-slate-600">
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-gray-600 dark:text-slate-300 text-sm mt-1.5">{scheme.description}</p>
-                    <div className="space-y-1.5 mt-2 text-sm">
-                      <div className="flex items-start gap-2">
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 min-w-fit">{t('Benefits:', 'ప్రయోజనాలు:')}</span>
-                        <span className="text-gray-700 dark:text-slate-200">{scheme.benefits}</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 min-w-fit">{t('Eligibility:', 'అర్హత:')}</span>
-                        <span className="text-gray-700 dark:text-slate-200">{eligibility}</span>
-                      </div>
-                    </div>
-                  </>
-                )}
-                <div className="mt-3 rounded-lg border border-slate-200 bg-white/80 p-2.5 dark:border-slate-600 dark:bg-slate-800/80">
-                  <p className="mb-1.5 text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    {t('Financial year beneficiaries', 'ఆర్థిక సంవత్సరం లబ్ధిదారులు')}
-                  </p>
-                  <div className="space-y-2">
-                    {schemeBeneficiaries.filter((row) => row.scheme_id === scheme.id).length === 0 && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{t('No beneficiary records yet', 'ఇంకా లబ్ధిదారుల రికార్డులు లేవు')}</p>
-                    )}
-                    {schemeBeneficiaries
-                      .filter((row) => row.scheme_id === scheme.id)
-                      .map((row) => (
-                        <div key={row.id} className="flex items-start justify-between gap-2 rounded-md bg-slate-50 px-3 py-2 dark:bg-slate-900">
-                          <div>
-                            <p className="text-sm font-bold text-slate-900 dark:text-white">{row.financial_year}</p>
-                            {row.notes && <p className="text-xs text-slate-500 dark:text-slate-400">{row.notes}</p>}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-black text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                              {row.beneficiaries_count.toLocaleString()}
-                            </span>
-                            {isAdminUser && (
-                              <button
-                                type="button"
-                                onClick={() => deleteBeneficiary(row.id)}
-                                className="rounded p-1 text-red-500 hover:bg-red-50"
-                                title={t('Delete record', 'రికార్డు తొలగించు')}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                  {isAdminUser && editingScheme === scheme.id && (
-                    <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-                      <input
-                        type="text"
-                        value={beneficiaryForm.financial_year}
-                        onChange={(e) => setBeneficiaryForm({ ...beneficiaryForm, financial_year: e.target.value })}
-                        className="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                        placeholder={t('Financial year', 'ఆర్థిక సంవత్సరం')}
-                      />
-                      <input
-                        type="number"
-                        min="0"
-                        value={beneficiaryForm.beneficiaries_count}
-                        onChange={(e) => setBeneficiaryForm({ ...beneficiaryForm, beneficiaries_count: e.target.value })}
-                        className="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                        placeholder={t('Beneficiaries', 'లబ్ధిదారులు')}
-                      />
-                      <div className="flex gap-1">
-                        <button type="button" onClick={saveBeneficiaryRecord} className="rounded-lg bg-emerald-700 p-2 text-white">
-                          <Save className="h-4 w-4" />
-                        </button>
-                        <button type="button" onClick={() => setEditingScheme(null)} className="rounded-lg border border-slate-300 p-2 text-slate-600">
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <input
-                        type="text"
-                        value={beneficiaryForm.notes}
-                        onChange={(e) => setBeneficiaryForm({ ...beneficiaryForm, notes: e.target.value })}
-                        className="rounded-lg border border-slate-300 px-3 py-2 text-sm sm:col-span-3 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                        placeholder={t('Notes / village / category', 'గమనికలు / గ్రామం / వర్గం')}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-            </div>
-          ) : (
-            <DashboardEmptyState message={t('No schemes data available', 'పథకాల డేటా అందుబాటులో లేదు')} />
-          )}
         </>
       )}
     </div>
@@ -743,19 +444,12 @@ function DashboardEmptyState({ message }: { message: string }) {
 const FALLBACK_DASHBOARD_STATS: FarmerDashboardStats = {
   totalFarmers: 8493,
   totalExtent: 25995.36,
-  cropRows: [
-    { id: 'farmer-crop-cotton', crop_name: 'Cotton', acreage: 23376.13 },
-    { id: 'farmer-crop-redgram', crop_name: 'Redgram', acreage: 1278.25 },
-    { id: 'farmer-crop-paddy', crop_name: 'Paddy', acreage: 1071.18 },
-    { id: 'farmer-crop-mango', crop_name: 'Mango', acreage: 88.38 },
-    { id: 'farmer-crop-maize', crop_name: 'Maize', acreage: 83.02 },
-  ],
 };
 
 async function fetchFarmerDashboardStats(): Promise<FarmerDashboardStats | null> {
   const { data, error } = await supabase
     .from('farmer_database')
-    .select('s_no, farmer_name_english, father_or_husband_name_english, aadhaar_no, ppb_no, phone_number, crop, extent, village_english')
+    .select('s_no, farmer_name_english, father_or_husband_name_english, aadhaar_no, ppb_no, phone_number, extent, village_english')
     .limit(25000);
 
   if (!error && data?.length) return buildFarmerDashboardStats(data as FarmerDashboardRow[]);
@@ -777,30 +471,16 @@ async function loadFarmerDashboardStatsFallback(): Promise<FarmerDashboardStats 
 
 function buildFarmerDashboardStats(rows: FarmerDashboardRow[]): FarmerDashboardStats {
   const farmers = new Set<string>();
-  const cropExtent = new Map<string, number>();
   let totalExtent = 0;
 
   rows.forEach((row) => {
     farmers.add(farmerDashboardIdentity(row));
-    const extent = extentToGuntas(safeDashboardNumber(row.extent));
-    totalExtent += extent;
-    const crop = String(row.crop || 'Not specified').trim() || 'Not specified';
-    cropExtent.set(crop, (cropExtent.get(crop) || 0) + extent);
+    totalExtent += extentToGuntas(safeDashboardNumber(row.extent));
   });
-
-  const cropRows = Array.from(cropExtent.entries())
-    .map(([crop_name, acreage]) => ({
-      id: `farmer-crop-${crop_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-      crop_name,
-      acreage: guntasToExtent(acreage),
-    }))
-    .sort((a, b) => b.acreage - a.acreage)
-    .slice(0, 5);
 
   return {
     totalFarmers: farmers.size,
     totalExtent: guntasToExtent(totalExtent),
-    cropRows,
   };
 }
 

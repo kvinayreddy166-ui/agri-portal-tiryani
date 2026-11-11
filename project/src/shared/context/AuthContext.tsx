@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState, ReactNode, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, isAdmin, isTestUser, isDealerUser, isOfficerUser, getDealerIdFromUser, clearPersistedSupabaseAuth } from '../lib/supabase';
+import { supabase, isAdmin, isTestUser, isDealerUser, isOfficerUser, isElevatedOfficerUser, getDealerIdFromUser, clearPersistedSupabaseAuth } from '../lib/supabase';
 import { safeStorage, setStorageActiveUser } from '../lib/safeStorage';
 import {
   DEALER_DEFAULT_PASSWORD,
@@ -23,6 +23,7 @@ interface AuthContextType {
   authChecked: boolean;
   appReady: boolean;
   isAdminUser: boolean;
+  isElevatedOfficerUser: boolean;
   isTestUser: boolean;
   isDealerUser: boolean;
   isOfficerUser: boolean;
@@ -45,6 +46,7 @@ function applySession(
   setSession: (s: Session | null) => void,
   setUser: (u: User | null) => void,
   setIsAdminUser: (v: boolean) => void,
+  setIsElevatedOfficerUserFlag: (v: boolean) => void,
   setIsTestUser: (v: boolean) => void,
   setIsDealer: (v: boolean) => void,
   setDealerId: (v: string | null) => void,
@@ -56,6 +58,7 @@ function applySession(
   setSession(newSession);
   setUser(newUser);
   setIsAdminUser(isAdmin(newUser?.email));
+  setIsElevatedOfficerUserFlag(isElevatedOfficerUser(newUser?.email));
   setIsTestUser(isTestUser(newUser?.email));
   const dealer = isDealerUser(newUser);
   setIsDealer(dealer);
@@ -115,13 +118,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authChecked, setAuthChecked] = useState(() => Boolean(initial.user));
   const [appReady, setAppReady] = useState(() => Boolean(initial.user));
   const [isAdminUser, setIsAdminUser] = useState(() => isAdmin(initial.user?.email));
+  const [isElevatedOfficerUserFlag, setIsElevatedOfficerUserFlag] = useState(() => isElevatedOfficerUser(initial.user?.email));
   const [isTestUserFlag, setIsTestUserFlag] = useState(() => isTestUser(initial.user?.email));
   const [isDealerUserFlag, setIsDealerUserFlag] = useState(() => isDealerUser(initial.user));
-  const [isOfficerUserFlag, setIsOfficerUserFlag] = useState(() => isOfficerUser(initial.user) || isAdmin(initial.user?.email));
+  const [isOfficerUserFlag, setIsOfficerUserFlag] = useState(() => isOfficerUser(initial.user) || isAdmin(initial.user?.email) || isElevatedOfficerUser(initial.user?.email));
   const [officerProfile, setOfficerProfile] = useState<OfficerProfile | null>(getInitialCachedProfile);
   const [dealerId, setDealerId] = useState<string | null>(() => (isDealerUser(initial.user) ? getDealerIdFromUser(initial.user) : null));
   const [dealerName, setDealerName] = useState<string | null>(() => (isDealerUser(initial.user) ? ((initial.user?.user_metadata?.dealer_name as string) || null) : null));
   const authCheckedRef = useRef(Boolean(initial.user));
+
+  const SUSPENDED_MESSAGE = 'Your account has been suspended. Please contact the portal administrator.';
+
+  const isSuspendedOfficer = useCallback(async (targetUser: User | null): Promise<boolean> => {
+    if (!targetUser || isAdmin(targetUser.email)) return false;
+    try {
+      const { data } = await supabase
+        .from('officer_profiles')
+        .select('status')
+        .eq('id', targetUser.id)
+        .maybeSingle();
+      return data?.status === 'suspended';
+    } catch {
+      return false;
+    }
+  }, []);
 
   const fetchOfficerProfile = useCallback(async (targetUser: User | null) => {
     if (!targetUser) {
@@ -131,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const isCurrentAdmin = isAdmin(targetUser.email);
-    const isExplicitOfficer = isOfficerUser(targetUser);
+    const isExplicitOfficer = isOfficerUser(targetUser) || isElevatedOfficerUser(targetUser.email);
 
     try {
       const { data, error } = await supabase
@@ -141,7 +161,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (data && !error) {
-        setOfficerProfile(data as OfficerProfile);
+        const profile = data as OfficerProfile;
+        if (profile.status === 'suspended' && !isCurrentAdmin) {
+          console.warn('Suspended officer account blocked:', targetUser.email);
+          safeStorage.setItem('agri_auth_notice', SUSPENDED_MESSAGE);
+          void supabase.auth.signOut();
+          return;
+        }
+        setOfficerProfile(profile);
         setIsOfficerUserFlag(true);
         return;
       }
@@ -157,7 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         designation: (targetUser.user_metadata?.designation as string) || (isCurrentAdmin ? 'MAO' : 'AEO'),
         hrms_id: (targetUser.user_metadata?.hrms_id as string) || '',
         qualification: (targetUser.user_metadata?.qualification as string) || '',
-        district: (targetUser.user_metadata?.district as string) || 'Kumuram Bheem Asifabad',
+        district: (targetUser.user_metadata?.district as string) || 'Kumurambheem Asifabad',
         mandal: (targetUser.user_metadata?.mandal as string) || 'Tiryani',
         division: (targetUser.user_metadata?.division as string) || '',
         phone: (targetUser.user_metadata?.phone as string) || '',
@@ -184,10 +211,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completed = true;
       window.clearTimeout(startupTimer);
       if (sess) {
-        applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
+        applySession(sess, setSession, setUser, setIsAdminUser, setIsElevatedOfficerUserFlag, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
         void fetchOfficerProfile(sess.user);
       } else if (!initial.session) {
-        applySession(null, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
+        applySession(null, setSession, setUser, setIsAdminUser, setIsElevatedOfficerUserFlag, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
         void fetchOfficerProfile(null);
       }
       setLoading(false);
@@ -217,12 +244,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const authState = supabase.auth.onAuthStateChange((event, sess) => {
         if (event === 'SIGNED_OUT') {
-          applySession(null, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
+          applySession(null, setSession, setUser, setIsAdminUser, setIsElevatedOfficerUserFlag, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
           setOfficerProfile(null);
           setIsOfficerUserFlag(false);
           safeStorage.removeItem('tiryani_officer_profile');
         } else if (sess) {
-          applySession(sess, setSession, setUser, setIsAdminUser, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
+          applySession(sess, setSession, setUser, setIsAdminUser, setIsElevatedOfficerUserFlag, setIsTestUserFlag, setIsDealerUserFlag, setDealerId, setDealerName);
           void fetchOfficerProfile(sess.user);
         }
         if (!authCheckedRef.current) {
@@ -269,12 +296,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error };
       }
 
+      if (await isSuspendedOfficer(data.session?.user ?? null)) {
+        await supabase.auth.signOut();
+        return { error: new Error(SUSPENDED_MESSAGE) };
+      }
+
       applySession(
         data.session ?? null,
         setSession,
         setUser,
-        setIsAdminUser,
-        setIsTestUserFlag,
+        setIsAdminUser,setIsElevatedOfficerUserFlag,setIsTestUserFlag,
         setIsDealerUserFlag,
         setDealerId,
         setDealerName
@@ -336,12 +367,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.session) {
+        if (await isSuspendedOfficer(data.session.user)) {
+          await supabase.auth.signOut();
+          safeStorage.setItem('agri_auth_notice', SUSPENDED_MESSAGE);
+          return { error: new Error(SUSPENDED_MESSAGE) };
+        }
         applySession(
           data.session,
           setSession,
           setUser,
-          setIsAdminUser,
-          setIsTestUserFlag,
+          setIsAdminUser,setIsElevatedOfficerUserFlag,setIsTestUserFlag,
           setIsDealerUserFlag,
           setDealerId,
           setDealerName
@@ -454,8 +489,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data.session ?? null,
           setSession,
           setUser,
-          setIsAdminUser,
-          setIsTestUserFlag,
+          setIsAdminUser,setIsElevatedOfficerUserFlag,setIsTestUserFlag,
           setIsDealerUserFlag,
           setDealerId,
           setDealerName
@@ -543,6 +577,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setUser(null);
     setIsAdminUser(false);
+    setIsElevatedOfficerUserFlag(false);
     setIsDealerUserFlag(false);
     setIsOfficerUserFlag(false);
     setOfficerProfile(null);
@@ -570,6 +605,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         authChecked,
         appReady,
         isAdminUser,
+        isElevatedOfficerUser: isElevatedOfficerUserFlag,
         isTestUser: isTestUserFlag,
         isDealerUser: isDealerUserFlag,
         isOfficerUser: isOfficerUserFlag,

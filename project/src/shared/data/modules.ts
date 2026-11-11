@@ -1,10 +1,10 @@
 import {
   LayoutDashboard, PackageCheck, UsersRound,
-  Archive, BarChart3, ShieldCheck, Tractor, ScrollText,
-  FolderOpen, Landmark, Database, BookOpen, Gavel, CalendarDays,
-  Phone, FileCheck, Files,
+  Archive, BarChart3, Tractor, ScrollText,
+  FolderOpen, Database, BookOpen, Gavel, CalendarDays,
+  Phone, FileCheck, Files, Users,
   ClipboardCheck, FlaskConical, Calculator, Stethoscope, Scale,
-  Globe, Settings, type LucideIcon,
+  Globe, Settings, Store, type LucideIcon,
 } from 'lucide-react';
 
 export interface ModuleMenuItem {
@@ -13,6 +13,7 @@ export interface ModuleMenuItem {
   icon: LucideIcon;
   adminOnly?: boolean;
   officerAccess?: boolean;
+  hidden?: boolean;
   desc: string;
   descTe: string;
 }
@@ -38,11 +39,10 @@ export const MODULE_MENU_ITEMS: ModuleMenuItem[] = [
 
   // Field Operations & Officer Administration
   { id: 'dealers', label: 'Dealers Directory', icon: UsersRound, adminOnly: true, officerAccess: true, desc: 'Registered dealers and contact details', descTe: 'నమోదిత డీలర్లు & సంప్రదింపు వివరాలు' },
+  { id: 'dealer-management', label: 'Dealer Management', icon: Store, adminOnly: true, desc: 'Add and manage dealers registered by officers', descTe: 'అధికారులు నమోదు చేసిన డీలర్లను జోడించండి & నిర్వహించండి' },
   { id: 'farm-mechanization', label: 'Farm Mechanization', icon: Tractor, adminOnly: true, desc: 'Machinery subsidy and mechanization info', descTe: 'యంత్రాల & యాంత్రీకరణ సమాచారం' },
   { id: 'farmer-database', label: 'Farmer Database', icon: Database, adminOnly: true, desc: 'Farmer records and registry', descTe: 'రైతు రికార్డులు & రిజిస్ట్రీ' },
   { id: 'officer-contacts', label: 'Officer Contacts', icon: Phone, desc: 'Directory of agriculture officers', descTe: 'వ్యవసాయ అధికారి డైరెక్టరీ' },
-  { id: 'quality', label: 'Quality Control', icon: ShieldCheck, adminOnly: true, desc: 'Quality testing for seeds, pesticides, fertilizers', descTe: 'విత్తనం, పురుగుమందులు, ఎరువుల నాణ్యత పరీక్ష' },
-  { id: 'subsidy', label: 'Subsidy & Schemes', icon: Landmark, adminOnly: true, desc: 'Government subsidy schemes and tracking', descTe: 'ప్రభుత్వ సబ్సిడీ పథకాలు & ట్రాకింగ్' },
   { id: 'tour-diary', label: 'Tour Diary', icon: CalendarDays, desc: 'Daily field tour logs and visits', descTe: 'రోజువారీ ఫీల్డ్ టూర్ లాగ్‌లు & సందర్శనలు' },
 
   // Knowledge & Portals
@@ -54,13 +54,31 @@ export const MODULE_MENU_ITEMS: ModuleMenuItem[] = [
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true, desc: 'Uploaded documents and files', descTe: 'అప్‌లోడ్ చేసిన పత్రాలు & ఫైళ్లు' },
   { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true, desc: 'Excel uploads and office records', descTe: 'ఎక్స్‌ల్స్ అప్‌లోడ్‌లు & కార్యాలయ రికార్డులు' },
   { id: 'officer-records', label: 'Saved Records & Storage', icon: Archive, desc: 'Your saved records and cloud storage', descTe: 'మీ సేవ్ చేసిన రికార్డులు & క్లౌడ్ నిల్వ' },
+  { id: 'user-management', label: 'User Management', icon: Users, adminOnly: true, desc: 'Manage registered officer accounts', descTe: 'నమోదిత అధికారి ఖాతాలను నిర్వహించండి' },
   { id: 'settings', label: 'Settings', icon: Settings, desc: 'Account, language and app settings', descTe: 'ఖాతా, భాష & యాప్ సెట్టింగులు' },
 ];
 
-export function getVisibleModuleItems(isAdminUser: boolean, isOfficerUser = false) {
-  return MODULE_MENU_ITEMS.filter(
-    (item) => !item.adminOnly || isAdminUser || (item.officerAccess && isOfficerUser)
-  );
+// Admin-only modules hidden even from the full-access officer
+// (agofficetiryani@gmail.com) — management consoles stay admin-only.
+const ELEVATED_OFFICER_HIDDEN = new Set(['dealer-management', 'user-management', 'farm-mechanization']);
+
+// Modules moved off the admin dashboard — visible to the elevated officer only.
+const ADMIN_HIDDEN = new Set(['stock-analytics', 'analytics', 'dealers']);
+
+export function getVisibleModuleItems(isAdminUser: boolean, isOfficerUser = false, isElevatedOfficerUser = false) {
+  return MODULE_MENU_ITEMS.filter((item) => {
+    if (item.hidden) return false;
+    if (isElevatedOfficerUser) {
+      return !ELEVATED_OFFICER_HIDDEN.has(item.id);
+    }
+    // Modules moved off admin — officers may still reach them via officerAccess.
+    if (ADMIN_HIDDEN.has(item.id)) {
+      return item.officerAccess === true && isOfficerUser && !isAdminUser;
+    }
+    if (!item.adminOnly) return true;
+    if (isAdminUser) return true;
+    return item.officerAccess === true && isOfficerUser;
+  });
 }
 
 export function moduleSections(items: ModuleMenuItem[], t: (key: string, telugu: string) => string) {
@@ -79,7 +97,7 @@ export function moduleSections(items: ModuleMenuItem[], t: (key: string, telugu:
     },
     {
       title: t('Field Operations & Duties', 'ఫీల్డ్ విధులు & కార్యకలాపాలు'),
-      ids: ['dealers', 'farm-mechanization', 'farmer-database', 'officer-contacts', 'quality', 'subsidy', 'tour-diary'],
+      ids: ['dealers', 'farm-mechanization', 'farmer-database', 'officer-contacts', 'tour-diary'],
     },
     {
       title: t('Knowledge & Portals', 'జ్ఞాన భాండాగారం & పోర్టల్స్'),
@@ -87,7 +105,11 @@ export function moduleSections(items: ModuleMenuItem[], t: (key: string, telugu:
     },
     {
       title: t('Records & Archives', 'రికార్డులు & ఆర్కైవ్'),
-      ids: ['file-directory', 'excel', 'officer-records', 'settings'],
+      ids: ['file-directory', 'excel', 'officer-records'],
+    },
+    {
+      title: t('Administration', 'నిర్వహణ'),
+      ids: ['user-management', 'dealer-management', 'settings'],
     },
   ];
 
@@ -97,8 +119,7 @@ export function moduleSections(items: ModuleMenuItem[], t: (key: string, telugu:
     .map((section) => {
       const sectionItems = section.ids
         .map((id) => itemById.get(id))
-        .filter((item): item is ModuleMenuItem => Boolean(item))
-        .sort((a, b) => a.label.localeCompare(b.label));
+        .filter((item): item is ModuleMenuItem => Boolean(item));
       sectionItems.forEach((item) => used.add(item.id));
       return { title: section.title, items: sectionItems };
     })
@@ -126,6 +147,7 @@ export function translateMenu(label: string) {
     'Stock Inventory': 'స్టాక్ ఇన్వెంటరీ',
     'My Stock Entry': 'నా స్టాక్ ఎంట్రీ',
     'Dealers Directory': 'డీలర్ల డైరెక్టరీ',
+    'Dealer Management': 'డీలర్ నిర్వహణ',
     'Dealer Stock Tracking': 'డీలర్ స్టాక్ ట్రాకింగ్',
     'Farmer Database': 'రైతుల డేటాబేస్',
     'Officer Toolkit': 'ఆఫీసర్ టూల్‌కిట్',
@@ -143,13 +165,11 @@ export function translateMenu(label: string) {
     'Pesticide Calculator': 'పురుగుమందుల కాలిక్యులేటర్',
     'Area Calculator': 'ఎకరాల కాలిక్యులేటర్',
     'GOs & Circulars': 'జి.ఓ.లు & సర్క్యులర్లు',
-    'Quality Control': 'నాణ్యత నియంత్రణ',
     'Agrochemicals Database': 'వ్యవసాయ రసాయనాల భాండాగారం',
     Agrochemicals: 'వ్యవసాయ రసాయనాలు',
     'Farm Mechanization': 'వ్యవసాయ యాంత్రీకరణ',
     'Office Records': 'కార్యాలయ రికార్డులు',
     'Document Repository': 'పత్రాల భాండాగారం',
-    'Subsidy & Schemes': 'సబ్సిడీ & పథకాలు',
     'Tour Diary': 'టూర్ డైరీ',
     'Officer Contacts': 'అధికారుల పరిచయాలు',
     'License Services': 'లైసెన్స్ సేవలు',
@@ -165,6 +185,7 @@ export function translateMenu(label: string) {
     Fertilizers: 'ఎరువులు',
     Analytics: 'విశ్లేషణలు',
     Settings: 'సెట్టింగులు',
+    'User Management': 'వినియోగదారు నిర్వహణ',
     'All Modules': 'అన్ని మాడ్యూల్‌లు',
   };
   return labels[label] ?? label;

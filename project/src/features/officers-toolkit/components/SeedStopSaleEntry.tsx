@@ -133,7 +133,7 @@ function readFormDraft(): SeedStopSaleFormState | null {
 function makeInitialForm(): SeedStopSaleFormState {
   const fy = currentFinancialYear();
   const statutory = readStatutoryDetails('seed');
-  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumuram Bheem Asifabad', statutory.manualDistrict || '');
+  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumurambheem Asifabad', statutory.manualDistrict || '');
   const resolvedMandal = resolveMandal(resolvedDistrict.district, statutory.mandal || 'Tiryani', statutory.manualMandal || '');
   return {
     orderNumber: `SSN/S/${fy}`,
@@ -161,7 +161,7 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
   const officerDesignation = form.officerDesignation || 'Seed Inspector';
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || '________________';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || '________________';
-  const districtDisplay = districtValue.toLowerCase() === 'kumrambheem asifabad' ? 'Kumuram Bheem Asifabad' : districtValue;
+  const districtDisplay = ['kumurambheem asifabad', 'kumrambheem asifabad'].includes(districtValue.toLowerCase()) ? 'Kumurambheem Asifabad' : districtValue;
   const placeValue = mandalValue;
   const dateValue = form.noticeDate ? formatNoticeDate(form.noticeDate) : '__________';
 

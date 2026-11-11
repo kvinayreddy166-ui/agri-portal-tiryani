@@ -1474,7 +1474,7 @@ function inspectorAddress(values: PesticidePdfValues) {
   const resolvedMandal = officerLocation(values);
   const resolvedDistrict = values.district === 'Others' ? values.manualDistrict : values.district;
   
-  // Format district with PIN Code (e.g., "Kumrambheem Asifabad -504297")
+  // Format district with PIN Code (e.g., "Kumurambheem Asifabad -504297")
   const districtWithPincode = values.pincode && resolvedDistrict 
     ? `${resolvedDistrict} -${values.pincode}`
     : resolvedDistrict || '';

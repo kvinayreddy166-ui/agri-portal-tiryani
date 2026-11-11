@@ -14,7 +14,7 @@ export const OFFICER_DISTRICTS = [
   'Kamareddy',
   'Karimnagar',
   'Khammam',
-  'Kumuram Bheem Asifabad',
+  'Kumurambheem Asifabad',
   'Mahabubabad',
   'Mahabubnagar',
   'Mancherial',
@@ -39,8 +39,11 @@ export const OFFICER_DISTRICTS = [
 ];
 
 export const OFFICER_DISTRICT_TO_MANDAL_KEY: Record<string, string> = {
-  'Hanamakonda': 'Hanamkonda',
-  'Kumuram Bheem Asifabad': 'Kumrambheem Asifabad',
+  'Hanamakonda': 'Hanumakonda',
+  'Hanamkonda': 'Hanumakonda',
+  'Kumurambheem Asifabad': 'Kumurambheem Asifabad',
+  'Kumuram Bheem Asifabad': 'Kumurambheem Asifabad',
+  'Kumrambheem Asifabad': 'Kumurambheem Asifabad',
   'Medchal-Malkajgiri': 'Medchal–Malkajgiri',
   'Rangareddy': 'Ranga Reddy',
 };

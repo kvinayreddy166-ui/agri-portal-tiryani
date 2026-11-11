@@ -135,7 +135,7 @@ function readFormDraft(): StopSaleFormState | null {
 function makeInitialForm(): StopSaleFormState {
   const fy = currentFinancialYear();
   const statutory = readStatutoryDetails('pesticide');
-  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumuram Bheem Asifabad', statutory.manualDistrict || '');
+  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumurambheem Asifabad', statutory.manualDistrict || '');
   const resolvedMandal = resolveMandal(resolvedDistrict.district, statutory.mandal || 'Tiryani', statutory.manualMandal || '');
   return {
     orderNumber: `SSO/P/${fy}`,
@@ -168,7 +168,7 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
   );
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || '________________';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || '________________';
-  const districtDisplay = districtValue.toLowerCase() === 'kumrambheem asifabad' ? 'Kumuram Bheem Asifabad' : districtValue;
+  const districtDisplay = ['kumurambheem asifabad', 'kumrambheem asifabad'].includes(districtValue.toLowerCase()) ? 'Kumurambheem Asifabad' : districtValue;
 
   const orderDateObj = form.orderDate ? new Date(`${form.orderDate}T00:00:00`) : null;
   const dayPart = orderDateObj ? String(orderDateObj.getDate()).padStart(2, '0') : '_____';

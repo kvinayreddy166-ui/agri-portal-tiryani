@@ -29,10 +29,9 @@ export function GoogleMapWidget() {
 
   useEffect(() => {
     if (!apiKey || !mapRef.current) return;
-    let isMounted = true;
 
     const initMap = () => {
-      if (!isMounted || !window.google?.maps || !mapRef.current) return;
+      if (!window.google?.maps || !mapRef.current) return;
       const map = new window.google.maps.Map(mapRef.current, {
         center: TIRYANI_CENTER,
         zoom: 16,
@@ -70,11 +69,9 @@ export function GoogleMapWidget() {
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&v=weekly`;
     script.async = true;
     script.defer = true;
-    script.onload = () => { if (isMounted) initMap(); };
-    script.onerror = () => { if (isMounted) setLoadError(true); };
+    script.onload = initMap;
+    script.onerror = () => setLoadError(true);
     document.head.appendChild(script);
-
-    return () => { isMounted = false; };
   }, [apiKey]);
 
   useEffect(() => {
@@ -92,7 +89,7 @@ export function GoogleMapWidget() {
   if (!apiKey || loadError) {
     const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(TIRYANI_QUERY)}&ll=${TIRYANI_CENTER.lat},${TIRYANI_CENTER.lng}&z=16&t=k&output=embed`;
     return (
-      <div className="portal-card overflow-hidden rounded-2xl">
+      <div className="portal-card overflow-hidden">
         <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3 dark:border-slate-700">
           <MapPin className="h-5 w-5 text-emerald-600" />
           <h3 className="font-black text-slate-900 dark:text-white">
@@ -120,7 +117,7 @@ export function GoogleMapWidget() {
   }
 
   return (
-    <div className="portal-card overflow-hidden rounded-2xl">
+    <div className="portal-card overflow-hidden">
       <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3 dark:border-slate-700">
         <MapPin className="h-5 w-5 text-emerald-600" />
         <h3 className="font-black text-slate-900 dark:text-white">

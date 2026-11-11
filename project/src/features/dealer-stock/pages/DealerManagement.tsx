@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus, Edit2, Trash2, Users, Search, Save, X, KeyRound, Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
-import { supabase } from '../../../shared/lib/supabase';
+import { supabase, ADMIN_USER_ID } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { Dealer } from '../../../shared/types/database';
 import { provisionAllDealerLogins, provisionDealerLogin } from '../../auth/lib/provisionDealerLogins';
 import { dealerEmailFromPhone, DEALER_DEFAULT_PASSWORD, normalizePhone } from '../../auth/lib/dealerAuth';
 import { cachedSupabaseRows } from '../../../shared/lib/offlineCache';
+import { downloadCsv } from '../../../shared/utils/csvExport';
 
 type DealerCategory = 'fertilizer' | 'seed' | 'pesticide';
 
@@ -29,9 +30,10 @@ const DEALERS_PAGE_SIZE = 25;
 const DEALER_COLUMNS =
   'id, dealer_name, ifms_id, phone_number, portal_email, license_number, issue_date, expiry_date, location, dealer_category, created_by, created_by_name, created_at, updated_at';
 
-export function DealerManagement() {
-  const { isAdminUser, isOfficerUser, officerProfile, user } = useAuth();
-  const canManageDealers = isAdminUser || isOfficerUser;
+export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: boolean }) {
+  const { isAdminUser, isElevatedOfficerUser, isOfficerUser, officerProfile, user } = useAuth();
+  const canManageDealers = (isAdminUser || isOfficerUser) && !isElevatedOfficerUser;
+  const restrictToOwn = scopeToCreator && isOfficerUser && !isAdminUser;
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<DealerCategory>('fertilizer');
   const [dealers, setDealers] = useState<Dealer[]>([]);
@@ -47,12 +49,14 @@ export function DealerManagement() {
   const [loginPassword, setLoginPassword] = useState(DEALER_DEFAULT_PASSWORD);
   const [allDealersForLogin, setAllDealersForLogin] = useState<Dealer[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [selectedDealerIds, setSelectedDealerIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const fetchDealers = useCallback(async () => {
     setLoading(true);
     try {
       const rows = await cachedSupabaseRows<Dealer>(
-        `dealers:${user?.id ?? 'anon'}:${activeTab}:v4`,
+        `dealers:${user?.id ?? 'anon'}:${activeTab}:${restrictToOwn ? 'mine' : 'all'}:v4`,
         () =>
           supabase
             .from('dealers')
@@ -62,22 +66,28 @@ export function DealerManagement() {
             .limit(600),
         []
       );
-      setDealers(rows);
+      setDealers(restrictToOwn ? rows.filter((d) => d.created_by === user?.id) : rows);
     } catch (error) {
       console.error('Error fetching dealers:', error);
       const { data: fallback } = await supabase.from('dealers').select(DEALER_COLUMNS).order('dealer_name').limit(600);
-      const filtered = (fallback || []).filter(
+      let filtered = (fallback || []).filter(
         (d) => (d.dealer_category || 'fertilizer') === activeTab
       );
+      if (restrictToOwn) filtered = filtered.filter((d) => d.created_by === user?.id);
       setDealers(filtered as Dealer[]);
     } finally {
       setLoading(false);
     }
-  }, [activeTab, user?.id]);
+  }, [activeTab, user?.id, restrictToOwn]);
 
   useEffect(() => {
     void fetchDealers();
   }, [fetchDealers]);
+
+  useEffect(() => {
+    setSelectedDealerIds(new Set());
+    setCurrentPage(0);
+  }, [activeTab]);
 
   const openLoginSetup = async () => {
     try {
@@ -188,6 +198,10 @@ export function DealerManagement() {
       alert(`${t('Please fill required fields:', 'దయచేసి అవసరమైన వివరాలు పూరించండి:')} ${missing.join(', ')}`);
       return;
     }
+    if (!/^\d{10}$/.test(normalizePhone(payload.phone_number))) {
+      alert(t('Phone number must be exactly 10 digits.', 'ఫోన్ నంబర్ తప్పనిసరిగా 10 అంకెలు ఉండాలి.'));
+      return;
+    }
     try {
       const { error } = await supabase.from('dealers').insert([payload]);
       if (error) throw error;
@@ -204,6 +218,10 @@ export function DealerManagement() {
     try {
       const dealer = dealers.find((d) => d.id === id);
       if (!dealer) return;
+      if (!/^\d{10}$/.test(normalizePhone(dealer.phone_number))) {
+        alert(t('Phone number must be exactly 10 digits.', 'ఫోన్ నంబర్ తప్పనిసరిగా 10 అంకెలు ఉండాలి.'));
+        return;
+      }
       const payload = {
         ...dealer,
         ifms_id: activeTab === 'fertilizer' ? dealer.ifms_id : '',
@@ -232,6 +250,33 @@ export function DealerManagement() {
     }
   };
 
+  const toggleDealerSelect = (id: string) => {
+    setSelectedDealerIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkDeleteDealers = async () => {
+    const ids = [...selectedDealerIds];
+    if (ids.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${ids.length} dealer(s)?`)) return;
+    setBulkDeleting(true);
+    try {
+      const { error } = await supabase.from('dealers').delete().in('id', ids);
+      if (error) throw error;
+      setDealers((prev) => prev.filter((d) => !selectedDealerIds.has(d.id)));
+      setSelectedDealerIds(new Set());
+    } catch (error) {
+      console.error('Error deleting dealers:', error);
+      alert((error as { message?: string })?.message || 'Failed to delete dealers');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   const handleExcelImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -247,7 +292,10 @@ export function DealerManagement() {
           null,
       });
       if (imported > 0) {
-        alert(`Imported ${imported} dealers`);
+        const skippedNote = errors.length
+          ? '\n\n' + t('Skipped rows:', 'విఫలమైన వరుసలు:') + '\n' + errors.slice(0, 10).join('\n')
+          : '';
+        alert(`Imported ${imported} dealers${skippedNote}`);
         void fetchDealers();
       } else if (errors.length) {
         alert(errors.join('\n'));
@@ -258,6 +306,27 @@ export function DealerManagement() {
     }
   };
 
+  const handleExportCsv = () => {
+    const tabLabel = TABS.find((tab) => tab.id === activeTab)?.label ?? activeTab;
+    downloadCsv(
+      `dealers-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`,
+      ['Dealer Name', 'IFMS ID', 'Phone', 'Portal Email', 'License Number', 'Issue Date', 'Expiry Date', 'Location', 'Category', 'Created By', 'Created On'],
+      filteredDealers.map((d) => [
+        d.dealer_name,
+        d.ifms_id || '',
+        d.phone_number || '',
+        d.portal_email || '',
+        d.license_number || '',
+        d.issue_date || '',
+        d.expiry_date || '',
+        d.location || '',
+        tabLabel,
+        d.created_by_name || '',
+        d.created_at ? new Date(d.created_at).toLocaleString() : '',
+      ])
+    );
+  };
+
   const updateLocalDealer = (id: string, field: string, value: string) => {
     setDealers((prev) =>
       prev.map((dealer) => (dealer.id === id ? { ...dealer, [field]: value } : dealer))
@@ -266,13 +335,23 @@ export function DealerManagement() {
 
   const filteredDealers = useMemo(
     () =>
-      dealers.filter(
-        (dealer) =>
+      dealers.filter((dealer) => {
+        // Elevated officer directory: only dealers added by admin (or legacy
+        // rows with no creator) — never dealers created by officers.
+        if (
+          isElevatedOfficerUser &&
+          dealer.created_by &&
+          dealer.created_by !== ADMIN_USER_ID
+        ) {
+          return false;
+        }
+        return (
           dealer.dealer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           dealer.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
           dealer.license_number.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
-    [dealers, searchTerm]
+        );
+      }),
+    [dealers, searchTerm, isElevatedOfficerUser]
   );
   const pageCount = Math.max(1, Math.ceil(filteredDealers.length / DEALERS_PAGE_SIZE));
   const paginatedDealers = filteredDealers.slice(
@@ -342,6 +421,17 @@ export function DealerManagement() {
               <Download className="h-4 w-4" />
               {t('Template', 'టెంప్లేట్')}
             </a>
+            {isAdminUser && (
+              <button
+                type="button"
+                onClick={handleExportCsv}
+                disabled={filteredDealers.length === 0}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/60"
+              >
+                <Download className="h-4 w-4" />
+                {t('Export CSV', 'CSV ఎగుమతి')}
+              </button>
+            )}
             {isAdminUser && (
               <button
                 type="button"
@@ -574,11 +664,53 @@ export function DealerManagement() {
         </div>
       )}
 
+      {canManageDealers && selectedDealerIds.size > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-2.5 dark:border-emerald-800 dark:bg-emerald-950/30">
+          <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-200">
+            {selectedDealerIds.size} {t('selected', 'ఎంచుకోబడ్డాయి')}
+          </span>
+          <button
+            type="button"
+            onClick={handleBulkDeleteDealers}
+            disabled={bulkDeleting}
+            className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-950/50"
+          >
+            {bulkDeleting ? '...' : t('Delete Selected', 'ఎంచుకున్నవి తొలగించండి')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedDealerIds(new Set())}
+            disabled={bulkDeleting}
+            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800"
+          >
+            {t('Clear', 'క్లియర్')}
+          </button>
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
         <div className="table-scroll">
           <table className="w-full min-w-[860px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left dark:border-slate-700 dark:bg-slate-800/60">
+                {canManageDealers && (
+                  <th className="w-10 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={paginatedDealers.length > 0 && paginatedDealers.every((d) => selectedDealerIds.has(d.id))}
+                      onChange={() => {
+                        setSelectedDealerIds((prev) => {
+                          const next = new Set(prev);
+                          const allChecked = paginatedDealers.every((d) => next.has(d.id));
+                          paginatedDealers.forEach((d) => (allChecked ? next.delete(d.id) : next.add(d.id)));
+                          return next;
+                        });
+                      }}
+                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      aria-label={t('Select all dealers on this page', 'ఈ పేజీలోని అన్ని డీలర్లను ఎంచుకోండి')}
+                    />
+                  </th>
+                )}
                 <th className="w-12 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   #
                 </th>
@@ -624,6 +756,17 @@ export function DealerManagement() {
                     editingId === dealer.id ? 'bg-emerald-50/50 dark:bg-emerald-950/20' : ''
                   }`}
                 >
+                  {canManageDealers && (
+                    <td className="px-4 py-3 align-middle">
+                      <input
+                        type="checkbox"
+                        checked={selectedDealerIds.has(dealer.id)}
+                        onChange={() => toggleDealerSelect(dealer.id)}
+                        className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                        aria-label={t('Select dealer', 'డీలర్‌ను ఎంచుకోండి')}
+                      />
+                    </td>
+                  )}
                   <td className="px-4 py-3 text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">
                     {currentPage * DEALERS_PAGE_SIZE + index + 1}
                   </td>
@@ -777,8 +920,12 @@ function FormFields({
         </label>
         <input
           type="tel"
+          inputMode="numeric"
+          pattern="[0-9]{10}"
+          maxLength={10}
           value={formData.phone_number}
-          onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+          onChange={(e) => setFormData({ ...formData, phone_number: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+          placeholder="9876543210"
           className={inputCls}
         />
       </div>
@@ -877,11 +1024,19 @@ function DisplayRow({
           </span>
           <div className="min-w-0">
             <div className="truncate font-semibold text-slate-900 dark:text-white">{dealer.dealer_name}</div>
-            {dealer.created_by_name && (
-              <div className="truncate text-[11px] text-slate-400 dark:text-slate-500">
-                {t('Added by', 'కలిపినవారు')}: {dealer.created_by_name}
-              </div>
-            )}
+            {(() => {
+              // Admin-added dealers: explicit admin uid, or legacy/imported
+              // rows with no creator (only admin/officer accounts can insert).
+              const isAdminCreated = !dealer.created_by || dealer.created_by === ADMIN_USER_ID;
+              const addedBy =
+                dealer.created_by_name ||
+                (isAdminCreated ? 'K. Vinay Reddy' : null);
+              return addedBy ? (
+                <div className="truncate text-[11px] text-slate-400 dark:text-slate-500">
+                  {t('Added by', 'కలిపినవారు')}: {addedBy}
+                </div>
+              ) : null;
+            })()}
           </div>
         </div>
       </td>
@@ -983,8 +1138,10 @@ function EditRow({
       <td className="px-4 py-3 align-middle">
         <input
           type="tel"
+          inputMode="numeric"
+          maxLength={10}
           value={dealer.phone_number}
-          onChange={(e) => updateLocalDealer(dealer.id, 'phone_number', e.target.value)}
+          onChange={(e) => updateLocalDealer(dealer.id, 'phone_number', e.target.value.replace(/\D/g, '').slice(0, 10))}
           className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
         />
       </td>

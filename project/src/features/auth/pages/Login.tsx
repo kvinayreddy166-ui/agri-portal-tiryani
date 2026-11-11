@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlertCircle,
@@ -23,6 +23,7 @@ import { recordSiteHit } from '../../../shared/lib/siteHits';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TurnstileWidget, type TurnstileWidgetHandle } from '../../../shared/components/security/TurnstileWidget';
 import { isTurnstileEnabled } from '../../../shared/lib/turnstile';
+import { safeStorage } from '../../../shared/lib/safeStorage';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 
 const PublicOfficerTools = React.lazy(() => import('./PublicOfficerTools').then((m) => ({ default: m.PublicOfficerTools })));
@@ -55,6 +56,14 @@ export function Login() {
   const { language, toggleLanguage, t } = useLanguage();
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const turnstileRef = useRef<TurnstileWidgetHandle>(null);
+
+  useEffect(() => {
+    const notice = safeStorage.getItem('agri_auth_notice');
+    if (notice) {
+      safeStorage.removeItem('agri_auth_notice');
+      setError(notice);
+    }
+  }, []);
   const resetCaptcha = () => {
     setCaptchaToken(null);
     turnstileRef.current?.reset();
@@ -114,9 +123,11 @@ export function Login() {
 
     if (signInError) {
       setError(
-        normalizedEmail === ADMIN_EMAIL
-          ? t('Admin login failed. Please check the admin email and password.', 'Admin login failed. Please check the admin email and password.')
-          : t('Login failed. Please use the assigned test login details.', 'Login failed. Please use the assigned test login details.')
+        signInError.message.toLowerCase().includes('suspended')
+          ? signInError.message
+          : normalizedEmail === ADMIN_EMAIL
+            ? t('Admin login failed. Please check the admin email and password.', 'Admin login failed. Please check the admin email and password.')
+            : t('Login failed. Please use the assigned test login details.', 'Login failed. Please use the assigned test login details.')
       );
     } else if (normalizedEmail === TEST_EMAIL) {
       void recordSiteHit({ path: '/login/test-login', countOncePerSession: false });

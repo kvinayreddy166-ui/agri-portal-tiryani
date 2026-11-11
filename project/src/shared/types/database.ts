@@ -131,30 +131,6 @@ export interface GosCircular {
   created_by: string;
 }
 
-export interface QualityControlSample {
-  id: string;
-  category: string;
-  financial_year: string;
-  dealer_name: string;
-  license_number: string;
-  phone_number: string;
-  location: string;
-  sample_date: string;
-  form_url: string | null;
-  remarks: string;
-  created_at: string;
-  created_by: string;
-}
-
-export interface QualityControlTarget {
-  id: string;
-  category: string;
-  financial_year: string;
-  target_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface FarmMechanizationDocument {
   id: string;
   document_type: 'applications_received' | 'proceedings_generated';

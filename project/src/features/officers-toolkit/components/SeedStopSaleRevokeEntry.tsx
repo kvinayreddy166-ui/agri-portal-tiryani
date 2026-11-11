@@ -117,7 +117,7 @@ function readFormDraft(): SeedRevokeFormState | null {
 function makeInitialForm(): SeedRevokeFormState {
   const fy = currentFinancialYear();
   const statutory = readStatutoryDetails('seed');
-  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumuram Bheem Asifabad', statutory.manualDistrict || '');
+  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumurambheem Asifabad', statutory.manualDistrict || '');
   const resolvedMandal = resolveMandal(resolvedDistrict.district, statutory.mandal || 'Tiryani', statutory.manualMandal || '');
   return {
     orderNumber: `RSN/S/${fy}`,
@@ -171,7 +171,7 @@ function buildRevokeModel(form: SeedRevokeFormState): NoticeBlock[] {
   const officerDesignation = form.officerDesignation || 'Seed Inspector';
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || '________________';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || '________________';
-  const districtDisplay = districtValue.toLowerCase() === 'kumrambheem asifabad' ? 'Kumuram Bheem Asifabad' : districtValue;
+  const districtDisplay = ['kumurambheem asifabad', 'kumrambheem asifabad'].includes(districtValue.toLowerCase()) ? 'Kumurambheem Asifabad' : districtValue;
 
   const firmDisplay = form.firmName.trim() || '____________________________';
   const placeValue = mandalValue;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   User,
   Database,
@@ -8,11 +8,7 @@ import {
   GraduationCap,
   Briefcase,
   AlertTriangle,
-  Trash2,
-  RefreshCw,
-  Users,
   CheckCircle2,
-  ShieldAlert,
   Pencil,
   X,
 } from 'lucide-react';
@@ -29,22 +25,6 @@ import {
   officerShowsDivision,
   officerShowsMandal,
 } from '../../auth/lib/officerProfileForm';
-
-interface OfficerRow {
-  id: string;
-  full_name: string;
-  designation: string;
-  qualification?: string;
-  hrms_id?: string;
-  district: string;
-  mandal: string;
-  division?: string;
-  phone: string;
-  email: string;
-  role: string;
-  status: string;
-  created_at: string;
-}
 
 export function Settings() {
   const { isAdminUser, isOfficerUser, user, officerProfile, signOut, refreshOfficerProfile } = useAuth();
@@ -159,37 +139,7 @@ export function Settings() {
     }
   };
 
-  // Admin Officer Management state
-  const [adminOfficers, setAdminOfficers] = useState<OfficerRow[]>([]);
-  const [loadingOfficers, setLoadingOfficers] = useState(false);
-  const [officerToDelete, setOfficerToDelete] = useState<OfficerRow | null>(null);
-  const [adminDeleteConfirmText, setAdminDeleteConfirmText] = useState('');
-  const [adminDeleting, setAdminDeleting] = useState(false);
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
-
-  const loadOfficerAccounts = useCallback(async () => {
-    if (!isAdminUser) return;
-    setLoadingOfficers(true);
-    try {
-      const { data, error } = await supabase
-        .from('officer_profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (!error && data) {
-        setAdminOfficers(data as OfficerRow[]);
-      }
-    } catch (e) {
-      console.warn('Failed to load officer profiles:', e);
-    } finally {
-      setLoadingOfficers(false);
-    }
-  }, [isAdminUser]);
-
-  useEffect(() => {
-    if (isAdminUser) {
-      loadOfficerAccounts();
-    }
-  }, [isAdminUser, loadOfficerAccounts]);
 
   const handleDeleteAccount = async () => {
     if (!user) return;
@@ -266,62 +216,6 @@ export function Settings() {
       console.error('Error deleting account:', error);
       alert((error as Error)?.message || 'Failed to delete account. Please contact administrator.');
       setDeleting(false);
-    }
-  };
-
-  const handleAdminDeleteOfficer = async () => {
-    if (!officerToDelete) return;
-    const confirmInput = adminDeleteConfirmText.trim().toLowerCase();
-    const officerEmail = officerToDelete.email.trim().toLowerCase();
-
-    if (confirmInput !== 'delete' && confirmInput !== officerEmail) {
-      alert('Please type "DELETE" or the officer\'s email to confirm.');
-      return;
-    }
-
-    setAdminDeleting(true);
-    try {
-      let deleted = false;
-
-      // 1. Try RPC delete_officer_account
-      try {
-        const { data: rpcData, error: rpcError } = await supabase.rpc('delete_officer_account', {
-          p_user_id: officerToDelete.id,
-        });
-        if (!rpcError && (rpcData as { success?: boolean })?.success) {
-          deleted = true;
-        } else if (rpcError) {
-          console.warn('Admin RPC notice:', rpcError);
-        }
-      } catch (rpcEx) {
-        console.warn('Admin RPC exception:', rpcEx);
-      }
-
-      // 2. If RPC not successful, fallback to Edge Function
-      if (!deleted) {
-        const { data: fnData, error: fnError } = await supabase.functions.invoke('delete-account', {
-          body: { userId: officerToDelete.id },
-        });
-
-        if (fnError) {
-          throw new Error(fnError.message || 'Edge function call failed.');
-        }
-        if (fnData?.error) {
-          throw new Error(fnData.error);
-        }
-      }
-
-      const deletedName = officerToDelete.full_name || officerToDelete.email;
-      setAdminOfficers((prev) => prev.filter((o) => o.id !== officerToDelete.id));
-      setOfficerToDelete(null);
-      setAdminDeleteConfirmText('');
-      setActionSuccessMessage(`Officer account "${deletedName}" was permanently deleted.`);
-      setTimeout(() => setActionSuccessMessage(null), 6000);
-    } catch (err: unknown) {
-      console.error('Admin officer deletion error:', err);
-      alert((err as Error)?.message || 'Failed to delete officer account. Please verify database permissions.');
-    } finally {
-      setAdminDeleting(false);
     }
   };
 
@@ -425,7 +319,7 @@ export function Settings() {
                     onChange={(e) => {
                       const dist = e.target.value;
                       const distMandals = getMandalsForDistrict(OFFICER_DISTRICT_TO_MANDAL_KEY[dist] || dist);
-                      setProfileForm({ ...profileForm, district: dist, mandal: distMandals[0] || profileForm.mandal });
+                      setProfileForm({ ...profileForm, district: dist, mandal: distMandals[0] || profileForm.mandal, division: '' });
                     }}
                     className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
                   >
@@ -434,6 +328,19 @@ export function Settings() {
                     ))}
                   </select>
                 </div>
+                {editShowsDivision && (
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Division *</label>
+                    <DivisionPicker
+                      district={OFFICER_DISTRICT_TO_MANDAL_KEY[profileForm.district] || profileForm.district}
+                      value={profileForm.division}
+                      onChange={(v) => setProfileForm({ ...profileForm, division: v })}
+                      selectClassName="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                      inputClassName="mt-2 w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
+                      inputPlaceholder="e.g. Asifabad / Bellampalli"
+                    />
+                  </div>
+                )}
                 {editShowsMandal && (
                   <div>
                     <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Mandal / Jurisdiction *</label>
@@ -450,19 +357,6 @@ export function Settings() {
                       ))}
                       <option value="District HQ">District HQ / Others</option>
                     </select>
-                  </div>
-                )}
-                {editShowsDivision && (
-                  <div>
-                    <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Division *</label>
-                    <DivisionPicker
-                      district={OFFICER_DISTRICT_TO_MANDAL_KEY[profileForm.district] || profileForm.district}
-                      value={profileForm.division}
-                      onChange={(v) => setProfileForm({ ...profileForm, division: v })}
-                      selectClassName="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
-                      inputClassName="mt-2 w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
-                      inputPlaceholder="e.g. Asifabad / Bellampalli"
-                    />
                   </div>
                 )}
                 <div>
@@ -632,170 +526,6 @@ export function Settings() {
           </div>
         </div>
       </div>
-
-      {/* Admin Section: Officer Accounts Management */}
-      {isAdminUser && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Officer Accounts Management</h2>
-            </div>
-            <button
-              type="button"
-              onClick={loadOfficerAccounts}
-              disabled={loadingOfficers}
-              className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loadingOfficers ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-          </div>
-
-          <p className="text-sm text-gray-600 dark:text-slate-300 mb-4">
-            As portal administrator, you can view and remove registered officer accounts upon administrative review or officer request.
-          </p>
-
-          {loadingOfficers ? (
-            <div className="py-8 text-center text-gray-500 dark:text-slate-400 text-sm">
-              <Spinner size="md" className="text-emerald-600 dark:text-emerald-400 mx-auto mb-2" label="Loading" />
-              Loading officer accounts...
-            </div>
-          ) : adminOfficers.length === 0 ? (
-            <div className="py-6 text-center text-gray-500 dark:text-slate-400 text-sm bg-gray-50 dark:bg-slate-800/40 rounded-lg">
-              No registered officer accounts found.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-slate-700 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
-                    <th className="py-3 px-4">Officer Name</th>
-                    <th className="py-3 px-4">Designation</th>
-                    <th className="py-3 px-4">District / Mandal</th>
-                    <th className="py-3 px-4">Contact</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
-                  {adminOfficers.map((officer) => {
-                    const isSelf = officer.id === user?.id;
-                    return (
-                      <tr key={officer.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="font-medium text-gray-900 dark:text-white">{officer.full_name}</div>
-                          {officer.qualification && (
-                            <div className="text-xs text-gray-500 dark:text-slate-400">{officer.qualification}</div>
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                            {officer.designation}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-xs text-gray-600 dark:text-slate-300">
-                          <div>{officer.district}</div>
-                          <div className="text-gray-400 dark:text-slate-500">{officer.mandal}</div>
-                        </td>
-                        <td className="py-3 px-4 text-xs text-gray-600 dark:text-slate-300">
-                          <div>{officer.email}</div>
-                          <div className="text-gray-400 dark:text-slate-500">{officer.phone}</div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 uppercase">
-                            {officer.status || 'Active'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setOfficerToDelete(officer);
-                              setAdminDeleteConfirmText('');
-                            }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 dark:text-red-400 transition-colors border border-red-200 dark:border-red-900/40"
-                            title={isSelf ? 'Delete your own account' : `Delete ${officer.full_name}`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Admin Delete Officer Confirmation Modal */}
-      {officerToDelete && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-red-200 dark:border-red-900/40">
-            <div className="mb-4 flex items-center gap-2">
-              <ShieldAlert className="w-6 h-6 text-red-500" />
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete Officer Account</h3>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-slate-300 mb-3">
-              You are deleting the officer account for <strong className="text-gray-900 dark:text-white">{officerToDelete.full_name}</strong> (<code>{officerToDelete.email}</code>).
-            </p>
-            <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-3 rounded-lg mb-4">
-              This will permanently delete this officer&apos;s inspections, statutory orders, sampling memos, and auth account. This action cannot be reversed.
-            </p>
-            <div className="mb-4">
-              <label className="block text-xs font-medium text-gray-700 dark:text-slate-200 mb-1.5">
-                Type <span className="font-semibold text-red-600 dark:text-red-400">DELETE</span> or the officer&apos;s email to confirm:
-              </label>
-              <input
-                type="text"
-                value={adminDeleteConfirmText}
-                onChange={(e) => setAdminDeleteConfirmText(e.target.value)}
-                placeholder="Type DELETE to confirm"
-                autoFocus
-                className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              />
-            </div>
-            <div className="flex gap-3 justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  setOfficerToDelete(null);
-                  setAdminDeleteConfirmText('');
-                }}
-                disabled={adminDeleting}
-                className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleAdminDeleteOfficer}
-                disabled={
-                  adminDeleting ||
-                  (adminDeleteConfirmText.trim().toLowerCase() !== 'delete' &&
-                    adminDeleteConfirmText.trim().toLowerCase() !== officerToDelete.email.trim().toLowerCase())
-                }
-                className="flex items-center gap-2 bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-              >
-                {adminDeleting ? (
-                  <>
-                    <Spinner size="xs" className="text-white" label="Loading" />
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    Delete Officer Permanently
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Delete Own Account Confirmation Modal */}
       {showDeleteModal && (

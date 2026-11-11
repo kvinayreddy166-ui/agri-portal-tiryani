@@ -55,7 +55,7 @@ describe('Login — Agricultural Officer Registration with Resend OTP', () => {
       designation: 'MAO',
       purpose: 'registration',
       payload: {
-        district: 'Kumuram Bheem Asifabad',
+        district: 'Kumurambheem Asifabad',
         mandal: 'Tiryani',
         phone: '9949497506',
       },

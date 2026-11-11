@@ -134,7 +134,7 @@ function readFormDraft(): SeedSeizureFormState | null {
 function makeInitialForm(): SeedSeizureFormState {
   const fy = currentFinancialYear();
   const statutory = readStatutoryDetails('seed');
-  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumuram Bheem Asifabad', statutory.manualDistrict || '');
+  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumurambheem Asifabad', statutory.manualDistrict || '');
   const resolvedMandal = resolveMandal(resolvedDistrict.district, statutory.mandal || 'Tiryani', statutory.manualMandal || '');
   return {
     refNumber: `REC/S/${fy}`,
@@ -158,7 +158,7 @@ function makeInitialForm(): SeedSeizureFormState {
 export function buildSeizureModel(form: SeedSeizureFormState): NoticeBlock[] {
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || '________________';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || '________________';
-  const districtDisplay = districtValue.toLowerCase() === 'kumrambheem asifabad' ? 'Kumuram Bheem Asifabad' : districtValue;
+  const districtDisplay = ['kumurambheem asifabad', 'kumrambheem asifabad'].includes(districtValue.toLowerCase()) ? 'Kumurambheem Asifabad' : districtValue;
   const divisionName = form.division.trim() || '________________';
   const officerDesignation = form.officerDesignation || 'Seed Inspector';
   const firmDisplay = form.firmName.trim() || '____________________________';

@@ -14,12 +14,10 @@ export const ExcelUploads = lazy(() => import('../../features/farmer-database/pa
 export const Analytics = lazy(() => import('../../features/dashboard/pages/Analytics').then((m) => ({ default: m.Analytics })));
 export const FarmerDatabase = lazy(() => import('../../features/farmer-database/pages/FarmerDatabase').then((m) => ({ default: m.FarmerDatabase })));
 export const Settings = lazy(() => import('../../features/settings/pages/Settings').then((m) => ({ default: m.Settings })));
-export const QualityControl = lazy(() => import('../../features/quality-control/pages/QualityControl').then((m) => ({ default: m.QualityControl })));
-export const QualityControlHub = lazy(() => import('../../features/quality-control/pages/QualityControlHub').then((m) => ({ default: m.QualityControlHub })));
+export const UserManagement = lazy(() => import('../../features/settings/pages/UserManagement').then((m) => ({ default: m.UserManagement })));
 export const FarmMechanization = lazy(() => import('../../features/schemes/pages/FarmMechanization').then((m) => ({ default: m.FarmMechanization })));
 export const GosCirculars = lazy(() => import('../../features/documents/pages/GosCirculars').then((m) => ({ default: m.GosCirculars })));
 export const FileDirectory = lazy(() => import('../../features/documents/pages/FileDirectory').then((m) => ({ default: m.FileDirectory })));
-export const SubsidyTracking = lazy(() => import('../../features/schemes/pages/SubsidyTracking').then((m) => ({ default: m.SubsidyTracking })));
 export const DealerStockPortal = lazy(() => import('../../features/dealer-stock/pages/DealerStockPortal').then((m) => ({ default: m.DealerStockPortal })));
 export const AcreageCalculator = lazy(() => import('../../features/calculators/pages/AcreageCalculator').then((m) => ({ default: m.AcreageCalculator })));
 export const FertilizerCalculator = lazy(() => import('../../features/calculators/pages/FertilizerCalculator').then((m) => ({ default: m.FertilizerCalculator })));

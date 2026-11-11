@@ -92,6 +92,16 @@ export const isTestUser = (email: string | undefined) => {
   return email?.trim().toLowerCase() === 'test@gmail.com';
 };
 
+// Officer who can VIEW all modules (except Dealer Management & User Management)
+// but keeps regular officer privileges — no admin write/upload actions.
+export const ELEVATED_OFFICER_EMAIL = 'agofficetiryani@gmail.com';
+export const isElevatedOfficerUser = (email: string | undefined) => {
+  return email?.trim().toLowerCase() === ELEVATED_OFFICER_EMAIL;
+};
+
+// auth.users.id of the portal admin — used to identify admin-created records.
+export const ADMIN_USER_ID = '0aa47647-42c0-4000-af00-e10ef4c2a77b';
+
 export const isDealerUser = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
   return user?.user_metadata?.role === 'dealer';
 };

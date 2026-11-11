@@ -16,9 +16,12 @@ import type { OfficerProfile } from '../types/officerAuth';
 
 // Signup uses slightly different spellings than the shared district data.
 const DISTRICT_ALIASES: Record<string, string> = {
-  'hanumakonda': 'Hanamkonda',
-  'kumuram bheem asifabad': 'Kumrambheem Asifabad',
-  'kumurambheem asifabad': 'Kumrambheem Asifabad',
+  'hanumakonda': 'Hanumakonda',
+  'hanamakonda': 'Hanumakonda',
+  'hanamkonda': 'Hanumakonda',
+  'kumuram bheem asifabad': 'Kumurambheem Asifabad',
+  'kumurambheem asifabad': 'Kumurambheem Asifabad',
+  'kumrambheem asifabad': 'Kumurambheem Asifabad',
   'medchal-malkajgiri': 'Medchal–Malkajgiri',
   'medchal–malkajgiri': 'Medchal–Malkajgiri',
   'rangareddy': 'Ranga Reddy',

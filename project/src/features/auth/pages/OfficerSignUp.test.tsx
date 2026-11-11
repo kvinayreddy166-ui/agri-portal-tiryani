@@ -50,6 +50,7 @@ describe('OfficerSignUp — 3-Step Registration Flow', () => {
       authChecked: true,
       appReady: true,
       isAdminUser: false,
+      isElevatedOfficerUser: false,
       isTestUser: false,
       isDealerUser: false,
       isOfficerUser: false,
@@ -103,7 +104,7 @@ describe('OfficerSignUp — 3-Step Registration Flow', () => {
       designation: 'MAO',
       purpose: 'registration',
       payload: {
-        district: 'Kumuram Bheem Asifabad',
+        district: 'Kumurambheem Asifabad',
         mandal: 'Tiryani',
         phone: '9949497506',
       },

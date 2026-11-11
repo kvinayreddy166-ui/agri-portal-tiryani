@@ -64,7 +64,7 @@ describe('OfficerCloudSyncService', () => {
         firmName: 'Sri Balaji Agro',
         noticeDate: '2026-11-04',
         mandal: 'Tiryani',
-        district: 'Kumuram Bheem Asifabad',
+        district: 'Kumurambheem Asifabad',
       }
     );
 
@@ -120,7 +120,7 @@ describe('OfficerCloudSyncService', () => {
         firmName: 'Lakshmi Agro Services',
         noticeDate: '2026-11-04',
         mandal: 'Tiryani',
-        district: 'Kumuram Bheem Asifabad',
+        district: 'Kumurambheem Asifabad',
         issuedAt: '2026-11-04T10:00:00.000Z',
       },
     ];

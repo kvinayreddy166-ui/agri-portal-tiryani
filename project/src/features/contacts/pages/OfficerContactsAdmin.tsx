@@ -23,9 +23,9 @@ interface OfficerContact {
 const OFFICER_TYPES: OfficerType[] = ['AEO', 'MAO', 'ADA', 'DAO'];
 
 const TELANGANA_DISTRICTS = [
-  'Adilabad', 'Bhadradri Kothagudem', 'Hanamkonda', 'Jagtial', 'Jangaon',
+  'Adilabad', 'Bhadradri Kothagudem', 'Hanumakonda', 'Jagtial', 'Jangaon',
   'Jayashankar Bhupalpally', 'Jogulamba Gadwal', 'Kamareddy', 'Karimnagar',
-  'Khammam', 'Kumrambheem Asifabad', 'Hyderabad', 'Mahabubabad', 'Mahabubnagar',
+  'Khammam', 'Kumurambheem Asifabad', 'Hyderabad', 'Mahabubabad', 'Mahabubnagar',
   'Mancherial', 'Medak', 'Medchal-Malkajgiri', 'Mulugu', 'Nagarkurnool',
   'Nalgonda', 'Narayanpet', 'Nirmal', 'Nizamabad', 'Peddapalli',
   'Rajanna Sircilla', 'Rangareddy', 'Sangareddy', 'Siddipet', 'Suryapet',

@@ -27,7 +27,7 @@ const TELANGANA_DISTRICTS = [
   'Kamareddy',
   'Karimnagar',
   'Khammam',
-  'Kumuram Bheem Asifabad',
+  'Kumurambheem Asifabad',
   'Mahabubabad',
   'Mahabubnagar',
   'Mancherial',
@@ -52,8 +52,11 @@ const TELANGANA_DISTRICTS = [
 ];
 
 const DISTRICT_TO_MANDAL_KEY: Record<string, string> = {
-  'Hanamakonda': 'Hanamkonda',
-  'Kumuram Bheem Asifabad': 'Kumrambheem Asifabad',
+  'Hanamakonda': 'Hanumakonda',
+  'Hanamkonda': 'Hanumakonda',
+  'Kumurambheem Asifabad': 'Kumurambheem Asifabad',
+  'Kumuram Bheem Asifabad': 'Kumurambheem Asifabad',
+  'Kumrambheem Asifabad': 'Kumurambheem Asifabad',
   'Medchal-Malkajgiri': 'Medchal–Malkajgiri',
   'Rangareddy': 'Ranga Reddy',
 };
@@ -83,7 +86,7 @@ export function FloatingActions() {
     farmer_name: '',
     mobile: '',
     email: '',
-    district: 'Kumuram Bheem Asifabad',
+    district: 'Kumurambheem Asifabad',
     mandal: '',
     issue_type: 'fertilizer',
     subject: '',
@@ -164,7 +167,7 @@ export function FloatingActions() {
       farmer_name: '',
       mobile: '',
       email: '',
-      district: 'Kumuram Bheem Asifabad',
+      district: 'Kumurambheem Asifabad',
       mandal: '',
       issue_type: 'fertilizer',
       subject: '',

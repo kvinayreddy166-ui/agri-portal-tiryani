@@ -147,7 +147,7 @@ export function readStatutoryDetails(category: NoticeCategory) {
       officerName: saved.officerName || '',
       officerDesignation: combinedNoticeDesignation(rawDesignation, category),
       mandal: saved.placeOfCollectionMandal || saved.sampleDrawingMandal || saved.mandal || 'Tiryani',
-      district: saved.district || 'Kumuram Bheem Asifabad',
+      district: saved.district || 'Kumurambheem Asifabad',
       manualMandal: saved.manualMandal || '',
       manualDistrict: saved.manualDistrict || '',
       division: saved.division || saved.manualDivision || '',
@@ -175,8 +175,8 @@ export function resolveDistrict(value: string, manual = '') {
   const match = TELANGANA_DISTRICTS.find((item) => item.toLowerCase() === trimmed.toLowerCase());
   if (match) return { district: match, manualDistrict: '' };
   const alias = trimmed.toLowerCase().replace(/\s+/g, ' ');
-  if (alias === 'kumuram bheem asifabad' || alias === 'kumurambheem asifabad') {
-    return { district: 'Kumrambheem Asifabad', manualDistrict: '' };
+  if (alias === 'kumuram bheem asifabad' || alias === 'kumurambheem asifabad' || alias === 'kumrambheem asifabad') {
+    return { district: 'Kumurambheem Asifabad', manualDistrict: '' };
   }
   return { district: 'Others', manualDistrict: trimmed };
 }
@@ -220,7 +220,7 @@ export function makeInitialForm(category: NoticeCategory): NoticeFormState {
   const config = noticeCategoryConfigs.find((item) => item.category === category) || noticeCategoryConfigs[0];
   const fy = currentFinancialYear();
   const statutory = readStatutoryDetails(category);
-  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumuram Bheem Asifabad', statutory.manualDistrict || '');
+  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumurambheem Asifabad', statutory.manualDistrict || '');
   const resolvedMandal = resolveMandal(resolvedDistrict.district, statutory.mandal || 'Tiryani', statutory.manualMandal || '');
   return {
     category,
@@ -339,8 +339,8 @@ export function buildNoticeModel(form: NoticeFormState, selectedViolations: Show
   );
 
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || 'Tiryani';
-  const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || 'Kumuram Bheem Asifabad';
-  const districtDisplay = districtValue.toLowerCase() === 'kumrambheem asifabad' ? 'Kumuram Bheem Asifabad' : districtValue;
+  const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || 'Kumurambheem Asifabad';
+  const districtDisplay = ['kumurambheem asifabad', 'kumrambheem asifabad'].includes(districtValue.toLowerCase()) ? 'Kumurambheem Asifabad' : districtValue;
   const explanationPeriod = form.deadline || '7 (seven) days';
 
   const instrument = form.category === 'fertiliser'

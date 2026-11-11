@@ -52,7 +52,7 @@ function rowToDealer(
   return {
     dealer_name: String(name).trim(),
     ifms_id: category === 'fertilizer' ? String(row.ifms_id || row.ifms || row.ifmsid || '').trim() : '',
-    phone_number: String(row.phone_number || row.phone || row.mobile || '').trim() || 'N/A',
+    phone_number: String(row.phone_number || row.phone || row.mobile || '').replace(/\D/g, '').slice(0, 10),
     license_number: String(row.license_number || row.license || '').trim() || 'N/A',
     issue_date: parseDate(row.issue_date || row.license_issue_date || row.issued),
     expiry_date: expiry,
@@ -106,7 +106,12 @@ export async function parseExcelAndImportDealers(
       normalized[normalizeHeader(key)] = val;
     }
     const dealer = rowToDealer(normalized, category);
-    if (dealer) dealers.push(dealer);
+    if (!dealer) continue;
+    if (!/^\d{10}$/.test(dealer.phone_number)) {
+      errors.push(`Skipped "${dealer.dealer_name}": phone number must be exactly 10 digits.`);
+      continue;
+    }
+    dealers.push(dealer);
   }
 
   if (dealers.length === 0) {

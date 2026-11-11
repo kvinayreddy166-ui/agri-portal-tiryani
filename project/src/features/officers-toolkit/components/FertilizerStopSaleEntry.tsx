@@ -127,7 +127,7 @@ function readFormDraft(): FertStopSaleFormState | null {
 function makeInitialForm(): FertStopSaleFormState {
   const fy = currentFinancialYear();
   const statutory = readStatutoryDetails('fertiliser');
-  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumuram Bheem Asifabad', statutory.manualDistrict || '');
+  const resolvedDistrict = resolveDistrict(statutory.district || 'Kumurambheem Asifabad', statutory.manualDistrict || '');
   const resolvedMandal = resolveMandal(resolvedDistrict.district, statutory.mandal || 'Tiryani', statutory.manualMandal || '');
   return {
     orderNumber: `SSN/F/${fy}`,
@@ -154,7 +154,7 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
   const officerDesignation = form.officerDesignation || 'Fertilizer Inspector';
   const mandalValue = effectiveLocationValue(form.mandal, form.manualMandal) || '________________';
   const districtValue = effectiveLocationValue(form.district, form.manualDistrict) || '________________';
-  const districtDisplay = districtValue.toLowerCase() === 'kumrambheem asifabad' ? 'Kumuram Bheem Asifabad' : districtValue;
+  const districtDisplay = ['kumurambheem asifabad', 'kumrambheem asifabad'].includes(districtValue.toLowerCase()) ? 'Kumurambheem Asifabad' : districtValue;
 
   const firmDisplay = form.firmName.trim() || '____________________________';
   const a2Number = form.formA2Number.trim() || '______________';

@@ -525,7 +525,7 @@ export function LandingPage() {
                             ? t('Dealer Quota Receipt #2026', 'డీలర్ కోటా రసీదు #2026')
                             : t('Crop Diagnostic: Cotton BG-II', 'పంట నిర్ధారణ: పత్తి BG-II')}
                         </p>
-                        <p className="truncate text-[10px] text-slate-400">{t('Kumuram Bheem Asifabad', 'కొమరం భీమ్ ఆసిఫాబాద్')}</p>
+                        <p className="truncate text-[10px] text-slate-400">{t('Kumurambheem Asifabad', 'కొమరం భీమ్ ఆసిఫాబాద్')}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-2.5 dark:bg-slate-800">
@@ -733,7 +733,7 @@ export function LandingPage() {
               </p>
               <p className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-800 dark:text-emerald-400">
                 <MapPin className="h-3.5 w-3.5" />
-                {t('Kumuram Bheem Asifabad District', 'కొమరం భీమ్ ఆసిఫాబాద్ జిల్లా')}
+                {t('Kumurambheem Asifabad District', 'కొమరం భీమ్ ఆసిఫాబాద్ జిల్లా')}
               </p>
             </div>
 
@@ -816,7 +816,7 @@ export function LandingPage() {
             </p>
             <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
               {t(
-                'Developed & maintained by K. Vinay Reddy, MAO, Tiryani · Kumuram Bheem Asifabad District',
+                'Developed & maintained by K. Vinay Reddy, MAO, Tiryani · Kumurambheem Asifabad District',
                 'రూపకల్పన & నిర్వహణ: కె. వినయ్ రెడ్డి, MAO, తిర్యాణి · కొమరం భీమ్ ఆసిఫాబాద్ జిల్లా'
               )}
             </p>

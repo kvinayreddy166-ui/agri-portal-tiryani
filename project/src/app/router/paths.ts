@@ -83,20 +83,14 @@ export const PAGE_PATHS: Record<string, string> = {
   'stock-receipts-sales': '/stock-receipts-sales',
   'dealer-portal': '/dealer-portal',
   dealers: '/dealers',
+  'dealer-management': '/dealer-management',
   'farmer-database': '/farmer-database',
   forms: '/forms',
   'forms-library': '/officer-toolkit/forms-library',
   'gos-circulars': '/gos-circulars',
-  quality: '/quality',
-  'quality-seeds': '/quality-seeds',
-  'quality-pesticides': '/quality-pesticides',
-  'quality-fertilizers': '/quality-fertilizers',
   'farm-mechanization': '/farm-mechanization',
   excel: '/excel',
   'file-directory': '/file-directory',
-  subsidy: '/subsidy',
-  'subsidy-nfsm': '/subsidy-nfsm',
-  'subsidy-state-seed': '/subsidy-state-seed',
   'officer-records': '/officer-toolkit/my-records',
   'officer-toolkit': '/officer-toolkit',
   'field-tools': '/field-tools',
@@ -117,6 +111,7 @@ export const PAGE_PATHS: Record<string, string> = {
   'acts-and-orders': '/officer-toolkit/acts-and-orders',
   'officer-contacts': '/officer-toolkit/officer-contacts',
   'officer-contacts-admin': '/admin/officer-contacts',
+  'user-management': '/admin/user-management',
   'tour-diary': '/officer-toolkit/tour-diary',
   'seed-dealer-inspection': '/officer-toolkit/seed-dealer-inspection',
   'fertilizer-dealer-inspection': '/officer-toolkit/fertilizer-dealer-inspection',
@@ -154,6 +149,9 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
   }
   if (pathname === '/admin/officer-contacts') {
     return '/officer-toolkit/officer-contacts';
+  }
+  if (pathname === '/admin/user-management') {
+    return '/settings';
   }
   if (pathname === '/officer-toolkit/my-records' || pathname === '/officer-toolkit/enforcement-tracker' || pathname === '/enforcement-tracker') {
     return '/dashboard';
@@ -221,11 +219,10 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
     page === 'insecticide-dealer-inspection'
   ) return 'inspection-enforcement';
   if (page === 'officer-contacts-admin') return 'officer-contacts';
+  if (page === 'user-management') return 'settings';
   if (page.startsWith('knowledge-')) return 'knowledge';
   if (page === 'knowledge') return 'dashboard';
   if (page === 'officer-toolkit') return 'dashboard';
-  if (page.startsWith('quality-')) return 'quality';
-  if (page.startsWith('subsidy-')) return 'subsidy';
   return isDealerUser ? 'dealer-portal' : 'dashboard';
 }
 
@@ -244,20 +241,14 @@ export const VALID_PAGES = new Set([
   'stock-receipts-sales',
   'dealer-portal',
   'dealers',
+  'dealer-management',
   'farmer-database',
   'forms',
   'forms-library',
   'gos-circulars',
-  'quality',
-  'quality-seeds',
-  'quality-pesticides',
-  'quality-fertilizers',
   'farm-mechanization',
   'excel',
   'file-directory',
-  'subsidy',
-  'subsidy-nfsm',
-  'subsidy-state-seed',
   'officer-toolkit',
   'officer-records',
   'field-tools',
@@ -279,6 +270,7 @@ export const VALID_PAGES = new Set([
   'acts-and-orders',
   'officer-contacts',
   'officer-contacts-admin',
+  'user-management',
   'tour-diary',
   'seed-dealer-inspection',
   'fertilizer-dealer-inspection',
@@ -356,6 +348,8 @@ export function resolvePageFromLocation(location: { pathname: string; search: st
 
     if (page === 'admin/officer-contacts') {
       page = 'officer-contacts-admin';
+    } else if (page === 'admin/user-management') {
+      page = 'user-management';
     } else if (page.startsWith('knowledge/')) {
       page = `knowledge-${page.slice('knowledge/'.length)}`;
     }

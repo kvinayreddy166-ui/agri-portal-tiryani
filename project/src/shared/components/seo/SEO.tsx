@@ -4,9 +4,7 @@ import { useLocation } from 'react-router-dom';
 
 const SITE_URL = 'https://www.tiryaniagriportal.in';
 const SITE_NAME = 'AGRONIX';
-const DEFAULT_TITLE = 'AGRONIX – Agriculture Information Management System';
-const DEFAULT_DESCRIPTION = 'Empowering Agriculture with Intelligence. An integrated digital platform for Agricultural Officers featuring agricultural information, statutory forms, pesticide database, FCO references, tour diaries and digital tools.';
-const DEFAULT_IMAGE = `${SITE_URL}/agronix-social-preview.jpg?v=2`;
+const DEFAULT_DESCRIPTION = 'AGRONIX - Agriculture Intelligence Platform';
 
 interface SEOProps {
   title?: string;
@@ -18,8 +16,8 @@ interface SEOProps {
 
 const PAGE_SEO: Record<string, { title: string; description: string }> = {
   '/': {
-    title: DEFAULT_TITLE,
-    description: DEFAULT_DESCRIPTION,
+    title: 'AGRONIX',
+    description: 'AGRONIX - Agriculture Intelligence Platform. Farmer database, crop advisory, fertilizer calculator, dealer monitoring, statutory forms, and government schemes.',
   },
   '/dashboard': {
     title: 'Dashboard | AGRONIX',
@@ -65,22 +63,6 @@ const PAGE_SEO: Record<string, { title: string; description: string }> = {
     title: 'GOs & Circulars | AGRONIX',
     description: 'Government orders, circulars, and notifications from Telangana Agriculture Department.',
   },
-  '/quality': {
-    title: 'Quality Control | AGRONIX',
-    description: 'Quality control for seeds, fertilizers, and pesticides in Tiryani Mandal.',
-  },
-  '/quality-seeds': {
-    title: 'Seed Quality Control | AGRONIX',
-    description: 'Seed sampling, testing, and quality certification services for Tiryani farmers.',
-  },
-  '/quality-pesticides': {
-    title: 'Pesticide Quality Control | AGRONIX',
-    description: 'Pesticide sampling, testing, and quality monitoring in Tiryani Mandal.',
-  },
-  '/quality-fertilizers': {
-    title: 'Fertilizer Quality Control | AGRONIX',
-    description: 'Fertilizer sampling, testing, and quality monitoring services in Tiryani Mandal.',
-  },
   '/farm-mechanization': {
     title: 'Farm Mechanization | AGRONIX',
     description: 'Farm machinery, equipment, and mechanization services for Tiryani farmers.',
@@ -93,21 +75,9 @@ const PAGE_SEO: Record<string, { title: string; description: string }> = {
     title: 'File Directory | AGRONIX',
     description: 'Access agriculture department files, documents, and resources for Tiryani Mandal.',
   },
-  '/subsidy': {
-    title: 'Subsidy Tracking | AGRONIX',
-    description: 'Track government subsidies, NFSM, and state seed subsidies for Tiryani farmers.',
-  },
   '/officer-toolkit': {
     title: 'Officer Toolkit | AGRONIX',
-    description: 'Tools for agriculture officers including calculators, statutory forms, and acts & orders.',
-  },
-  '/agrochemicals': {
-    title: 'Agrochemicals Database | AGRONIX',
-    description: 'Search registered insecticides, fungicides, weedicides, and fertilizers with IRAC, FRAC, and HRAC Mode of Action classifications.',
-  },
-  '/officer-toolkit/agrochemicals': {
-    title: 'Agrochemicals Database | AGRONIX',
-    description: 'Search registered insecticides, fungicides, weedicides, and fertilizers with IRAC, FRAC, and HRAC Mode of Action classifications.',
+    description: 'Tools for agriculture officers including calculators, statutory forms, and legal ready reckoner.',
   },
   '/officer-toolkit/farm-calculators': {
     title: 'Farm Calculators | AGRONIX',
@@ -132,10 +102,6 @@ const PAGE_SEO: Record<string, { title: string; description: string }> = {
   '/officer-toolkit/seed-rate-calculator': {
     title: 'Seed Rate Calculator | AGRONIX',
     description: 'Calculate seed requirements based on area and crop variety for Tiryani farmers.',
-  },
-  '/officer-toolkit/irrigation-calculator': {
-    title: 'Water & Irrigation Requirement Calculator | AGRONIX',
-    description: 'Calculate pump run hours, discharge rates, and water volumes for drip and sprinkler irrigation.',
   },
   '/officer-toolkit/seed-dealer-inspection': {
     title: 'Inspections | AGRONIX',
@@ -176,9 +142,9 @@ export function SEO({ title, description, image, noIndex, structuredData }: SEOP
   const currentPath = location.pathname;
   
   const pageSEO = PAGE_SEO[currentPath] || {};
-  const pageTitle = title || pageSEO.title || DEFAULT_TITLE;
+  const pageTitle = title || pageSEO.title || SITE_NAME;
   const pageDescription = description || pageSEO.description || DEFAULT_DESCRIPTION;
-  const pageImage = image || DEFAULT_IMAGE;
+  const pageImage = image || `${SITE_URL}/images/agri-emerald-512.webp`;
   const canonicalUrl = `${SITE_URL}${currentPath}`;
 
   const jsonLd = structuredData || {
@@ -189,9 +155,12 @@ export function SEO({ title, description, image, noIndex, structuredData }: SEOP
     url: SITE_URL,
     description: DEFAULT_DESCRIPTION,
     publisher: {
-      '@type': 'Organization',
-      name: 'AGRONIX',
-      url: SITE_URL
+      '@type': 'GovernmentOrganization',
+      name: 'Department of Agriculture, Telangana',
+      areaServed: {
+        '@type': 'AdministrativeArea',
+        name: 'Tiryani Mandal, Kumram Bheem Asifabad District, Telangana'
+      }
     },
     potentialAction: {
       '@type': 'SearchAction',
@@ -211,29 +180,24 @@ export function SEO({ title, description, image, noIndex, structuredData }: SEOP
       {/* Open Graph */}
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content={SITE_NAME} />
-      <meta property="og:locale" content="en_IN" />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:title" content={pageTitle} />
       <meta property="og:description" content={pageDescription} />
       <meta property="og:image" content={pageImage} />
-      <meta property="og:image:secure_url" content={pageImage} />
-      <meta property="og:image:type" content={pageImage.endsWith('.png') ? 'image/png' : 'image/jpeg'} />
-      <meta property="og:image:alt" content={pageTitle} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <link rel="image_src" href={pageImage} />
+      <meta property="og:image:alt" content={`${SITE_NAME} logo`} />
+      <meta property="og:image:width" content="512" />
+      <meta property="og:image:height" content="512" />
       
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:url" content={canonicalUrl} />
       <meta name="twitter:title" content={pageTitle} />
       <meta name="twitter:description" content={pageDescription} />
       <meta name="twitter:image" content={pageImage} />
-      <meta name="twitter:image:alt" content={pageTitle} />
       
       {/* Additional SEO */}
       <meta name="keywords" content="Tiryani, AGRONIX, Agriculture Department Tiryani, Kumuram Bheem Asifabad, Telangana Agriculture, Crop Advisory, Weather, Farmer Services, Agriculture Portal, Government Schemes" />
-      <meta name="author" content="AGRONIX" />
+      <meta name="author" content="Department of Agriculture, Telangana" />
+      <meta name="theme-color" content="#0f766e" />
       
       {/* Structured Data */}
       <script type="application/ld+json">

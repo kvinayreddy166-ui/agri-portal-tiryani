@@ -31,7 +31,7 @@ import { Layout, Login, LandingPage } from './router/lazyPages';
 import { safeStorage } from '../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../features/officers-toolkit/services/officerCloudSyncService';
 function AppContent() {
-  const { user, loading, authChecked, appReady, isAdminUser, isTestUser, isDealerUser, isOfficerUser } = useAuth();
+  const { user, loading, authChecked, appReady, isAdminUser, isElevatedOfficerUser, isTestUser, isDealerUser, isOfficerUser } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const navigationType = useNavigationType();
@@ -247,7 +247,7 @@ function AppContent() {
   return (
     <SafeSuspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
       <Layout currentPage={currentPage} onNavigate={navigateToPage} onBack={handleBack}>
-        <PageSwitch currentPage={currentPage} isAdminUser={isAdminUser} isTestUser={isTestUser} isOfficerUser={isOfficerUser} onNavigate={navigateToPage} />
+        <PageSwitch currentPage={currentPage} isAdminUser={isAdminUser} isTestUser={isTestUser} isOfficerUser={isOfficerUser} isElevatedOfficerUser={isElevatedOfficerUser} onNavigate={navigateToPage} />
       </Layout>
     </SafeSuspense>
   );

@@ -49,8 +49,6 @@ import {
   PlantPopulationCalculator,
   PrivacyPolicy,
   ProfitabilityCalculator,
-  QualityControl,
-  QualityControlHub,
   SeedDealerInspection,
   SeedRateCalculator,
   SoilHealthMeter,
@@ -60,9 +58,9 @@ import {
   SamplingHub,
   FormsLibrary,
   PublicOfficerTools,
-  SubsidyTracking,
   TermsConditions,
   TourDiary,
+  UserManagement,
 } from './lazyPages';
 
 interface PageSwitchProps {
@@ -70,11 +68,15 @@ interface PageSwitchProps {
   isAdminUser: boolean;
   isTestUser: boolean;
   isOfficerUser?: boolean;
+  isElevatedOfficerUser?: boolean;
   onNavigate: (page: string) => void;
 }
 
-export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser = false, onNavigate }: PageSwitchProps) {
-  if (currentPage.startsWith('knowledge') && !isAdminUser) return <Dashboard />;
+export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser = false, isElevatedOfficerUser = false, onNavigate }: PageSwitchProps) {
+  // Full-access officer can VIEW admin modules read-only; write/upload actions
+  // stay gated by isAdminUser inside each page. Dealer/user management stay admin-only.
+  const canViewAdminModules = isAdminUser || isElevatedOfficerUser;
+  if (currentPage.startsWith('knowledge') && !canViewAdminModules) return <Dashboard />;
   switch (currentPage) {
     case 'landing':
     case 'home':
@@ -100,7 +102,7 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser
     case 'dashboard':
       return <Dashboard />;
     case 'stock-analytics':
-      return isAdminUser ? (
+      return isElevatedOfficerUser ? (
         <SafeSuspense fallback={<PageLoader />}>
           <StockAnalytics />
         </SafeSuspense>
@@ -108,7 +110,7 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser
         <Dashboard />
       );
     case 'stock-receipts-sales':
-      return isAdminUser ? (
+      return canViewAdminModules ? (
         <SafeSuspense fallback={<PageLoader />}>
           <StockReceiptsSales />
         </SafeSuspense>
@@ -118,13 +120,17 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser
     case 'dealer-portal':
       return <DealerStockPortal />;
     case 'dealers':
-      return isAdminUser || isOfficerUser ? <DealerManagement /> : <Dashboard />;
+      // Officers manage their own dealers here; the elevated officer gets the
+      // admin-added dealer directory. Admin uses Dealer Management instead.
+      return isOfficerUser && !isAdminUser ? <DealerManagement /> : <Dashboard />;
+    case 'dealer-management':
+      return isAdminUser ? <DealerManagement scopeToCreator /> : <Dashboard />;
     case 'farmer-database':
-      return isAdminUser ? <FarmerDatabase /> : <Dashboard />;
+      return canViewAdminModules ? <FarmerDatabase /> : <Dashboard />;
     case 'crops':
       return <CropManagement />;
     case 'crop-admin':
-      return isAdminUser ? <CropAdminDashboard /> : <CropManagement />;
+      return canViewAdminModules ? <CropAdminDashboard /> : <CropManagement />;
     case 'crop-cotton':
       return <CropPage cropType="cotton" />;
     case 'crop-paddy':
@@ -141,30 +147,12 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser
       return <FormsLibrary />;
     case 'gos-circulars':
       return <GosCirculars />;
-    case 'quality':
-      return isAdminUser ? <QualityControlHub /> : <Dashboard />;
-    case 'quality-seeds':
-      return isAdminUser ? <QualityControl category="seeds" /> : <Dashboard />;
-    case 'quality-pesticides':
-      return isAdminUser ? <QualityControl category="pesticides" /> : <Dashboard />;
-    case 'quality-fertilizers':
-      return isAdminUser ? <QualityControl category="fertilizers" /> : <Dashboard />;
     case 'farm-mechanization':
       return isAdminUser ? <FarmMechanization /> : <Dashboard />;
     case 'excel':
-      return isAdminUser ? <ExcelUploads /> : <Dashboard />;
+      return canViewAdminModules ? <ExcelUploads /> : <Dashboard />;
     case 'file-directory':
-      return isAdminUser ? <FileDirectory /> : <Dashboard />;
-    case 'subsidy':
-    case 'subsidy-nfsm':
-    case 'subsidy-state-seed':
-      return isAdminUser ? (
-        <SubsidyTracking
-          initialProgram={currentPage === 'subsidy-state-seed' ? 'state_seed_cell' : 'nfsm'}
-        />
-      ) : (
-        <Dashboard />
-      );
+      return canViewAdminModules ? <FileDirectory /> : <Dashboard />;
     case 'officer-toolkit':
     case 'field-tools':
       // Hub pages were removed from the authenticated menu — modules are top-level
@@ -203,7 +191,7 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser
     case 'officer-contacts':
       return <OfficerContacts />;
     case 'officer-contacts-admin':
-      return isAdminUser ? (
+      return canViewAdminModules ? (
         <SafeSuspense fallback={<PageLoader />}>
           <OfficerContactsAdmin />
         </SafeSuspense>
@@ -227,13 +215,21 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser
         </SafeSuspense>
       );
     case 'analytics':
-      return isAdminUser ? <Analytics /> : <Dashboard />;
+      return isElevatedOfficerUser ? <Analytics /> : <Dashboard />;
     case 'settings':
       return <Settings />;
+    case 'user-management':
+      return isAdminUser ? (
+        <SafeSuspense fallback={<PageLoader />}>
+          <UserManagement />
+        </SafeSuspense>
+      ) : (
+        <Dashboard />
+      );
     case 'all-modules':
       return (
         <SafeSuspense fallback={<PageLoader />}>
-          <ModuleDirectory currentPage={currentPage} isAdminUser={isAdminUser} isOfficerUser={isOfficerUser} onNavigate={onNavigate} />
+          <ModuleDirectory currentPage={currentPage} isAdminUser={isAdminUser} isOfficerUser={isOfficerUser} isElevatedOfficerUser={isElevatedOfficerUser} onNavigate={onNavigate} />
         </SafeSuspense>
       );
     case 'knowledge':
