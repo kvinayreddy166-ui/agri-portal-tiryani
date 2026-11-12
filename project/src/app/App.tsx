@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth, AuthProvider } from '../shared/context/AuthContext';
 import { LanguageProvider } from '../shared/context/LanguageContext';
-import { ThemeProvider } from '../shared/context/ThemeContext';
+import { ThemeProvider, useTheme } from '../shared/context/ThemeContext';
 import { GlobalMobileDatePickerProvider } from '../shared/components/ui/DateInput';
 import { confirmDiscardIfDirty } from '../features/officers-toolkit/inspection/useDirtyGuard';
 import { BrowserRouter, Navigate, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
@@ -32,6 +32,7 @@ import { safeStorage } from '../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../features/officers-toolkit/services/officerCloudSyncService';
 function AppContent() {
   const { user, loading, authChecked, appReady, isAdminUser, isElevatedOfficerUser, isTestUser, isDealerUser, isOfficerUser } = useAuth();
+  const { isDark } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const navigationType = useNavigationType();
@@ -200,6 +201,27 @@ function AppContent() {
     // This effect is no longer needed since PUBLIC_AUTH_ROUTES handles all officer-toolkit routes
     // Keeping it empty to prevent any unintended redirects
   }, [loading, location.pathname, navigate, user]);
+
+  // Public auth/landing surfaces always render light — the internal dark mode
+  // must never leak onto the login or home pages.
+  const isAlwaysLightRoute =
+    location.pathname === '/' ||
+    location.pathname === '/home' ||
+    location.pathname === '/landing' ||
+    location.pathname === '/login';
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isAlwaysLightRoute) {
+      root.classList.remove('dark');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f0fdf4');
+    } else if (isDark) {
+      root.classList.add('dark');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#020617');
+    } else {
+      root.classList.remove('dark');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f0fdf4');
+    }
+  }, [isAlwaysLightRoute, isDark]);
 
   const shellReady = isHydrated && (authChecked || currentPathIsPublic || forceAppShell) && (appReady || currentPathIsPublic || forceAppShell);
   useAppBootReady(shellReady);

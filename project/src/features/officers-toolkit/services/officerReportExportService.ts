@@ -160,10 +160,14 @@ export class OfficerReportExportService {
             defaultOfficer
         );
 
+        const docLabKey = String(meta.labStatus || meta.lab_status || '').trim().toUpperCase();
         const docStatusLabel = labStatusLabel(meta.labStatus || meta.lab_status);
+        // Failure findings / lab report refs are only meaningful once the lab
+        // has returned a final result — a re-dispatched or revoked sample must
+        // not keep showing a stale "Substandard"/"Misbranded" finding.
         const docFindingText = String(
-          meta.failureFinding ||
-            meta.labReportRef ||
+          (docLabKey === 'TEST_FAILED' ? meta.failureFinding : '') ||
+            (docLabKey === 'TEST_FAILED' || docLabKey === 'TEST_PASSED' ? meta.labReportRef : '') ||
             meta.resultRemarks ||
             meta.remarks ||
             meta.result ||
@@ -261,10 +265,13 @@ export class OfficerReportExportService {
             defaultOfficer
         );
 
+        const recLabKey = String(details.labStatus || details.lab_status || '').trim().toUpperCase();
         const statusLabel = labStatusLabel(details.labStatus || details.lab_status);
+        // Same gating as documents: stale failure findings only surface for
+        // final lab results (failed/passed), not for dispatched/in-progress.
         const findingText = String(
-          details.failureFinding ||
-            details.labReportRef ||
+          (recLabKey === 'TEST_FAILED' ? details.failureFinding : '') ||
+            (recLabKey === 'TEST_FAILED' || recLabKey === 'TEST_PASSED' ? details.labReportRef : '') ||
             details.remarks ||
             details.result ||
             details.findings ||

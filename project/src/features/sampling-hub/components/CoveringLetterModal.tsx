@@ -479,15 +479,15 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   return (
     <>
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-        <div className="flex max-h-[94vh] w-full max-w-[95vw] sm:max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-          <header className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-white px-6 py-4">
+        <div className="flex max-h-[94vh] w-full max-w-[95vw] sm:max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
+          <header className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-white px-6 py-4 dark:border-slate-700 dark:from-emerald-950/40 dark:to-slate-900">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg">
                 <FileText className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-lg font-bold text-gray-900">Covering Letter Generation</h2>
-                <p className="text-sm text-gray-600">Review and edit sample details before generating</p>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Covering Letter Generation</h2>
+                <p className="text-sm text-gray-600 dark:text-slate-300">Review and edit sample details before generating</p>
               </div>
             </div>
             <button
@@ -503,16 +503,16 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
             {message && (
               <div className={`mb-4 rounded-lg border px-3 py-2 sm:px-4 sm:py-3 text-sm font-bold ${
                 message.includes('success') || message.includes('downloaded')
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                  : 'border-red-200 bg-red-50 text-red-700'
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'
+                  : 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300'
               }`}>
                 {message}
               </div>
             )}
 
-            <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-3 sm:p-4 shadow-sm">
+            <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50/50 p-3 sm:p-4 shadow-sm dark:border-purple-800/50 dark:bg-purple-950/30">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-black text-purple-700">LETTER DETAILS</h3>
+                <h3 className="text-sm font-black text-purple-700 dark:text-purple-300">LETTER DETAILS</h3>
                 <button
                   type="button"
                   onClick={() => {
@@ -531,7 +531,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                     setMessage('Covering letter details reset successfully.');
                     setTimeout(() => setMessage(null), 3000);
                   }}
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-purple-200 text-purple-400 hover:bg-purple-50 hover:text-purple-600"
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-purple-200 text-purple-400 hover:bg-purple-50 hover:text-purple-600 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/40 dark:hover:text-purple-300"
                   title="Reset Covering Letter Details"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
@@ -539,11 +539,11 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-600">FINANCIAL YEAR</label>
+                  <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">FINANCIAL YEAR</label>
                   <select
                     value={metadata.year}
                     onChange={(e) => setMetadata({ ...metadata, year: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-purple-500/40"
                   >
                     {((COVERING_LETTER_FINANCIAL_YEARS as readonly string[]).includes(metadata.year)
                       ? COVERING_LETTER_FINANCIAL_YEARS
@@ -556,13 +556,13 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-600">LETTER NUMBER</label>
+                  <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">LETTER NUMBER</label>
                   <input
                     type="text"
                     value={metadata.letterNumber}
                     onChange={(e) => setMetadata({ ...metadata, letterNumber: e.target.value })}
                     placeholder="Enter Letter Number"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                   />
                   {letterType === 'safe-custody' && metadata.letterNumber && (
                     <p className="mt-1 text-[10px] text-emerald-600 font-medium">
@@ -572,7 +572,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                 </div>
                 <div>
                   <div className="mb-1 flex items-center justify-between gap-2">
-                    <label className="block text-xs font-bold text-slate-600">LETTER DATE</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300">LETTER DATE</label>
                     {metadata.letterDate ? (
                       <DateClearButton onClick={() => setMetadata({ ...metadata, letterDate: '' })} />
                     ) : null}
@@ -581,11 +581,11 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                     type="date"
                     value={metadata.letterDate}
                     onChange={(e) => setMetadata({ ...metadata, letterDate: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-600">
+                  <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">
                     DAO MEMO NO.
                   </label>
                   <input
@@ -593,12 +593,12 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                     value={metadata.daoMemoNumber}
                     onChange={(e) => setMetadata({ ...metadata, daoMemoNumber: e.target.value })}
                     placeholder="Enter Memo Number"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                   />
                 </div>
                 <div>
                   <div className="mb-1 flex items-center justify-between gap-2">
-                    <label className="block text-xs font-bold text-slate-600">MEMO DATE</label>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-300">MEMO DATE</label>
                     {metadata.daoMemoDate ? (
                       <DateClearButton onClick={() => setMetadata({ ...metadata, daoMemoDate: '' })} />
                     ) : null}
@@ -607,13 +607,13 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                     type="date"
                     value={metadata.daoMemoDate}
                     onChange={(e) => setMetadata({ ...metadata, daoMemoDate: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                   />
                 </div>
                 {isAdminUser && (
                   <>
                     <div>
-                      <label className="mb-1 block text-xs font-bold text-slate-600">
+                      <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">
                         C&DA MEMO NO.
                       </label>
                       <input
@@ -621,12 +621,12 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                         value={metadata.cdaMemoNumber}
                         onChange={(e) => setMetadata({ ...metadata, cdaMemoNumber: e.target.value })}
                         placeholder="Enter C&DA Memo Number"
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                       />
                     </div>
                     <div>
                       <div className="mb-1 flex items-center justify-between gap-2">
-                        <label className="block text-xs font-bold text-slate-600">C&DA MEMO DATE</label>
+                        <label className="block text-xs font-bold text-slate-600 dark:text-slate-300">C&DA MEMO DATE</label>
                         {metadata.cdaMemoDate ? (
                           <DateClearButton onClick={() => setMetadata({ ...metadata, cdaMemoDate: '' })} />
                         ) : null}
@@ -635,27 +635,27 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                         type="date"
                         value={metadata.cdaMemoDate}
                         onChange={(e) => setMetadata({ ...metadata, cdaMemoDate: e.target.value })}
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                       />
                     </div>
                   </>
                 )}
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-600">OFFICER PHONE NO.</label>
+                  <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">OFFICER PHONE NO.</label>
                   <input
                     type="text"
                     value={metadata.officePhone}
                     onChange={(e) => setMetadata({ ...metadata, officePhone: e.target.value })}
                     placeholder="Enter Mobile Number"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl shadow-sm border border-red-200 bg-red-50/50 p-2 sm:p-6">
+            <div className="rounded-xl shadow-sm border border-red-200 bg-red-50/50 p-2 sm:p-6 dark:border-red-800/50 dark:bg-red-950/30">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-black text-red-700">SAMPLE QUEUE</h3>
+                <h3 className="text-sm font-black text-red-700 dark:text-red-300">SAMPLE QUEUE</h3>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -677,30 +677,30 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
               </div>
 
               {editedQueue.length === 0 ? (
-                <p className="text-gray-500 text-sm">No samples in the queue. Add samples from the fertilizer form.</p>
+                <p className="text-gray-500 text-sm dark:text-slate-400">No samples in the queue. Add samples from the fertilizer form.</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                    <thead className="bg-gray-50 dark:bg-slate-800/80">
                       <tr>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">S.No</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Fertilizer Name</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sample Code</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Quantity</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sampling Date</th>
-                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider dark:text-slate-400">S.No</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider dark:text-slate-400">Fertilizer Name</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider dark:text-slate-400">Sample Code</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider dark:text-slate-400">Quantity</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider dark:text-slate-400">Sampling Date</th>
+                        <th className="px-2 py-2 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider dark:text-slate-400">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-200 dark:bg-slate-800/60 dark:divide-slate-700">
                       {editedQueue.map((item, index) => (
                         <tr key={index}>
-                          <td className="px-2 py-2 whitespace-nowrap text-xs font-medium text-gray-900">{index + 1}</td>
+                          <td className="px-2 py-2 whitespace-nowrap text-xs font-medium text-gray-900 dark:text-slate-100">{index + 1}</td>
                           <td className="px-2 py-2 whitespace-nowrap text-xs">
                             <input
                               type="text"
                               value={item.fertilizerName}
                               onChange={(e) => handleFertilizerNameChange(index, e.target.value)}
-                              className="w-full px-1.5 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              className="w-full px-1.5 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                               placeholder="Enter Fertilizer Name"
                             />
                           </td>
@@ -711,8 +711,8 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                               onChange={(e) => handleSampleCodeChange(index, e.target.value)}
                               className={`w-full px-1.5 py-1 border rounded-md text-xs focus:outline-none focus:ring-2 ${
                                 validationErrors[index]
-                                  ? 'border-red-300 focus:ring-red-500 bg-red-50'
-                                  : 'border-gray-300 focus:ring-emerald-500 focus:border-emerald-500'
+                                  ? 'border-red-300 focus:ring-red-500 bg-red-50 dark:border-red-700 dark:bg-red-950/40'
+                                  : 'border-gray-300 focus:ring-emerald-500 focus:border-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100'
                               }`}
                               placeholder="Enter Sample Code"
                             />
@@ -725,7 +725,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                               type="text"
                               value={item.quantity}
                               onChange={(e) => handleQuantityChange(index, e.target.value)}
-                              className="w-full px-1.5 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                              className="w-full px-1.5 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                               placeholder="Enter Quantity"
                             />
                           </td>
@@ -735,7 +735,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                                   type="date"
                                   value={item.dateOfSampling}
                                   onChange={(e) => handleDateChange(index, e.target.value)}
-                                  className="w-full px-1.5 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                  className="w-full px-1.5 py-1 border border-gray-300 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                                 />
                                 {item.dateOfSampling ? (
                                   <DateClearButton onClick={() => handleDateChange(index, '')} />
@@ -746,7 +746,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                             <button
                               type="button"
                               onClick={() => handleDeleteSample(index)}
-                              className="inline-flex items-center justify-center p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="inline-flex items-center justify-center p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors dark:text-red-400 dark:hover:bg-red-950/40"
                               title="Delete sample"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -761,13 +761,13 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
             </div>
           </div>
 
-          <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-4 sm:px-6 sm:py-4">
+          <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-4 sm:px-6 sm:py-4 dark:border-slate-700 dark:bg-slate-800/60">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              <label className="text-sm font-bold text-gray-700 shrink-0">Letter Type:</label>
+              <label className="text-sm font-bold text-gray-700 shrink-0 dark:text-slate-200">Letter Type:</label>
               <select
                 value={letterType}
                 onChange={(e) => setLetterType(e.target.value as 'quality-analysis' | 'safe-custody')}
-                className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-w-0"
+                className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 min-w-0 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
               >
                 <option value="quality-analysis">Quality Analysis (Portion-I)</option>
                 <option value="safe-custody">Safe Custody (Portion-III)</option>
@@ -778,7 +778,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                 type="button"
                 onClick={handlePreview}
                 disabled={editedQueue.length === 0 || isGenerating}
-                className="inline-flex items-center justify-center gap-2 border border-emerald-200 bg-white px-3 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white flex-1 sm:w-auto min-w-0"
+                className="inline-flex items-center justify-center gap-2 border border-emerald-200 bg-white px-3 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white flex-1 sm:w-auto min-w-0 dark:border-emerald-800 dark:bg-slate-800 dark:text-emerald-300 dark:hover:bg-emerald-950/40 dark:disabled:hover:bg-slate-800"
               >
                 {isGenerating ? (
                   <>
@@ -805,26 +805,26 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
       {showPreviewDialog && previewPdfUrl && (
         <div className="fixed inset-0 z-[110] flex flex-col bg-slate-950 h-screen w-screen">
-          <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
+          <header className="flex shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4 dark:border-slate-700 dark:bg-slate-900">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg">
                 <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <div>
-                <h2 className="text-base sm:text-lg font-bold text-gray-900">Covering Letter Preview</h2>
-                <p className="text-xs sm:text-sm text-gray-600">Review the document before downloading</p>
+                <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Covering Letter Preview</h2>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-300">Review the document before downloading</p>
               </div>
             </div>
             <button
               type="button"
               onClick={closePreviewDialog}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             >
               <X className="h-4 w-4" />
             </button>
           </header>
 
-          <div className="flex-1 overflow-hidden bg-gray-100">
+          <div className="flex-1 overflow-hidden bg-gray-100 dark:bg-slate-950">
             <iframe
               src={previewPdfUrl}
               className="w-full h-full"
@@ -833,11 +833,11 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
             />
           </div>
 
-          <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
+          <footer className="flex shrink-0 flex-col sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4 dark:border-slate-700 dark:bg-slate-900">
             <button
               type="button"
               onClick={closePreviewDialog}
-              className="inline-flex items-center justify-center gap-2 border border-gray-200 bg-white px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-lg w-full sm:w-auto min-w-0"
+              className="inline-flex items-center justify-center gap-2 border border-gray-200 bg-white px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-lg w-full sm:w-auto min-w-0 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               Close
             </button>

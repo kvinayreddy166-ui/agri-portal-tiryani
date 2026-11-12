@@ -1,4 +1,4 @@
-import { supabase } from '../../../shared/lib/supabase';
+import { supabase, isAdmin } from '../../../shared/lib/supabase';
 import { compressForArchive, restoreArchivedDocument } from './documentCompressionService';
 import { OfficerDocumentQueue, type QueuedDocument } from './officerDocumentQueue';
 import { safeStorage } from '../../../shared/lib/safeStorage';
@@ -454,14 +454,24 @@ export class OfficerDocumentArchiveService {
     const isOnline = typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' ? navigator.onLine : true;
 
     if (user) {
-      // 1. Logged-in: Fetch Cloud Records from Supabase for this authenticated user only
+      const viewerIsAdmin = isAdmin(user.email);
+
+      // 1. Logged-in: Fetch Cloud Records from Supabase.
+      // Portal admin sees every officer's cloud-saved documents (RLS allows
+      // it) — local/pending uploads are excluded so only files actually
+      // stored in cloud storage are listed. Regular officers only ever see
+      // their own.
       if (isOnline) {
         try {
-          const { data, error } = await supabase
+          let query = supabase
             .from('officer_document_archive')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
+            .select('*');
+          if (viewerIsAdmin) {
+            query = query.eq('upload_status', 'saved_to_cloud');
+          } else {
+            query = query.eq('user_id', user.id);
+          }
+          const { data, error } = await query.order('created_at', { ascending: false });
 
           if (!error && data) {
             data.forEach((row: OfficerDocumentArchiveRecord) => {
@@ -478,8 +488,9 @@ export class OfficerDocumentArchiveService {
         records.filter((r) => Boolean(r.content_hash || r.original_sha256)).map((r) => r.original_sha256 || r.content_hash)
       );
 
-      // 2. Fetch pending/failed uploads for THIS authenticated user from IndexedDB queue
-      try {
+      // 2. Fetch pending/failed uploads for THIS authenticated user from IndexedDB queue.
+      //    Skipped for admin — the admin view lists only cloud-saved uploads.
+      if (!viewerIsAdmin) try {
         const queued = await OfficerDocumentQueue.getPendingDocuments(user.id);
 
         queued.forEach((q) => {
@@ -525,8 +536,9 @@ export class OfficerDocumentArchiveService {
         // ignore
       }
 
-      // 3. Fallback safeStorage for current session: strictly match user.id
-      try {
+      // 3. Fallback safeStorage for current session: strictly match user.id.
+      //    Skipped for admin — local-only drafts are not cloud uploads.
+      if (!viewerIsAdmin) try {
         const raw = safeStorage.getItem(LOCAL_ARCHIVED_DOCS_KEY);
         if (raw) {
           const localList: OfficerDocumentArchiveRecord[] = JSON.parse(raw);

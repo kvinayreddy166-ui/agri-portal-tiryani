@@ -8,6 +8,8 @@ export interface Dealer {
   issue_date: string;
   expiry_date: string;
   location: string;
+  district?: string | null;
+  mandal?: string | null;
   dealer_category?: 'fertilizer' | 'seed' | 'pesticide';
   created_by?: string | null;
   created_by_name?: string | null;

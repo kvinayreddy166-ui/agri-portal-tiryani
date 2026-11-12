@@ -20,6 +20,7 @@ import {
   Loader2,
   Printer,
   RefreshCw,
+  RotateCcw,
   Search,
   Smartphone,
   Trash2,
@@ -44,7 +45,7 @@ import type {
   UploadStatus,
 } from '../types/officerArchiveTypes';
 import type { StatutoryCommodity } from '../../auth/types/officerAuth';
-import { TELANGANA_DISTRICTS, TELANGANA_DISTRICT_MANDAL_MAPPING } from '../../../shared/data/telanganaDistrictMandalData';
+import { TELANGANA_DISTRICTS, TELANGANA_DISTRICT_MANDAL_MAPPING, normalizeDistrictName } from '../../../shared/data/telanganaDistrictMandalData';
 
 type DocumentCommodity = StatutoryCommodity;
 
@@ -122,10 +123,10 @@ function SampleDocumentBadges({ doc, t }: { doc: OfficerDocumentArchiveRecord; t
       {products.map((label, index) => (
         <span
           key={`${doc.id}-product-${index}`}
-          className="inline-flex max-w-[220px] items-center truncate rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold text-violet-800 ring-1 ring-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-800/60"
+          className="inline-flex max-w-[220px] items-center overflow-hidden rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold text-violet-800 ring-1 ring-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-800/60"
           title={label}
         >
-          {label}
+          <span className="truncate">{label}</span>
         </span>
       ))}
     </span>
@@ -176,10 +177,10 @@ function RecordProductBadges({ record }: { record: UnifiedOfficerRecord }) {
       {labels.map((label, index) => (
         <span
           key={`${record.id}-product-${index}`}
-          className="inline-flex max-w-[220px] items-center truncate rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold text-violet-800 ring-1 ring-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-800/60"
+          className="inline-flex max-w-[220px] items-center overflow-hidden rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold text-violet-800 ring-1 ring-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-800/60"
           title={label}
         >
-          {label}
+          <span className="truncate">{label}</span>
         </span>
       ))}
     </span>
@@ -465,12 +466,6 @@ export function OfficerRecordsHub() {
     }
   };
 
-  // Fallback jurisdiction for legacy records that predate stored mandal/district
-  const officerLocationFallback = [officerProfile?.mandal, officerProfile?.district]
-    .map((v) => String(v ?? '').trim())
-    .filter(Boolean)
-    .join(', ');
-
   // Sync status for local (not-yet-cloud) form records
   const pendingSyncCount = useMemo(() => records.filter((r) => !r.synced).length, [records]);
   const cloudRecordCount = useMemo(() => records.filter((r) => r.synced).length, [records]);
@@ -625,7 +620,7 @@ export function OfficerRecordsHub() {
       // Note: This filters based on the logged-in officer's profile.
       // For multi-officer filtering, records would need district/mandal metadata.
       if (isAdminUser) {
-        if (districtFilter !== 'all' && officerProfile?.district !== districtFilter) return false;
+        if (districtFilter !== 'all' && normalizeDistrictName(officerProfile?.district) !== districtFilter) return false;
         if (mandalFilter !== 'all' && officerProfile?.mandal !== mandalFilter) return false;
       }
 
@@ -675,7 +670,7 @@ export function OfficerRecordsHub() {
       // Note: This filters based on the logged-in officer's profile.
       // For multi-officer filtering, records would need district/mandal metadata.
       if (isAdminUser) {
-        if (districtFilter !== 'all' && officerProfile?.district !== districtFilter) return false;
+        if (districtFilter !== 'all' && normalizeDistrictName(officerProfile?.district) !== districtFilter) return false;
         if (mandalFilter !== 'all' && officerProfile?.mandal !== mandalFilter) return false;
       }
 
@@ -1122,6 +1117,28 @@ export function OfficerRecordsHub() {
             <option value="7days">{t('Last 7 Days', 'గత 7 రోజులు')}</option>
             <option value="30days">{t('Last 30 Days', 'గత 30 రోజులు')}</option>
           </select>
+
+          {/* Admin-only filter reset */}
+          {isAdminUser && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setDistrictFilter('all');
+                setMandalFilter('all');
+                setCategoryFilter('all');
+                setCommodityFilter('all');
+                setYearFilter('all');
+                setMonthFilter('all');
+                setDateFilter('all');
+              }}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-xs transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+              title={t('Reset all filters', 'అన్ని ఫిల్టర్లను రీసెట్ చేయండి')}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>{t('Reset', 'రీసెట్')}</span>
+            </button>
+          )}
 
           {/* Export Dropdown Button (Tucks Excel & PDF inside) — records tab only */}
           {activeTab === 'records' && (
@@ -1751,7 +1768,7 @@ export function OfficerRecordsHub() {
 
       {/* Field Form Record Details Modal */}
       {selectedRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs">
+        <div className="record-print-area fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs">
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900">
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
@@ -1791,7 +1808,7 @@ export function OfficerRecordsHub() {
               <button
                 type="button"
                 onClick={() => setSelectedRecord(null)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 print:hidden"
                 title={t('Close', 'మూసివేయి')}
               >
                 <X className="h-5 w-5" />
@@ -1834,20 +1851,16 @@ export function OfficerRecordsHub() {
               {/* Core Information Grid */}
               <div className="grid gap-3 sm:grid-cols-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 text-xs">
                 <div>
-                  <span className="block font-semibold text-slate-400">{t('Dealer / Firm Name', 'డీలర్ / సంస్థ పేరు')}</span>
-                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{selectedRecord.entityName || 'N/A'}</span>
-                </div>
-                <div>
                   <span className="block font-semibold text-slate-400">{t('Reference / Order Number', 'రిఫరెన్స్ / ఆర్డర్ సంఖ్య')}</span>
                   <span className="text-sm font-bold font-mono text-slate-800 dark:text-slate-200">{selectedRecord.referenceNumber || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="block font-semibold text-slate-400">{t('Record Date', 'తేదీ')}</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedRecord.recordDate || 'N/A'}</span>
+                  <span className="block font-semibold text-slate-400">{t('Dealer / Firm Name', 'డీలర్ / సంస్థ పేరు')}</span>
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{selectedRecord.entityName || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="block font-semibold text-slate-400">{t('Jurisdiction / Location', 'ప్రాంతం / మండలం')}</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedRecord.location || officerLocationFallback || 'N/A'}</span>
+                  <span className="block font-semibold text-slate-400">{t('Record Date', 'తేదీ')}</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedRecord.recordDate || 'N/A'}</span>
                 </div>
                 <div>
                   <span className="block font-semibold text-slate-400">{t('Record Type', 'రికార్డు రకం')}</span>
@@ -2002,13 +2015,36 @@ export function OfficerRecordsHub() {
                   ...g,
                   entries: [] as [string, unknown][],
                 }));
-                const otherEntries: [string, unknown][] = [];
-
                 for (const entry of flatEntries) {
                   const [key] = entry;
                   const group = grouped.find((g) => g.pattern.test(key));
                   if (group) group.entries.push(entry);
-                  else otherEntries.push(entry);
+                }
+
+                // Preferred ordering inside groups: product/seed name, variety,
+                // batch/lot, quantity, then code — remaining keys keep order.
+                const ENTRY_PRIORITY: RegExp[] = [
+                  /seed.*name|crop.*name|product.*name|fertiliz.*name|fertiliser.*name|trade.*name|insecticide.*name|pesticide.*name|name.*(seed|crop|product)/i,
+                  /technical.*name|technicalname/i,
+                  /active.*ingredient|activeingredient/i,
+                  /formulation/i,
+                  /variety/i,
+                  /batch|lot/i,
+                  /quantity/i,
+                  /code/i,
+                  /manufacture.*date|manufacturedate|date.*manufacture/i,
+                  /expir/i,
+                  /manufactured.*by|manufacturedby|manufacture.*by/i,
+                ];
+                const rankOf = (key: string) => {
+                  const idx = ENTRY_PRIORITY.findIndex((p) => p.test(key));
+                  return idx === -1 ? ENTRY_PRIORITY.length : idx;
+                };
+                for (const g of grouped) {
+                  g.entries = g.entries
+                    .map((e, i) => ({ e, i }))
+                    .sort((a, b) => rankOf(a.e[0]) - rankOf(b.e[0]) || a.i - b.i)
+                    .map((x) => x.e);
                 }
 
                 const humanize = (key: string) =>
@@ -2027,12 +2063,7 @@ export function OfficerRecordsHub() {
                   return String(val);
                 };
 
-                const sections = [
-                  ...grouped.filter((g) => g.entries.length > 0),
-                  ...(otherEntries.length > 0
-                    ? [{ title: 'Other Details', te: 'ఇతర వివరాలు', entries: otherEntries }]
-                    : []),
-                ];
+                const sections = grouped.filter((g) => g.entries.length > 0);
 
                 return (
                   <div className="space-y-3">
@@ -2062,11 +2093,19 @@ export function OfficerRecordsHub() {
             </div>
 
             {/* Modal Footer Actions */}
-            <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
+            <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800 print:hidden">
               <button
                 type="button"
                 onClick={() => {
-                  window.print();
+                  document.body.classList.add('printing-record-summary');
+                  window.addEventListener('afterprint', () => {
+                    document.body.classList.remove('printing-record-summary');
+                  }, { once: true });
+                  try {
+                    window.print();
+                  } catch {
+                    document.body.classList.remove('printing-record-summary');
+                  }
                 }}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
               >

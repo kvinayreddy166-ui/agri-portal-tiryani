@@ -231,9 +231,14 @@ const COVERING_LETTER_DETAIL_KEYS = [
 
 function officeSuggestion(profile: OfficerProfile): string {
   const designation = statutoryDesignationForProfile(profile.designation);
-  const parts = [designation, profile.mandal ? `${profile.mandal} Mandal` : '', profile.district ? `${profile.district} District` : '']
-    .filter(Boolean);
-  return parts.length ? `O/o ${parts.join(', ')}` : '';
+  const district = (profile.district || '').trim();
+  if (designation === 'Asst. Director of Agriculture') {
+    return [(profile.division || '').trim(), district].filter(Boolean).join(', ');
+  }
+  if (designation === 'District Agriculture Officer') {
+    return district;
+  }
+  return [(profile.mandal || '').trim(), district].filter(Boolean).join(', ');
 }
 
 /**
@@ -277,11 +282,18 @@ export function applyOfficerProfileDefaults(profile: OfficerProfile | null | und
     const envelope = saved && typeof saved.data === 'object' && saved.data !== null
       ? { v: typeof saved.v === 'number' ? saved.v : 1, data: { ...(saved.data as Record<string, unknown>) } }
       : { v: 1, data: {} as Record<string, unknown> };
-    const nextData = fillEmptyFields(envelope.data, {
+    let nextData = fillEmptyFields(envelope.data, {
       inspectorName: patch.officerName,
       inspectorDesignation: inspectorDesignationForProfile(profile.designation, inspector),
       inspectorOffice: office,
     });
+    // Migrate legacy auto-filled office values ("O/o ..." or values carrying
+    // Mandal/District/Division suffixes) to the values-only format; manually
+    // edited values are left untouched.
+    const storedOffice = String(nextData.inspectorOffice ?? '');
+    if (/(?:^O\/o\b|\b(?:Mandal|District|Division)\b)/i.test(storedOffice.trim()) && storedOffice.trim() !== office) {
+      nextData = { ...nextData, inspectorOffice: office };
+    }
     if (nextData !== envelope.data) {
       writeJson(key, { ...envelope, data: nextData });
     }

@@ -1437,6 +1437,8 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               : effectiveLocationValue(values.mandal, values.manualMandal)) || undefined,
             district: effectiveLocationValue(values.district, values.manualDistrict) || undefined,
             firmName: dealerName || undefined,
+            firmAddress:
+              (values.dealerAddress || values.place || values.premisesLocation || '').trim() || undefined,
             dealerManufacturerImporterName:
               (values.dealerManufacturerImporterName === 'Other'
                 ? values.manualDealerManufacturerImporterName
@@ -1640,14 +1642,14 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
                   onChange={(event) => loadDraft(event.target.value)}
                   className={`rounded-lg border px-3 py-2 text-sm outline-none backdrop-blur-sm transition ${
                     selectedDraftName
-                      ? 'border-violet-400 bg-violet-50 text-violet-700 focus:border-violet-500 focus:bg-violet-100 focus:ring-2 focus:ring-violet-100/50'
-                      : 'border-violet-200 bg-white/90 text-slate-900 focus:border-violet-500 focus:bg-white focus:ring-2 focus:ring-violet-100/50'
+                      ? 'border-violet-400 bg-violet-50 text-violet-700 focus:border-violet-500 focus:bg-violet-100 focus:ring-2 focus:ring-violet-100/50 dark:border-violet-700 dark:bg-violet-950/50 dark:text-violet-200 dark:focus:bg-violet-900/50'
+                      : 'border-violet-200 bg-white/90 text-slate-900 focus:border-violet-500 focus:bg-white focus:ring-2 focus:ring-violet-100/50 dark:border-violet-800/60 dark:bg-violet-950/40 dark:text-violet-200 dark:focus:bg-violet-900/50'
                   }`}
                   title={selectedDraftName || 'Load saved draft...'}
                 >
                   <option value="">Load saved draft...</option>
                   {savedDrafts.map((draft) => (
-                    <option key={draft.name} value={draft.name} className={selectedDraftName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-violet-50 text-violet-700 font-bold' : ''}>
+                    <option key={draft.name} value={draft.name} className={selectedDraftName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-violet-50 text-violet-700 font-bold dark:bg-violet-900/50 dark:text-violet-200' : ''}>
                       {draft.name}
                     </option>
                   ))}
@@ -2014,6 +2016,9 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               <p className="mt-3 rounded-md border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-[11px] font-bold leading-4 text-red-700 dark:text-red-300">
                 Note: Please update sample details and dealer details before generating a new file.
               </p>
+              <p className="mt-2 rounded-md border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 px-3 py-2 text-[11px] font-bold leading-4 text-amber-700 dark:text-amber-300">
+                Note: Samples are added to the Covering Letter queue only via <span className="font-black">Download All Forms → Download</span>. Preview and individual form downloads will not add them.
+              </p>
             </div>
 
           </div>
@@ -2037,6 +2042,9 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               />
               <span className="text-sm text-gray-700 dark:text-slate-200">Add sample details to Covering Letter</span>
             </label>
+            <p className="mb-6 rounded-md border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 px-3 py-2 text-[11px] font-bold leading-4 text-amber-700 dark:text-amber-300">
+              Note: The sample is added to the Covering Letter queue only when you click Download. Previewing or downloading individual forms will not add it.
+            </p>
             
             <div className="flex gap-2">
               <button
@@ -2299,37 +2307,37 @@ function FieldSection({ title, children, color = 'slate', onReset, isCollapsible
   };
 
   const colorStyles = {
-    emerald: 'border-emerald-200 bg-emerald-50/50',
-    blue: 'border-blue-200 bg-blue-50/50',
-    amber: 'border-amber-200 bg-amber-50/50',
-    maroon: 'border-red-700 bg-red-50/50',
-    slate: 'border-slate-200 bg-slate-50/50',
-    purple: 'border-purple-200 bg-purple-50/50',
+    emerald: 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-800/60 dark:bg-emerald-950/30',
+    blue: 'border-blue-200 bg-blue-50/50 dark:border-blue-800/60 dark:bg-blue-950/30',
+    amber: 'border-amber-200 bg-amber-50/50 dark:border-amber-800/60 dark:bg-amber-950/30',
+    maroon: 'border-red-700 bg-red-50/50 dark:border-red-800/60 dark:bg-red-950/30',
+    slate: 'border-slate-200 bg-slate-50/50 dark:border-slate-700 dark:bg-slate-800/60',
+    purple: 'border-purple-200 bg-purple-50/50 dark:border-purple-800/60 dark:bg-purple-950/30',
   };
   
   const headerColors = {
-    emerald: 'text-emerald-700',
-    blue: 'text-blue-700',
-    amber: 'text-amber-700',
-    maroon: 'text-red-800',
-    slate: 'text-slate-700',
-    purple: 'text-purple-700',
+    emerald: 'text-emerald-700 dark:text-emerald-300',
+    blue: 'text-blue-700 dark:text-blue-300',
+    amber: 'text-amber-700 dark:text-amber-300',
+    maroon: 'text-red-800 dark:text-red-300',
+    slate: 'text-slate-700 dark:text-slate-300',
+    purple: 'text-purple-700 dark:text-purple-300',
   };
 
   const iconButtonColors = {
-    emerald: 'border-emerald-200 text-emerald-400 hover:bg-emerald-50 hover:text-emerald-600',
-    blue: 'border-blue-200 text-blue-400 hover:bg-blue-50 hover:text-blue-600',
-    amber: 'border-amber-200 text-amber-400 hover:bg-amber-50 hover:text-amber-600',
-    maroon: 'border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600',
-    slate: 'border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600',
-    purple: 'border-purple-200 text-purple-400 hover:bg-purple-50 hover:text-purple-600',
+    emerald: 'border-emerald-200 text-emerald-400 hover:bg-emerald-50 hover:text-emerald-600 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300',
+    blue: 'border-blue-200 text-blue-400 hover:bg-blue-50 hover:text-blue-600 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950/40 dark:hover:text-blue-300',
+    amber: 'border-amber-200 text-amber-400 hover:bg-amber-50 hover:text-amber-600 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950/40 dark:hover:text-amber-300',
+    maroon: 'border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/40 dark:hover:text-red-300',
+    slate: 'border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200',
+    purple: 'border-purple-200 text-purple-400 hover:bg-purple-50 hover:text-purple-600 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-950/40 dark:hover:text-purple-300',
   };
   
   const ChevronIcon = isCollapsed ? ChevronDown : ChevronUp;
   
   if (isCoveringLetter) {
     return (
-      <div className={`rounded-lg border ${colorStyles[color]} p-3 shadow-sm`} style={{ backgroundColor: '#F5FAF6', borderLeft: '4px solid #2E7D32' }}>
+      <div className={`rounded-lg border ${colorStyles[color]} bg-[#F5FAF6] border-l-4 border-l-[#2E7D32] p-3 shadow-sm dark:bg-emerald-950/30 dark:border-l-emerald-600`}>
         <div className={`flex items-center justify-between mb-2.5 pb-2 border-b ${dividerStyles[color]}`}>
           <div className="flex-1">
             <div className="flex items-center gap-2">
@@ -2364,7 +2372,7 @@ function FieldSection({ title, children, color = 'slate', onReset, isCollapsible
   }
   
   return (
-    <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm`}>
+    <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm dark:bg-slate-900`}>
       <div className={`flex items-center justify-between mb-2.5 pb-2 border-b ${dividerStyles[color]}`}>
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -2412,7 +2420,7 @@ function FertilizerPdfAction({
   primary?: boolean;
 }) {
   return (
-    <div className={`rounded-lg border p-2 ${primary ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+    <div className={`rounded-lg border p-2 ${primary ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-800/60 dark:bg-emerald-950/30' : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800/60'}`}>
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <p className="truncate text-xs font-black text-slate-800 dark:text-slate-100">{label}</p>
         {primary && <span className="rounded bg-emerald-100 dark:bg-emerald-900/40 px-1.5 py-0.5 text-[10px] font-black uppercase text-emerald-800 dark:text-emerald-300">All</span>}
@@ -2457,7 +2465,7 @@ function PdfInput({
   values: FertilizerPdfValues;
 }) {
   const commonClass =
-    'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+    'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:focus:bg-slate-800 dark:focus:ring-emerald-900/40';
 
   const displayLabel = field.dynamicLabel && values?.designation === 'Asst. Director of Agriculture' && field.key === 'mandal'
     ? 'Division'
@@ -2480,7 +2488,7 @@ function PdfInput({
           {compositionDisplayOptions.map((option) => (
             <label
               key={option.key}
-              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50"
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               <input
                 type="checkbox"
@@ -2513,7 +2521,7 @@ function PdfInput({
           {microNutrientCheckboxOptions.map((option) => (
             <label
               key={option.key}
-              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50"
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               <input
                 type="checkbox"
@@ -2546,7 +2554,7 @@ function PdfInput({
           {waterSolubleCheckboxOptions.map((option) => (
             <label
               key={option.key}
-              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50"
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               <input
                 type="checkbox"

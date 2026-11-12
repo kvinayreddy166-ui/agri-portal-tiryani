@@ -300,10 +300,20 @@ main,
     background: rgba(242, 247, 243, 0.75);
   }
 
+  .dark .table-scroll tbody tr:nth-child(even),
+  .dark .overflow-x-auto > table tbody tr:nth-child(even) {
+    background: rgba(15, 23, 42, 0.5);
+  }
+
   @media (hover: hover) and (pointer: fine) {
     .table-scroll tbody tr:hover,
     .overflow-x-auto > table tbody tr:hover {
       background: rgba(22, 101, 52, 0.07);
+    }
+
+    .dark .table-scroll tbody tr:hover,
+    .dark .overflow-x-auto > table tbody tr:hover {
+      background: rgba(22, 101, 52, 0.15);
     }
   }
 
@@ -1258,4 +1268,58 @@ input[type="date"][value=""]::-webkit-datetime-edit {
 .dark input[type="date"]:not([value])::-webkit-datetime-edit,
 .dark input[type="date"][value=""]::-webkit-datetime-edit {
   color: #94a3b8;
+}
+
+/* Print only the record-details modal: hide every element that does not
+   contain (or live inside) .record-print-area, then un-fix the modal so it
+   flows as a normal one-page document. */
+@media print {
+  body.printing-record-summary *:not(:has(.record-print-area)):not(.record-print-area):not(.record-print-area *) {
+    display: none !important;
+  }
+
+  body.printing-record-summary .record-print-area {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    color-scheme: light;
+  }
+
+  body.printing-record-summary .record-print-area > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+  }
+}
+
+/* Force a clean light printout inside the record-details modal — dark-mode
+   classes would otherwise print white-on-white. */
+@media print {
+  body.printing-record-summary .record-print-area,
+  body.printing-record-summary .record-print-area * {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
 }

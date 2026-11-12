@@ -19,9 +19,9 @@ export type CoveringLetterUpsertResult = 'added' | 'updated' | 'unchanged';
 // Fields compared to detect whether a re-download changed the queued sample.
 // Tracker-written fields (labStatus, dispatchedAt, ...) are intentionally excluded.
 const TRACKED_FIELDS: Record<StatutoryCommodity, string[]> = {
-  fertilizer: ['fertilizerName', 'quantity', 'dateOfSampling', 'batchNo', 'firmName', 'dealerManufacturerImporterName'],
-  pesticide: ['tradeName', 'technicalName', 'activeIngredient', 'formulationType', 'dateOfSampling', 'batchNo', 'firmName', 'manufacturedBy', 'manufactureDate', 'expiryDate'],
-  seed: ['seedName', 'variety', 'quantity', 'dateOfSampling', 'isCotton', 'batchNo', 'firmName', 'sourceOfSupply', 'packingDate'],
+  fertilizer: ['fertilizerName', 'quantity', 'dateOfSampling', 'batchNo', 'firmName', 'firmAddress', 'dealerManufacturerImporterName'],
+  pesticide: ['tradeName', 'technicalName', 'activeIngredient', 'formulationType', 'dateOfSampling', 'batchNo', 'firmName', 'firmAddress', 'manufacturedBy', 'manufactureDate', 'expiryDate'],
+  seed: ['seedName', 'variety', 'quantity', 'dateOfSampling', 'isCotton', 'batchNo', 'firmName', 'firmAddress', 'sourceOfSupply', 'packingDate'],
 };
 
 function notifyQueueChanged() {

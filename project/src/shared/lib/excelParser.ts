@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { fetchFileBuffer } from './fileBlob';
+import { normalizeDistrictName } from '../data/telanganaDistrictMandalData';
 
 export interface ParsedDealerRow {
   dealer_name: string;
@@ -9,6 +10,8 @@ export interface ParsedDealerRow {
   issue_date: string;
   expiry_date: string;
   location: string;
+  district?: string;
+  mandal?: string;
   dealer_category: 'fertilizer' | 'seed' | 'pesticide';
 }
 
@@ -57,6 +60,8 @@ function rowToDealer(
     issue_date: parseDate(row.issue_date || row.license_issue_date || row.issued),
     expiry_date: expiry,
     location: String(row.location || row.address || row.village || '').trim() || 'Tiryani',
+    district: normalizeDistrictName(String(row.district || row.dist || '').trim()) || undefined,
+    mandal: String(row.mandal || row.mandals || '').trim() || undefined,
     dealer_category: category,
   };
 }

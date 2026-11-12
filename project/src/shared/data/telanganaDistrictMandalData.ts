@@ -34,6 +34,42 @@ export const TELANGANA_DISTRICTS = [
   'Yadadri Bhuvanagiri',
 ] as const;
 
+// Canonical spellings for district-name variants seen in profiles/records.
+// Kumurambheem Asifabad is the official name; older/alternate spellings all
+// resolve to it.
+const DISTRICT_NAME_ALIASES: Record<string, string> = {
+  kumurambheemasifabad: 'Kumurambheem Asifabad',
+  kumrambheemasifabad: 'Kumurambheem Asifabad',
+  kumurambeemasifabad: 'Kumurambheem Asifabad',
+  kumrambeemasifabad: 'Kumurambheem Asifabad',
+  kumurambheem: 'Kumurambheem Asifabad',
+  kumrambheem: 'Kumurambheem Asifabad',
+  kumurambeem: 'Kumurambheem Asifabad',
+  kumrambeem: 'Kumurambheem Asifabad',
+  hanamkonda: 'Hanumakonda',
+  hanamakonda: 'Hanumakonda',
+};
+
+const SQUASHED_DISTRICT_LOOKUP: Record<string, string> = (() => {
+  const lookup: Record<string, string> = {};
+  for (const district of TELANGANA_DISTRICTS) {
+    lookup[district.toLowerCase().replace(/[^a-z0-9]/g, '')] = district;
+  }
+  return { ...lookup, ...DISTRICT_NAME_ALIASES };
+})();
+
+/**
+ * Returns the canonical TELANGANA_DISTRICTS spelling for a district name,
+ * resolving spelling variants (e.g. "Kumrambheem Asifabad", "Kumuram Bheem")
+ * to "Kumurambheem Asifabad". Unknown names are returned trimmed as-is.
+ */
+export function normalizeDistrictName(district: string | null | undefined): string {
+  const trimmed = String(district ?? '').trim();
+  if (!trimmed) return '';
+  const key = trimmed.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return SQUASHED_DISTRICT_LOOKUP[key] || trimmed;
+}
+
 export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
   'Adilabad': [
     'Adilabad Rural', 'Adilabad Urban', 'Bazarhatnoor', 'Bela', 'Boath', 'Bheempur', 'Gudihatnoor', 'Ichoda', 'Jainath', 'Mavala', 'Neradigonda', 'Sirikonda', 'Talamadugu', 'Tamsi', 'Gadiguda', 'Inderavelly', 'Narnoor', 'Utnoor',
@@ -72,9 +108,6 @@ export const TELANGANA_DISTRICT_MANDAL_MAPPING: Record<string, string[]> = {
     'Enkoor', 'Kalluru', 'Penuballi', 'Sathupalli', 'Thallada', 'Vemsoor', 'Bonakal', 'Chinthakani', 'Kamepalli', 'Khammam (Rural)', 'Khammam (Urban)', 'Konijerla', 'Kusumanchi', 'Madhira', 'Mudigonda', 'Nelakondapalli', 'Raghunadhapalem', 'Singareni', 'Tirumalayapalem', 'Wyra', 'Yerrupalem',
   ],
   'Kumurambheem Asifabad': [
-    'Asifabad', 'Jainoor', 'Kerameri', 'Lingapur', 'Rebbena', 'Sirpur U', 'Tiryani', 'Wankidi', 'Bejjur', 'Chintalamanepally', 'Dahegoan', 'Kagaznagar', 'Koutala', 'Penchicalpet', 'Sirpur (T)',
-  ],
-  'Kumrambheem Asifabad': [
     'Asifabad', 'Jainoor', 'Kerameri', 'Lingapur', 'Rebbena', 'Sirpur U', 'Tiryani', 'Wankidi', 'Bejjur', 'Chintalamanepally', 'Dahegoan', 'Kagaznagar', 'Koutala', 'Penchicalpet', 'Sirpur (T)',
   ],
   'Mahabubabad': [
@@ -187,7 +220,6 @@ export const DISTRICT_DIVISION_MAPPING: Record<string, string[]> = {
   'Karimnagar': ['Choppadandi', 'Huzurabad', 'Karimnagar', 'Manakondur'],
   'Khammam': ['Khammam Urban', 'Kusumanchi', 'Madhira', 'Sathupalli', 'Wyra'],
   'Kumurambheem Asifabad': ['Asifabad', 'Kagaznagar', 'Penchicalpet', 'Sirpur U'],
-  'Kumrambheem Asifabad': ['Asifabad', 'Kagaznagar', 'Penchicalpet', 'Sirpur U'],
   'Hyderabad': [],
   'Mahabubabad': ['Mahabubabad', 'Maripeda'],
   'Mahabubnagar': ['Devarakadra', 'Jadcherla', 'Mahabubnagar Rural'],
@@ -217,9 +249,10 @@ function squashLocationKey(value: string): string {
 }
 
 function lookupLocationMapping(mapping: Record<string, string[]>, key: string): string[] {
-  const direct = mapping[key];
+  const canonical = normalizeDistrictName(key);
+  const direct = mapping[canonical] ?? mapping[key];
   if (direct) return direct;
-  const squashed = squashLocationKey(key);
+  const squashed = squashLocationKey(canonical || key);
   const match = Object.keys(mapping).find((k) => squashLocationKey(k) === squashed);
   return match ? mapping[match] : [];
 }

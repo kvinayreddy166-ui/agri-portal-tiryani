@@ -1,8 +1,10 @@
 import React, { lazy, Suspense, useCallback, useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Building2,
   MapPin,
   Users,
+  UserCog,
   Droplets,
   CloudRain,
   Layers,
@@ -26,12 +28,36 @@ import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { cachedSupabaseValue } from '../../../shared/lib/offlineCache';
 import { groupDistrictCounts } from '../../../shared/utils/districts';
+import { normalizeDistrictName, TELANGANA_DISTRICT_MANDAL_MAPPING } from '../../../shared/data/telanganaDistrictMandalData';
+
+// mandal (squashed: lowercase alphanumeric, markers removed) -> district,
+// used to correct district when the stored district conflicts with the
+// dealer's mandal. Squashing tolerates '(V)'/'(M)' markers and spacing.
+const squashPlace = (value: string) =>
+  value.replace(/\([^)]*\)/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const MANDAL_TO_DISTRICT = (() => {
+  const map = new Map<string, string>();
+  for (const [district, mandals] of Object.entries(TELANGANA_DISTRICT_MANDAL_MAPPING)) {
+    for (const mandal of mandals) map.set(squashPlace(mandal), district);
+  }
+  return map;
+})();
+const MANDAL_CANONICAL = (() => {
+  const map = new Map<string, string>();
+  for (const mandals of Object.values(TELANGANA_DISTRICT_MANDAL_MAPPING)) {
+    for (const mandal of mandals) map.set(squashPlace(mandal), mandal);
+  }
+  return map;
+})();
 
 const LazySimpleBarChart = lazy(() =>
   import('../../../shared/components/charts/SimpleBarChart').then((module) => ({ default: module.SimpleBarChart }))
 );
 const LazyCategoryDonutChart = lazy(() =>
   import('../../../shared/components/charts/CategoryDonutChart').then((module) => ({ default: module.CategoryDonutChart }))
+);
+const LazyStackedBarChart = lazy(() =>
+  import('../../../shared/components/charts/StackedBarChart').then((module) => ({ default: module.StackedBarChart }))
 );
 
 type FarmerDashboardRow = {
@@ -70,6 +96,11 @@ export const Dashboard = React.memo(function Dashboard() {
   const [districtUserCounts, setDistrictUserCounts] = useState<{ district: string; count: number }[]>([]);
   const [designationCounts, setDesignationCounts] = useState<{ name: string; count: number }[]>([]);
   const [dealerCategoryData, setDealerCategoryData] = useState<{ name: string; count: number }[]>([]);
+  const [dealerLocationChart, setDealerLocationChart] = useState<{
+    rows: Record<string, string | number>[];
+    bars: { key: string; label: string }[];
+  } | null>(null);
+  const [dashboardCacheBuster, setDashboardCacheBuster] = useState(0);
   const [targetsModalOpen, setTargetsModalOpen] = useState(false);
   const [loading, setLoading] = useState(isAdminUser || isElevatedOfficerUser);
   const fetchDashboardData = useCallback(async () => {
@@ -92,8 +123,8 @@ export const Dashboard = React.memo(function Dashboard() {
           ? supabase.from('officer_profiles').select('id, district, designation').limit(10000)
           : Promise.resolve({ data: [] as { id?: string; district?: string; designation?: string }[] }),
         wantsAdminCounts
-          ? supabase.from('dealers').select('dealer_category, created_by').limit(10000)
-          : Promise.resolve({ data: [] as { dealer_category?: string | null; created_by?: string | null }[] }),
+          ? supabase.from('dealers').select('dealer_category, created_by, district, mandal').limit(10000)
+          : Promise.resolve({ data: [] as { dealer_category?: string | null; created_by?: string | null; district?: string | null; mandal?: string | null }[] }),
       ]);
 
       setMandalData(contentRes?.content || null);
@@ -126,6 +157,70 @@ export const Dashboard = React.memo(function Dashboard() {
           .map(([name, count]) => ({ name, count }))
           .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
       );
+
+      // District x Mandal dealer distribution for the stacked chart.
+      const mandalTotals = new Map<string, number>();
+      const byDistrict = new Map<string, Map<string, number>>();
+      (dealersRes.data || []).forEach((row) => {
+        const mandal = String(row.mandal || '').trim();
+        // Prefer the district that actually contains the mandal — stored
+        // district may be wrong/missing for imported or legacy rows.
+        const district =
+          (mandal && MANDAL_TO_DISTRICT.get(squashPlace(mandal))) ||
+          normalizeDistrictName(row.district) ||
+          'Not Set';
+        const mandalLabel = (mandal && MANDAL_CANONICAL.get(squashPlace(mandal))) || mandal || 'Not Set';
+        mandalTotals.set(mandalLabel, (mandalTotals.get(mandalLabel) || 0) + 1);
+        if (!byDistrict.has(district)) byDistrict.set(district, new Map());
+        const m = byDistrict.get(district)!;
+        m.set(mandalLabel, (m.get(mandalLabel) || 0) + 1);
+      });
+      if (byDistrict.size > 0) {
+        // Build the union of all mandals that actually have dealers in any district.
+        const usedMandals = new Set<string>();
+        byDistrict.forEach((mandals) => {
+          mandals.forEach((count, mandal) => {
+            if (count > 0 && mandal !== 'Not Set') usedMandals.add(mandal);
+          });
+        });
+        const hasNotSet = Array.from(byDistrict.values()).some((m) => m.has('Not Set'));
+        // Sort by total dealer count across all districts.
+        const sortedMandals = Array.from(usedMandals).sort((a, b) => {
+          const aTotal = Array.from(byDistrict.values()).reduce((sum, m) => sum + (m.get(a) || 0), 0);
+          const bTotal = Array.from(byDistrict.values()).reduce((sum, m) => sum + (m.get(b) || 0), 0);
+          return bTotal - aTotal || a.localeCompare(b);
+        });
+        const topMandals = sortedMandals.slice(0, 7);
+        const hasOthers = usedMandals.size > topMandals.length;
+        const barKeys = [...topMandals.map((_, i) => `m${i}`), ...(hasOthers ? ['mOthers'] : []), ...(hasNotSet ? ['mNotSet'] : [])];
+        const barLabels = [
+          ...topMandals,
+          ...(hasOthers ? ['__OTHER_MANDALS__'] : []),
+          ...(hasNotSet ? ['__NOT_SET__'] : []),
+        ];
+        const rows = Array.from(byDistrict.entries())
+          .map(([district, mandals]: [string, Map<string, number>]) => {
+            const row: Record<string, string | number> = { name: district };
+            barKeys.forEach((k) => (row[k] = 0));
+            mandals.forEach((count, mandal) => {
+              if (count === 0) return;
+              let key: string;
+              if (mandal === 'Not Set') key = 'mNotSet';
+              else if (topMandals.includes(mandal)) key = `m${topMandals.indexOf(mandal)}`;
+              else key = 'mOthers';
+              row[key] = (row[key] as number) + count;
+            });
+            return row;
+          })
+          .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+        setDealerLocationChart({
+          rows,
+          bars: barKeys.map((key, i) => ({ key, label: barLabels[i] })),
+        });
+        setDashboardCacheBuster((b) => b + 1);
+      } else {
+        setDealerLocationChart(null);
+      }
       setLoading(false);
 
       if (wantsOfficerWidgets) {
@@ -142,7 +237,7 @@ export const Dashboard = React.memo(function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, isAdminUser, isElevatedOfficerUser]);
+  }, [user?.id, isAdminUser, isElevatedOfficerUser, dashboardCacheBuster]);
 
   useEffect(() => {
     void fetchDashboardData();
@@ -168,7 +263,8 @@ export const Dashboard = React.memo(function Dashboard() {
     Boolean(mandalData) ||
     fertilizers.length > 0 ||
     districtUserCounts.length > 0 ||
-    dealerCategoryData.length > 0;
+    dealerCategoryData.length > 0 ||
+    Boolean(dealerLocationChart);
 
   return (
     <div className="dashboard-shell space-y-6">
@@ -347,11 +443,20 @@ export const Dashboard = React.memo(function Dashboard() {
           {/* Officer Analytics (Admin) */}
           {isAdminUser && (districtUserCounts.length > 0 || designationCounts.length > 0) && (
             <div className="dashboard-rise dashboard-delay-2 portal-card p-4 sm:p-5">
-              <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
-                <Users className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-[var(--font-heading)]">
-                  {t('Officer Analytics', 'అధికారి విశ్లేషణలు')}
-                </h2>
+              <div className="mb-4 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
+                  <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white font-[var(--font-heading)]">
+                    {t('Officer Analytics', 'అధికారి విశ్లేషణలు')}
+                  </h2>
+                </div>
+                <Link
+                  to="/admin/user-management"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+                >
+                  <UserCog className="h-3.5 w-3.5" />
+                  <span>{t('User Management', 'వినియోగదారు నిర్వహణ')}</span>
+                </Link>
               </div>
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
               {districtUserCounts.length > 0 && (
@@ -410,13 +515,44 @@ export const Dashboard = React.memo(function Dashboard() {
                     {t('Dealer Analytics', 'డీలర్ విశ్లేషణలు')}
                   </h2>
                 </div>
-                <span className="rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300">
-                  {t('Total', 'మొత్తం')}: {dealerCategoryData.reduce((sum, d) => sum + d.count, 0)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300">
+                    {t('Total', 'మొత్తం')}: {dealerCategoryData.reduce((sum, d) => sum + d.count, 0)}
+                  </span>
+                  <Link
+                    to="/dealer-management"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+                  >
+                    <Store className="h-3.5 w-3.5" />
+                    <span>{t('Dealer Management', 'డీలర్ నిర్వహణ')}</span>
+                  </Link>
+                </div>
               </div>
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+                {dealerLocationChart && dealerLocationChart.rows.length > 0 && (
+                  <div className="lg:col-span-3">
+                    <h3 className="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">
+                      {t('Dealers by District & Mandal', 'జిల్లా & మండలం వారీగా డీలర్లు')}
+                    </h3>
+                    <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
+                      <LazyStackedBarChart
+                        data={dealerLocationChart.rows}
+                        xKey="name"
+                        bars={dealerLocationChart.bars.map((b) => ({
+                          ...b,
+                          label:
+                            b.label === '__OTHER_MANDALS__'
+                              ? t('Other Mandals', 'ఇతర మండలాలు')
+                              : b.label === '__NOT_SET__'
+                                ? t('Not Set', 'సెట్ కాలేదు')
+                                : b.label,
+                        }))}
+                      />
+                    </Suspense>
+                  </div>
+                )}
                 {dealerCategoryData.length > 0 && (
-                  <div className="lg:col-span-2">
+                  <div className={dealerLocationChart?.rows.length ? 'lg:col-span-2' : 'lg:col-span-5'}>
                     <h3 className="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">
                       {t('Dealers by Category', 'వర్గం వారీగా డీలర్లు')}
                     </h3>

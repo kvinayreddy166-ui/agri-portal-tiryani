@@ -46,7 +46,7 @@ export function MobileBottomNav({ currentPage, onNavigate, isAdminUser = false }
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40"
       aria-label={t('Primary navigation', 'ప్రాథమిక నావిగేషన్')}
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >

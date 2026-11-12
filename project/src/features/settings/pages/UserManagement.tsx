@@ -1,14 +1,10 @@
-import React, { lazy, Suspense, useState, useEffect, useCallback, useMemo } from 'react';
-import { Users, RefreshCw, Trash2, ShieldAlert, CheckCircle2, PauseCircle, PlayCircle, Download, BarChart3 } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Users, RefreshCw, Trash2, ShieldAlert, CheckCircle2, PauseCircle, PlayCircle, Download, Search } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { downloadCsv } from '../../../shared/utils/csvExport';
-import { groupDistrictCounts } from '../../../shared/utils/districts';
-
-const LazySimpleBarChart = lazy(() =>
-  import('../../../shared/components/charts/SimpleBarChart').then((module) => ({ default: module.SimpleBarChart }))
-);
+import { normalizeDistrictName } from '../../../shared/data/telanganaDistrictMandalData';
 
 
 interface OfficerRow {
@@ -40,6 +36,11 @@ export function UserManagement() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState('');
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [districtFilter, setDistrictFilter] = useState('all');
+  const [mandalFilter, setMandalFilter] = useState('all');
+  const [designationFilter, setDesignationFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const loadOfficerAccounts = useCallback(async () => {
     if (!isAdminUser) return;
@@ -139,17 +140,50 @@ export function UserManagement() {
     });
   };
 
-  const allSelected = adminOfficers.length > 0 && adminOfficers.every((o) => selectedIds.has(o.id));
+  const districtOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(adminOfficers.map((o) => normalizeDistrictName(o.district)).filter(Boolean))
+      ).sort(),
+    [adminOfficers]
+  );
+  const mandalOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          adminOfficers
+            .filter((o) => districtFilter === 'all' || normalizeDistrictName(o.district) === districtFilter)
+            .map((o) => o.mandal)
+            .filter(Boolean)
+        )
+      ).sort(),
+    [adminOfficers, districtFilter]
+  );
+  const designationOptions = useMemo(
+    () => Array.from(new Set(adminOfficers.map((o) => o.designation).filter(Boolean))).sort(),
+    [adminOfficers]
+  );
+
+  const filteredOfficers = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return adminOfficers.filter((o) => {
+      if (districtFilter !== 'all' && normalizeDistrictName(o.district) !== districtFilter) return false;
+      if (mandalFilter !== 'all' && o.mandal !== mandalFilter) return false;
+      if (designationFilter !== 'all' && o.designation !== designationFilter) return false;
+      if (statusFilter !== 'all' && (o.status || 'active') !== statusFilter) return false;
+      if (!q) return true;
+      return [o.full_name, o.designation, o.qualification, o.hrms_id, o.district, o.mandal, o.division, o.phone, o.email, o.role, o.status]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q));
+    });
+  }, [adminOfficers, searchQuery, districtFilter, mandalFilter, designationFilter, statusFilter]);
+
+  const allSelected = filteredOfficers.length > 0 && filteredOfficers.every((o) => selectedIds.has(o.id));
   const toggleSelectAll = () => {
-    setSelectedIds(allSelected ? new Set() : new Set(adminOfficers.map((o) => o.id)));
+    setSelectedIds(allSelected ? new Set() : new Set(filteredOfficers.map((o) => o.id)));
   };
 
   const selectedOfficers = adminOfficers.filter((o) => selectedIds.has(o.id));
-
-  const districtChartData = useMemo(
-    () => groupDistrictCounts(adminOfficers.map((o) => o.district), 'Unspecified').slice(0, 12),
-    [adminOfficers]
-  );
 
   const handleBulkStatus = async (nextStatus: 'active' | 'suspended') => {
     const targets = selectedOfficers.filter((o) => o.id !== user?.id);
@@ -276,27 +310,6 @@ export function UserManagement() {
         </div>
       )}
 
-      {adminOfficers.length > 0 && (
-        <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-slate-800">
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300">
-                <BarChart3 className="h-4 w-4" />
-              </span>
-              <div>
-                <h2 className="text-sm font-bold text-gray-900 dark:text-white">Registered Officers by District</h2>
-                <p className="text-xs text-gray-500 dark:text-slate-400">{adminOfficers.length} officer account(s) across {districtChartData.length} district(s)</p>
-              </div>
-            </div>
-          </div>
-          <div className="px-4 py-4">
-            <Suspense fallback={<div className="h-60 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
-              <LazySimpleBarChart data={districtChartData} dataKey="count" nameKey="name" />
-            </Suspense>
-          </div>
-        </div>
-      )}
-
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
@@ -328,6 +341,67 @@ export function UserManagement() {
         <p className="text-sm text-gray-600 dark:text-slate-300 mb-4">
           As portal administrator, you can view and remove registered officer accounts upon administrative review or officer request.
         </p>
+
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name, email, designation, district, mandal, phone or HRMS ID..."
+            className="w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-8 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          />
+          {searchQuery && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-slate-500">
+              {filteredOfficers.length} of {adminOfficers.length}
+            </span>
+          )}
+        </div>
+
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <select
+            value={districtFilter}
+            onChange={(e) => { setDistrictFilter(e.target.value); setMandalFilter('all'); }}
+            className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+            <option value="all">All Districts</option>
+            {districtOptions.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
+          <select
+            value={mandalFilter}
+            onChange={(e) => setMandalFilter(e.target.value)}
+            className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+            <option value="all">All Mandals</option>
+            {mandalOptions.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <select
+            value={designationFilter}
+            onChange={(e) => setDesignationFilter(e.target.value)}
+            className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+            <option value="all">All Designations</option>
+            {designationOptions.map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+            <option value="all">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+          </select>
+          {(districtFilter !== 'all' || mandalFilter !== 'all' || designationFilter !== 'all' || statusFilter !== 'all') && (
+            <button
+              type="button"
+              onClick={() => { setDistrictFilter('all'); setMandalFilter('all'); setDesignationFilter('all'); setStatusFilter('all'); }}
+              className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
 
         {selectedIds.size > 0 && (
           <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/30 px-4 py-2.5">
@@ -378,6 +452,12 @@ export function UserManagement() {
           <div className="py-6 text-center text-gray-500 dark:text-slate-400 text-sm bg-gray-50 dark:bg-slate-800/40 rounded-lg">
             No registered officer accounts found.
           </div>
+        ) : filteredOfficers.length === 0 ? (
+          <div className="py-6 text-center text-gray-500 dark:text-slate-400 text-sm bg-gray-50 dark:bg-slate-800/40 rounded-lg">
+            {searchQuery
+              ? `No officers match "${searchQuery}".`
+              : 'No officers match the current filters.'}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">
@@ -401,7 +481,7 @@ export function UserManagement() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
-                {adminOfficers.map((officer) => {
+                {filteredOfficers.map((officer) => {
                   const isSelf = officer.id === user?.id;
                   return (
                     <tr key={officer.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">

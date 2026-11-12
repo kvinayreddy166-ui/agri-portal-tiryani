@@ -892,6 +892,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               : effectiveLocationValue(values.mandal, values.manualMandal)) || undefined,
             district: effectiveLocationValue(values.district, values.manualDistrict) || undefined,
             firmName: (values.dealerName || '').trim() || undefined,
+            firmAddress: (values.dealerAddress || values.place || '').trim() || undefined,
             manufacturedBy: (values.manufacturedBy || '').trim() || undefined,
             manufactureDate: (values.manufactureDate || '').trim() || undefined,
             expiryDate: (values.expiryDate || '').trim() || undefined,
@@ -924,8 +925,8 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
         onCancel={() => setConfirmAction(null)}
       />
       <div className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-      <section className="flex max-h-[94vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-red-100/50 bg-gradient-to-r from-red-50 via-white to-rose-50 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm">
+      <section className="flex max-h-[94vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
+        <header className="relative flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-red-100/50 bg-gradient-to-r from-red-50 via-white to-rose-50 px-4 py-4 sm:px-6 sm:py-5 backdrop-blur-sm dark:border-red-800/50 dark:from-red-950/40 dark:via-slate-900 dark:to-rose-950/40">
           <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-rose-500/5 to-red-500/5 opacity-50" />
           <div className="relative flex min-w-0 flex-1 items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg shadow-red-500/25">
@@ -933,14 +934,14 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-black uppercase tracking-widest text-red-600/80">Pesticide sampling</p>
-              <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 sm:text-lg">Generate FORM V(C) / V(D) / V(E) / Docket Sheet</h2>
+              <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 sm:text-lg dark:text-white">Generate FORM V(C) / V(D) / V(E) / Docket Sheet</h2>
             </div>
           </div>
           <div className="relative flex shrink-0 items-center gap-1.5">
             <button
               type="button"
               onClick={() => setShowInstructionModal(true)}
-              className="inline-flex shrink-0 items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-700 shadow-sm transition hover:bg-red-100"
+              className="inline-flex shrink-0 items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-bold text-red-700 shadow-sm transition hover:bg-red-100 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300 dark:hover:bg-red-900/50"
               title="View Insecticide Sample Drawal Procedure"
             >
               <HelpCircle className="h-3.5 w-3.5" />
@@ -970,12 +971,12 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               </button>
             </div>
 
-          <div className="mb-2 rounded-xl border border-red-200/50 bg-gradient-to-br from-red-50/80 to-rose-50/80 p-3 shadow-sm backdrop-blur-sm">
+          <div className="mb-2 rounded-xl border border-red-200/50 bg-gradient-to-br from-red-50/80 to-rose-50/80 p-3 shadow-sm backdrop-blur-sm dark:border-red-800/50 dark:from-red-950/60 dark:to-rose-950/60">
             <div className="flex items-center gap-2 mb-2">
               <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-500/10">
-                <Save className="h-3.5 w-3.5 text-red-600" />
+                <Save className="h-3.5 w-3.5 text-red-600 dark:text-red-300" />
               </div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-red-700">SAVED DRAFTS</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-red-700 dark:text-red-300">SAVED DRAFTS</p>
             </div>
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
               <select
@@ -983,20 +984,20 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                 onChange={(event) => loadDraft(event.target.value)}
                 className={`rounded-lg border px-3 py-2 text-sm outline-none backdrop-blur-sm transition ${
                   selectedDraftName
-                    ? 'border-red-400 bg-red-50 text-red-700 focus:border-red-500 focus:bg-red-100 focus:ring-2 focus:ring-red-100/50'
-                    : 'border-red-200 bg-white/90 text-slate-900 focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-100/50'
+                    ? 'border-red-400 bg-red-50 text-red-700 focus:border-red-500 focus:bg-red-100 focus:ring-2 focus:ring-red-100/50 dark:border-red-700 dark:bg-red-950/50 dark:text-red-200 dark:focus:bg-red-900/50'
+                    : 'border-red-200 bg-white/90 text-slate-900 focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-100/50 dark:border-red-800/60 dark:bg-red-950/40 dark:text-red-200 dark:focus:bg-red-900/50'
                 }`}
                 title={selectedDraftName || 'Load saved draft...'}
               >
                 <option value="">Load saved draft...</option>
-                {savedDrafts.map((draft) => <option key={draft.name} value={draft.name} className={selectedDraftName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-red-50 text-red-700 font-bold' : ''}>{draft.name}</option>)}
+                {savedDrafts.map((draft) => <option key={draft.name} value={draft.name} className={selectedDraftName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-red-50 text-red-700 font-bold dark:bg-red-900/50 dark:text-red-200' : ''}>{draft.name}</option>)}
               </select>
-              <button type="button" onClick={deleteDraft} className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition backdrop-blur-sm">Delete</button>
+              <button type="button" onClick={deleteDraft} className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition backdrop-blur-sm dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/50 dark:hover:border-red-700">Delete</button>
             </div>
           </div>
 
-          {previewError && <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700">{previewError}</div>}
-          {message && <div className="mb-2 rounded-lg border border-red-600 bg-white px-3 py-2 text-xs font-bold text-red-600">{message}</div>}
+          {previewError && <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">{previewError}</div>}
+          {message && <div className="mb-2 rounded-lg border border-red-600 bg-white px-3 py-2 text-xs font-bold text-red-600 dark:border-red-800 dark:bg-slate-900 dark:text-red-300">{message}</div>}
 
           <div className="grid gap-3">
             {sections.map((section) => {
@@ -1125,7 +1126,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                             <div key={field.key} className="block">
                               <span className="mb-1 flex items-center justify-between gap-2 text-sm font-black text-slate-700 dark:text-slate-200">
                                 <span>{field.label}</span>
-                                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Combination Product</span>
+                                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full dark:bg-emerald-950/50 dark:text-emerald-300">Combination Product</span>
                               </span>
                               <div className="space-y-2">
                                 {values.activeIngredients?.map((ai, index) => (
@@ -1219,12 +1220,12 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
             })}
           </div>
 
-          <div className="mt-3 rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50/80 to-rose-50/80 p-3 shadow-sm backdrop-blur-sm">
+          <div className="mt-3 rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50/80 to-rose-50/80 p-3 shadow-sm backdrop-blur-sm dark:border-red-800/60 dark:from-red-950/60 dark:to-rose-950/60">
             <div className="flex items-center gap-2 mb-2">
               <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-red-500/10">
-                <FileText className="h-3.5 w-3.5 text-red-600" />
+                <FileText className="h-3.5 w-3.5 text-red-600 dark:text-red-300" />
               </div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-red-700">PDF Generation</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-red-700 dark:text-red-300">PDF Generation</p>
             </div>
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               <PesticidePdfAction label="Form V(C)" busy={busy} onPreview={() => preview('VC')} onDownload={() => download('VC')} />
@@ -1245,25 +1246,31 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                 <span>Generate Official Covering Letter</span>
               </button>
             </div>
-            <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-bold leading-4 text-red-700">
+            <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-bold leading-4 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">
               Note: Please update sample details and dealer details before generating a new file.
+            </p>
+            <p className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold leading-4 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+              Note: Samples are added to the Covering Letter queue only via <span className="font-black">Download All Forms → Download</span>. Preview and individual form downloads will not add them.
             </p>
           </div>
 
           {showDownloadAllDialog && (
             <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-              <div className="w-full max-w-md rounded-xl border border-emerald-200 bg-white p-6 shadow-2xl">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Download All Forms</h3>
+              <div className="w-full max-w-md rounded-xl border border-emerald-200 bg-white p-6 shadow-2xl dark:border-emerald-800 dark:bg-slate-900">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">Download All Forms</h3>
                 
                 <label className="flex items-start gap-3 mb-6 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={addToCoveringLetterChecked}
                     onChange={(e) => setAddToCoveringLetterChecked(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 dark:border-slate-600"
                   />
-                  <span className="text-sm text-gray-700">Add sample details to Covering Letter</span>
+                  <span className="text-sm text-gray-700 dark:text-slate-200">Add sample details to Covering Letter</span>
                 </label>
+                <p className="mb-6 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold leading-4 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                  Note: The sample is added to the Covering Letter queue only when you click Download. Previewing or downloading individual forms will not add it.
+                </p>
                 
                 <div className="flex gap-2">
                   <button
@@ -1276,7 +1283,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                   <button
                     type="button"
                     onClick={() => setShowDownloadAllDialog(false)}
-                    className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 font-bold"
+                    className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 font-bold dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     Cancel
                   </button>
@@ -1348,31 +1355,31 @@ function FieldSection({ title, children, color = 'slate', onReset }: { title: st
   };
 
   const colorStyles = {
-    emerald: 'border-emerald-200 bg-emerald-50/50',
-    blue: 'border-blue-200 bg-blue-50/50',
-    amber: 'border-amber-200 bg-amber-50/50',
-    slate: 'border-slate-200 bg-slate-50/50',
-    purple: 'border-purple-200 bg-purple-50/50',
+    emerald: 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-800/60 dark:bg-emerald-950/30',
+    blue: 'border-blue-200 bg-blue-50/50 dark:border-blue-800/60 dark:bg-blue-950/30',
+    amber: 'border-amber-200 bg-amber-50/50 dark:border-amber-800/60 dark:bg-amber-950/30',
+    slate: 'border-slate-200 bg-slate-50/50 dark:border-slate-700 dark:bg-slate-800/60',
+    purple: 'border-purple-200 bg-purple-50/50 dark:border-purple-800/60 dark:bg-purple-950/30',
   };
   
   const headerColors = {
-    emerald: 'text-emerald-700',
-    blue: 'text-blue-700',
-    amber: 'text-amber-700',
-    slate: 'text-slate-700',
-    purple: 'text-purple-700',
+    emerald: 'text-emerald-700 dark:text-emerald-300',
+    blue: 'text-blue-700 dark:text-blue-300',
+    amber: 'text-amber-700 dark:text-amber-300',
+    slate: 'text-slate-700 dark:text-slate-300',
+    purple: 'text-purple-700 dark:text-purple-300',
   };
 
   const iconButtonColors = {
-    emerald: 'border-emerald-300 bg-emerald-100 text-emerald-600 hover:bg-emerald-200',
-    blue: 'border-blue-300 bg-blue-100 text-blue-600 hover:bg-blue-200',
-    amber: 'border-amber-300 bg-amber-100 text-amber-600 hover:bg-amber-200',
-    slate: 'border-slate-300 bg-slate-100 text-slate-600 hover:bg-slate-200',
-    purple: 'border-purple-300 bg-purple-100 text-purple-600 hover:bg-purple-200',
+    emerald: 'border-emerald-300 bg-emerald-100 text-emerald-600 hover:bg-emerald-200 dark:border-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60',
+    blue: 'border-blue-300 bg-blue-100 text-blue-600 hover:bg-blue-200 dark:border-blue-700 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-900/60',
+    amber: 'border-amber-300 bg-amber-100 text-amber-600 hover:bg-amber-200 dark:border-amber-700 dark:bg-amber-900/40 dark:text-amber-300 dark:hover:bg-amber-900/60',
+    slate: 'border-slate-300 bg-slate-100 text-slate-600 hover:bg-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600',
+    purple: 'border-purple-300 bg-purple-100 text-purple-600 hover:bg-purple-200 dark:border-purple-700 dark:bg-purple-900/40 dark:text-purple-300 dark:hover:bg-purple-900/60',
   };
   
   return (
-    <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm`}>
+    <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm dark:bg-slate-900`}>
       <div className={`flex items-center justify-between mb-2.5 pb-2 border-b ${dividerStyles[color]}`}>
         <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
         {onReset && (
@@ -1392,7 +1399,7 @@ function FieldSection({ title, children, color = 'slate', onReset }: { title: st
 }
 
 function PdfInput({ field, value, onChange, options, values }: { field: FieldConfig; value: string; onChange: (value: string) => void; options?: { label: string; value: string }[]; values?: PesticidePdfValues }) {
-  const commonClass = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+  const commonClass = 'w-full rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-sm text-slate-950 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:focus:bg-slate-800 dark:focus:ring-emerald-900/40';
   
   const displayLabel = field.dynamicLabel && values?.designation === 'Asst. Director of Agriculture' && field.key === 'mandal'
     ? 'DIVISION'
@@ -1403,7 +1410,7 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
   if (field.key === 'manualDivision') {
     return (
       <div>
-        <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide text-slate-600">
+        <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300">
           <span>{displayLabel}</span>
         </div>
         <DivisionPicker
@@ -1432,7 +1439,7 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
 
   return (
     <div className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
-      <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide text-slate-600">
+      <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300">
         <span>{displayLabel}</span>
         {field.type === 'date' && value ? (
           <DateClearButton onClick={() => onChange('')} />
@@ -1451,13 +1458,13 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
 
 function PesticidePdfAction({ label, onPreview, onDownload, busy, primary = false }: { label: string; onPreview: () => void; onDownload: () => void; busy: boolean; primary?: boolean }) {
   return (
-    <div className={`rounded-lg border p-2 ${primary ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+    <div className={`rounded-lg border p-2 ${primary ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-800/60 dark:bg-emerald-950/30' : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800/60'}`}>
       <div className="mb-1.5 flex items-center justify-between gap-2">
-        <p className="truncate text-xs font-black text-slate-800">{label}</p>
-        {primary && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black uppercase text-emerald-800">All</span>}
+        <p className="truncate text-xs font-black text-slate-800 dark:text-slate-100">{label}</p>
+        {primary && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black uppercase text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">All</span>}
       </div>
       <div className="grid grid-cols-2 gap-1.5">
-        <button type="button" onClick={onPreview} disabled={busy} className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-200 bg-white px-2 py-1.5 text-xs font-black text-emerald-800 hover:bg-emerald-50 disabled:opacity-60">
+        <button type="button" onClick={onPreview} disabled={busy} className="inline-flex items-center justify-center gap-1 rounded-md border border-emerald-200 bg-white px-2 py-1.5 text-xs font-black text-emerald-800 hover:bg-emerald-50 disabled:opacity-60 dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-emerald-950/40">
           <Eye className="h-3.5 w-3.5" />
           Preview
         </button>

@@ -549,7 +549,7 @@ export function SeedForms({
             seedName: form.crop || '',
             variety: form.variety || '',
             quantity: numericQuantity,
-            dateOfSampling: form.collectionDate.trim(),
+            dateOfSampling: (form.date || form.collectionDate || '').trim(),
             isCotton: (form.crop || '').toLowerCase().includes('cotton'),
             batchNo: (form.lotNo || '').trim() || undefined,
             mandal: (isAssistantDirectorOfAgriculture(form.designation)
@@ -557,6 +557,7 @@ export function SeedForms({
               : effectiveLocationValue(form.mandal, form.manualMandal)) || undefined,
             district: effectiveLocationValue(form.district, form.manualDistrict) || undefined,
             firmName: (form.dealerName || form.vendorName || form.firmName || '').trim() || undefined,
+            firmAddress: (form.dealerAddress || '').trim() || undefined,
             sourceOfSupply: (form.sourceOfSupply || '').trim() || undefined,
             packingDate: (form.packingDate || '').trim() || undefined,
           });
@@ -689,14 +690,14 @@ export function SeedForms({
             onChange={(event) => loadDraft(event.target.value)}
             className={`rounded-lg border px-3 py-2 text-sm outline-none backdrop-blur-sm transition ${
               selectedDraftName
-                ? 'border-orange-400 bg-orange-50 text-orange-700 focus:border-orange-500 focus:bg-orange-100 focus:ring-2 focus:ring-orange-100/50'
-                : 'border-orange-200 bg-white/90 text-slate-900 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-100/50'
+                ? 'border-orange-400 bg-orange-50 text-orange-700 focus:border-orange-500 focus:bg-orange-100 focus:ring-2 focus:ring-orange-100/50 dark:border-orange-700 dark:bg-orange-950/50 dark:text-orange-200 dark:focus:bg-orange-900/50'
+                : 'border-orange-200 bg-white/90 text-slate-900 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-100/50 dark:border-orange-800/60 dark:bg-orange-950/40 dark:text-orange-200 dark:focus:bg-orange-900/50'
             }`}
             title={selectedDraftName || 'Load saved draft...'}
           >
             <option value="">Load saved draft...</option>
             {savedDrafts.map((draft) => (
-              <option key={draft.name} value={draft.name} className={selectedDraftName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-orange-50 text-orange-700 font-bold' : ''}>
+              <option key={draft.name} value={draft.name} className={selectedDraftName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-orange-50 text-orange-700 font-bold dark:bg-orange-900/50 dark:text-orange-200' : ''}>
                 {draft.name}
               </option>
             ))}
@@ -768,8 +769,6 @@ export function SeedForms({
           <div className="grid gap-2 sm:grid-cols-2">
             <Input label="Serial No. of sample" value={form.serialNo} onChange={(value: any) => setField('serialNo', value)} />
             <Input label="Code No. of sample" value={form.codeNo} onChange={(value: any) => setField('codeNo', value)} />
-            <Input label="Date of collection / sampling" type="date" value={form.collectionDate} onChange={(value: any) => setField('collectionDate', value)} />
-            <Input label="Place of collection" value={resolved.collectionPlace} onChange={(value: any) => setField('collectionPlace', value)} />
           </div>
           <SelectWithOther label="Nature of article submitted" valueKey="nature" otherKey="natureOther" form={form} setField={setField} options={natureOptions} />
           <div className="grid gap-2 sm:grid-cols-2">
@@ -850,6 +849,9 @@ export function SeedForms({
         <p className="mt-3 rounded-md border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-[11px] font-bold leading-4 text-red-700 dark:text-red-300">
           Note: Please update sample details and dealer details before generating a new file.
         </p>
+        <p className="mt-2 rounded-md border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 px-3 py-2 text-[11px] font-bold leading-4 text-amber-700 dark:text-amber-300">
+          Note: Samples are added to the Covering Letter queue only via <span className="font-black">Download All Forms → Download</span>. Preview and individual form downloads will not add them.
+        </p>
       </div>
 
       {showDownloadAllDialog && (
@@ -866,6 +868,9 @@ export function SeedForms({
               />
               <span className="text-sm text-gray-700 dark:text-slate-200">Add sample details to Covering Letter</span>
             </label>
+            <p className="mb-6 rounded-md border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 px-3 py-2 text-[11px] font-bold leading-4 text-amber-700 dark:text-amber-300">
+              Note: The sample is added to the Covering Letter queue only when you click Download. Previewing or downloading individual forms will not add it.
+            </p>
             
             <div className="flex gap-2">
               <button
@@ -948,31 +953,31 @@ function Card({ title, children, color = 'slate', onReset }: any) {
   };
 
   const colorStyles: Record<string, string> = {
-    emerald: 'border-emerald-200 bg-emerald-50/50',
-    blue: 'border-blue-200 bg-blue-50/50',
-    amber: 'border-amber-200 bg-amber-50/50',
-    maroon: 'border-red-700 bg-red-50/50',
-    slate: 'border-slate-200 bg-slate-50/50',
+    emerald: 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-800/60 dark:bg-emerald-950/30',
+    blue: 'border-blue-200 bg-blue-50/50 dark:border-blue-800/60 dark:bg-blue-950/30',
+    amber: 'border-amber-200 bg-amber-50/50 dark:border-amber-800/60 dark:bg-amber-950/30',
+    maroon: 'border-red-700 bg-red-50/50 dark:border-red-800/60 dark:bg-red-950/30',
+    slate: 'border-slate-200 bg-slate-50/50 dark:border-slate-700 dark:bg-slate-800/60',
   };
   
   const headerColors: Record<string, string> = {
-    emerald: 'text-emerald-700',
-    blue: 'text-blue-700',
-    amber: 'text-amber-700',
-    maroon: 'text-red-800',
-    slate: 'text-slate-700',
+    emerald: 'text-emerald-700 dark:text-emerald-300',
+    blue: 'text-blue-700 dark:text-blue-300',
+    amber: 'text-amber-700 dark:text-amber-300',
+    maroon: 'text-red-800 dark:text-red-300',
+    slate: 'text-slate-700 dark:text-slate-300',
   };
 
   const iconButtonColors: Record<string, string> = {
-    emerald: 'border-emerald-200 text-emerald-400 hover:bg-emerald-50 hover:text-emerald-600',
-    blue: 'border-blue-200 text-blue-400 hover:bg-blue-50 hover:text-blue-600',
-    amber: 'border-amber-200 text-amber-400 hover:bg-amber-50 hover:text-amber-600',
-    maroon: 'border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600',
-    slate: 'border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600',
+    emerald: 'border-emerald-200 text-emerald-400 hover:bg-emerald-50 hover:text-emerald-600 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300',
+    blue: 'border-blue-200 text-blue-400 hover:bg-blue-50 hover:text-blue-600 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950/40 dark:hover:text-blue-300',
+    amber: 'border-amber-200 text-amber-400 hover:bg-amber-50 hover:text-amber-600 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950/40 dark:hover:text-amber-300',
+    maroon: 'border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/40 dark:hover:text-red-300',
+    slate: 'border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200',
   };
   
   return (
-    <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm`}>
+    <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm dark:bg-slate-900`}>
       <div className={`flex items-center justify-between mb-2.5 pb-2 border-b ${dividerStyles[color]}`}>
         <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
         {onReset && (
@@ -1003,7 +1008,7 @@ function PreviewCard({ title, lines }: any) {
 }
 
 function Input({ label, value, onChange, type = 'text', textarea = false, placeholder = '' }: any) {
-  const className = 'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100';
+  const className = 'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:focus:bg-slate-800 dark:focus:ring-emerald-900/40';
   return (
     <div>
       <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
@@ -1025,7 +1030,7 @@ function Select({ label, value, onChange, options }: any) {
   return (
     <label>
       <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:focus:bg-slate-800 dark:focus:ring-emerald-900/40">
         <option value="">Select...</option>
         {options.map((option: any) => (
           <option key={option.value} value={option.value}>{option.label}</option>
@@ -1048,7 +1053,7 @@ function SelectWithOther({ label, valueKey, otherKey, form, setField, options }:
 
 function PdfAction({ label, onPreview, onDownload, primary = false }: any) {
   return (
-    <div className={`rounded-lg border p-2 ${primary ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+    <div className={`rounded-lg border p-2 ${primary ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-800/60 dark:bg-emerald-950/30' : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800/60'}`}>
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <p className="truncate text-xs font-black text-slate-800 dark:text-slate-100">{label}</p>
         {primary && <span className="rounded bg-emerald-100 dark:bg-emerald-900/40 px-1.5 py-0.5 text-[10px] font-black uppercase text-emerald-800 dark:text-emerald-300">All</span>}
@@ -1123,6 +1128,7 @@ function resolveSeedValues(form: any) {
     ...form,
     place: resolvedPlace,
     collectionPlace: resolvedCollectionPlace,
+    collectionDate: form.date || form.collectionDate,
     crop: form.crop === 'Other' ? form.cropOther : form.crop,
     nature: form.nature === 'Other' ? form.natureOther : form.nature,
     seedClass: form.seedClass === 'Other' ? form.seedClassOther : form.seedClass,

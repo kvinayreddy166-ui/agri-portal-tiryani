@@ -370,7 +370,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
         </div>
       </aside>
 
-      <main className="min-h-[calc(100vh-3rem)] max-w-full overflow-x-hidden pb-20 lg:pb-0">
+      <main className="min-h-[calc(100vh-3rem)] max-w-full overflow-x-hidden pb-20">
         <div className="mx-auto w-full max-w-7xl overflow-x-hidden p-3 sm:p-4 md:p-5 lg:p-6">
           {currentPage !== 'dashboard' && currentPage !== 'dealer-portal' && (
             <div className="mb-4 flex items-center gap-2">
