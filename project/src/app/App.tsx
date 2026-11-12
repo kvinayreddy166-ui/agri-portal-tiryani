@@ -78,6 +78,19 @@ function AppContent() {
     return () => window.clearTimeout(timer);
   }, [appReady, authChecked, isHydrated]);
 
+  // Hard refresh escape hatch: if stuck loading for 15s, force reload bypassing cache
+  useEffect(() => {
+    const shellReady = isHydrated && (authChecked || currentPathIsPublic || forceAppShell) && (appReady || currentPathIsPublic || forceAppShell);
+    if (shellReady) return;
+
+    const hardRefreshTimer = window.setTimeout(() => {
+      console.warn('Hard refresh after 15s stuck loader');
+      window.location.reload();
+    }, 15000);
+
+    return () => window.clearTimeout(hardRefreshTimer);
+  }, [isHydrated, authChecked, appReady, forceAppShell, currentPathIsPublic]);
+
   const validPages = useMemo(() => VALID_PAGES, []);
   const getPageFromLocation = useCallback(() => resolvePageFromLocation(location), [location]);
   const [currentPage, setCurrentPage] = useState(() => getPageFromLocation());

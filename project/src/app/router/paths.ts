@@ -191,6 +191,7 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
   if (page === 'all-modules') return 'dashboard';
   if (page === 'officer-records' || page === 'enforcement-tracker') return 'dashboard';
   if (page === 'field-tools' || page === 'government-portals') return 'dashboard';
+  if (page === 'disclaimer' || page === 'privacy-policy' || page === 'terms-conditions') return 'landing';
   if (
     page === 'forms' ||
     page === 'forms-library' ||

@@ -484,7 +484,7 @@ export class OfficerReportExportService {
     const headers = [
       'S.No',
       'Code No',
-      'Product / Crop & Variety',
+      'Product',
       'Batch / Lot No',
       'Firm Name',
       'Firm Address',
@@ -547,7 +547,7 @@ export class OfficerReportExportService {
     sheet.columns = [
       { width: 7 },  // S.No
       { width: 16 }, // Code No
-      { width: 24 }, // Product / Crop & Variety
+      { width: 24 }, // Product
       { width: 15 }, // Batch / Lot No
       { width: 22 }, // Firm Name
       { width: 26 }, // Firm Address
@@ -612,7 +612,7 @@ export class OfficerReportExportService {
 
     // 4. AutoTable
     const headers = [
-      ['S.No', 'Code No', 'Product / Crop & Variety', 'Batch / Lot No', 'Firm Name', 'Firm Address', 'Sampling Date', 'Result / Remarks'],
+      ['S.No', 'Code No', 'Product', 'Batch / Lot No', 'Firm Name', 'Firm Address', 'Sampling Date', 'Result / Remarks'],
     ];
 
     const body = rows.map((r) => [
@@ -652,7 +652,7 @@ export class OfficerReportExportService {
       columnStyles: {
         0: { halign: 'center', cellWidth: 8 },  // S.No
         1: { halign: 'center', cellWidth: 20 }, // Code No
-        2: { cellWidth: 32 },                   // Product / Crop & Variety
+        2: { cellWidth: 32 },                   // Product
         3: { halign: 'center', cellWidth: 18 }, // Batch / Lot No
         4: { cellWidth: 26 },                   // Firm Name
         5: { cellWidth: 30 },                   // Firm Address

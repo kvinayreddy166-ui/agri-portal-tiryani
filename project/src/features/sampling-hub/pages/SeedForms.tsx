@@ -557,6 +557,8 @@ export function SeedForms({
               : effectiveLocationValue(form.mandal, form.manualMandal)) || undefined,
             district: effectiveLocationValue(form.district, form.manualDistrict) || undefined,
             firmName: (form.dealerName || form.vendorName || form.firmName || '').trim() || undefined,
+            sourceOfSupply: (form.sourceOfSupply || '').trim() || undefined,
+            packingDate: (form.packingDate || '').trim() || undefined,
           });
           if (result === 'added') {
             showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 4000);
@@ -1105,12 +1107,11 @@ function resolveSeedValues(form: any) {
     locationLabel = 'Mandal';
   }
   
-  // When ADA is selected, use collectionPlace for place field (for Forms VI & VIII)
-  // When Mandal Agriculture Officer is selected, use mandal value (fromPlace)
-  // Otherwise use the auto-populated place value
+  // Place of collection always comes from the selected mandal: PLACE OF COLLECTION (MANDAL)
+  // for ADA designations, otherwise the Mandal selection (falling back to the entered value).
   const resolvedCollectionPlace = isAssistantDirectorOfAgriculture(form.designation)
     ? effectiveLocationValue(form.placeOfCollectionMandal, form.manualPlaceOfCollection)
-    : form.collectionPlace;
+    : effectiveLocationValue(form.mandal, form.manualMandal) || form.collectionPlace;
   const resolvedPlace = isADA ? resolvedCollectionPlace : (fromPlace || resolvedCollectionPlace);
   
   // Format district with PIN code for Form V and Form II

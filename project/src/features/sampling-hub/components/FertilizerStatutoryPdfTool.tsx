@@ -1437,6 +1437,11 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
               : effectiveLocationValue(values.mandal, values.manualMandal)) || undefined,
             district: effectiveLocationValue(values.district, values.manualDistrict) || undefined,
             firmName: dealerName || undefined,
+            dealerManufacturerImporterName:
+              (values.dealerManufacturerImporterName === 'Other'
+                ? values.manualDealerManufacturerImporterName
+                : values.dealerManufacturerImporterName || ''
+              ).trim() || undefined,
           });
           if (result === 'added') {
             showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 4000);

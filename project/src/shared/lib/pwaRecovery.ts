@@ -147,10 +147,18 @@ export function initServiceWorkerLifecycle() {
   if (import.meta.env.DEV) {
     window.addEventListener('load', () => {
       // In dev, the SW's fetch interception breaks Vite module loading and lazy
-      // imports (jspdf/docx/xlsx). Unregister any existing SW and skip registering.
+      // imports (jspdf/docx/xlsx). Unregister any existing SW and clear caches.
       void navigator.serviceWorker.getRegistrations()
         .then((registrations) => {
-          registrations.forEach((registration) => void registration.unregister());
+          registrations.forEach((registration) => {
+            void registration.unregister().then(() => {
+              if ('caches' in window) {
+                void caches.keys().then((keys) =>
+                  Promise.all(keys.map((key) => caches.delete(key)))
+                );
+              }
+            });
+          });
         })
         .catch(() => {});
     });

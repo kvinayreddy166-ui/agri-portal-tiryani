@@ -892,6 +892,9 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               : effectiveLocationValue(values.mandal, values.manualMandal)) || undefined,
             district: effectiveLocationValue(values.district, values.manualDistrict) || undefined,
             firmName: (values.dealerName || '').trim() || undefined,
+            manufacturedBy: (values.manufacturedBy || '').trim() || undefined,
+            manufactureDate: (values.manufactureDate || '').trim() || undefined,
+            expiryDate: (values.expiryDate || '').trim() || undefined,
           });
           if (result === 'added') {
             showQueue('Sample added to Covering Letter', `Sample ${sampleCode} added to Sample Queue`, 4000);

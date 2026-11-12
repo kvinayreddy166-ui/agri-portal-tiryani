@@ -25,7 +25,7 @@ import type { Dealer } from '../../../shared/types/database';
 type GroundBalanceRow = { crop: string; variety: string; lotNo: string; registerQuantity: string; groundStock: string; difference: string; unit: string };
 type DetentionRow = { crop: string; variety: string; lotNo: string; quantity: string; unit: string; remarks: string };
 type SeizureRow = { crop: string; variety: string; lotNo: string; quantity: string; unit: string; value: string; reason: string };
-type SampleRow = { crop: string; variety: string; lotNo: string; quantity: string; sampleType: string };
+type SampleRow = { crop: string; variety: string; lotNo: string; sourceOfSupply: string; dateOfPacking: string; quantity: string; sampleType: string };
 type MajorDefect = { checked: boolean; details: string; crop: string; cropOther: string; variety: string; lotNo: string; quantity: string };
 type RectifiableDefect = { checked: boolean; remarks: string };
 
@@ -99,7 +99,7 @@ const DESIGNATION_OPTIONS = [
 const emptyGroundRow = (): GroundBalanceRow => ({ crop: '', variety: '', lotNo: '', registerQuantity: '', groundStock: '', difference: '', unit: 'kg' });
 const emptyDetention = (): DetentionRow => ({ crop: '', variety: '', lotNo: '', quantity: '', unit: 'kg', remarks: '' });
 const emptySeizure = (): SeizureRow => ({ crop: '', variety: '', lotNo: '', quantity: '', unit: 'kg', value: '', reason: '' });
-const emptySample = (): SampleRow => ({ crop: '', variety: '', lotNo: '', quantity: '', sampleType: SAMPLE_TYPE_OPTIONS[0] });
+const emptySample = (): SampleRow => ({ crop: '', variety: '', lotNo: '', sourceOfSupply: '', dateOfPacking: '', quantity: '', sampleType: SAMPLE_TYPE_OPTIONS[0] });
 
 const initialForm = (): InspectionForm => ({
   inspectionDate: localTodayDate(),
@@ -141,6 +141,7 @@ function migrateForm(parsed: Partial<InspectionForm>): Partial<InspectionForm> {
     ...parsed,
     rectifiableDefects: RECTIFIABLE_DEFECT_LABELS.map((_, i) => parsed.rectifiableDefects?.[i] ?? base.rectifiableDefects[i]),
     majorDefects: MAJOR_DEFECT_LABELS.map((_, i) => parsed.majorDefects?.[i] ?? base.majorDefects[i]),
+    samples: (parsed.samples ?? []).map((r) => ({ ...emptySample(), ...r })),
   };
 }
 
@@ -669,6 +670,8 @@ export function SeedDealerInspection() {
                 { key: 'crop', label: 'Crop', type: 'select', options: CROP_OPTIONS, allowOther: true },
                 { key: 'variety', label: 'Variety / hybrid' },
                 { key: 'lotNo', label: 'Lot no.' },
+                { key: 'sourceOfSupply', label: 'Source of supply' },
+                { key: 'dateOfPacking', label: 'Date of packing' },
                 { key: 'quantity', label: 'Quantity' },
                 { key: 'sampleType', label: 'Sample type', type: 'select', options: SAMPLE_TYPE_OPTIONS },
               ]}
@@ -792,7 +795,7 @@ function buildRows(form: InspectionForm): { items: string[][]; subTables: PdfSub
   if (form.groundBalance.status === 'no' && form.groundBalanceRows.length) subTables.push({ title: 'Item 9 - Lot-wise ground balance details', head: ['Crop', 'Variety', 'Lot no.', 'Stock register quantity', 'Ground stock', 'Difference', 'Unit'], body: form.groundBalanceRows.map((r) => [r.crop, r.variety, r.lotNo, r.registerQuantity, r.groundStock, r.difference, r.unit]) });
   if (form.detentionMade === 'yes' && form.detentions.length) subTables.push({ title: 'Item 17 - Detentions made', head: ['Crop', 'Variety', 'Lot no.', 'Quantity detained', 'Unit', 'Remarks'], body: form.detentions.map((r) => [r.crop, r.variety, r.lotNo, r.quantity, r.unit, r.remarks]) });
   if (form.stockSeized === 'yes' && form.seizures.length) subTables.push({ title: 'Item 19 - Stock seized', head: ['Crop', 'Variety', 'Lot number', 'Quantity', 'Unit', 'Value', 'Reason for seizure'], body: form.seizures.map((r) => [r.crop, r.variety, r.lotNo, r.quantity, r.unit, r.value, r.reason]) });
-  if (form.samples.length) subTables.push({ title: 'Item 20 - Seed samples drawn', head: ['Crop', 'Variety / hybrid', 'Lot no.', 'Quantity', 'Sample type'], body: form.samples.map((r) => [r.crop, r.variety, r.lotNo, r.quantity, r.sampleType]) });
+  if (form.samples.length) subTables.push({ title: 'Item 20 - Seed samples drawn', head: ['Crop', 'Variety / hybrid', 'Lot no.', 'Source of supply', 'Date of packing', 'Quantity', 'Sample type'], body: form.samples.map((r) => [r.crop, r.variety, r.lotNo, r.sourceOfSupply, r.dateOfPacking, r.quantity, r.sampleType]) });
   return { items, subTables };
 }
 

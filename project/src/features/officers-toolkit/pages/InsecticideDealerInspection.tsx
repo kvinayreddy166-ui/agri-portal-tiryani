@@ -25,7 +25,7 @@ import type { Dealer } from '../../../shared/types/database';
 type VariationRow = { productName: string; brandName: string; batchNumber: string; bookStock: string; physicalStock: string; variation: string; remarks: string };
 type DetainedRow = { productName: string; brandName: string; manufacturer: string; batchNumber: string; quantity: string; detentionReason: string };
 type SeizureRow = { productName: string; brandName: string; manufacturer: string; batchNumber: string; quantity: string; value: string; reason: string };
-type SampleRow = { tradeName: string; technicalName: string; manufacturer: string; batchNumber: string; quantity: string; date: string };
+type SampleRow = { tradeName: string; technicalName: string; manufacturer: string; batchNumber: string; quantity: string; date: string; dateOfManufacture: string; dateOfExpiry: string };
 
 interface InspectionForm {
   inspectionDate: string;
@@ -77,7 +77,7 @@ const DESIGNATION_OPTIONS = [
 const emptyVariation = (): VariationRow => ({ productName: '', brandName: '', batchNumber: '', bookStock: '', physicalStock: '', variation: '', remarks: '' });
 const emptyDetained = (): DetainedRow => ({ productName: '', brandName: '', manufacturer: '', batchNumber: '', quantity: '', detentionReason: '' });
 const emptySeizure = (): SeizureRow => ({ productName: '', brandName: '', manufacturer: '', batchNumber: '', quantity: '', value: '', reason: '' });
-const emptySample = (): SampleRow => ({ tradeName: '', technicalName: '', manufacturer: '', batchNumber: '', quantity: '', date: '' });
+const emptySample = (): SampleRow => ({ tradeName: '', technicalName: '', manufacturer: '', batchNumber: '', quantity: '', date: '', dateOfManufacture: '', dateOfExpiry: '' });
 
 const initialForm = (): InspectionForm => ({
   inspectionDate: localTodayDate(),
@@ -127,6 +127,8 @@ function migrateForm(parsed: Partial<InspectionForm>): Partial<InspectionForm> {
       batchNumber: r.batchNumber ?? '',
       quantity: r.quantity ?? '',
       date: r.date ?? '',
+      dateOfManufacture: r.dateOfManufacture ?? '',
+      dateOfExpiry: r.dateOfExpiry ?? '',
     }));
   }
   return next;
@@ -630,10 +632,12 @@ export function InsecticideDealerInspection() {
                   columns={[
                     { key: 'tradeName', label: 'Trade name' },
                     { key: 'technicalName', label: 'Technical name' },
-                    { key: 'manufacturer', label: 'Manufacturer' },
+                    { key: 'manufacturer', label: 'Manufactured By' },
                     { key: 'batchNumber', label: 'Batch no.' },
                     { key: 'quantity', label: 'Quantity' },
                     { key: 'date', label: 'Date' },
+                    { key: 'dateOfManufacture', label: 'Date of Manufacture' },
+                    { key: 'dateOfExpiry', label: 'Date of Expiry' },
                   ]}
                 />
               </>
@@ -765,8 +769,8 @@ function buildRows(form: InspectionForm): { items: string[][]; subTables: PdfSub
   if (form.samplesDrawn === 'yes' && form.sampleRows.length) {
     subTables.push({
       title: 'Item 20 - Insecticide samples drawn',
-      head: ['Sl. No.', 'Trade name', 'Technical name', 'Manufacturer', 'Batch no.', 'Quantity', 'Date'],
-      body: form.sampleRows.map((r, i) => [String(i + 1), r.tradeName, r.technicalName, r.manufacturer, r.batchNumber, r.quantity, r.date]),
+      head: ['Sl. No.', 'Trade name', 'Technical name', 'Manufactured By', 'Batch no.', 'Quantity', 'Date', 'Date of Manufacture', 'Date of Expiry'],
+      body: form.sampleRows.map((r, i) => [String(i + 1), r.tradeName, r.technicalName, r.manufacturer, r.batchNumber, r.quantity, r.date, r.dateOfManufacture, r.dateOfExpiry]),
     });
   }
   return { items, subTables };

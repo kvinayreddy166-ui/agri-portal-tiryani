@@ -10,11 +10,11 @@ export function Disclaimer() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl">
         <Link
-          to="/login"
+          to="/"
           className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span>{t('Back to Login', 'Back to Login')}</span>
+          <span>{t('Back to Home', 'Back to Home')}</span>
         </Link>
 
         <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xl shadow-slate-900/5 dark:border-slate-800 dark:bg-slate-900">

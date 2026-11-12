@@ -44,6 +44,7 @@ import type {
   UploadStatus,
 } from '../types/officerArchiveTypes';
 import type { StatutoryCommodity } from '../../auth/types/officerAuth';
+import { TELANGANA_DISTRICTS, TELANGANA_DISTRICT_MANDAL_MAPPING } from '../../../shared/data/telanganaDistrictMandalData';
 
 type DocumentCommodity = StatutoryCommodity;
 
@@ -302,7 +303,7 @@ export function getEnforcementTrackerHref(categoryFilter: string): string | null
 }
 
 export function OfficerRecordsHub() {
-  const { user, officerProfile } = useAuth();
+  const { user, officerProfile, isAdminUser } = useAuth();
   const { t } = useLanguage();
 
   // View tabs: documents (archived files) vs records (statutory form records)
@@ -343,6 +344,8 @@ export function OfficerRecordsHub() {
   const [yearFilter, setYearFilter] = useState<string>('all');
   const [monthFilter, setMonthFilter] = useState<string>('all');
   const [commodityFilter, setCommodityFilter] = useState<'all' | StatutoryCommodity>('all');
+  const [districtFilter, setDistrictFilter] = useState<string>('all');
+  const [mandalFilter, setMandalFilter] = useState<string>('all');
 
   // Modals
   const [selectedRecord, setSelectedRecord] = useState<UnifiedOfficerRecord | null>(null);
@@ -618,6 +621,14 @@ export function OfficerRecordsHub() {
         if (getDocumentCommodity(doc) !== commodityFilter) return false;
       }
 
+      // District/Mandal filter (admin only) - uses officer profile
+      // Note: This filters based on the logged-in officer's profile.
+      // For multi-officer filtering, records would need district/mandal metadata.
+      if (isAdminUser) {
+        if (districtFilter !== 'all' && officerProfile?.district !== districtFilter) return false;
+        if (mandalFilter !== 'all' && officerProfile?.mandal !== mandalFilter) return false;
+      }
+
       // Year Filter
       if (yearFilter !== 'all') {
         const docYear = doc.document_date ? doc.document_date.slice(0, 4) : '';
@@ -652,13 +663,21 @@ export function OfficerRecordsHub() {
 
       return true;
     });
-  }, [documents, categoryFilter, commodityFilter, yearFilter, monthFilter, dateFilter, searchQuery]);
+  }, [documents, categoryFilter, commodityFilter, districtFilter, mandalFilter, isAdminUser, officerProfile, yearFilter, monthFilter, dateFilter, searchQuery]);
 
   // Filtered Form Records
   const filteredRecords = useMemo(() => {
     return records.filter((rec) => {
       if (categoryFilter !== 'all' && getRecordSavedCategory(rec) !== categoryFilter) return false;
       if (commodityFilter !== 'all' && rec.commodity !== commodityFilter) return false;
+
+      // District/Mandal filter (admin only) - uses officer profile
+      // Note: This filters based on the logged-in officer's profile.
+      // For multi-officer filtering, records would need district/mandal metadata.
+      if (isAdminUser) {
+        if (districtFilter !== 'all' && officerProfile?.district !== districtFilter) return false;
+        if (mandalFilter !== 'all' && officerProfile?.mandal !== mandalFilter) return false;
+      }
 
       // Year / Month / Quick-date filters (recordDate may be ISO or DD-MM-YYYY)
       const recTime = parseItemDate(rec.recordDate);
@@ -688,7 +707,7 @@ export function OfficerRecordsHub() {
       }
       return true;
     });
-  }, [records, categoryFilter, commodityFilter, yearFilter, monthFilter, dateFilter, searchQuery, parseItemDate]);
+  }, [records, categoryFilter, commodityFilter, districtFilter, mandalFilter, isAdminUser, officerProfile, yearFilter, monthFilter, dateFilter, searchQuery, parseItemDate]);
 
   // Merged view: documents + records interleaved, newest first
   const mergedItems = useMemo(() => {
@@ -704,6 +723,7 @@ export function OfficerRecordsHub() {
       time: parseItemDate(record.recordDate) || new Date(record.createdAt).getTime() || 0,
       record,
     }));
+    
     return [...docs, ...recs].sort((a, b) => b.time - a.time);
   }, [filteredDocuments, filteredRecords, parseItemDate]);
 
@@ -986,6 +1006,35 @@ export function OfficerRecordsHub() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Admin-only district/mandal filters */}
+          {isAdminUser && (
+            <>
+              <select
+                value={districtFilter}
+                onChange={(e) => setDistrictFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              >
+                <option value="all">{t('All Districts', 'అన్ని జిల్లాలు')}</option>
+                {TELANGANA_DISTRICTS.map((district) => (
+                  <option key={district} value={district}>{district}</option>
+                ))}
+              </select>
+              <select
+                value={mandalFilter}
+                onChange={(e) => setMandalFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              >
+                <option value="all">{t('All Mandals', 'అన్ని మండలం')}</option>
+                {districtFilter !== 'all' && TELANGANA_DISTRICT_MANDAL_MAPPING[districtFilter]?.map((mandal) => (
+                  <option key={mandal} value={mandal}>{mandal}</option>
+                ))}
+                {districtFilter === 'all' && Object.values(TELANGANA_DISTRICT_MANDAL_MAPPING).flat().map((mandal) => (
+                  <option key={mandal} value={mandal}>{mandal}</option>
+                ))}
+              </select>
+            </>
+          )}
+
           {/* Category Filter */}
           <select
             value={categoryFilter}
@@ -997,19 +1046,9 @@ export function OfficerRecordsHub() {
             <option value="seizures">{t('Seizures', 'జబ్తులు')}</option>
             <option value="scn_memos">{t('SCN/Memos', 'SCN/మెమోలు')}</option>
             <option value="inspection">{t('Inspections', 'తనిఖీలు')}</option>
-            <option value="sample">{t('Sample Memos', 'సాంప్లింగ్ మెమోలు')}</option>
+            <option value="sample">{t('Samples', 'నమూనాలు')}</option>
             <option value="tour_diary">{t('Tour Diaries', 'పర్యటన డైరీలు')}</option>
           </select>
-
-          {enforcementTrackerHref && (
-            <Link
-              to={enforcementTrackerHref}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              <span>{t('Open Tracker', 'ట్రాకర్ తెరవండి')}</span>
-            </Link>
-          )}
 
           {/* Commodity filter — applies to sample documents and all form records */}
           <select
@@ -1022,6 +1061,16 @@ export function OfficerRecordsHub() {
             <option value="pesticide">{t('Pesticide', 'పురుగుమందు')}</option>
             <option value="seed">{t('Seed', 'విత్తనం')}</option>
           </select>
+
+          {enforcementTrackerHref && (
+            <Link
+              to={enforcementTrackerHref}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span>{t('Open Tracker', 'ట్రాకర్ తెరవండి')}</span>
+            </Link>
+          )}
 
           {/* Year Filter */}
           {availableYears.length > 0 && (
@@ -1896,8 +1945,8 @@ export function OfficerRecordsHub() {
                   'id', 'products', 'items', 'stock_details', 'savedAt', 'issuedAt', 'createdAt', 'updatedAt',
                   'observations', 'remarks', 'reason', 'contravention_details', 'irregularities_observed',
                   'action_taken', 'entityName', 'referenceNumber', 'recordDate', 'synced',
-                  'dealerName', 'firmName', 'partyName', 'dealerManufacturerImporterName',
-                  'manualDealerManufacturerImporterName', 'dealerManufacturerImporter',
+                  'dealerName', 'firmName', 'partyName',
+                  'manualDealerManufacturerImporterName',
                   'nameOfDealer', 'dealerFirmName',
                   'labStatus', 'labReportRef', 'dispatchedAt', 'reportReceivedAt', 'failureFinding',
                   'sampleProducts', 'covering_letter_json', 'payload_json'
@@ -1930,7 +1979,7 @@ export function OfficerRecordsHub() {
                   {
                     title: 'Sample / Product Details',
                     te: 'నమూనా / ఉత్పత్తి వివరాలు',
-                    pattern: /sample|batch|lot|code|product|fertiliz|pesticide|insecticide|seed|crop|variety|trade|technical|activeingredient|formulation|quantity|grade|stock|commodity|schedule|specification|invoice|memo|order|notice|seizure|stop|mrp|price|bag|packet|expiry|manufactur|regist|drawn|collection/i,
+                    pattern: /sample|batch|lot|code|product|fertiliz|pesticide|insecticide|seed|crop|variety|trade|technical|activeingredient|formulation|quantity|grade|stock|commodity|schedule|specification|invoice|memo|order|notice|seizure|stop|mrp|price|bag|packet|expiry|manufactur|regist|drawn|collection|source|supply|pack/i,
                   },
                   {
                     title: 'Dealer / Party Details',

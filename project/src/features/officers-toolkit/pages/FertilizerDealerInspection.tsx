@@ -23,7 +23,7 @@ import { DealerPartySelect } from '../../../shared/components/DealerPartySelect'
 import type { Dealer } from '../../../shared/types/database';
 
 type DiscrepancyRow = { product: string; registerBalance: string; eposBalance: string; physicalBalance: string; difference: string; remarks: string };
-type SampleRow = { product: string; company: string; batchNo: string; quantity: string; sampleDetails: string };
+type SampleRow = { product: string; company: string; dealerImporter: string; batchNo: string; quantity: string; sampleDetails: string };
 type SeizureRow = { fertilizer: string; batchLotNo: string; quantitySeized: string; reasonViolation: string; seizureMemo: string };
 type DetentionRow = { fertilizer: string; batchLotNo: string; quantity: string; reasonDetention: string; detentionMemo: string };
 type PurchaseInvoiceRow = { supplierName: string; invoiceNo: string; invoiceDate: string; product: string; quantity: string; remarks: string };
@@ -88,7 +88,7 @@ const DESIGNATION_OPTIONS = [
 ];
 
 const emptyDiscrepancy = (): DiscrepancyRow => ({ product: '', registerBalance: '', eposBalance: '', physicalBalance: '', difference: '', remarks: '' });
-const emptySample = (): SampleRow => ({ product: '', company: '', batchNo: '', quantity: '', sampleDetails: '' });
+const emptySample = (): SampleRow => ({ product: '', company: '', dealerImporter: '', batchNo: '', quantity: '', sampleDetails: '' });
 const emptySeizure = (): SeizureRow => ({ fertilizer: '', batchLotNo: '', quantitySeized: '', reasonViolation: '', seizureMemo: '' });
 const emptyDetention = (): DetentionRow => ({ fertilizer: '', batchLotNo: '', quantity: '', reasonDetention: '', detentionMemo: '' });
 const emptyPurchaseInvoice = (): PurchaseInvoiceRow => ({ supplierName: '', invoiceNo: '', invoiceDate: '', product: '', quantity: '', remarks: '' });
@@ -143,6 +143,7 @@ const initialForm = (): InspectionForm => ({
 function migrateForm(parsed: Partial<InspectionForm>): Partial<InspectionForm> {
   return {
     ...parsed,
+    sampleRows: (parsed.sampleRows ?? []).map((r) => ({ ...emptySample(), ...r })),
     stockRows: STOCK_PRODUCTS.map((p, i) => ({ product: p, currentStock: parsed.stockRows?.[i]?.currentStock ?? '' })),
   };
 }
@@ -671,6 +672,7 @@ export function FertilizerDealerInspection() {
                 columns={[
                   { key: 'product', label: 'Fertilizer' },
                   { key: 'company', label: 'Company' },
+                  { key: 'dealerImporter', label: 'Name of Dealer/Manufacturer/Importer' },
                   { key: 'batchNo', label: 'Batch / Lot No.' },
                   { key: 'quantity', label: 'Quantity' },
                   { key: 'sampleDetails', label: 'Sample details' },
@@ -826,7 +828,7 @@ function buildRows(form: InspectionForm, stockTotal: number): { items: string[][
   if (form.purchaseInvoiceRows.length) subTables.push({ title: `Item ${itemNo(18)} - Purchase invoice verification`, head: ['Supplier name', 'Invoice number', 'Invoice date', 'Fertilizer product', 'Quantity', 'Remarks'], body: form.purchaseInvoiceRows.map((r) => [r.supplierName, r.invoiceNo, r.invoiceDate, r.product, r.quantity, r.remarks]) });
   if (form.stockDetained.status === 'yes' && form.detentionRows.length) subTables.push({ title: `Item ${itemNo(23)} - Detention details`, head: ['Fertilizer', 'Batch / Lot No.', 'Quantity', 'Reason for Detention', 'Detention Memo No. & Date'], body: form.detentionRows.map((r) => [r.fertilizer, r.batchLotNo, r.quantity, r.reasonDetention, r.detentionMemo]) });
   if (form.majorOffences.status === 'yes' && form.seizureRows.length) subTables.push({ title: `Item ${itemNo(24)} - Stock seized details`, head: ['Fertilizer', 'Batch / Lot No.', 'Quantity Seized', 'Reason / Violation', 'Seizure Memo No. & Date'], body: form.seizureRows.map((r) => [r.fertilizer, r.batchLotNo, r.quantitySeized, r.reasonViolation, r.seizureMemo]) });
-  if (form.sampleRows.length) subTables.push({ title: `Item ${itemNo(25)} - Samples drawn`, head: ['Fertilizer', 'Company', 'Batch / Lot No.', 'Quantity', 'Sample details'], body: form.sampleRows.map((r) => [r.product, r.company, r.batchNo, r.quantity, r.sampleDetails]) });
+  if (form.sampleRows.length) subTables.push({ title: `Item ${itemNo(25)} - Samples drawn`, head: ['Fertilizer', 'Company', 'Name of Dealer/Manufacturer/Importer', 'Batch / Lot No.', 'Quantity', 'Sample details'], body: form.sampleRows.map((r) => [r.product, r.company, r.dealerImporter, r.batchNo, r.quantity, r.sampleDetails]) });
   subTables.push({ title: `Fertilizer stock position as on ${formatDate(form.inspectionDate)}`, head: ['S.No.', 'Product', `Current stock (${form.stockUnit || 'Bags'})`], body: [...form.stockRows.map((r, i) => [String(i + 1), r.product, r.currentStock]), ['', 'Total', String(stockTotal)]] });
   return { items, subTables };
 }
