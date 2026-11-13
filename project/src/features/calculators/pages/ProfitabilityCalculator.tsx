@@ -340,10 +340,6 @@ export function ProfitabilityCalculator() {
       setLabourCost(preset.labour > 0 ? String(preset.labour) : '0');
       setOtherCost(preset.otherExpenses > 0 ? String(preset.otherExpenses) : '0');
       setCostInputMode('per_acre');
-      showSuccess(
-        t('Preset Applied', 'ప్రిసెట్ వర్తించబడింది'),
-        t(`Loaded typical per-acre estimates for ${preset.name}.`, `${preset.nameTe} కొరకు సాధారణ ఎకరా అంచనాలు లోడ్ చేయబడ్డాయి.`)
-      );
     } else {
       setCustomCropName('');
       setYieldQuantity('');

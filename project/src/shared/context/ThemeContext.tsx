@@ -21,16 +21,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
+  // The `.dark` class on <html> is applied by AppContent, which knows both the
+  // route and auth state — public pages must stay light even when the stored
+  // internal theme is dark.
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    document
-      .querySelector('meta[name="theme-color"]')
-      ?.setAttribute('content', theme === 'dark' ? '#020617' : '#f0fdf4');
     safeStorage.setItem(STORAGE_KEY, theme);
   }, [theme]);
 

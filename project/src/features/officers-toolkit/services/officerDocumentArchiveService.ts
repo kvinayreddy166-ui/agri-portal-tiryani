@@ -681,12 +681,12 @@ export class OfficerDocumentArchiveService {
             Authorization: `Bearer ${user.token}`,
           },
         });
-
+        console.debug('[Download] Worker response:', res.status, doc.object_key);
         if (res.ok) {
           storedBlob = await res.blob();
         }
       } catch (err) {
-        console.warn('Cloudflare Worker download error, checking storage fallback:', err);
+        console.warn('Cloudflare Worker download error:', err, doc.object_key);
       }
     }
 
@@ -694,16 +694,22 @@ export class OfficerDocumentArchiveService {
     if (!storedBlob && doc.object_key) {
       try {
         const { data, error } = await supabase.storage.from('uploads').download(doc.object_key);
+        console.debug('[Download] Supabase Storage response:', error ? error.message : 'ok', doc.object_key);
         if (!error && data) {
           storedBlob = data;
         }
       } catch (err) {
-        console.warn('Supabase storage fallback download error:', err);
+        console.warn('Supabase storage fallback download error:', err, doc.object_key);
       }
     }
 
     if (!storedBlob) {
-      throw new Error('Local copy not found and cloud storage worker/storage is not connected. Document cannot be downloaded.');
+      const errors = [];
+      if (!workerUrl) errors.push('Cloudflare Worker not configured');
+      if (workerUrl && !user) errors.push('Not authenticated');
+      if (doc.object_key) errors.push(`Object key: ${doc.object_key}`);
+      errors.push('Both worker and Supabase storage failed');
+      throw new Error(`Download failed: ${errors.join('; ')}`);
     }
 
     // 4. Persist the file into IndexedDB first so it remains available offline
@@ -820,12 +826,12 @@ export class OfficerDocumentArchiveService {
             Authorization: `Bearer ${user.token}`,
           },
         });
-
+        console.debug('[Preview] Worker response:', res.status, doc.object_key);
         if (res.ok) {
           storedBlob = await res.blob();
         }
       } catch (err) {
-        console.warn('Cloudflare Worker preview error, checking storage fallback:', err);
+        console.warn('Cloudflare Worker preview error:', err, doc.object_key);
       }
     }
 
@@ -833,16 +839,22 @@ export class OfficerDocumentArchiveService {
     if (!storedBlob && doc.object_key) {
       try {
         const { data, error } = await supabase.storage.from('uploads').download(doc.object_key);
+        console.debug('[Preview] Supabase Storage response:', error ? error.message : 'ok', doc.object_key);
         if (!error && data) {
           storedBlob = data;
         }
       } catch (err) {
-        console.warn('Supabase storage fallback preview error:', err);
+        console.warn('Supabase storage fallback preview error:', err, doc.object_key);
       }
     }
 
     if (!storedBlob) {
-      throw new Error('Storage service unavailable for preview and no local copy found.');
+      const errors = [];
+      if (!workerUrl) errors.push('Cloudflare Worker not configured');
+      if (workerUrl && !user) errors.push('Not authenticated');
+      if (doc.object_key) errors.push(`Object key: ${doc.object_key}`);
+      errors.push('Both worker and Supabase storage failed');
+      throw new Error(`Preview failed: ${errors.join('; ')}`);
     }
 
     // Keep a local IndexedDB copy so the file survives offline

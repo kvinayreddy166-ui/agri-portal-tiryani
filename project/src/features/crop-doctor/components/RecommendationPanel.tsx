@@ -18,8 +18,8 @@ export function RecommendationPanel({
 
   return (
     <div className="mt-3 space-y-2">
-      {sorted.map((rec) => (
-        <details key={rec.id} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2 open:border-emerald-200 open:bg-emerald-50/40">
+      {sorted.map((rec, index) => (
+        <details key={`${rec.control_type}-${rec.id ?? 'rec'}-${index}`} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2 open:border-emerald-200 open:bg-emerald-50/40">
           <summary className="cursor-pointer text-xs font-black text-slate-900 dark:text-white">
             {label(controlLabel(rec.control_type), language)}
           </summary>

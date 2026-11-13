@@ -523,29 +523,29 @@ export function StockManagement() {
           ) : (
             <>
               <section className="grid gap-2 lg:grid-cols-3">
-                <div className="rounded-lg border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 p-3 shadow-sm">
-                  <div className="mb-2 w-fit rounded-lg bg-amber-200 p-2 text-amber-700">
+                <div className="rounded-lg border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 p-3 shadow-sm dark:border-amber-800/50 dark:from-amber-950/30 dark:to-amber-900/20">
+                  <div className="mb-2 w-fit rounded-lg bg-amber-200 p-2 text-amber-700 dark:bg-amber-800/40 dark:text-amber-300">
                     <Package className="h-5 w-5" />
                   </div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-amber-600">Total Receipts</p>
-                  <p className="mt-1 text-2xl font-black text-amber-950">{totalReceipts.toFixed(2)} MT</p>
-                  <p className="mt-0.5 text-xs font-semibold text-amber-800/80">{visibleSummary.length} fertilizer types</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">Total Receipts</p>
+                  <p className="mt-1 text-2xl font-black text-amber-950 dark:text-amber-100">{totalReceipts.toFixed(2)} MT</p>
+                  <p className="mt-0.5 text-xs font-semibold text-amber-800/80 dark:text-amber-300/80">{visibleSummary.length} fertilizer types</p>
                 </div>
-                <div className="rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50 to-sky-100 p-3 shadow-sm">
-                  <div className="mb-2 w-fit rounded-lg bg-sky-200 p-2 text-sky-700">
+                <div className="rounded-lg border border-sky-200 bg-gradient-to-br from-sky-50 to-sky-100 p-3 shadow-sm dark:border-sky-800/50 dark:from-sky-950/30 dark:to-sky-900/20">
+                  <div className="mb-2 w-fit rounded-lg bg-sky-200 p-2 text-sky-700 dark:bg-sky-800/40 dark:text-sky-300">
                     <ClipboardList className="h-5 w-5" />
                   </div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-sky-600">Receipt Entries</p>
-                  <p className="mt-1 text-2xl font-black text-sky-950">{filteredStock.length}</p>
-                  <p className="mt-0.5 text-xs font-semibold text-sky-800/80">Filtered records</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-sky-600 dark:text-sky-400">Receipt Entries</p>
+                  <p className="mt-1 text-2xl font-black text-sky-950 dark:text-sky-100">{filteredStock.length}</p>
+                  <p className="mt-0.5 text-xs font-semibold text-sky-800/80 dark:text-sky-300/80">Filtered records</p>
                 </div>
-                <div className="rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 shadow-sm">
-                  <div className="mb-2 w-fit rounded-lg bg-emerald-200 p-2 text-emerald-700">
+                <div className="rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 shadow-sm dark:border-emerald-800/50 dark:from-emerald-950/30 dark:to-emerald-900/20">
+                  <div className="mb-2 w-fit rounded-lg bg-emerald-200 p-2 text-emerald-700 dark:bg-emerald-800/40 dark:text-emerald-300">
                     <BarChart3 className="h-5 w-5" />
                   </div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-emerald-600">Dealers Covered</p>
-                  <p className="mt-1 text-2xl font-black text-emerald-950">{dealerSummary.length}</p>
-                  <p className="mt-0.5 text-xs font-semibold text-emerald-800/80">With matching receipts</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">Dealers Covered</p>
+                  <p className="mt-1 text-2xl font-black text-emerald-950 dark:text-emerald-100">{dealerSummary.length}</p>
+                  <p className="mt-0.5 text-xs font-semibold text-emerald-800/80 dark:text-emerald-300/80">With matching receipts</p>
                 </div>
               </section>
 

@@ -37,6 +37,26 @@ export const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/inspection-enforcement',
 ]);
 
+// Routes that must always render light — the internal dark theme never
+// applies to them, even for signed-in users (auth pages redirect away anyway).
+export const ALWAYS_LIGHT_PATHS = new Set([
+  '/',
+  '/home',
+  '/landing',
+  '/login',
+  '/register',
+  '/officer-register',
+  '/forgot-password',
+  '/disclaimer',
+  '/privacy-policy',
+  '/terms-conditions',
+]);
+
+// Public directory/info pages that stay light for signed-out visitors but may
+// use the internal theme once a user is authenticated (e.g. officer dealer
+// directory, agrochemical database).
+export const SIGNED_OUT_LIGHT_PATHS = new Set(['/dealers', '/agrochemicals']);
+
 // Page keys renderable without authentication (handled by PublicPageSwitch).
 export const PUBLIC_PAGES = new Set([
   'landing',

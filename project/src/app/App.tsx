@@ -11,9 +11,11 @@ import { SEO, OrganizationSchema } from '../shared/components/seo/SEO';
 const OfflineScreen = lazy(() => import('../shared/components/ui/OfflineScreen').then((m) => ({ default: m.OfflineScreen })));
 const UpdateBanner = lazy(() => import('../shared/components/UpdateBanner').then((m) => ({ default: m.UpdateBanner })));
 import {
+  ALWAYS_LIGHT_PATHS,
   PUBLIC_AUTH_ROUTES,
   PUBLIC_PAGES,
   PUBLIC_VIEW_PAGES,
+  SIGNED_OUT_LIGHT_PATHS,
   VALID_PAGES,
   getPageBackFallback,
   pageToPath,
@@ -202,26 +204,20 @@ function AppContent() {
     // Keeping it empty to prevent any unintended redirects
   }, [loading, location.pathname, navigate, user]);
 
-  // Public auth/landing surfaces always render light — the internal dark mode
-  // must never leak onto the login or home pages.
-  const isAlwaysLightRoute =
-    location.pathname === '/' ||
-    location.pathname === '/home' ||
-    location.pathname === '/landing' ||
-    location.pathname === '/login';
+  // Public surfaces always render light — the internal dark mode must never
+  // leak onto login/home/auth pages, or onto public directories for visitors.
+  const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
+  const isLightOnlyRoute =
+    ALWAYS_LIGHT_PATHS.has(normalizedPath) ||
+    (!user && SIGNED_OUT_LIGHT_PATHS.has(normalizedPath));
   useEffect(() => {
     const root = document.documentElement;
-    if (isAlwaysLightRoute) {
-      root.classList.remove('dark');
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f0fdf4');
-    } else if (isDark) {
-      root.classList.add('dark');
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#020617');
-    } else {
-      root.classList.remove('dark');
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f0fdf4');
-    }
-  }, [isAlwaysLightRoute, isDark]);
+    const effectiveDark = isDark && !isLightOnlyRoute;
+    root.classList.toggle('dark', effectiveDark);
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', effectiveDark ? '#020617' : '#f0fdf4');
+  }, [isDark, isLightOnlyRoute]);
 
   const shellReady = isHydrated && (authChecked || currentPathIsPublic || forceAppShell) && (appReady || currentPathIsPublic || forceAppShell);
   useAppBootReady(shellReady);

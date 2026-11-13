@@ -21,7 +21,7 @@ export function CropProtectionTool() {
   }, [load]);
 
   return (
-    <div className="min-h-screen bg-[#f2f7f3]">
+    <div className="min-h-screen bg-[#f2f7f3] dark:bg-slate-950">
       <div className="mx-auto max-w-7xl p-3 sm:p-4 lg:p-6">
         <CropProtectionDashboard crops={crops} loading={loading} onRefresh={load} />
       </div>

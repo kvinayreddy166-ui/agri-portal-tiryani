@@ -51,12 +51,19 @@ export function ModuleDirectory({ currentPage, isAdminUser, isOfficerUser = fals
     const isPinned = pinned.includes(item.id);
     const Icon = item.icon;
     return (
-      <button
+      <div
         key={item.id}
-        type="button"
+        role="button"
+        tabIndex={0}
         onClick={() => onNavigate(item.id)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onNavigate(item.id);
+          }
+        }}
         aria-current={isActive ? 'page' : undefined}
-        className={`group relative flex w-full items-start gap-3 rounded-2xl border bg-white p-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-100 dark:bg-slate-900 dark:hover:border-emerald-700 dark:focus-visible:ring-emerald-900/50 ${
+        className={`group relative flex w-full cursor-pointer items-start gap-3 rounded-2xl border bg-white p-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-100 dark:bg-slate-900 dark:hover:border-emerald-700 dark:focus-visible:ring-emerald-900/50 ${
           isActive ? 'border-emerald-500 ring-1 ring-emerald-500 dark:border-emerald-500' : 'border-slate-200 dark:border-slate-800'
         } ${compact ? 'p-2.5' : ''}`}
       >
@@ -97,7 +104,7 @@ export function ModuleDirectory({ currentPage, isAdminUser, isOfficerUser = fals
           </button>
           <ChevronRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-emerald-500 dark:text-slate-600" />
         </span>
-      </button>
+      </div>
     );
   };
 

@@ -130,10 +130,6 @@ export function PlantPopulationCalculator() {
       rowSpacingUnit: preset.unit,
       plantSpacingUnit: preset.unit,
     }));
-    showSuccess(
-      t('Preset Loaded', 'ప్రిసెట్ లోడ్ అయింది'),
-      t(`Loaded spacing for ${preset.name} (${preset.row} × ${preset.plant} ${preset.unit}).`, `${preset.nameTe} దూరం లోడ్ చేయబడింది.`)
-    );
   };
 
   const reset = () => {

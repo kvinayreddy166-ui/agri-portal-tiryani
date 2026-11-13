@@ -150,10 +150,6 @@ export function IrrigationCalculator() {
       waterRequirementPerPlant: preset.waterRequirementPerPlant,
       pumpHorsePower: preset.defaultPumpHp ?? prev.pumpHorsePower,
     }));
-    showSuccess(
-      t('Preset Loaded', 'ప్రిసెట్ లోడ్ అయింది'),
-      t(`Loaded drip parameters for ${preset.name}.`, `${preset.nameTe} బిందు సేద్యం వివరాలు లోడ్ చేయబడ్డాయి.`)
-    );
   };
 
   const applySprinklerPreset = (preset: SprinklerPreset) => {
@@ -167,10 +163,6 @@ export function IrrigationCalculator() {
       targetDepthMm: preset.targetDepthMm,
       pumpHorsePower: preset.defaultPumpHp ?? prev.pumpHorsePower,
     }));
-    showSuccess(
-      t('Preset Loaded', 'ప్రిసెట్ లోడ్ అయింది'),
-      t(`Loaded sprinkler parameters for ${preset.name}.`, `${preset.nameTe} తుంపర సేద్యం వివరాలు లోడ్ చేయబడ్డాయి.`)
-    );
   };
 
   const resetDrip = () => {

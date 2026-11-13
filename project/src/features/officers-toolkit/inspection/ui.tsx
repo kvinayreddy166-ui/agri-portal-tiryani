@@ -23,7 +23,7 @@ interface ToneStyles {
 
 const toneStyles: Record<InspectionTone, ToneStyles> = {
   emerald: {
-    inputFocus: 'focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100',
+    inputFocus: 'focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900/40',
     sectionBorder: 'border-emerald-200/60 dark:border-emerald-800/50',
     sectionDivider: 'border-emerald-100 dark:border-emerald-900',
     badgeGradient: 'from-emerald-500 to-emerald-600',
@@ -32,12 +32,12 @@ const toneStyles: Record<InspectionTone, ToneStyles> = {
     chipValue: 'text-emerald-700 dark:text-emerald-300',
     addButton: 'bg-emerald-600 hover:bg-emerald-700',
     modalBorder: 'border-emerald-200/50 dark:border-emerald-800/50',
-    actionWhite: 'border-[#86EFAC] text-[#166534]',
+    actionWhite: 'border-[#86EFAC] text-[#166534] dark:border-emerald-700 dark:text-emerald-300',
     checkActive: 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/50 dark:bg-emerald-950/20',
     checkAccent: 'text-emerald-600 accent-emerald-600',
   },
   sky: {
-    inputFocus: 'focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100',
+    inputFocus: 'focus:border-sky-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-sky-100 dark:focus:ring-sky-900/40',
     sectionBorder: 'border-sky-200/60 dark:border-sky-800/50',
     sectionDivider: 'border-sky-100 dark:border-sky-900',
     badgeGradient: 'from-sky-500 to-blue-600',
@@ -46,12 +46,12 @@ const toneStyles: Record<InspectionTone, ToneStyles> = {
     chipValue: 'text-sky-700 dark:text-sky-300',
     addButton: 'bg-sky-600 hover:bg-sky-700',
     modalBorder: 'border-sky-200/50 dark:border-sky-800/50',
-    actionWhite: 'border-sky-300 text-sky-800',
+    actionWhite: 'border-sky-300 text-sky-800 dark:border-sky-700 dark:text-sky-300',
     checkActive: 'border-sky-200 bg-sky-50/60 dark:border-sky-900/50 dark:bg-sky-950/20',
     checkAccent: 'text-sky-600 accent-sky-600',
   },
   rose: {
-    inputFocus: 'focus:border-rose-400 focus:bg-white focus:ring-4 focus:ring-rose-100',
+    inputFocus: 'focus:border-rose-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-rose-100 dark:focus:ring-rose-900/40',
     sectionBorder: 'border-rose-200/60 dark:border-rose-800/50',
     sectionDivider: 'border-rose-100 dark:border-rose-900',
     badgeGradient: 'from-rose-500 to-rose-600',
@@ -60,7 +60,7 @@ const toneStyles: Record<InspectionTone, ToneStyles> = {
     chipValue: 'text-rose-700 dark:text-rose-300',
     addButton: 'bg-rose-600 hover:bg-rose-700',
     modalBorder: 'border-rose-200/50 dark:border-rose-800/50',
-    actionWhite: 'border-[#FDA4AF] text-[#9F1239]',
+    actionWhite: 'border-[#FDA4AF] text-[#9F1239] dark:border-rose-700 dark:text-rose-300',
     checkActive: 'border-rose-200 bg-rose-50/60 dark:border-rose-900/50 dark:bg-rose-950/20',
     checkAccent: 'text-rose-600 accent-rose-600',
   },
@@ -111,7 +111,7 @@ export function ActionButton({
     tone === 'purple'
       ? 'bg-purple-600 text-white hover:bg-purple-700'
       : tone === 'white'
-        ? `border bg-white/80 hover:bg-white ${styles.actionWhite}`
+        ? `border bg-white/80 hover:bg-white dark:border-slate-700 dark:bg-slate-800/80 dark:hover:bg-slate-700 ${styles.actionWhite}`
         : solid[tone];
   return (
     <button type="button" onClick={onClick} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black shadow-sm transition sm:text-sm ${toneClass}`}>

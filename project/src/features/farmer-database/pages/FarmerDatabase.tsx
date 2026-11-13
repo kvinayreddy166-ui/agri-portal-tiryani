@@ -665,9 +665,9 @@ export function FarmerDatabase() {
           <div className="p-10 text-center text-sm font-bold text-slate-500 dark:text-slate-400">{uiLabel(emptyStateText, showTelugu)}</div>
         )}
         <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 px-3 py-2 text-xs font-black">
-          <button type="button" onClick={() => setPage((value) => Math.max(0, value - 1))} disabled={page === 0} className="rounded-md border px-3 py-1.5 disabled:opacity-50">{uiLabel('Previous', showTelugu)}</button>
-          <span>{uiLabel('Page', showTelugu)} {Math.min(page + 1, totalPages)}/{totalPages}</span>
-          <button type="button" onClick={() => setPage((value) => value + 1)} disabled={!hasMore} className="rounded-md border px-3 py-1.5 disabled:opacity-50">{uiLabel('Next', showTelugu)}</button>
+          <button type="button" onClick={() => setPage((value) => Math.max(0, value - 1))} disabled={page === 0} className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">{uiLabel('Previous', showTelugu)}</button>
+          <span className="text-slate-600 dark:text-slate-400">{uiLabel('Page', showTelugu)} {Math.min(page + 1, totalPages)}/{totalPages}</span>
+          <button type="button" onClick={() => setPage((value) => value + 1)} disabled={!hasMore} className="rounded-md border border-slate-200 bg-white px-3 py-1.5 text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">{uiLabel('Next', showTelugu)}</button>
         </div>
       </section>
 

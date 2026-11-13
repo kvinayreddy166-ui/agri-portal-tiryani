@@ -1416,6 +1416,9 @@ function drawSeedFormI(doc: any, form: any) {
 function drawSeedFormVIII(doc: any, form: any) {
   const r = resolveSeedValues(form);
   const p = page(doc);
+  const resolvedMandalName = effectiveLocationValue(r.mandal, r.manualMandal) || r.mandal;
+  const mandalLabel = resolvedMandalName ? `${resolvedMandalName} Mandal` : '';
+  const placeIsMandal = r.place && (r.place === r.mandal || r.place === resolvedMandalName);
   title(doc, p, 'FORM VIII', '', 'DETAILS OF SAMPLES TAKEN');
   richPara(doc, p, [
     { text: 'I have this day ' },
@@ -1423,7 +1426,7 @@ function drawSeedFormVIII(doc: any, form: any) {
     { text: ' taken from the premises of M/s ' },
     { text: r.dealerName || '________________', bold: true },
     { text: ', situated at ' },
-    { text: blank([stripSeedAddressParts(r.dealerAddress, [r.mandal, r.district]), r.place, r.mandal && `${r.mandal} Mandal`, r.districtWithPinCode || r.district].filter(Boolean).join(', ')), bold: true },
+    { text: blank([stripSeedAddressParts(r.dealerAddress, [resolvedMandalName, r.mandal, r.district]), ...(placeIsMandal ? [] : [r.place]), mandalLabel, r.districtWithPinCode || r.district].filter(Boolean).join(', ')), bold: true },
     { text: ' Samples of Seeds specified below to have same tested / Analyzed by Seed Analyst.' },
   ]);
   doc.setFont(PDF_FONT, 'bold');

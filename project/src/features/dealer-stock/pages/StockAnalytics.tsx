@@ -46,15 +46,6 @@ type AdminFilters = {
   idleDays: number;
 };
 
-const THEME = {
-  primary: '#166534',
-  secondary: '#16A34A',
-  danger: '#C62828',
-  warning: '#F59E0B',
-  bg: '#F2F7F3',
-  text: '#0F172A',
-  muted: '#64748B',
-};
 
 const CATEGORY_LABELS: Record<StockCategory, string> = {
   fertilizer: 'Fertilizer',
@@ -77,7 +68,7 @@ export default function StockAnalytics() {
   }
 
   return (
-    <div className="max-w-full space-y-4 overflow-hidden" style={{ background: THEME.bg }}>
+    <div className="max-w-full space-y-4 overflow-hidden bg-[#F2F7F3] dark:bg-slate-950">
       <div>
         <h2 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">Officer Command Center</h2>
         <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">Dealer monitoring and stock analytics at a glance.</p>
@@ -113,7 +104,7 @@ export default function StockAnalytics() {
             <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Stock Analytics</p>
             <h3 className="text-base font-black text-slate-950 dark:text-white">Fertilizer Tracking & Stock Inventory</h3>
           </div>
-          <ChevronDown className={`h-5 w-5 text-slate-700 transition ${stockToolsOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-5 w-5 text-slate-700 dark:text-slate-300 transition ${stockToolsOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {stockToolsOpen && (
@@ -353,12 +344,12 @@ function CommandCenter() {
 }
 
 function StockSwitch({ title, description, active, tone, icon, onClick }: { title: string; description: string; active: boolean; tone: 'red' | 'green'; icon: React.ReactNode; onClick: () => void }) {
-  const titleClass = tone === 'red' ? 'text-red-700' : 'text-emerald-700';
+  const titleClass = tone === 'red' ? 'text-red-700 dark:text-red-300' : 'text-emerald-700 dark:text-emerald-300';
   const iconClass = tone === 'red'
-    ? active ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700'
-    : active ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700';
+    ? active ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300'
+    : active ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300';
   return (
-    <button type="button" onClick={onClick} className={`flex min-w-[16rem] flex-1 items-center gap-3 rounded-lg border p-3 text-left shadow-sm transition ${active ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50'}`}>
+    <button type="button" onClick={onClick} className={`flex min-w-[16rem] flex-1 items-center gap-3 rounded-lg border p-3 text-left shadow-sm transition ${active ? 'border-emerald-500 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-950/40' : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/30'}`}>
       <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconClass}`}>{icon}</div>
       <div className="min-w-0">
         <h3 className={`truncate text-sm font-black ${titleClass}`}>{title}</h3>
@@ -379,8 +370,8 @@ function DealerSubmissionCard({ rows, submissionTab, setSubmissionTab }: { rows:
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <div className="grid grid-cols-2 rounded-lg border border-slate-200 dark:border-slate-700 p-1 text-xs font-black">
-            <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'updated' ? 'bg-emerald-700 text-white' : 'text-slate-600'}`} onClick={() => setSubmissionTab('updated')}>Updated</button>
-            <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'pending' ? 'bg-red-700 text-white' : 'text-slate-600'}`} onClick={() => setSubmissionTab('pending')}>Pending</button>
+            <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'updated' ? 'bg-emerald-700 text-white' : 'text-slate-600 dark:text-slate-300'}`} onClick={() => setSubmissionTab('updated')}>Updated</button>
+            <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'pending' ? 'bg-red-700 text-white' : 'text-slate-600 dark:text-slate-300'}`} onClick={() => setSubmissionTab('pending')}>Pending</button>
           </div>
           <button type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? 'Collapse Dealer Submission List' : 'Expand Dealer Submission List'} className="rounded-md p-1 text-indigo-600 transition hover:bg-white/70 dark:text-indigo-300 dark:hover:bg-slate-800">
             <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
@@ -521,7 +512,7 @@ function WeeklyTopSellersCard({ rows }: { rows: ReturnType<typeof buildWeeklyTop
       {open && (
       <div className="space-y-1.5">
         {rows.length ? rows.map((row, index) => (
-          <div key={`${row.category}-${row.product}`} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-emerald-50/30">
+          <div key={`${row.category}-${row.product}`} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20">
             <div className="flex min-w-0 items-center gap-2 font-extrabold text-slate-900 dark:text-white">
               <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${['bg-emerald-600', 'bg-emerald-600', 'bg-lime-600', 'bg-cyan-600', 'bg-slate-500'][index % 5]}`} />
               <span className="break-words">
@@ -597,7 +588,7 @@ function SimpleTable({ headers, rows }: { headers: string[]; rows: React.ReactNo
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {rows.map((row, index) => (
-            <tr key={index} className="hover:bg-emerald-50/40">
+            <tr key={index} className="hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30">
               {row.map((cell, cellIndex) => <td key={cellIndex} className="whitespace-nowrap px-2.5 py-2 font-bold text-slate-700 dark:text-slate-200">{cell}</td>)}
             </tr>
           ))}

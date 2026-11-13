@@ -142,19 +142,19 @@ const cardThemes: Record<
 
 const noticeModalThemes: Record<NoticeCategory, { header: string; icon: string; eyebrow: string }> = {
   fertiliser: {
-    header: 'border-blue-100/60 from-blue-50 via-white to-sky-50',
+    header: 'border-blue-100/60 from-blue-50 via-white to-sky-50 dark:border-blue-900/50 dark:from-blue-950/70 dark:via-slate-900 dark:to-sky-950/60',
     icon: 'from-blue-600 to-sky-600 shadow-blue-500/25',
-    eyebrow: 'text-blue-600/80',
+    eyebrow: 'text-blue-600/80 dark:text-blue-400',
   },
   seed: {
-    header: 'border-green-100/60 from-green-50 via-white to-emerald-50',
+    header: 'border-green-100/60 from-green-50 via-white to-emerald-50 dark:border-emerald-900/50 dark:from-emerald-950/70 dark:via-slate-900 dark:to-emerald-950/60',
     icon: 'from-green-600 to-emerald-600 shadow-green-500/25',
-    eyebrow: 'text-green-600/80',
+    eyebrow: 'text-green-600/80 dark:text-emerald-400',
   },
   pesticide: {
-    header: 'border-amber-100/60 from-amber-50 via-white to-yellow-50',
+    header: 'border-amber-100/60 from-amber-50 via-white to-yellow-50 dark:border-amber-900/50 dark:from-amber-950/70 dark:via-slate-900 dark:to-yellow-950/60',
     icon: 'from-amber-500 to-yellow-600 shadow-amber-500/25',
-    eyebrow: 'text-amber-700/80',
+    eyebrow: 'text-amber-700/80 dark:text-amber-400',
   },
 };
 

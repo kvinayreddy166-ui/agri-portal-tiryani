@@ -136,10 +136,6 @@ export function SeedRateCalculator() {
       testWeight: preset.testWeight,
       wastagePercentage: preset.wastage,
     }));
-    showSuccess(
-      t('Preset Loaded', 'ప్రిసెట్ లోడ్ అయింది'),
-      t(`Loaded seed parameters for ${preset.name}.`, `${preset.nameTe} విత్తన వివరాలు లోడ్ చేయబడ్డాయి.`)
-    );
   };
 
   const reset = () => {

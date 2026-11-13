@@ -150,10 +150,6 @@ export function PesticideCalculator() {
       waterPerAcre: preset.water,
       directDose: preset.dose,
     }));
-    showSuccess(
-      t('Preset Loaded', 'ప్రిసెట్ లోడ్ అయింది'),
-      t(`Loaded formulation for ${preset.name} (${preset.dose} ${preset.unitType === 'liquid' ? 'mL' : 'g'}/L).`, `${preset.nameTe} వివరాలు లోడ్ చేయబడ్డాయి.`)
-    );
   };
 
   const reset = () => {

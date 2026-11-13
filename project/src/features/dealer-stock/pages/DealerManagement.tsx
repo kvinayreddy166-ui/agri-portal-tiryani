@@ -53,6 +53,9 @@ async function fetchDealerRows(category?: DealerCategory) {
 export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: boolean }) {
   const { isAdminUser, isElevatedOfficerUser, isOfficerUser, officerProfile, user } = useAuth();
   const canManageDealers = (isAdminUser || isOfficerUser) && !isElevatedOfficerUser;
+  // Officers (including the elevated officer directory view) may edit dealer
+  // details and delete entries — but never the mandal/district jurisdiction.
+  const canEditDealers = isAdminUser || isOfficerUser || isElevatedOfficerUser;
   const restrictToOwn = scopeToCreator && isOfficerUser && !isAdminUser;
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<DealerCategory>('fertilizer');
@@ -61,8 +64,6 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const [searchTerm, setSearchTerm] = useState('');
   const [licenseFilter, setLicenseFilter] = useState<'all' | 'valid' | 'expired'>('all');
   const [loginFilter, setLoginFilter] = useState<'all' | 'with' | 'without'>('all');
-  const [districtFilter, setDistrictFilter] = useState<'all' | 'unset' | string>('all');
-  const [mandalFilter, setMandalFilter] = useState<'all' | 'unset' | string>('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
@@ -385,14 +386,6 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
         const hasLogin = Boolean(String(dealer.portal_email || '').trim());
         if (loginFilter === 'with' ? !hasLogin : hasLogin) return false;
       }
-      if (districtFilter !== 'all') {
-        const dealerDistrict = normalizeDistrictName(dealer.district);
-        if (districtFilter === 'unset' ? Boolean(dealerDistrict) : dealerDistrict !== districtFilter) return false;
-      }
-      if (mandalFilter !== 'all') {
-        const dealerMandal = String(dealer.mandal || '').trim();
-        if (mandalFilter === 'unset' ? Boolean(dealerMandal) : dealerMandal !== mandalFilter) return false;
-      }
       const term = searchTerm.toLowerCase();
       return (
         dealer.dealer_name.toLowerCase().includes(term) ||
@@ -400,14 +393,8 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
         dealer.license_number.toLowerCase().includes(term)
       );
     });
-  }, [dealers, searchTerm, licenseFilter, loginFilter, districtFilter, mandalFilter, isElevatedOfficerUser]);
+  }, [dealers, searchTerm, licenseFilter, loginFilter, isElevatedOfficerUser]);
 
-  const mandalFilterOptions = useMemo(() => {
-    if (districtFilter !== 'all' && districtFilter !== 'unset') {
-      return getMandalsForDistrict(districtFilter);
-    }
-    return Array.from(new Set(dealers.map((d) => String(d.mandal || '').trim()).filter(Boolean))).sort();
-  }, [dealers, districtFilter]);
   const pageCount = Math.max(1, Math.ceil(filteredDealers.length / DEALERS_PAGE_SIZE));
   const paginatedDealers = filteredDealers.slice(
     currentPage * DEALERS_PAGE_SIZE,
@@ -416,7 +403,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [activeTab, searchTerm, licenseFilter, loginFilter, districtFilter, mandalFilter]);
+  }, [activeTab, searchTerm, licenseFilter, loginFilter]);
 
   const showIfms = activeTab === 'fertilizer';
   const validityLabel =
@@ -566,35 +553,10 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
           <option value="with">{t('Portal Login Set', 'పోర్టల్ లాగిన్ ఉన్నవి')}</option>
           <option value="without">{t('No Portal Login', 'పోర్టల్ లాగిన్ లేనివి')}</option>
         </select>
-        <select
-          value={districtFilter}
-          onChange={(e) => {
-            setDistrictFilter(e.target.value);
-            setMandalFilter('all');
-          }}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition focus:border-emerald-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-        >
-          <option value="all">{t('All Districts', 'అన్ని జిల్లా.')}</option>
-          <option value="unset">{t('District Not Set', 'జిల్లా లేదు')}</option>
-          {TELANGANA_DISTRICTS.map((d) => (
-            <option key={d} value={d}>{d}</option>
-          ))}
-        </select>
-        <select
-          value={mandalFilter}
-          onChange={(e) => setMandalFilter(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition focus:border-emerald-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-        >
-          <option value="all">{t('All Mandals', 'అన్ని మండలాలు.')}</option>
-          <option value="unset">{t('Mandal Not Set', 'మండలం లేదు')}</option>
-          {mandalFilterOptions.map((m) => (
-            <option key={m} value={m}>{m}</option>
-          ))}
-        </select>
-        {(licenseFilter !== 'all' || loginFilter !== 'all' || districtFilter !== 'all' || mandalFilter !== 'all') && (
+        {(licenseFilter !== 'all' || loginFilter !== 'all') && (
           <button
             type="button"
-            onClick={() => { setLicenseFilter('all'); setLoginFilter('all'); setDistrictFilter('all'); setMandalFilter('all'); }}
+            onClick={() => { setLicenseFilter('all'); setLoginFilter('all'); }}
             className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             {t('Clear', 'క్లియర్')}
@@ -858,7 +820,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
                 <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {t('Mandal / District', 'మండలం / జిల్లా')}
                 </th>
-                {canManageDealers && (
+                {canEditDealers && (
                   <th className="w-24 px-4 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     {t('Actions', 'చర్యలు')}
                   </th>
@@ -892,7 +854,8 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
                       dealer={dealer}
                       showIfms={showIfms}
                       activeTab={activeTab}
-                      canManage={canManageDealers}
+                      canManage={canEditDealers}
+                      lockLocation={!isAdminUser}
                       onUpdate={() => handleUpdate(dealer.id)}
                       onCancel={() => setEditingId(null)}
                       updateLocalDealer={updateLocalDealer}
@@ -902,8 +865,8 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
                       dealer={dealer}
                       showIfms={showIfms}
                       activeTab={activeTab}
-                      canManage={canManageDealers}
-                      canDelete={canManageDealers}
+                      canManage={canEditDealers}
+                      canDelete={canEditDealers}
                       onEdit={() => setEditingId(dealer.id)}
                       onDelete={() => handleDelete(dealer.id)}
                     />
@@ -1309,6 +1272,7 @@ function EditRow({
   showIfms,
   activeTab,
   canManage,
+  lockLocation,
   onUpdate,
   onCancel,
   updateLocalDealer,
@@ -1317,6 +1281,7 @@ function EditRow({
   showIfms: boolean;
   activeTab: DealerCategory;
   canManage: boolean;
+  lockLocation: boolean;
   onUpdate: () => void;
   onCancel: () => void;
   updateLocalDealer: (id: string, field: string, value: string) => void;
@@ -1396,7 +1361,8 @@ function EditRow({
               updateLocalDealer(dealer.id, 'district', e.target.value);
               updateLocalDealer(dealer.id, 'mandal', '');
             }}
-            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+            disabled={lockLocation}
+            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed dark:border-slate-600 dark:bg-slate-800 dark:text-white"
           >
             <option value="">{t('District', 'జిల్లా')}</option>
             {TELANGANA_DISTRICTS.map((d) => (
@@ -1406,7 +1372,7 @@ function EditRow({
           <select
             value={dealer.mandal || ''}
             onChange={(e) => updateLocalDealer(dealer.id, 'mandal', e.target.value)}
-            disabled={!normalizeDistrictName(dealer.district)}
+            disabled={lockLocation || !normalizeDistrictName(dealer.district)}
             className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
           >
             <option value="">{t('Mandal', 'మండలం')}</option>

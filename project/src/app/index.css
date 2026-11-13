@@ -201,7 +201,8 @@ select,
 textarea {
   font-family: var(--font-body);
 }
-.dark body {
+.dark body,
+.dark #root {
   color: #e2e8f0;
   background: #020617;
 }
@@ -555,6 +556,17 @@ main,
   .filter-select:focus {
     border-color: var(--agri-primary);
     box-shadow: 0 0 0 4px rgba(22, 101, 52, 0.14);
+  }
+
+  .dark .filter-select {
+    background: #0f172a;
+    border-color: rgba(71, 85, 105, 0.9);
+    color: #e2e8f0;
+  }
+
+  .dark .filter-select option {
+    background: #0f172a;
+    color: #e2e8f0;
   }
 
   .action-button-primary {

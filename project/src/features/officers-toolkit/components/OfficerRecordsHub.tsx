@@ -503,16 +503,26 @@ export function OfficerRecordsHub() {
     try {
       const url = await OfficerDocumentArchiveService.previewDocument(doc);
       setPreviewDoc({ doc, url });
-    } catch {
-      alert(t('Unable to load document preview. You can still download the file.', 'పత్రం ప్రివ్యూ లోడ్ చేయడం సాధ్యపడలేదు. మీరు ఫైల్‌ను డౌన్‌లోడ్ చేసుకోవచ్చు.'));
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[Preview Error]', error);
+      alert(t(
+        `Unable to load document preview: ${errorMsg}. You can still download the file.`,
+        `పత్రం ప్రివ్యూ లోడ్ చేయడం సాధ్యపడలేదు: ${errorMsg}. మీరు ఫైల్‌ను డౌన్‌లోడ్ చేసుకోవచ్చు.`
+      ));
     }
   };
 
   const handleDownload = async (doc: OfficerDocumentArchiveRecord) => {
     try {
       await OfficerDocumentArchiveService.downloadDocument(doc);
-    } catch {
-      alert(t('Download failed. Please check network connection.', 'డౌన్‌లోడ్ విఫలమైంది. దయచేసి నెట్‌వర్క్ తనిఖీ చేయండి.'));
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[Download Error]', error);
+      alert(t(
+        `Download failed: ${errorMsg}`,
+        `డౌన్‌లోడ్ విఫలమైంది: ${errorMsg}`
+      ));
     }
   };
 

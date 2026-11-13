@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useCallback, useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { ErrorBoundary } from 'react-error-boundary';
 import {
   Building2,
   MapPin,
@@ -58,6 +59,12 @@ const LazyCategoryDonutChart = lazy(() =>
 );
 const LazyStackedBarChart = lazy(() =>
   import('../../../shared/components/charts/StackedBarChart').then((module) => ({ default: module.StackedBarChart }))
+);
+
+const ChartErrorFallback = () => (
+  <div className="flex h-64 items-center justify-center rounded-lg bg-slate-50 text-slate-500 dark:bg-slate-800/50 dark:text-slate-400">
+    <span className="text-xs">Chart unavailable</span>
+  </div>
 );
 
 type FarmerDashboardRow = {
@@ -471,13 +478,15 @@ export const Dashboard = React.memo(function Dashboard() {
                 </span>
               </div>
               <div className="px-2 py-2">
-                <Suspense fallback={<div className="h-60 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
-                  <LazySimpleBarChart
-                    data={districtUserCounts.slice(0, 15).map(({ district, count }) => ({ name: district, count }))}
-                    dataKey="count"
-                    nameKey="name"
-                  />
-                </Suspense>
+                <ErrorBoundary FallbackComponent={ChartErrorFallback}>
+                  <Suspense fallback={<div className="h-60 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
+                    <LazySimpleBarChart
+                      data={districtUserCounts.slice(0, 15).map(({ district, count }) => ({ name: district, count }))}
+                      dataKey="count"
+                      nameKey="name"
+                    />
+                  </Suspense>
+                </ErrorBoundary>
               </div>
                 </div>
               )}
@@ -493,12 +502,14 @@ export const Dashboard = React.memo(function Dashboard() {
                       {designationCounts.length} {t('roles', 'పాత్రలు')}
                     </span>
                   </div>
-                  <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
-                    <LazyCategoryDonutChart
-                      data={designationCounts}
-                      centerLabel={t('officers', 'అధికారులు')}
-                    />
-                  </Suspense>
+                  <ErrorBoundary FallbackComponent={ChartErrorFallback}>
+                    <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
+                      <LazyCategoryDonutChart
+                        data={designationCounts}
+                        centerLabel={t('officers', 'అధికారులు')}
+                      />
+                    </Suspense>
+                  </ErrorBoundary>
                 </div>
               )}
               </div>
@@ -534,21 +545,23 @@ export const Dashboard = React.memo(function Dashboard() {
                     <h3 className="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">
                       {t('Dealers by District & Mandal', 'జిల్లా & మండలం వారీగా డీలర్లు')}
                     </h3>
-                    <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
-                      <LazyStackedBarChart
-                        data={dealerLocationChart.rows}
-                        xKey="name"
-                        bars={dealerLocationChart.bars.map((b) => ({
-                          ...b,
-                          label:
-                            b.label === '__OTHER_MANDALS__'
-                              ? t('Other Mandals', 'ఇతర మండలాలు')
-                              : b.label === '__NOT_SET__'
-                                ? t('Not Set', 'సెట్ కాలేదు')
-                                : b.label,
-                        }))}
-                      />
-                    </Suspense>
+                    <ErrorBoundary FallbackComponent={ChartErrorFallback}>
+                      <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
+                        <LazyStackedBarChart
+                          data={dealerLocationChart.rows}
+                          xKey="name"
+                          bars={dealerLocationChart.bars.map((b) => ({
+                            ...b,
+                            label:
+                              b.label === '__OTHER_MANDALS__'
+                                ? t('Other Mandals', 'ఇతర మండలాలు')
+                                : b.label === '__NOT_SET__'
+                                  ? t('Not Set', 'సెట్ కాలేదు')
+                                  : b.label,
+                          }))}
+                        />
+                      </Suspense>
+                    </ErrorBoundary>
                   </div>
                 )}
                 {dealerCategoryData.length > 0 && (
@@ -556,12 +569,14 @@ export const Dashboard = React.memo(function Dashboard() {
                     <h3 className="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">
                       {t('Dealers by Category', 'వర్గం వారీగా డీలర్లు')}
                     </h3>
-                    <Suspense fallback={<div className="h-56 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
-                      <LazyCategoryDonutChart
-                        data={dealerCategoryData}
-                        centerLabel={t('dealers', 'డీలర్లు')}
-                      />
-                    </Suspense>
+                    <ErrorBoundary FallbackComponent={ChartErrorFallback}>
+                      <Suspense fallback={<div className="h-56 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
+                        <LazyCategoryDonutChart
+                          data={dealerCategoryData}
+                          centerLabel={t('dealers', 'డీలర్లు')}
+                        />
+                      </Suspense>
+                    </ErrorBoundary>
                   </div>
                 )}
               </div>
