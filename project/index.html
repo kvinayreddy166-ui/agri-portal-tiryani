@@ -42,6 +42,18 @@
     <link rel="preload" as="image" href="/images/agronix-logo-original.webp" type="image/webp" fetchpriority="high" />
     <meta name="theme-color" content="#065f46" />
     <meta name="color-scheme" content="light dark" />
+    <script>
+      // Apply dark mode class before React loads to prevent flash of unstyled content
+      (function() {
+        try {
+          var theme = localStorage.getItem('tiryani-portal-theme');
+          var isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="googlebot" content="index, follow, max-image-preview:large" />
     <meta name="keywords" content="AGRONIX, Agriculture Information Management System, Tiryani, Telangana Agriculture, Crop Advisory, Fertilizer Calculator, Pesticide Database, FCO 1985, Statutory Forms, Tour Diary, Field Operations" />

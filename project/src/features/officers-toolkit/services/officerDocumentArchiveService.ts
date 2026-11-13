@@ -672,36 +672,7 @@ export class OfficerDocumentArchiveService {
     //    restoration below stays consistent for both storage backends.
     const user = await this.getCurrentUser();
     const workerUrl = this.getWorkerUrl();
-    let storedBlob: Blob | null = null;
-
-    if (user && workerUrl && doc.object_key) {
-      try {
-        const res = await fetch(`${workerUrl}/api/documents/download?key=${encodeURIComponent(doc.object_key)}&raw=true`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-        console.debug('[Download] Worker response:', res.status, doc.object_key);
-        if (res.ok) {
-          storedBlob = await res.blob();
-        }
-      } catch (err) {
-        console.warn('Cloudflare Worker download error:', err, doc.object_key);
-      }
-    }
-
-    // 3. Fallback to Supabase Storage if worker failed or unavailable
-    if (!storedBlob && doc.object_key) {
-      try {
-        const { data, error } = await supabase.storage.from('uploads').download(doc.object_key);
-        console.debug('[Download] Supabase Storage response:', error ? error.message : 'ok', doc.object_key);
-        if (!error && data) {
-          storedBlob = data;
-        }
-      } catch (err) {
-        console.warn('Supabase storage fallback download error:', err, doc.object_key);
-      }
-    }
+    const storedBlob = await this.fetchStoredBlob(doc, user, workerUrl, '/api/documents/download');
 
     if (!storedBlob) {
       const errors = [];
@@ -817,36 +788,7 @@ export class OfficerDocumentArchiveService {
     //    bytes so client-side restoration stays consistent)
     const user = await this.getCurrentUser();
     const workerUrl = this.getWorkerUrl();
-    let storedBlob: Blob | null = null;
-
-    if (user && workerUrl && doc.object_key) {
-      try {
-        const res = await fetch(`${workerUrl}/api/documents/preview?key=${encodeURIComponent(doc.object_key)}&raw=true`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-        console.debug('[Preview] Worker response:', res.status, doc.object_key);
-        if (res.ok) {
-          storedBlob = await res.blob();
-        }
-      } catch (err) {
-        console.warn('Cloudflare Worker preview error:', err, doc.object_key);
-      }
-    }
-
-    // 3. Fallback to Supabase Storage if worker failed or unavailable
-    if (!storedBlob && doc.object_key) {
-      try {
-        const { data, error } = await supabase.storage.from('uploads').download(doc.object_key);
-        console.debug('[Preview] Supabase Storage response:', error ? error.message : 'ok', doc.object_key);
-        if (!error && data) {
-          storedBlob = data;
-        }
-      } catch (err) {
-        console.warn('Supabase storage fallback preview error:', err, doc.object_key);
-      }
-    }
+    const storedBlob = await this.fetchStoredBlob(doc, user, workerUrl, '/api/documents/preview');
 
     if (!storedBlob) {
       const errors = [];
@@ -1019,6 +961,67 @@ export class OfficerDocumentArchiveService {
     return result.uploaded
       ? { success: true }
       : { success: false, message: result.error || 'Cloud upload failed. Please try again.' };
+  }
+
+  /**
+   * Ordered candidate storage keys for a document. Some legacy records have a
+   * corrupted object_key (embedded whitespace / bad characters), so we also try
+   * a whitespace-stripped variant and the canonical key rebuilt from record fields.
+   */
+  private static candidateObjectKeys(doc: OfficerDocumentArchiveRecord): string[] {
+    const keys: string[] = [];
+    const push = (key?: string | null) => {
+      const trimmed = (key || '').trim();
+      if (trimmed && !trimmed.startsWith('local/') && !keys.includes(trimmed)) keys.push(trimmed);
+    };
+
+    if (doc.object_key) {
+      push(doc.object_key);
+      push(doc.object_key.replace(/\s+/g, ''));
+    }
+
+    const dateObj = new Date(doc.document_date);
+    const year = !isNaN(dateObj.getFullYear()) ? String(dateObj.getFullYear()) : new Date().getFullYear().toString();
+    const month = !isNaN(dateObj.getMonth()) ? String(dateObj.getMonth() + 1).padStart(2, '0') : String(new Date().getMonth() + 1).padStart(2, '0');
+    const ext = normalizeFileFormat(doc.file_format, doc.document_name);
+    const ownerIds = [doc.user_id, doc.object_key?.split('/')[1]].filter(Boolean) as string[];
+    for (const uid of ownerIds) {
+      push(`officers/${uid}/${year}/${month}/${doc.id}.${ext}`);
+    }
+    return keys;
+  }
+
+  /**
+   * Fetches stored bytes trying every candidate key against the worker first,
+   * then Supabase Storage, until a blob is found.
+   */
+  private static async fetchStoredBlob(
+    doc: OfficerDocumentArchiveRecord,
+    user: { id: string; email: string; token: string } | null,
+    workerUrl: string,
+    workerPath: string
+  ): Promise<Blob | null> {
+    for (const key of this.candidateObjectKeys(doc)) {
+      if (user && workerUrl) {
+        try {
+          const res = await fetch(`${workerUrl}${workerPath}?key=${encodeURIComponent(key)}&raw=true`, {
+            headers: { Authorization: `Bearer ${user.token}` },
+          });
+          console.debug(`[Archive] Worker ${workerPath} response:`, res.status, key);
+          if (res.ok) return await res.blob();
+        } catch (err) {
+          console.warn('Cloudflare Worker fetch error:', err, key);
+        }
+      }
+      try {
+        const { data, error } = await supabase.storage.from('uploads').download(key);
+        console.debug('[Archive] Supabase Storage response:', error ? error.message : 'ok', key);
+        if (!error && data) return data;
+      } catch (err) {
+        console.warn('Supabase storage fallback fetch error:', err, key);
+      }
+    }
+    return null;
   }
 
   /**

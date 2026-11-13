@@ -465,6 +465,7 @@ export const Dashboard = React.memo(function Dashboard() {
                   <span>{t('User Management', 'వినియోగదారు నిర్వహణ')}</span>
                 </Link>
               </div>
+              <Suspense fallback={<div className="grid grid-cols-1 gap-6 lg:grid-cols-5"><div className="lg:col-span-3 h-60 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /><div className="lg:col-span-2 h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /></div>}>
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
               {districtUserCounts.length > 0 && (
                 <div className="lg:col-span-3">
@@ -513,6 +514,7 @@ export const Dashboard = React.memo(function Dashboard() {
                 </div>
               )}
               </div>
+              </Suspense>
             </div>
           )}
 
@@ -539,6 +541,7 @@ export const Dashboard = React.memo(function Dashboard() {
                   </Link>
                 </div>
               </div>
+              <Suspense fallback={<div className="grid grid-cols-1 gap-6 lg:grid-cols-5"><div className="lg:col-span-3 h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /><div className="lg:col-span-2 h-56 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /></div>}>
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
                 {dealerLocationChart && dealerLocationChart.rows.length > 0 && (
                   <div className="lg:col-span-3">
@@ -580,6 +583,7 @@ export const Dashboard = React.memo(function Dashboard() {
                   </div>
                 )}
               </div>
+              </Suspense>
             </div>
           )}
 
