@@ -59,6 +59,9 @@ self.addEventListener('message', (event) => {
   if (event.data?.type === 'PRECACHE_OFFLINE') {
     event.waitUntil(precacheOfflineAssets());
   }
+  if (event.data?.type === 'GET_SW_VERSION') {
+    event.ports?.[0]?.postMessage({ version: RESCUE_SW_VERSION });
+  }
 });
 
 self.addEventListener('fetch', (event) => {

@@ -1,6 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { Download, RefreshCw, X } from 'lucide-react';
 
+const DISMISSED_VERSION_KEY = 'update-banner-dismissed-version';
+
+function getWorkerVersion(worker: ServiceWorker): Promise<string | null> {
+  return new Promise((resolve) => {
+    const channel = new MessageChannel();
+    const timer = window.setTimeout(() => resolve(null), 1500);
+    channel.port1.onmessage = (event) => {
+      window.clearTimeout(timer);
+      resolve(event.data?.version ?? null);
+    };
+    worker.postMessage({ type: 'GET_SW_VERSION' }, [channel.port2]);
+  });
+}
+
+async function getWaitingWorkerVersion(): Promise<string | null> {
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    const worker = registration?.waiting;
+    return worker ? getWorkerVersion(worker) : null;
+  } catch {
+    return null;
+  }
+}
+
 function waitForWaitingWorker(registration: ServiceWorkerRegistration, timeoutMs = 15000) {
   return new Promise<ServiceWorker | null>((resolve) => {
     if (registration.waiting) return resolve(registration.waiting);
@@ -34,25 +58,32 @@ export function UpdateBanner() {
 
   useEffect(() => {
     const handleUpdateAvailable = () => {
-      // Check if banner was dismissed in current session
-      try {
-        if (sessionStorage.getItem('update-banner-dismissed')) {
-          return;
-        }
-      } catch {}
+      void (async () => {
+        try {
+          // Suppress the banner if this exact SW version was already dismissed
+          const version = await getWaitingWorkerVersion();
+          if (version) {
+            if (localStorage.getItem(DISMISSED_VERSION_KEY) === version) return;
+          } else {
+            // Version unknown — fall back to per-session dismissal
+            if (sessionStorage.getItem('update-banner-dismissed')) return;
+          }
+        } catch {}
 
-      setShowBanner(true);
-      // Trigger slide-in animation immediately
-      requestAnimationFrame(() => setIsVisible(true));
+        setShowBanner(true);
+        // Trigger slide-in animation immediately
+        requestAnimationFrame(() => setIsVisible(true));
+      })();
     };
 
     const handleControllerChange = () => {
       // Service worker controller changed, update is being applied
       setShowBanner(false);
       setIsVisible(false);
-      // Clear the dismissed flag after successful update
+      // Clear the dismissed flags after successful update
       try {
         sessionStorage.removeItem('update-banner-dismissed');
+        localStorage.removeItem(DISMISSED_VERSION_KEY);
       } catch {}
     };
 
@@ -132,10 +163,17 @@ export function UpdateBanner() {
   const handleLater = () => {
     setIsVisible(false);
     setTimeout(() => setShowBanner(false), 300); // Wait for slide-out animation
-    // Store in sessionStorage to not show again in current session
-    try {
-      sessionStorage.setItem('update-banner-dismissed', 'true');
-    } catch {}
+    // Dismiss this specific update version so the banner does not nag again
+    // until a newer service worker version is released.
+    void (async () => {
+      const version = await getWaitingWorkerVersion();
+      try {
+        if (version) {
+          localStorage.setItem(DISMISSED_VERSION_KEY, version);
+        }
+        sessionStorage.setItem('update-banner-dismissed', 'true');
+      } catch {}
+    })();
   };
 
   if (!showBanner) return null;
