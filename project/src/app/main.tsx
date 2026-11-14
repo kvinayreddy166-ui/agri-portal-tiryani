@@ -31,11 +31,19 @@ const recordInitialSiteHit = () => {
   void recordSiteHit();
 };
 
-const requestIdle = window.requestIdleCallback;
-if (requestIdle) {
-  requestIdle(recordInitialSiteHit, { timeout: 2500 });
+const scheduleHit = () => {
+  const requestIdle = window.requestIdleCallback;
+  if (requestIdle) {
+    requestIdle(recordInitialSiteHit, { timeout: 6000 });
+  } else {
+    setTimeout(recordInitialSiteHit, 4000);
+  }
+};
+
+if (document.readyState === 'complete') {
+  scheduleHit();
 } else {
-  setTimeout(recordInitialSiteHit, 1500);
+  window.addEventListener('load', scheduleHit, { once: true });
 }
 
 const rootEl = document.getElementById('root');

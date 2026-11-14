@@ -916,8 +916,17 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   fieldList(cursor, mainFields.slice(9, 10), 82, 0, compactValueWideOptions);
   fieldList(cursor, mainFields.slice(10, 11), 82, 0, compactFieldOptions);
 
-  // Render fields 15-18: default spacing
-  fieldList(cursor, mainFields.slice(11, 15), 82);
+  // Render field 15: default spacing
+  fieldList(cursor, mainFields.slice(11, 12), 82);
+
+  // Field 16: gap below matches field 17's gap so spacing around point 17 is even
+  fieldList(cursor, mainFields.slice(12, 13), 82, 0, { gap: 1.6 });
+
+  // Field 17 (Q.C.I. Seal Particulars): slightly larger spacing to accommodate the metallic seal entry
+  fieldList(cursor, mainFields.slice(13, 14), 82, 0, { lineHeight: 6.5, gap: 1.6, valueLineHeightFactor: 1.3 });
+
+  // Field 18: default spacing
+  fieldList(cursor, mainFields.slice(14, 15), 82);
 
   // Field 19 (P.T.L. address): 1.2 line spacing between wrapped lines
   fieldList(cursor, mainFields.slice(15, 16), 82, 0, { valueLineHeightFactor: 1.2 });

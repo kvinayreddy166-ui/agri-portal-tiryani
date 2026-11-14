@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Ban, Bell, BellOff, CalendarClock, FlaskConical, Loader2, PackageX, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Ban, Bell, BellOff, CalendarClock, Check, FlaskConical, Loader2, PackageX, Send, ShieldCheck, X } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { safeStorage } from '../../../shared/lib/safeStorage';
@@ -8,6 +8,7 @@ import {
   EnforcementTrackerService,
   type EnforcementData,
 } from '../../officers-toolkit/services/enforcementTrackerService';
+import { sendTelegramMessage } from '../services/telegramService';
 
 const NOTIFIED_KEY = 'agri-deadline-notified-date';
 const MUTED_KEY = 'agri-deadline-alerts-muted';
@@ -59,10 +60,11 @@ function safeSet(key: string, value: string): void {
  */
 export function OfficerEnforcementStrip() {
   const { t } = useLanguage();
-  const { isOfficerUser, user } = useAuth();
+  const { isOfficerUser, user, officerProfile } = useAuth();
   const [data, setData] = useState<EnforcementData | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [tgStatus, setTgStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [alertsMuted, setAlertsMuted] = useState<boolean>(() => readMuted());
   const [permission, setPermission] = useState<NotificationPermission | 'unsupported'>(() =>
     typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
@@ -143,6 +145,32 @@ export function OfficerEnforcementStrip() {
     });
   };
 
+  const sendSummaryToTelegram = async () => {
+    if (!stats || tgStatus === 'sending') return;
+    setTgStatus('sending');
+    const officerLabel = officerProfile
+      ? `${officerProfile.full_name} (${officerProfile.designation}${officerProfile.mandal ? `, ${officerProfile.mandal}` : ''})`
+      : (user?.email ?? 'Officer');
+    const text = [
+      'AGRONIX — Enforcement Summary',
+      `Date: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`,
+      `Officer: ${officerLabel}`,
+      `Deadlines due: ${stats.urgentDeadlines}${stats.urgentCount > 0 ? ` (${stats.urgentCount} urgent)` : ''}`,
+      `Active samples: ${stats.activeSamples}`,
+      `High-risk dealers: ${stats.highRiskDealers}`,
+      `Stop-sale orders: ${stats.stopSaleOrders}`,
+      `Seizure orders: ${stats.seizureOrders}`,
+    ].join('\n');
+    try {
+      await sendTelegramMessage(text);
+      setTgStatus('sent');
+      window.setTimeout(() => setTgStatus('idle'), 4000);
+    } catch {
+      setTgStatus('error');
+      window.setTimeout(() => setTgStatus('idle'), 5000);
+    }
+  };
+
   return (
     <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm dark:border-emerald-900/60 dark:from-emerald-950/40 dark:to-slate-900">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -187,6 +215,44 @@ export function OfficerEnforcementStrip() {
             <BellOff className="h-3 w-3" />
             {t('Notifications unsupported', 'హెచ్చరికలు అందుబాటులో లేవు')}
           </span>
+        )}
+        {stats && (
+          <button
+            type="button"
+            onClick={() => void sendSummaryToTelegram()}
+            disabled={tgStatus === 'sending'}
+            title={
+              tgStatus === 'sent'
+                ? t('Summary sent to Telegram', 'సారాంశం టెలిగ్రామ్‌కు పంపబడింది')
+                : tgStatus === 'error'
+                  ? t('Telegram not configured or delivery failed', 'టెలిగ్రామ్ కాన్ఫిగర్ చేయలేదు లేదా పంపడం విఫలమైంది')
+                  : t('Send enforcement summary to Telegram', 'అమలు సారాంశాన్ని టెలిగ్రామ్‌కు పంపండి')
+            }
+            className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-bold transition disabled:opacity-60 ${
+              tgStatus === 'sent'
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                : tgStatus === 'error'
+                  ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300'
+                  : 'border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300 dark:hover:bg-sky-950'
+            }`}
+          >
+            {tgStatus === 'sending' ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : tgStatus === 'sent' ? (
+              <Check className="h-3 w-3" />
+            ) : tgStatus === 'error' ? (
+              <X className="h-3 w-3" />
+            ) : (
+              <Send className="h-3 w-3" />
+            )}
+            {tgStatus === 'sending'
+              ? t('Sending…', 'పంపుతోంది…')
+              : tgStatus === 'sent'
+                ? t('Sent', 'పంపబడింది')
+                : tgStatus === 'error'
+                  ? t('Failed', 'విఫలమైంది')
+                  : t('Telegram', 'టెలిగ్రామ్')}
+          </button>
         )}
       </div>
 

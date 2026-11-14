@@ -22,7 +22,7 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 import { upsertCoveringLetterSample } from '../services/coveringLetterQueue';
-import { missingRequiredFields, requiredFieldsErrorMessage } from '../lib/statutoryRequiredFields';
+import { missingRequiredFields, requiredFieldsErrorMessage, revealField } from '../lib/statutoryRequiredFields';
 import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
 import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
 import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
@@ -476,11 +476,14 @@ export function SeedForms({
     });
   };
 
-  const buildValidatedPdf = async (kind: any) => {
-    const error = validateSeedForm(form, kind);
-    if (error) {
-      setMessage(error);
-      return null;
+  const buildValidatedPdf = async (kind: any, { skipValidation = false }: { skipValidation?: boolean } = {}) => {
+    if (!skipValidation) {
+      const error = validateSeedForm(form, kind);
+      if (error) {
+        setMessage(error);
+        revealSeedFormField(error);
+        return null;
+      }
     }
 
     try {
@@ -533,6 +536,7 @@ export function SeedForms({
     if (validationError) {
       setShowDownloadAllDialog(false);
       setMessage(validationError);
+      revealSeedFormField(validationError);
       return;
     }
 
@@ -579,7 +583,7 @@ export function SeedForms({
 
   const completePreview = async (kind: any) => {
     const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
-    const doc = await buildValidatedPdf(kind);
+    const doc = await buildValidatedPdf(kind, { skipValidation: true });
     if (!doc) {
       mobileTab?.close();
       return;
@@ -725,24 +729,24 @@ export function SeedForms({
           {form.qualification === 'Others' && <Input label="Enter qualification" value={form.manualQualification} onChange={(value: any) => setField('manualQualification', value)} />}
           <Select label="Designation" value={form.designation} onChange={(value: any) => setField('designation', value)} options={SEED_SAMPLE_DRAWAL_DESIGNATION_OPTIONS} />
           {isAssistantDirectorOfAgricultureT(form.designation) && (
-            <Input label="OFFICE" value={form.office} onChange={(value: any) => setField('office', value)} placeholder="Enter Office" />
+            <div data-field-key="office" className="contents"><Input label="OFFICE" value={form.office} onChange={(value: any) => setField('office', value)} placeholder="Enter Office" /></div>
           )}
           <Select label="District" value={form.district} onChange={(value: any) => setField('district', value)} options={withOthersOption(TELANGANA_DISTRICTS.map(toOption))} />
-          {form.district === 'Others' && <Input label="Enter district name" value={form.manualDistrict} onChange={(value: any) => setField('manualDistrict', value)} />}
+          {form.district === 'Others' && <div data-field-key="manualDistrict" className="contents"><Input label="Enter district name" value={form.manualDistrict} onChange={(value: any) => setField('manualDistrict', value)} /></div>}
           {isAssistantDirectorOfAgriculture(form.designation) ? (
             <>
               {!isAssistantDirectorOfAgricultureT(form.designation) && (
-                <DivisionPicker label="DIVISION" district={effectiveLocationValue(form.district, form.manualDistrict)} value={form.manualDivision} onChange={(value: any) => setField('manualDivision', value)} inputPlaceholder="Enter Division Name" />
+                <div data-field-key="manualDivision" className="contents"><DivisionPicker label="DIVISION" district={effectiveLocationValue(form.district, form.manualDistrict)} value={form.manualDivision} onChange={(value: any) => setField('manualDivision', value)} inputPlaceholder="Enter Division Name" /></div>
               )}
-              <Select label="PLACE OF COLLECTION (MANDAL)" value={form.placeOfCollectionMandal} onChange={(value: any) => setField('placeOfCollectionMandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(placeOfCollectionMandals.map(toOption)) : [{ label: 'Others', value: 'Others' }]} />
-              {form.placeOfCollectionMandal === 'Others' && <Input label="ENTER PLACE OF COLLECTION / MANDAL NAME" value={form.manualPlaceOfCollection} onChange={(value: any) => setField('manualPlaceOfCollection', value)} />}
+              <div data-field-key="placeOfCollectionMandal" className="contents"><Select label="PLACE OF COLLECTION (MANDAL)" value={form.placeOfCollectionMandal} onChange={(value: any) => setField('placeOfCollectionMandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(placeOfCollectionMandals.map(toOption)) : [{ label: 'Others', value: 'Others' }]} /></div>
+              {form.placeOfCollectionMandal === 'Others' && <div data-field-key="manualPlaceOfCollection" className="contents"><Input label="ENTER PLACE OF COLLECTION / MANDAL NAME" value={form.manualPlaceOfCollection} onChange={(value: any) => setField('manualPlaceOfCollection', value)} /></div>}
             </>
           ) : (
             <>
-              <Select label="Mandal" value={form.mandal} onChange={(value: any) => setField('mandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(getMandalsForDistrict(form.district).map(toOption)) : [{ label: 'Others', value: 'Others' }]} />
-              {form.mandal === 'Others' && <Input label="Enter mandal name" value={form.manualMandal} onChange={(value: any) => setField('manualMandal', value)} />}
               <Select label="DIVISION" value={form.division} onChange={(value: any) => setField('division', value)} options={divisionOptions} />
               {form.division === 'Others' && <Input label="Enter division name" value={form.customDivision} onChange={(value: any) => setField('customDivision', value)} />}
+              <Select label="Mandal" value={form.mandal} onChange={(value: any) => setField('mandal', value)} options={form.district && form.district !== 'Others' ? withOthersOption(getMandalsForDistrict(form.district).map(toOption)) : [{ label: 'Others', value: 'Others' }]} />
+              {form.mandal === 'Others' && <div data-field-key="manualMandal" className="contents"><Input label="Enter mandal name" value={form.manualMandal} onChange={(value: any) => setField('manualMandal', value)} /></div>}
             </>
           )}
           <Input label="PIN CODE" value={form.pinCode} onChange={(value: any) => setField('pinCode', value)} />
@@ -768,12 +772,12 @@ export function SeedForms({
           />
           <div className="grid gap-2 sm:grid-cols-2">
             <Input label="Serial No. of sample" value={form.serialNo} onChange={(value: any) => setField('serialNo', value)} />
-            <Input label="Code No. of sample" value={form.codeNo} onChange={(value: any) => setField('codeNo', value)} />
+            <div data-field-key="codeNo" className="contents"><Input label="Code No. of sample" value={form.codeNo} onChange={(value: any) => setField('codeNo', value)} /></div>
           </div>
           <SelectWithOther label="Nature of article submitted" valueKey="nature" otherKey="natureOther" form={form} setField={setField} options={natureOptions} />
           <div className="grid gap-2 sm:grid-cols-2">
-            <SelectWithOther label="Crop" valueKey="crop" otherKey="cropOther" form={form} setField={setField} options={cropOptions} />
-            <Input label="Variety" value={form.variety} onChange={(value: any) => setField('variety', value)} />
+            <div data-field-key="crop" className="contents"><SelectWithOther label="Crop" valueKey="crop" otherKey="cropOther" form={form} setField={setField} options={cropOptions} /></div>
+            <div data-field-key="variety" className="contents"><Input label="Variety" value={form.variety} onChange={(value: any) => setField('variety', value)} /></div>
             <Input label="Lot No. of sample" value={form.lotNo} onChange={(value: any) => setField('lotNo', value)} />
             <Input label="Quantity of sample drawn" value={form.quantityDrawn} onChange={(value: any) => setField('quantityDrawn', value)} />
             <Input label="Quantity of sample in lot" value={form.quantityInLot} onChange={(value: any) => setField('quantityInLot', value)} />
@@ -790,7 +794,7 @@ export function SeedForms({
         <div ref={dealerDetailsRef}>
         <Card title="DEALER DETAILS" color="maroon" onReset={resetDealerDetails}>
           <DealerPartySelect dealers={directoryDealers} onPick={applyDealerPick} label="Select dealer / party" />
-          <Input label="Dealer / Party name" value={form.dealerName} onChange={(value: any) => setField('dealerName', value)} />
+          <div data-field-key="dealerName" className="contents"><Input label="Dealer / Party name" value={form.dealerName} onChange={(value: any) => setField('dealerName', value)} /></div>
           <label>
             <span className="mb-0.5 block text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">Dealer / Party address</span>
             <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
@@ -1171,6 +1175,20 @@ function validateSeedForm(form: any, _kind: any) {
   if (missing.length) return requiredFieldsErrorMessage(missing);
 
   return '';
+}
+
+function revealSeedFormField(error: string) {
+  const key = error.includes('DISTRICT NAME') ? 'manualDistrict'
+    : error.includes('OFFICE') ? 'office'
+    : error.includes('DIVISION NAME') ? 'manualDivision'
+    : error.includes('PLACE OF COLLECTION') ? 'manualPlaceOfCollection'
+    : error.includes('MANDAL NAME') ? 'manualMandal'
+    : error.includes('CODE NO. OF SAMPLE') ? 'codeNo'
+    : error.includes('CROP') ? 'crop'
+    : error.includes('VARIETY') ? 'variety'
+    : error.includes('DEALER / PARTY NAME') ? 'dealerName'
+    : null;
+  if (key) revealField(key);
 }
 
 async function buildSeedPdf(kind: any, form: any) {

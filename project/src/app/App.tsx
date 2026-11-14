@@ -32,6 +32,7 @@ import { Layout, Login, LandingPage } from './router/lazyPages';
 
 import { safeStorage } from '../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../features/officers-toolkit/services/officerCloudSyncService';
+import { OfficerDocumentArchiveService } from '../features/officers-toolkit/services/officerDocumentArchiveService';
 function AppContent() {
   const { user, loading, authChecked, appReady, isAdminUser, isElevatedOfficerUser, isTestUser, isDealerUser, isOfficerUser } = useAuth();
   const { isDark } = useTheme();
@@ -52,8 +53,9 @@ function AppContent() {
 
 
 
-  // Flush officer records created offline once connectivity returns
+  // Flush officer records & archived documents created offline once connectivity returns
   useEffect(() => {
+    OfficerDocumentArchiveService.initBackgroundSync();
     if (user) OfficerCloudSyncService.initOfflineSyncRetry();
   }, [user]);
 

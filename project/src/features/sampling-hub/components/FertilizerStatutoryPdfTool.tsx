@@ -36,7 +36,7 @@ import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLette
 const showCoveringLetter = true;
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { upsertCoveringLetterSample } from '../services/coveringLetterQueue';
-import { missingRequiredFields, requiredFieldsErrorMessage } from '../lib/statutoryRequiredFields';
+import { missingRequiredFieldRefs, requiredFieldsErrorMessage, revealFirstMissingField } from '../lib/statutoryRequiredFields';
 import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
 import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
 import { useSampleTargets } from '../../../shared/hooks/useSampleTargets';
@@ -775,11 +775,20 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     };
   }, [values]);
 
-  const getMissingRequiredFields = () => missingRequiredFields([
-    ['CODE NO. OF SAMPLE', documentValues.sampleCode || documentValues.codeNumber],
-    ['NAME AND GRADE OF FERTILIZER', (resolveFertilizerTypeGrade(documentValues) || documentValues.nameGrade || '').trim()],
-    ['DEALER / PARTY NAME', documentValues.dealerName],
-  ]);
+  const getMissingRequiredFieldRefs = () => {
+    const nameGradeFocusKey = documentValues.fertilizerCategory === 'Micro Nutrient Fertilizers'
+      ? (documentValues.microNutrientTypeGrade === 'Other' ? 'manualMicroNutrientTypeGrade' : 'microNutrientTypeGrade')
+      : documentValues.fertilizerCategory === 'Water Soluble Fertilizers'
+        ? (documentValues.waterSolubleTypeGrade === 'Other' ? 'manualWaterSolubleTypeGrade' : 'waterSolubleTypeGrade')
+        : (documentValues.fertilizerTypeGrade === 'Other' ? 'manualFertilizerTypeGrade' : 'fertilizerTypeGrade');
+    return missingRequiredFieldRefs([
+      { label: 'CODE NO. OF SAMPLE', value: documentValues.sampleCode || documentValues.codeNumber, focusKey: 'sampleCode' },
+      { label: 'NAME AND GRADE OF FERTILIZER', value: (resolveFertilizerTypeGrade(documentValues) || documentValues.nameGrade || '').trim(), focusKey: nameGradeFocusKey },
+      { label: 'DEALER / PARTY NAME', value: documentValues.dealerName, focusKey: 'dealerName' },
+    ]);
+  };
+
+  const getMissingRequiredFields = () => getMissingRequiredFieldRefs().map((ref) => ref.label);
 
   // Error boundary for rendering
   if (error) {
@@ -1216,12 +1225,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       return;
     }
 
-    const missingFields = getMissingRequiredFields();
-    if (missingFields.length) {
-      setMessage(requiredFieldsErrorMessage(missingFields));
-      return;
-    }
-
     setBusyAction('preview');
     setPreviewError(null);
     const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
@@ -1266,12 +1269,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     });
     if (locationError) {
       setMessage(locationError);
-      return;
-    }
-
-    const missingFields = getMissingRequiredFields();
-    if (missingFields.length) {
-      setMessage(requiredFieldsErrorMessage(missingFields));
       return;
     }
 
@@ -1324,6 +1321,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     const missingFields = getMissingRequiredFields();
     if (missingFields.length) {
       setMessage(requiredFieldsErrorMessage(missingFields));
+      revealFirstMissingField(getMissingRequiredFieldRefs());
       return;
     }
 
@@ -1379,6 +1377,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     const missingFields = getMissingRequiredFields();
     if (missingFields.length) {
       setMessage(requiredFieldsErrorMessage(missingFields));
+      revealFirstMissingField(getMissingRequiredFieldRefs());
       return;
     }
 
@@ -1416,6 +1415,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     if (missingFields.length) {
       setShowDownloadAllDialog(false);
       setMessage(requiredFieldsErrorMessage(missingFields));
+      revealFirstMissingField(getMissingRequiredFieldRefs());
       return;
     }
 
@@ -2482,7 +2482,7 @@ function PdfInput({
     };
 
     return (
-      <label className="sm:col-span-2">
+      <label data-field-key={field.key} className="sm:col-span-2">
         <span className="mb-2 block text-[11px] font-black tracking-wide text-emerald-700 dark:text-emerald-300">{field.label}</span>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {compositionDisplayOptions.map((option) => (
@@ -2515,7 +2515,7 @@ function PdfInput({
     };
 
     return (
-      <label className="sm:col-span-2">
+      <label data-field-key={field.key} className="sm:col-span-2">
         <span className="mb-2 block text-[11px] font-black tracking-wide text-emerald-700 dark:text-emerald-300">{field.label}</span>
         <div className="flex gap-2 overflow-x-auto whitespace-nowrap pb-2">
           {microNutrientCheckboxOptions.map((option) => (
@@ -2548,7 +2548,7 @@ function PdfInput({
     };
 
     return (
-      <label className="sm:col-span-2">
+      <label data-field-key={field.key} className="sm:col-span-2">
         <span className="mb-2 block text-[11px] font-black tracking-wide text-emerald-700 dark:text-emerald-300">{field.label}</span>
         <div className="flex gap-2 overflow-x-auto whitespace-nowrap pb-2">
           {waterSolubleCheckboxOptions.map((option) => (
@@ -2593,7 +2593,7 @@ function PdfInput({
 
   if (field.key === 'manualDivision') {
     return (
-      <div>
+      <div data-field-key={field.key}>
         <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300">
           <span>{displayLabel}</span>
         </div>
@@ -2651,7 +2651,7 @@ function PdfInput({
   );
 
   return (
-    <div className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
+    <div data-field-key={field.key} className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
       <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300">
         <span>{displayLabel}</span>
         {field.type === 'date' && value ? (

@@ -64,7 +64,7 @@ export default defineConfig({
           if (id.includes('pdfjs-dist') || id.includes('pdf-lib')) {
             return 'vendor-pdfview';
           }
-          if (id.includes('jspdf')) {
+          if (id.includes('jspdf') || id.includes('fontkit') || id.includes('canvg') || id.includes('harfbuzzjs')) {
             return 'vendor-pdfgen';
           }
           // Group Excel libraries separately

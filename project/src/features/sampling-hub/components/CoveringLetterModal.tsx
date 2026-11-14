@@ -11,6 +11,7 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerCloudSyncService } from '../../officers-toolkit/services/officerCloudSyncService';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { buildSampleProductBadges } from '../services/coveringLetterQueue';
+import { validateCoveringLetterQueue, coveringLetterMetadataRefs, missingRequiredFieldRefs, revealField, revealFirstMissingField, type CoveringLetterFieldSpec } from '../lib/statutoryRequiredFields';
 const COVERING_LETTER_QUEUE_KEY = 'tiryani-covering-letter-queue';
 const COVERING_LETTER_DETAILS_KEY = 'tiryani-covering-letter-details';
 
@@ -68,6 +69,13 @@ type CoveringLetterDetails = {
   division: string;
   officerPhone: string;
 };
+
+const QUEUE_FIELD_SPECS: CoveringLetterFieldSpec[] = [
+  { key: 'fertilizerName', label: 'Fertilizer Name' },
+  { key: 'sampleCode', label: 'Sample Code' },
+  { key: 'quantity', label: 'Quantity' },
+  { key: 'dateOfSampling', label: 'Sampling Date' },
+];
 
 type CoveringLetterModalProps = {
   isOpen: boolean;
@@ -199,22 +207,21 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
   };
 
   const validateSampleCodes = () => {
-    const errors: Record<number, string> = {};
-    const sampleCodes: string[] = [];
-    
-    editedQueue.forEach((item, index) => {
-      if (!item.sampleCode || item.sampleCode.trim() === '') {
-        errors[index] = 'Sample Code is required';
-      } else {
-        if (sampleCodes.includes(item.sampleCode.trim())) {
-          errors[index] = 'Duplicate Sample Code';
-        }
-        sampleCodes.push(item.sampleCode.trim());
-      }
-    });
-    
+    const errors = validateCoveringLetterQueue(editedQueue, QUEUE_FIELD_SPECS);
     setValidationErrors(errors);
+    const firstErrorIndex = Object.keys(errors).map(Number).sort((a, b) => a - b)[0];
+    if (firstErrorIndex !== undefined) revealField(`queue-row-${firstErrorIndex}`);
     return Object.keys(errors).length === 0;
+  };
+
+  const validateMetadata = () => {
+    const missing = missingRequiredFieldRefs(coveringLetterMetadataRefs(metadata));
+    if (missing.length) {
+      setMessage(`Please fill the required letter details before previewing or downloading: ${missing.map((ref) => ref.label).join(', ')}.`);
+      revealFirstMissingField(missing);
+      return false;
+    }
+    return true;
   };
 
   const handleSampleCodeChange = (index: number, value: string) => {
@@ -310,11 +317,6 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
       return;
     }
 
-    if (!validateSampleCodes()) {
-      setMessage('Please fix validation errors before previewing.');
-      return;
-    }
-
     // Prevent multiple preview instances
     if (isPreviewing) {
       return;
@@ -367,6 +369,10 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
     if (!validateSampleCodes()) {
       setMessage('Please fix validation errors before downloading.');
+      return;
+    }
+
+    if (!validateMetadata()) {
       return;
     }
 
@@ -457,20 +463,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
 
   // Check if validation passes without setting state
   const checkValidation = () => {
-    const errors: Record<number, string> = {};
-    const sampleCodes: string[] = [];
-    
-    editedQueue.forEach((item, index) => {
-      if (!item.sampleCode || item.sampleCode.trim() === '') {
-        errors[index] = 'Sample Code is required';
-      } else {
-        if (sampleCodes.includes(item.sampleCode.trim())) {
-          errors[index] = 'Duplicate Sample Code';
-        }
-        sampleCodes.push(item.sampleCode.trim());
-      }
-    });
-    
+    const errors = validateCoveringLetterQueue(editedQueue, QUEUE_FIELD_SPECS);
     return Object.keys(errors).length === 0;
   };
 
@@ -559,6 +552,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">LETTER NUMBER</label>
                   <input
                     type="text"
+                    data-field-key="letterNumber"
                     value={metadata.letterNumber}
                     onChange={(e) => setMetadata({ ...metadata, letterNumber: e.target.value })}
                     placeholder="Enter Letter Number"
@@ -579,6 +573,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   </div>
                   <input
                     type="date"
+                    data-field-key="letterDate"
                     value={metadata.letterDate}
                     onChange={(e) => setMetadata({ ...metadata, letterDate: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
@@ -590,6 +585,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   </label>
                   <input
                     type="text"
+                    data-field-key="daoMemoNumber"
                     value={metadata.daoMemoNumber}
                     onChange={(e) => setMetadata({ ...metadata, daoMemoNumber: e.target.value })}
                     placeholder="Enter Memo Number"
@@ -605,6 +601,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                   </div>
                   <input
                     type="date"
+                    data-field-key="daoMemoDate"
                     value={metadata.daoMemoDate}
                     onChange={(e) => setMetadata({ ...metadata, daoMemoDate: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
@@ -693,7 +690,7 @@ export function CoveringLetterModal({ isOpen, onClose, officerDetails, coveringL
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200 dark:bg-slate-800/60 dark:divide-slate-700">
                       {editedQueue.map((item, index) => (
-                        <tr key={index}>
+                        <tr key={index} data-field-key={`queue-row-${index}`}>
                           <td className="px-2 py-2 whitespace-nowrap text-xs font-medium text-gray-900 dark:text-slate-100">{index + 1}</td>
                           <td className="px-2 py-2 whitespace-nowrap text-xs">
                             <input

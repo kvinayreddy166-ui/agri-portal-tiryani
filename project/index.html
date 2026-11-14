@@ -37,6 +37,7 @@
     <link rel="preconnect" href="https://szxtfeiswxugxukztnst.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="//szxtfeiswxugxukztnst.supabase.co" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/atkinson-hyperlegible-next-latin-400-normal.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/inter-latin-wght-normal.woff2" crossorigin />
     <link rel="preload" as="font" type="font/woff2" href="/fonts/atkinson-hyperlegible-next-latin-800-normal.woff2" crossorigin />
     <link rel="preload" as="image" href="/images/agronix-logo-original.webp" type="image/webp" fetchpriority="high" />
@@ -46,6 +47,8 @@
       // Apply dark mode class before React loads to prevent flash of unstyled content
       (function() {
         try {
+          var p = window.location.pathname.replace(/\/+$/, '') || '/';
+          if (p === '/' || p === '/home' || p === '/landing' || p === '/login' || p === '/register' || p === '/officer-register' || p === '/forgot-password' || p === '/disclaimer' || p === '/privacy-policy' || p === '/terms-conditions') return;
           var theme = localStorage.getItem('tiryani-portal-theme');
           var isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
           if (isDark) {

@@ -134,6 +134,30 @@ export class OfficerDocumentArchiveService {
     }
   }
 
+  private static syncInitialized = false;
+
+  /**
+   * Initializes background sync for pending document uploads:
+   * 1. Runs automatic sync 3 seconds after boot when user/network is settled
+   * 2. Listens to window 'online' event to retry queued documents automatically
+   */
+  static initBackgroundSync(): void {
+    if (this.syncInitialized || typeof window === 'undefined') return;
+    this.syncInitialized = true;
+
+    setTimeout(() => {
+      this.retryFailedUploads().catch((err) => {
+        console.warn('Background auto-sync failed on startup:', err);
+      });
+    }, 3000);
+
+    window.addEventListener('online', () => {
+      this.retryFailedUploads().catch((err) => {
+        console.warn('Background auto-sync failed on reconnect:', err);
+      });
+    });
+  }
+
   /**
    * Archives a generated document with intelligent reversible compression,
    * exact SHA-256 deduplication, version tracking, and offline queue fallback.
@@ -279,21 +303,11 @@ export class OfficerDocumentArchiveService {
       }
     }
 
-    // 4. Cloud upload is intentionally NOT performed here.
-    // Generated documents are stored locally (IndexedDB queue + safeStorage +
-    // Supabase metadata row) and uploaded to R2/cloud only when the officer
-    // explicitly taps "Upload to Cloud" in Records (uploadDocumentToCloud) or
-    // "Retry Uploads" (retryFailedUploads).
-    const uploadedToCloud = false;
-    const uploadError: string | undefined = 'Stored locally — upload manually from Records';
-
-    // 5. Build Canonical Document Record (Authentication-Based Rule: R2 cloud upload only for logged-in users)
-    let uploadStatus: UploadStatus;
-    if (user) {
-      uploadStatus = uploadedToCloud ? 'saved_to_cloud' : 'pending_retry';
-    } else {
-      uploadStatus = 'local_only';
-    }
+    // 4. Initial status: local-first persistence guarantees zero data loss.
+    // For authenticated users, default to pending_retry, then immediately attempt cloud upload.
+    let uploadedToCloud = false;
+    let uploadError: string | undefined = user ? undefined : 'Local only (not signed in)';
+    let uploadStatus: UploadStatus = user ? 'pending_retry' : 'local_only';
 
     const canonicalRecord: OfficerDocumentArchiveRecord = {
       id: documentId,
@@ -340,48 +354,72 @@ export class OfficerDocumentArchiveService {
     }
 
     // Layer 2: Persistent IndexedDB Queue (holds actual binary blob for offline download/preview)
+    const queuedDoc: QueuedDocument = {
+      id: documentId,
+      userId,
+      documentName: input.filename,
+      originalFilename: input.filename,
+      documentCategory: input.documentCategory,
+      documentNumber: input.documentNumber,
+      documentDate,
+      sourceModule: input.sourceModule,
+      fileFormat: fileFormat,
+      mimeType,
+      originalSize,
+      storedSize,
+      originalSizeBytes: originalSize,
+      storedSizeBytes: storedSize,
+      compressionMethod,
+      compressionStatus,
+      contentHash,
+      originalSha256,
+      storedSha256,
+      restorationVerified: true,
+      objectKey,
+      uploadStatus,
+      versionNumber,
+      parentDocumentId: parentDocId,
+      metadata: input.metadata || {},
+      fileBlob: new Blob([bytesToStore as unknown as BlobPart], {
+        type: compressionMethod === 'gzip' ? 'application/gzip' : mimeType,
+      }),
+      retryCount: 0,
+      lastError: uploadError,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
     try {
-      const queuedDoc: QueuedDocument = {
-        id: documentId,
-        userId,
-        documentName: input.filename,
-        originalFilename: input.filename,
-        documentCategory: input.documentCategory,
-        documentNumber: input.documentNumber,
-        documentDate,
-        sourceModule: input.sourceModule,
-        fileFormat: fileFormat,
-        mimeType,
-        originalSize,
-        storedSize,
-        originalSizeBytes: originalSize,
-        storedSizeBytes: storedSize,
-        compressionMethod,
-        compressionStatus,
-        contentHash,
-        originalSha256,
-        storedSha256,
-        restorationVerified: true,
-        objectKey,
-        uploadStatus,
-        versionNumber,
-        parentDocumentId: parentDocId,
-        metadata: input.metadata || {},
-        fileBlob: new Blob([bytesToStore as unknown as BlobPart], {
-          type: compressionMethod === 'gzip' ? 'application/gzip' : mimeType,
-        }),
-        retryCount: 0,
-        lastError: uploadError,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
       await OfficerDocumentQueue.enqueue(queuedDoc);
     } catch (err) {
       console.warn('Failed to enqueue document into IndexedDB:', err);
     }
 
-    // Layer 3: Cloud Database Metadata (Supabase) if authenticated
-    if (user) {
+    // Layer 3: Cloud Upload — Attempt immediate cloud upload if authenticated and online
+    const isOnline = typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' ? navigator.onLine : true;
+    if (user && isOnline) {
+      try {
+        const uploadRes = await this.uploadQueuedDocument(user, queuedDoc);
+        if (uploadRes.uploaded) {
+          uploadedToCloud = true;
+          uploadStatus = 'saved_to_cloud';
+          canonicalRecord.upload_status = 'saved_to_cloud';
+          uploadError = undefined;
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('agronix:officer_document_archived', { detail: canonicalRecord }));
+          }
+        } else {
+          uploadError = uploadRes.error;
+        }
+      } catch (err) {
+        uploadError = err instanceof Error ? err.message : String(err);
+        console.warn('Auto cloud upload attempt failed:', uploadError);
+      }
+    }
+
+    // Layer 4: Cloud Database Metadata (Supabase) if authenticated and not already uploaded
+    // (uploadQueuedDocument handles Supabase metadata upsert on success)
+    if (user && !uploadedToCloud) {
       try {
         const row = {
           id: documentId,
@@ -466,9 +504,7 @@ export class OfficerDocumentArchiveService {
           let query = supabase
             .from('officer_document_archive')
             .select('*');
-          if (viewerIsAdmin) {
-            query = query.eq('upload_status', 'saved_to_cloud');
-          } else {
+          if (!viewerIsAdmin) {
             query = query.eq('user_id', user.id);
           }
           const { data, error } = await query.order('created_at', { ascending: false });
@@ -675,6 +711,11 @@ export class OfficerDocumentArchiveService {
     const storedBlob = await this.fetchStoredBlob(doc, user, workerUrl, '/api/documents/download');
 
     if (!storedBlob) {
+      if (doc.upload_status === 'pending_retry') {
+        throw new Error(
+          'This document was created on another device and is still pending cloud upload from that device. Please open Agronix on that device while online to sync it to the cloud.'
+        );
+      }
       const errors = [];
       if (!workerUrl) errors.push('Cloudflare Worker not configured');
       if (workerUrl && !user) errors.push('Not authenticated');
@@ -791,6 +832,11 @@ export class OfficerDocumentArchiveService {
     const storedBlob = await this.fetchStoredBlob(doc, user, workerUrl, '/api/documents/preview');
 
     if (!storedBlob) {
+      if (doc.upload_status === 'pending_retry') {
+        throw new Error(
+          'This document was created on another device and is still pending cloud upload from that device. Please open Agronix on that device while online to sync it to the cloud.'
+        );
+      }
       const errors = [];
       if (!workerUrl) errors.push('Cloudflare Worker not configured');
       if (workerUrl && !user) errors.push('Not authenticated');
@@ -1214,6 +1260,10 @@ export class OfficerDocumentArchiveService {
       }
     }
 
+    if (succeeded > 0 && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('agronix:officer_document_synced', { detail: { succeeded, failed } }));
+    }
+
     return { total: pending.length, succeeded, failed, errors };
   }
 
@@ -1265,7 +1315,7 @@ export class OfficerDocumentArchiveService {
         formData.append('month', month);
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
         const res = await fetch(`${workerUrl}/api/documents/upload`, {
           method: 'POST',
           headers: {

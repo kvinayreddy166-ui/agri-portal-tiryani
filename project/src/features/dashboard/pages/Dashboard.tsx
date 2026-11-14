@@ -24,6 +24,7 @@ import { MandiPricesWidget } from '../components/MandiPricesWidget';
 import { WeatherWidget } from '../components/WeatherWidget';
 import { OfficerEnforcementStrip } from '../components/OfficerEnforcementStrip';
 import { OfficerTargetsCard } from '../components/OfficerTargetsCard';
+import { OfficerActivityCharts } from '../components/OfficerActivityCharts';
 import { TargetAllocationModal } from '../components/TargetAllocationModal';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { Spinner } from '../../../shared/components/ui/Spinner';
@@ -67,6 +68,24 @@ const ChartErrorFallback = () => (
   </div>
 );
 
+const CHART_STEP_DELAY_MS = 550;
+
+function useSequentialChartSteps(active: boolean, steps: number) {
+  const [readySteps, setReadySteps] = useState(0);
+  useEffect(() => {
+    if (!active) {
+      setReadySteps(0);
+      return;
+    }
+    setReadySteps(0);
+    const timers = Array.from({ length: steps }, (_, index) =>
+      setTimeout(() => setReadySteps(index + 1), CHART_STEP_DELAY_MS * (index + 1))
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [active, steps]);
+  return readySteps;
+}
+
 type FarmerDashboardRow = {
   s_no?: number;
   farmer_name_english?: string;
@@ -108,6 +127,10 @@ export const Dashboard = React.memo(function Dashboard() {
     bars: { key: string; label: string }[];
   } | null>(null);
   const [dashboardCacheBuster, setDashboardCacheBuster] = useState(0);
+  const adminChartSteps = useSequentialChartSteps(
+    isAdminUser && (designationCounts.length > 0 || dealerCategoryData.length > 0),
+    2
+  );
   const [targetsModalOpen, setTargetsModalOpen] = useState(false);
   const [loading, setLoading] = useState(isAdminUser || isElevatedOfficerUser);
   const fetchDashboardData = useCallback(async () => {
@@ -209,14 +232,24 @@ export const Dashboard = React.memo(function Dashboard() {
           .map(([district, mandals]: [string, Map<string, number>]) => {
             const row: Record<string, string | number> = { name: district };
             barKeys.forEach((k) => (row[k] = 0));
+            const otherMandalsList: { name: string; count: number }[] = [];
             mandals.forEach((count, mandal) => {
               if (count === 0) return;
               let key: string;
               if (mandal === 'Not Set') key = 'mNotSet';
               else if (topMandals.includes(mandal)) key = `m${topMandals.indexOf(mandal)}`;
-              else key = 'mOthers';
+              else {
+                key = 'mOthers';
+                otherMandalsList.push({ name: mandal, count });
+              }
               row[key] = (row[key] as number) + count;
             });
+            if (otherMandalsList.length > 0) {
+              row._otherMandalsDetail = otherMandalsList
+                .sort((a, b) => b.count - a.count)
+                .map((m) => `${m.name}: ${m.count}`)
+                .join(', ');
+            }
             return row;
           })
           .sort((a, b) => String(a.name).localeCompare(String(b.name)));
@@ -339,6 +372,10 @@ export const Dashboard = React.memo(function Dashboard() {
           />
         </div>
       )}
+
+      <div className="dashboard-rise dashboard-delay-3">
+        <OfficerActivityCharts />
+      </div>
 
       {!hasAnyDashboardData ? (
         isAdminUser ? (
@@ -504,12 +541,16 @@ export const Dashboard = React.memo(function Dashboard() {
                     </span>
                   </div>
                   <ErrorBoundary FallbackComponent={ChartErrorFallback}>
-                    <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
-                      <LazyCategoryDonutChart
-                        data={designationCounts}
-                        centerLabel={t('officers', 'అధికారులు')}
-                      />
-                    </Suspense>
+                    {adminChartSteps >= 1 ? (
+                      <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
+                        <LazyCategoryDonutChart
+                          data={designationCounts}
+                          centerLabel={t('officers', 'అధికారులు')}
+                        />
+                      </Suspense>
+                    ) : (
+                      <div className="h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />
+                    )}
                   </ErrorBoundary>
                 </div>
               )}
@@ -573,12 +614,16 @@ export const Dashboard = React.memo(function Dashboard() {
                       {t('Dealers by Category', 'వర్గం వారీగా డీలర్లు')}
                     </h3>
                     <ErrorBoundary FallbackComponent={ChartErrorFallback}>
-                      <Suspense fallback={<div className="h-56 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
-                        <LazyCategoryDonutChart
-                          data={dealerCategoryData}
-                          centerLabel={t('dealers', 'డీలర్లు')}
-                        />
-                      </Suspense>
+                      {adminChartSteps >= 2 ? (
+                        <Suspense fallback={<div className="h-56 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
+                          <LazyCategoryDonutChart
+                            data={dealerCategoryData}
+                            centerLabel={t('dealers', 'డీలర్లు')}
+                          />
+                        </Suspense>
+                      ) : (
+                        <div className="h-56 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />
+                      )}
                     </ErrorBoundary>
                   </div>
                 )}

@@ -12,6 +12,7 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerCloudSyncService } from '../../officers-toolkit/services/officerCloudSyncService';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { buildSampleProductBadges } from '../services/coveringLetterQueue';
+import { validateCoveringLetterQueue, coveringLetterMetadataRefs, missingRequiredFieldRefs, revealField, revealFirstMissingField, type CoveringLetterFieldSpec } from '../lib/statutoryRequiredFields';
 const PESTICIDE_COVERING_LETTER_QUEUE_KEY = 'tiryani-pesticide-covering-letter-queue';
 const PESTICIDE_COVERING_LETTER_DETAILS_KEY = 'tiryani-pesticide-covering-letter-details';
 
@@ -66,6 +67,13 @@ type PesticideCoveringLetterDetails = {
   division: string;
   officerPhone: string;
 };
+
+const QUEUE_FIELD_SPECS: CoveringLetterFieldSpec[] = [
+  { key: 'tradeName', label: 'Trade Name' },
+  { anyOf: ['technicalName', 'activeIngredient', 'formulationType'], label: 'Technical Name' },
+  { key: 'sampleCode', label: 'Sample Code' },
+  { key: 'dateOfSampling', label: 'Date of Sampling' },
+];
 
 type PesticideCoveringLetterModalProps = {
   isOpen: boolean;
@@ -155,22 +163,21 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   };
 
   const validateSampleCodes = () => {
-    const errors: Record<number, string> = {};
-    const sampleCodes: string[] = [];
-    
-    editedQueue.forEach((item, index) => {
-      if (!item.sampleCode || item.sampleCode.trim() === '') {
-        errors[index] = 'Sample Code is required';
-      } else {
-        if (sampleCodes.includes(item.sampleCode.trim())) {
-          errors[index] = 'Duplicate Sample Code';
-        }
-        sampleCodes.push(item.sampleCode.trim());
-      }
-    });
-    
+    const errors = validateCoveringLetterQueue(editedQueue, QUEUE_FIELD_SPECS);
     setValidationErrors(errors);
+    const firstErrorIndex = Object.keys(errors).map(Number).sort((a, b) => a - b)[0];
+    if (firstErrorIndex !== undefined) revealField(`queue-row-${firstErrorIndex}`);
     return Object.keys(errors).length === 0;
+  };
+
+  const validateMetadata = () => {
+    const missing = missingRequiredFieldRefs(coveringLetterMetadataRefs(metadata));
+    if (missing.length) {
+      showMessage(`Please fill the required letter details before previewing or downloading: ${missing.map((ref) => ref.label).join(', ')}.`);
+      revealFirstMissingField(missing);
+      return false;
+    }
+    return true;
   };
 
   const handleSampleCodeChange = (index: number, value: string) => {
@@ -320,16 +327,11 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
   };
 
   const handlePreview = async () => {
-    if (!validateSampleCodes()) {
-      showMessage('Please fix validation errors before previewing.');
-      return;
-    }
-    
     if (editedQueue.length === 0) {
       showMessage('Please add at least one sample to the queue.');
       return;
     }
-    
+
     setIsGenerating(true);
     
     try {
@@ -361,12 +363,16 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
       showMessage('Please fix validation errors before downloading.');
       return;
     }
-    
+
+    if (!validateMetadata()) {
+      return;
+    }
+
     if (editedQueue.length === 0) {
       showMessage('Please add at least one sample to the queue.');
       return;
     }
-    
+
     setIsGenerating(true);
     
     try {
@@ -498,6 +504,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                   <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">LETTER NUMBER</label>
                   <input
                     type="text"
+                    data-field-key="letterNumber"
                     value={metadata.letterNumber}
                     onChange={(e) => setMetadata({ ...metadata, letterNumber: e.target.value })}
                     placeholder="Enter Letter Number"
@@ -513,6 +520,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                   </div>
                   <input
                     type="date"
+                    data-field-key="letterDate"
                     value={metadata.letterDate}
                     onChange={(e) => setMetadata({ ...metadata, letterDate: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
@@ -524,6 +532,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                   </label>
                   <input
                     type="text"
+                    data-field-key="daoMemoNumber"
                     value={metadata.daoMemoNumber}
                     onChange={(e) => setMetadata({ ...metadata, daoMemoNumber: e.target.value })}
                     placeholder="Enter Memo Number"
@@ -539,6 +548,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                   </div>
                   <input
                     type="date"
+                    data-field-key="daoMemoDate"
                     value={metadata.daoMemoDate}
                     onChange={(e) => setMetadata({ ...metadata, daoMemoDate: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
@@ -629,7 +639,7 @@ export function PesticideCoveringLetterModal({ isOpen, onClose, officerDetails, 
                     </thead>
                     <tbody>
                       {editedQueue.map((item, index) => (
-                        <tr key={index} className="border-b border-slate-100 dark:border-slate-800">
+                        <tr key={index} data-field-key={`queue-row-${index}`} className="border-b border-slate-100 dark:border-slate-800">
                           <td className="px-2 py-2 text-center font-bold text-slate-700 dark:text-slate-300">{index + 1}</td>
                           <td className="px-2 py-2">
                             <input

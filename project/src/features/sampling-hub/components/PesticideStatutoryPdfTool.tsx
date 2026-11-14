@@ -34,7 +34,7 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { upsertCoveringLetterSample } from '../services/coveringLetterQueue';
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
-import { missingRequiredFields, requiredFieldsErrorMessage } from '../lib/statutoryRequiredFields';
+import { missingRequiredFieldRefs, requiredFieldsErrorMessage, revealFirstMissingField } from '../lib/statutoryRequiredFields';
 import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
 import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
 import { useSampleTargets } from '../../../shared/hooks/useSampleTargets';
@@ -333,17 +333,19 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     return { ...values, district, manualDistrict: '', division, manualDivision: division, sampleDrawingMandal: placeOfCollection, manualPlaceOfCollection: '', mandal: division, manualMandal: '', place: placeOfCollection || values.place, premisesLocation: placeOfCollection || values.premisesLocation };
   }, [values]);
 
-  const getMissingRequiredFields = () => {
+  const getMissingRequiredFieldRefs = () => {
     const formulationType = values.formulationType === 'Others' ? values.manualFormulationType : values.formulationType;
-    return missingRequiredFields([
-      ['C & DA CODE', values.cdaCode || values.sampleSerialNumber],
-      ['TRADE NAME', values.tradeName],
-      ['TECHNICAL NAME', values.technicalName],
-      ['ACTIVE INGREDIENT', values.activeIngredient],
-      ['FORMULATION TYPE', formulationType],
-      ['DEALER / LICENSEE NAME', values.dealerName],
+    return missingRequiredFieldRefs([
+      { label: 'C & DA CODE', value: values.cdaCode || values.sampleSerialNumber, focusKey: 'cdaCode' },
+      { label: 'TRADE NAME', value: values.tradeName, focusKey: 'tradeName' },
+      { label: 'TECHNICAL NAME', value: values.technicalName, focusKey: 'technicalName' },
+      { label: 'ACTIVE INGREDIENT', value: values.activeIngredient, focusKey: 'activeIngredient' },
+      { label: 'FORMULATION TYPE', value: formulationType, focusKey: values.formulationType === 'Others' ? 'manualFormulationType' : 'formulationType' },
+      { label: 'DEALER / LICENSEE NAME', value: values.dealerName, focusKey: 'dealerName' },
     ]);
   };
+
+  const getMissingRequiredFields = () => getMissingRequiredFieldRefs().map((ref) => ref.label);
 
   // Fetch mandals for Place of Collection when ADA and district changes (for ADA, load based on District like MAO)
   useEffect(() => {
@@ -669,12 +671,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       return;
     }
 
-    const missingFields = getMissingRequiredFields();
-    if (missingFields.length) {
-      setMessage(requiredFieldsErrorMessage(missingFields));
-      return;
-    }
-
     setBusy(true);
     const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
     try {
@@ -725,6 +721,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     const missingFields = getMissingRequiredFields();
     if (missingFields.length) {
       setMessage(requiredFieldsErrorMessage(missingFields));
+      revealFirstMissingField(getMissingRequiredFieldRefs());
       return;
     }
 
@@ -778,12 +775,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       return;
     }
 
-    const missingFields = getMissingRequiredFields();
-    if (missingFields.length) {
-      setMessage(requiredFieldsErrorMessage(missingFields));
-      return;
-    }
-
     setBusy(true);
     const mobileTab = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? window.open('', '_blank') : null;
     try {
@@ -834,6 +825,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     const missingFields = getMissingRequiredFields();
     if (missingFields.length) {
       setMessage(requiredFieldsErrorMessage(missingFields));
+      revealFirstMissingField(getMissingRequiredFieldRefs());
       return;
     }
 
@@ -870,6 +862,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     if (missingFields.length) {
       setShowDownloadAllDialog(false);
       setMessage(requiredFieldsErrorMessage(missingFields));
+      revealFirstMissingField(getMissingRequiredFieldRefs());
       return;
     }
 
@@ -1123,7 +1116,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                         if (isCombo && ingredientNames.length > 0) {
                           // Show multiple concentration inputs for combination products
                           return (
-                            <div key={field.key} className="block">
+                            <div key={field.key} data-field-key={field.key} className="block">
                               <span className="mb-1 flex items-center justify-between gap-2 text-sm font-black text-slate-700 dark:text-slate-200">
                                 <span>{field.label}</span>
                                 <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full dark:bg-emerald-950/50 dark:text-emerald-300">Combination Product</span>
@@ -1409,7 +1402,7 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
 
   if (field.key === 'manualDivision') {
     return (
-      <div>
+      <div data-field-key={field.key}>
         <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300">
           <span>{displayLabel}</span>
         </div>
@@ -1438,7 +1431,7 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
   );
 
   return (
-    <div className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
+    <div data-field-key={field.key} className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
       <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300">
         <span>{displayLabel}</span>
         {field.type === 'date' && value ? (

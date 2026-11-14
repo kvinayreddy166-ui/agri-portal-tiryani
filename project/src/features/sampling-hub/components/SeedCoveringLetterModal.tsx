@@ -11,6 +11,7 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerCloudSyncService } from '../../officers-toolkit/services/officerCloudSyncService';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { buildSampleProductBadges } from '../services/coveringLetterQueue';
+import { validateCoveringLetterQueue, coveringLetterMetadataRefs, missingRequiredFieldRefs, revealField, revealFirstMissingField, type CoveringLetterFieldSpec } from '../lib/statutoryRequiredFields';
 const SEED_COVERING_LETTER_QUEUE_KEY = 'tiryani-seed-covering-letter-queue';
 const SEED_COVERING_LETTER_DETAILS_KEY = 'tiryani-seed-covering-letter-details';
 
@@ -193,22 +194,41 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   };
 
   const validateSampleCodes = () => {
+    // Only rows that will actually appear in the letter are validated; error
+    // indices are mapped back to the displayed queue positions.
+    const entries = editedQueue
+      .map((item, originalIndex) => ({ item, originalIndex }))
+      .filter(({ item }) => letterType !== 'BT Protein' || item.isCotton);
+    const queue = entries.map((entry) => entry.item);
+    // The PDF prints a fixed "25" for Quantity when every queued sample is cotton.
+    const allCotton = queue.length > 0 && queue.every((item) => item.isCotton);
+    const specs: CoveringLetterFieldSpec[] = [
+      { key: 'seedName', label: 'Crop' },
+      { key: 'variety', label: 'Variety' },
+      { key: 'sampleCode', label: 'Sample Code' },
+      { key: 'quantity', label: 'Quantity', requiredWhen: (item) => !(allCotton && item.isCotton) },
+      { key: 'dateOfSampling', label: 'Date of Sampling' },
+    ];
+    const rawErrors = validateCoveringLetterQueue(queue, specs);
     const errors: Record<number, string> = {};
-    const sampleCodes: string[] = [];
-    
-    editedQueue.forEach((item, index) => {
-      if (!item.sampleCode || item.sampleCode.trim() === '') {
-        errors[index] = 'Sample Code is required';
-      } else {
-        if (sampleCodes.includes(item.sampleCode.trim())) {
-          errors[index] = 'Duplicate Sample Code';
-        }
-        sampleCodes.push(item.sampleCode.trim());
-      }
-    });
-    
+    for (const [position, message] of Object.entries(rawErrors)) {
+      errors[entries[Number(position)].originalIndex] = message;
+    }
     setValidationErrors(errors);
+    const firstErrorIndex = Object.keys(errors).map(Number).sort((a, b) => a - b)[0];
+    if (firstErrorIndex !== undefined) revealField(`queue-row-${firstErrorIndex}`);
     return Object.keys(errors).length === 0;
+  };
+
+  const validateMetadata = () => {
+    const missing = missingRequiredFieldRefs(coveringLetterMetadataRefs(metadata));
+    if (missing.length) {
+      setMessage(`Please fill the required letter details before previewing or downloading: ${missing.map((ref) => ref.label).join(', ')}.`);
+      setTimeout(() => setMessage(null), 3000);
+      revealFirstMissingField(missing);
+      return false;
+    }
+    return true;
   };
 
   const handleSampleCodeChange = (index: number, value: string) => {
@@ -308,18 +328,12 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   };
 
   const handlePreview = async () => {
-    if (!validateSampleCodes()) {
-      setMessage('Please fix validation errors before previewing.');
-      setTimeout(() => setMessage(null), 3000);
-      return;
-    }
-    
     if (editedQueue.length === 0) {
       setMessage('Please add at least one sample to the queue.');
       setTimeout(() => setMessage(null), 3000);
       return;
     }
-    
+
     setIsGenerating(true);
     setIsPreviewing(true);
     
@@ -379,18 +393,31 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
   };
 
   const handleDownload = async (format: CoveringLetterExportFormat = 'pdf') => {
-    if (!validateSampleCodes()) {
-      setMessage('Please fix validation errors before downloading.');
-      setTimeout(() => setMessage(null), 3000);
-      return;
-    }
-    
     if (editedQueue.length === 0) {
       setMessage('Please add at least one sample to the queue.');
       setTimeout(() => setMessage(null), 3000);
       return;
     }
-    
+
+    const downloadFilteredQueue = letterType === 'BT Protein'
+      ? editedQueue.filter(item => item.isCotton)
+      : editedQueue;
+    if (downloadFilteredQueue.length === 0) {
+      setMessage('No cotton samples found for BT Protein letter type.');
+      setTimeout(() => setMessage(null), 3000);
+      return;
+    }
+
+    if (!validateSampleCodes()) {
+      setMessage('Please fix validation errors before downloading.');
+      setTimeout(() => setMessage(null), 3000);
+      return;
+    }
+
+    if (!validateMetadata()) {
+      return;
+    }
+
     setIsGenerating(true);
     
     try {
@@ -554,6 +581,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">LETTER NUMBER</label>
                   <input
                     type="text"
+                    data-field-key="letterNumber"
                     value={metadata.letterNumber}
                     onChange={(e) => setMetadata({ ...metadata, letterNumber: e.target.value })}
                     placeholder="Enter Letter Number"
@@ -574,6 +602,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   </div>
                   <input
                     type="date"
+                    data-field-key="letterDate"
                     value={metadata.letterDate}
                     onChange={(e) => setMetadata({ ...metadata, letterDate: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
@@ -585,6 +614,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   </label>
                   <input
                     type="text"
+                    data-field-key="daoMemoNumber"
                     value={metadata.daoMemoNumber}
                     onChange={(e) => setMetadata({ ...metadata, daoMemoNumber: e.target.value })}
                     placeholder="Enter Memo Number"
@@ -600,6 +630,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                   </div>
                   <input
                     type="date"
+                    data-field-key="daoMemoDate"
                     value={metadata.daoMemoDate}
                     onChange={(e) => setMetadata({ ...metadata, daoMemoDate: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
@@ -691,7 +722,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-200 dark:bg-slate-800/60 dark:divide-slate-700">
                       {editedQueue.map((item, index) => (
-                        <tr key={index}>
+                        <tr key={index} data-field-key={`queue-row-${index}`}>
                           <td className="px-2 py-2 whitespace-nowrap text-xs font-medium text-gray-900 dark:text-slate-100">{index + 1}</td>
                           <td className="px-2 py-2">
                             <input

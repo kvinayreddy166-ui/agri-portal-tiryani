@@ -7,6 +7,8 @@ import {
   Gauge,
   Layers,
   Leaf,
+  Loader2,
+  MapPinned,
   Printer,
   RotateCcw,
   Scale,
@@ -25,6 +27,8 @@ import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { fetchSoilGridsEstimate, type SoilGridsEstimate } from '../lib/soilGridsService';
+import { TIRYANI_COORDINATES } from '../../dashboard/services/weatherService';
 
 // --- Types & Constants ---
 
@@ -115,6 +119,11 @@ export function SoilHealthMeter() {
   const [fieldState, setFieldState] = useState<FieldIndicatorState>(initialFieldIndicators);
   const [copied, setCopied] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [soilLat, setSoilLat] = useState(String(TIRYANI_COORDINATES.lat));
+  const [soilLon, setSoilLon] = useState(String(TIRYANI_COORDINATES.lon));
+  const [soilLoading, setSoilLoading] = useState(false);
+  const [soilEstimate, setSoilEstimate] = useState<SoilGridsEstimate | null>(null);
+  const [soilError, setSoilError] = useState<string | null>(null);
 
   // --- Handlers ---
   const updateLab = (key: keyof LabFormState, val: string) => {
@@ -132,6 +141,40 @@ export function SoilHealthMeter() {
     setFieldState(initialFieldIndicators);
     setCopied(false);
     showSuccess(t('Reset Complete', 'రీసెట్ చేయబడింది'), t('Default values restored.', 'సాధారణ విలువలు పునరుద్ధరించబడ్డాయి.'));
+  };
+
+  const applySoilGridsEstimate = async () => {
+    const lat = Number(soilLat);
+    const lon = Number(soilLon);
+    if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) {
+      setSoilError(t('Enter valid latitude (-90 to 90) and longitude (-180 to 180).', 'సరైన అక్షాంశం (-90 to 90) మరియు రేఖాంశం (-180 to 180) నమోదు చేయండి.'));
+      setSoilEstimate(null);
+      return;
+    }
+    setSoilLoading(true);
+    setSoilError(null);
+    try {
+      const estimate = await fetchSoilGridsEstimate(lat, lon);
+      setSoilEstimate(estimate);
+      setLabForm((prev) => {
+        const next = { ...prev };
+        if (estimate.ph !== undefined) {
+          next.phNum = estimate.ph.toFixed(2);
+          next.phBracket = estimate.ph < 5.5 ? '1' : estimate.ph < 6.05 ? '2' : estimate.ph < 6.55 ? '3' : estimate.ph <= 7.5 ? '4' : '5';
+        }
+        if (estimate.organicCarbonPct !== undefined) {
+          next.ocNum = estimate.organicCarbonPct.toFixed(2);
+          next.ocBracket = estimate.organicCarbonPct < 0.76 ? '1' : estimate.organicCarbonPct <= 1.5 ? '2' : '3';
+        }
+        return next;
+      });
+    } catch (err) {
+      console.error('SoilGrids fetch failed:', err);
+      setSoilEstimate(null);
+      setSoilError(t('Could not fetch soil data. Check coordinates and try again.', 'నేల డేటా తీసుకురాలేకపోయాం. కోఆర్డినేట్లు సరిచూసి మళ్లీ ప్రయత్నించండి.'));
+    } finally {
+      setSoilLoading(false);
+    }
   };
 
   // --- Computations ---
@@ -626,6 +669,82 @@ export function SoilHealthMeter() {
         {/* TAB 1: SOIL TEST BASED EVALUATION */}
         {activeTab === 'test-based' && (
           <div className="space-y-4">
+            {/* SoilGrids (ISRIC) auto-fill */}
+            <section className="rounded-2xl border border-teal-200/80 bg-gradient-to-br from-teal-50/70 to-white p-4 shadow-sm dark:border-teal-900/50 dark:from-teal-950/20 dark:to-slate-900">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h3 className="flex items-center gap-2 text-sm font-black text-teal-900 dark:text-teal-200">
+                  <MapPinned className="h-4 w-4 text-teal-600" />
+                  {t('Auto-fill from SoilGrids (ISRIC)', 'SoilGrids (ISRIC) నుండి ఆటో-ఫిల్')}
+                </h3>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {t('Model estimate — verify with lab test', 'అంచనా — ప్రయోగశాల పరీక్షతో ధృవీకరించండి')}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-end gap-2">
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    {t('Latitude', 'అక్షాంశం')}
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={soilLat}
+                    onChange={(e) => setSoilLat(e.target.value)}
+                    placeholder="19.4167"
+                    className="w-28 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    {t('Longitude', 'రేఖాంశం')}
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={soilLon}
+                    onChange={(e) => setSoilLon(e.target.value)}
+                    placeholder="79.3333"
+                    className="w-28 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => void applySoilGridsEstimate()}
+                  disabled={soilLoading}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-teal-800 disabled:opacity-50"
+                >
+                  {soilLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  {soilLoading ? t('Fetching…', 'తీసుకుంటోంది…') : t('Fetch Soil Data', 'నేల డేటా తీసుకోండి')}
+                </button>
+              </div>
+              {soilError && <p className="mt-2 text-xs font-semibold text-rose-600 dark:text-rose-400">{soilError}</p>}
+              {soilEstimate && !soilError && (
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-bold">
+                  {soilEstimate.ph !== undefined && (
+                    <span className="rounded-full border border-teal-200 bg-white px-2.5 py-1 text-teal-800 dark:border-teal-800 dark:bg-slate-900 dark:text-teal-300">
+                      pH {soilEstimate.ph}
+                    </span>
+                  )}
+                  {soilEstimate.organicCarbonPct !== undefined && (
+                    <span className="rounded-full border border-teal-200 bg-white px-2.5 py-1 text-teal-800 dark:border-teal-800 dark:bg-slate-900 dark:text-teal-300">
+                      OC {soilEstimate.organicCarbonPct}%
+                    </span>
+                  )}
+                  {soilEstimate.textureClass && (
+                    <span className="rounded-full border border-teal-200 bg-white px-2.5 py-1 text-teal-800 dark:border-teal-800 dark:bg-slate-900 dark:text-teal-300">
+                      {soilEstimate.textureClass}
+                      {soilEstimate.sandPct !== undefined && soilEstimate.siltPct !== undefined && soilEstimate.clayPct !== undefined
+                        ? ` (S ${soilEstimate.sandPct}% / Si ${soilEstimate.siltPct}% / C ${soilEstimate.clayPct}%)`
+                        : ''}
+                    </span>
+                  )}
+                </div>
+              )}
+              <p className="mt-2 text-[10px] font-medium leading-snug text-slate-400 dark:text-slate-500">
+                {t('Fills pH and Organic Carbon only — N, P, K are not available from SoilGrids; enter lab values for those.', 'Fills pH and Organic Carbon only — N, P, K are not available from SoilGrids; enter lab values for those.')}
+              </p>
+            </section>
+
             {/* Primary Chemical Parameters Section */}
             <section className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2 dark:border-slate-800">

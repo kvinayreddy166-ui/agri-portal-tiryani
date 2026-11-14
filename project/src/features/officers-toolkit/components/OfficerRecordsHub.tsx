@@ -416,6 +416,7 @@ export function OfficerRecordsHub() {
   }, []);
 
   useEffect(() => {
+    OfficerDocumentArchiveService.initBackgroundSync();
     void loadAllData();
 
     const handleDocumentArchived = () => {
@@ -423,6 +424,7 @@ export function OfficerRecordsHub() {
     };
 
     window.addEventListener('agronix:officer_document_archived', handleDocumentArchived);
+    window.addEventListener('agronix:officer_document_synced', handleDocumentArchived);
 
     const handleLogout = () => {
       setDocuments([]);
@@ -447,6 +449,7 @@ export function OfficerRecordsHub() {
 
     return () => {
       window.removeEventListener('agronix:officer_document_archived', handleDocumentArchived);
+      window.removeEventListener('agronix:officer_document_synced', handleDocumentArchived);
       window.removeEventListener('agronix:officer_user_logout', handleLogout);
     };
   }, [loadAllData]);
@@ -626,12 +629,29 @@ export function OfficerRecordsHub() {
         if (getDocumentCommodity(doc) !== commodityFilter) return false;
       }
 
-      // District/Mandal filter (admin only) - uses officer profile
-      // Note: This filters based on the logged-in officer's profile.
-      // For multi-officer filtering, records would need district/mandal metadata.
+      // District/Mandal filter (admin only) - uses document metadata
       if (isAdminUser) {
-        if (districtFilter !== 'all' && normalizeDistrictName(officerProfile?.district) !== districtFilter) return false;
-        if (mandalFilter !== 'all' && officerProfile?.mandal !== mandalFilter) return false;
+        const meta = doc.metadata_json as Record<string, unknown> | undefined;
+        const payload = meta?.payload as Record<string, unknown> | undefined;
+        const details = meta?.details as Record<string, unknown> | undefined;
+        const inspectionDetails = meta?.inspectionDetails as Record<string, unknown> | undefined;
+
+        if (districtFilter !== 'all') {
+          const docDistrict =
+            meta?.district ||
+            payload?.district ||
+            details?.district ||
+            inspectionDetails?.district;
+          if (docDistrict && normalizeDistrictName(String(docDistrict)) !== districtFilter) return false;
+        }
+        if (mandalFilter !== 'all') {
+          const docMandal =
+            meta?.mandal ||
+            payload?.mandal ||
+            details?.mandal ||
+            inspectionDetails?.mandal;
+          if (docMandal && String(docMandal).toLowerCase() !== mandalFilter.toLowerCase()) return false;
+        }
       }
 
       // Year Filter
@@ -676,12 +696,21 @@ export function OfficerRecordsHub() {
       if (categoryFilter !== 'all' && getRecordSavedCategory(rec) !== categoryFilter) return false;
       if (commodityFilter !== 'all' && rec.commodity !== commodityFilter) return false;
 
-      // District/Mandal filter (admin only) - uses officer profile
-      // Note: This filters based on the logged-in officer's profile.
-      // For multi-officer filtering, records would need district/mandal metadata.
+      // District/Mandal filter (admin only) - uses record details or location
       if (isAdminUser) {
-        if (districtFilter !== 'all' && normalizeDistrictName(officerProfile?.district) !== districtFilter) return false;
-        if (mandalFilter !== 'all' && officerProfile?.mandal !== mandalFilter) return false;
+        if (districtFilter !== 'all') {
+          const recDistrict =
+            rec.details?.district ||
+            rec.location ||
+            (rec as unknown as Record<string, unknown>).district;
+          if (recDistrict && normalizeDistrictName(String(recDistrict)) !== districtFilter) return false;
+        }
+        if (mandalFilter !== 'all') {
+          const recMandal =
+            rec.details?.mandal ||
+            (rec as unknown as Record<string, unknown>).mandal;
+          if (recMandal && String(recMandal).toLowerCase() !== mandalFilter.toLowerCase()) return false;
+        }
       }
 
       // Year / Month / Quick-date filters (recordDate may be ISO or DD-MM-YYYY)

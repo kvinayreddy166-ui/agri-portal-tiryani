@@ -18,7 +18,7 @@ function getRecoveryUrl(request) {
 const STATIC_ASSETS = [
   '/',
   '/offline.html',
-  '/images/agronix-logo-original.jpeg',
+  '/images/agronix-logo-original.webp',
   '/icons/icon-192x192.png?v=agronix-v2',
   '/icons/icon-512x512.png?v=agronix-v2',
   '/images/agri-emblem-192.webp',
@@ -74,7 +74,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   // Always keep offline page + logo fresh when online
-  if (url.pathname === '/offline.html' || url.pathname === '/images/agronix-logo-original.jpeg') {
+  if (url.pathname === '/offline.html' || url.pathname === '/images/agronix-logo-original.webp') {
     event.respondWith(networkFirstStatic(request));
     return;
   }

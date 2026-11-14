@@ -3,3 +3,6 @@ node_modules/
 .supabase-home/
 .wrangler/
 
+
+# Chrome automation profile cache (contains secrets)
+scratch/
