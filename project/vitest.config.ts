@@ -6,5 +6,6 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['node_modules/**', 'dist/**', 'android/**'],
     globals: true,
+    fileParallelism: false,
   },
 });

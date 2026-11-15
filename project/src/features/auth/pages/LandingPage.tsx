@@ -38,10 +38,10 @@ import { useAuth } from '../../../shared/context/AuthContext';
 /* ───────────────────────────── Static Data ───────────────────────────── */
 
 const STATS = [
-  { value: '30+', label: 'Operational Districts', labelTe: 'కార్యాచరణ జిల్లాలు', sub: 'Regional Framework', subTe: 'ప్రాంతీయ వ్యవస్థ', icon: Globe },
+  { value: '30+', label: 'Operational Districts', labelTe: 'కార్యాచరణ పరిధిలోని జిల్లాలు', sub: 'Regional Framework', subTe: 'ప్రాంతీయ వ్యవస్థ', icon: Globe },
   { value: '30+', label: 'Digital Modules', labelTe: 'డిజిటల్ మాడ్యూల్స్', sub: 'Integrated System', subTe: 'సమీకృత వ్యవస్థ', icon: Zap },
-  { value: '7', label: 'Precision Calculators', labelTe: 'వ్యవసాయ కాలిక్యులేటర్లు', sub: 'Dosage, Seed, Area & Yield', subTe: 'ఎరువులు, విత్తనాలు & దిగుబడి', icon: Calculator },
-  { value: '100%', label: 'Offline Capable', labelTe: 'ఆఫ్‌లైన్ పనితీరు', sub: 'PWA for Rural Field Areas', subTe: 'గ్రామీణ ప్రాంతాల కోసం PWA', icon: Smartphone },
+  { value: '7', label: 'Precision Calculators', labelTe: 'శాస్త్రీయ కాలిక్యులేటర్లు', sub: 'Dosage, Seed, Area & Yield', subTe: 'ఎరువులు, విత్తనాలు & దిగుబడి', icon: Calculator },
+  { value: '100%', label: 'Offline Capable', labelTe: 'పూర్తి ఆఫ్‌లైన్ సదుపాయం', sub: 'PWA for Rural Field Areas', subTe: 'గ్రామీణ ప్రాంతాల కోసం PWA', icon: Smartphone },
 ];
 
 const MODULE_HIGHLIGHTS = [
@@ -61,7 +61,7 @@ const MODULE_HIGHLIGHTS = [
     title: 'Agrochemicals Database',
     titleTe: 'వ్యవసాయ రసాయనాల భాండాగారం',
     desc: 'Exhaustive repository of fertilizers, insecticides, fungicides & herbicides with fertilizer standards, active formulations, and pre-harvest intervals.',
-    descTe: 'ఎరువులు, పురుగుమందులు & తెగుళ్ల నివారణ రసాయనాల ఎరువుల ప్రమాణాలు, మోతాదులు మరియు సిఫార్సులు.',
+    descTe: 'ఎరువులు, పురుగుమందులు, శిలీంద్రనాశినులు & కలుపు మందుల సాంకేతిక ప్రమాణాలు, క్రియాశీల రసాయనాలు మరియు మోతాదులు.',
     badge: 'Public Reference',
     badgeTe: 'ప్రజా సమాచారం',
     badgeColor: 'gold',
@@ -70,9 +70,9 @@ const MODULE_HIGHLIGHTS = [
   {
     icon: Calculator,
     title: '7 Precision Farm Calculators',
-    titleTe: '7 వ్యవసాయ కాలిక్యులేటర్లు',
+    titleTe: '7 శాస్త్రీయ వ్యవసాయ కాలిక్యులేటర్లు',
     desc: 'Precision scientific tools for fertilizer dosage (N-P-K), seed rate per acre, plant population spacing, irrigation water requirements, and crop profitability.',
-    descTe: 'ఎరువుల మోతాదు, విత్తన మోతాదు, మొక్కల సాంద్రత, నీటి అవసరాలు మరియు లాభదాయకత కాలిక్యులేటర్లు.',
+    descTe: 'ఎరువుల సిఫార్సు (N-P-K), విత్తన మోతాదు, మొక్కల సాంద్రత, నీటి తడులు మరియు పంట లాభదాయకతను లెక్కించే శాస్త్రీయ సాధనాలు.',
     badge: 'Free Tools',
     badgeTe: 'ఉచిత సాధనాలు',
     badgeColor: 'emerald',
@@ -81,9 +81,9 @@ const MODULE_HIGHLIGHTS = [
   {
     icon: Stethoscope,
     title: 'AI Crop Doctor & Diagnostics',
-    titleTe: 'క్రాప్ డాక్టర్ & నివారణలు',
+    titleTe: 'AI క్రాప్ డాక్టర్ & నివారణలు',
     desc: 'Diagnostic guides for major crops (Cotton, Paddy, Maize, Pulses, Chilli) identifying insect pests, fungal diseases, and micro-nutrient deficiencies with cures.',
-    descTe: 'పత్తి, వరి, మొక్కజొన్న, మిరప తదితర పంటల తెగుళ్లు, పురుగులు మరియు పోషక లోపాల సకాల నిర్ధారణ.',
+    descTe: 'పత్తి, వరి, మొక్కజొన్న, పప్పుధాన్యాలు, మిరప తదితర పంటల చీడపీడలు, తెగుళ్లు మరియు సూక్ష్మపోషక లోపాల సకాల నిర్ధారణ & నివారణలు.',
     badge: 'Diagnostics',
     badgeTe: 'పంట నిర్ధారణ',
     badgeColor: 'gold',
@@ -94,7 +94,7 @@ const MODULE_HIGHLIGHTS = [
     title: 'Acts, Orders & Ready Reckoners',
     titleTe: 'చట్టాలు, ఉత్తర్వులు & రెడీ రెకనర్',
     desc: 'Instant legal lookup for Seeds Act 1966, Insecticides Act 1968, Fertilizer regulations, and Essential Commodities Act with section citations.',
-    descTe: 'సీడ్స్ యాక్ట్ 1966, ఇన్సెక్టిసైడ్స్ యాక్ట్ 1968, ఎరువుల నియంత్రణలు మరియు అత్యవసర సరుకుల చట్టం సమగ్ర మార్గదర్శకాలు.',
+    descTe: 'విత్తనాల చట్టం 1966, పురుగుమందుల చట్టం 1968, ఎరువుల నియంత్రణ ఉత్తర్వు (FCO) మరియు నిత్యావసర వస్తువుల చట్టం సెక్షన్-వారీ మార్గదర్శకాలు.',
     badge: 'Legal Ready Reckoner',
     badgeTe: 'చట్టాల గైడ్',
     badgeColor: 'emerald',
@@ -103,9 +103,9 @@ const MODULE_HIGHLIGHTS = [
   {
     icon: BookOpen,
     title: 'AI Knowledge Base (RAG)',
-    titleTe: 'AI నాలెడ్జ్ బేస్',
+    titleTe: 'AI నాలెడ్జ్ బేస్ (RAG)',
     desc: 'Ask questions in natural language and receive grounded answers sourced directly from official circulars, departmental GOs, and crop protection manuals.',
-    descTe: 'ప్రభుత్వ జీవోలు, మార్గదర్శకాలు మరియు అధికారిక వ్యవసాయ పత్రాల నుండి AI ద్వారా ఖచ్చితమైన సమాధానాలు.',
+    descTe: 'సహజ భాషలో ప్రశ్నలు అడిగి, అధికారిక సర్క్యులర్లు, ప్రభుత్వ జీవోలు మరియు పంట రక్షణ మార్గదర్శకాల నుండి ఆధారిత సమాధానాలు పొందండి.',
     badge: 'AI Powered',
     badgeTe: 'AI ఆధారితం',
     badgeColor: 'gold',
@@ -114,9 +114,9 @@ const MODULE_HIGHLIGHTS = [
   {
     icon: FileCheck,
     title: 'Smart Sampling & Statutory Forms',
-    titleTe: 'స్మార్ట్ సాంప్లింగ్ & ఫారాలు',
+    titleTe: 'స్మార్ట్ శాంప్లింగ్ & చట్టబద్ధ ఫారాలు',
     desc: 'End-to-end statutory sample collection workflow with GPS location tagging, dealer acknowledgement generation, and auto-filled Form P & Form J.',
-    descTe: 'విత్తనాలు, ఎరువులు మరియు పురుగుమందుల నమూనా సేకరణ మరియు చట్టబద్ధ రసీదుల డిజిటల్ తయారీ.',
+    descTe: 'GPS లొకేషన్ ట్యాగింగ్‌తో చట్టబద్ధ నమూనా (శాంపిల్) సేకరణ, డీలర్ రసీదులు మరియు ఆటోమేటెడ్ ఫారం P, ఫారం J డిజిటల్ తయారీ.',
     badge: 'Compliance',
     badgeTe: 'నిబంధనల పాలన',
     badgeColor: 'emerald',
@@ -125,9 +125,9 @@ const MODULE_HIGHLIGHTS = [
   {
     icon: Database,
     title: 'Unified District Agriculture Registry',
-    titleTe: 'జిల్లా వ్యవసాయ రిజిస్ట్రీ',
+    titleTe: 'సమీకృత జిల్లా వ్యవసాయ రిజిస్ట్రీ',
     desc: 'Integrated databases for authorized input dealers, subsidy machinery allocations, soil health records, and daily officer field tour diaries.',
-    descTe: 'లైసెన్స్ పొందిన డీలర్లు, సబ్సిడీ యంత్రాలు, మట్టి పరీక్ష రికార్డులు మరియు టూర్ డైరీ నిర్వహణ.',
+    descTe: 'అధీకృత ఇన్పుట్ డీలర్లు, సబ్సిడీ వ్యవసాయ యంత్రాలు, నేల ఆరోగ్య కార్డులు మరియు అధికారుల ఫీల్డ్ టూర్ డైరీల సమగ్ర డేటాబేస్.',
     badge: 'Enterprise Hub',
     badgeTe: 'కేంద్ర పోర్టల్',
     badgeColor: 'gold',
@@ -156,7 +156,7 @@ const ECOSYSTEM_TABS = [
     ],
     featuresTe: [
       'తక్షణ ప్రింట్ చేయగల PDF నోటీసులతో డిజిటల్ డీలర్ తనిఖీలు',
-      'ఎరువుల నియంత్రణ నిబంధనల ప్రకారం స్టాప్ సేల్ ఆర్డర్లు & సీజ్ రికార్డులు',
+      'ఎరువుల నియంత్రణ ఉత్తర్వు (FCO) ప్రకారం స్టాప్ సేల్ ఆర్డర్లు & సీజ్ ట్రాకింగ్',
       'జియో-ట్యాగ్డ్ రసీదులతో కూడిన స్మార్ట్ నమూనా (శాంప్లింగ్) సేకరణ',
       'విత్తన & పురుగుమందుల చట్టాల సమగ్ర సెక్షన్-వారీ గైడ్ (రెడీ రెకనర్)',
       'ఆఫ్‌లైన్ స్టోరేజ్ & ఆటో క్లౌడ్ సింక్‌తో రోజువారీ ఫీల్డ్ టూర్ డైరీ',
@@ -194,11 +194,11 @@ const ECOSYSTEM_TABS = [
     labelTe: 'రైతులు & పౌరులు',
     icon: Sprout,
     headline: 'Public Diagnostics, Precision Calculators & Grievance Desk',
-    headlineTe: 'ఉచిత పంట వ్యాధి నిర్ధారణ, కాలిక్యులేటర్లు & సమస్యల పరిష్కారం',
+    headlineTe: 'ఉచిత పంట వ్యాధి నిర్ధారణ, శాస్త్రీయ కాలిక్యులేటర్లు & సమస్యల పరిష్కారం',
     description:
       'Access to precision agricultural tools, diagnostics and grievance support through the portal. Designed for rural farmers to maximize yield and protect crop health.',
     descriptionTe:
-      'పోర్టల్ ద్వారా ఆధునిక వ్యవసాయ సాధనాలు, నిర్ధారణలు మరియు సమస్యల పరిష్కార మద్దతు. రైతులు అధిక దిగుబడి సాధించి పంట ఆరోగ్యాన్ని కాపాడుకోవడానికి రూపొందించబడింది.',
+      'పోర్టల్ ద్వారా అధునాతన వ్యవసాయ సాధనాలు, శాస్త్రీయ నిర్ధారణలు మరియు సమస్యల పరిష్కార మద్దతు. రైతులు అధిక దిగుబడి సాధించి పంట ఆరోగ్యాన్ని కాపాడుకోవడానికి రూపొందించబడింది.',
     features: [
       'Scientific fertilizer dosage calculator for specific crops & acres',
       'Instant disease diagnostic guide & photo recommendations',
@@ -207,7 +207,7 @@ const ECOSYSTEM_TABS = [
       'Direct grievance lodging for spurious inputs or supply shortages',
     ],
     featuresTe: [
-      'పంటలు మరియు విస్తీర్ణానికి తగిన శాస్త్రీయ ఎరువుల మోతాదు కాలిక్యులేటర్',
+      'వివిధ పంటలు మరియు విస్తీర్ణానికి సరిపోయే శాస్త్రీయ ఎరువుల మోతాదు కాలిక్యులేటర్ (N-P-K)',
       'తక్షణ పంట తెగుళ్లు, వ్యాధుల నిర్ధారణ గైడ్ మరియు ఫోటో సిఫార్సులు',
       'సరైన పంట సాంద్రత కోసం విత్తన మోతాదు మరియు నాటే దూరం కాలిక్యులేటర్లు',
       'జిల్లాలోని లైసెన్స్ పొందిన డీలర్ల ధ్రువీకృత జాబితా',
@@ -386,7 +386,7 @@ export function LandingPage() {
                 <p className="mt-4 text-xs leading-relaxed text-emerald-100/85 sm:text-sm">
                   {t(
                     'Register as an Agriculture Officer for statutory inspection tools, forms, notices, dealer stock reconciliation, and offline field sync.',
-                    'చట్టబద్ధ తనిఖీ సాధనాలు, ఫారాలు, నోటీసులు, డీలర్ స్టాక్ సమన్వయం మరియు ఆఫ్‌లైన్ ఫీల్డ్ సింక్ సేవల కోసం వ్యవసాయ అధికారి‌గా నమోదు చేసుకోండి.'
+                    'చట్టబద్ధ తనిఖీ సాధనాలు, ఫారాలు, నోటీసులు, డీలర్ స్టాక్ సమన్వయం మరియు ఆఫ్‌లైన్ ఫీల్డ్ సింక్ సేవల కోసం వ్యవసాయ అధికారిగా నమోదు చేసుకోండి.'
                   )}
                 </p>
 
@@ -553,7 +553,7 @@ export function LandingPage() {
                           {activeTab === 'officers'
                             ? t('Enforcement Tracker & Case Log', 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్ & కేసుల రికార్డు')
                             : activeTab === 'dealers'
-                            ? t('License Renewal Status: Active', 'లైసెన్స్ స్థితి: యాక్టివ్')
+                            ? t('License Renewal Status: Active', 'లైసెన్స్ రెన్యువల్ స్థితి: యాక్టివ్')
                             : t('Official Officer Directory Support', 'అధికారుల సంప్రదింపుల మద్దతు')}
                         </p>
                         <p className="truncate text-[10px] text-slate-400">{t('Statutory Standard', 'చట్టబద్ధ నిబంధనల ప్రమాణం')}</p>
@@ -736,12 +736,12 @@ export function LandingPage() {
               {/* Philosophy Card */}
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900/60">
                 <h4 className="text-sm font-black text-slate-900 dark:text-white">
-                  {t('Professional Philosophy', 'వృత్తి తత్వం')}
+                  {t('Professional Philosophy', 'వృత్తిపరమైన దృక్పథం')}
                 </h4>
                 <p className="mt-2 text-xs leading-relaxed text-justify text-slate-600 dark:text-slate-300">
                   {t(
                     'Technology should solve real problems encountered in everyday agricultural work. Digital tools should be easy to understand, accessible, and convenient to use. Applications should prioritize accuracy, data integrity, security, and consistent performance.',
-                    'సాంకేతికత అసలైన సమస్యలను పరిష్కరించాలి. డిజిటల్ సాధనాలు సులభంగా అర్థమయ్యేలా, అందుబాటులో ఉండేలా ఉండాలి. అప్లికేషన్లు ఖచ్చితత్వం, డేటా పరిశీలత, భద్రత మరియు స్థిరమైన పనితీరును ప్రాధాన్యత ఇవ్వాలి.'
+                    'సాంకేతికత రోజువారీ వ్యవసాయ క్షేత్రస్థాయి సమస్యలను పరిష్కరించాలి. డిజిటల్ సాధనాలు సులభంగా అర్థమయ్యేలా, అందరికీ అందుబాటులో ఉండేలా ఉండాలి. అప్లికేషన్లు ఖచ్చితత్వం, డేటా సమగ్రత, భద్రత మరియు స్థిరమైన పనితీరుకు అత్యున్నత ప్రాధాన్యత ఇవ్వాలి.'
                   )}
                 </p>
               </div>
@@ -768,7 +768,10 @@ export function LandingPage() {
                           {t('Bachelor of Science in Agriculture (B.Sc. Agriculture)', 'బ్యాచిలర్ ఆఫ్ సైన్స్ ఇన్ అగ్రికల్చర్')}
                         </p>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                          Dr. Balasaheb Sawant Konkan Krishi Vidyapeeth — {t('First Class with Distinction', 'ఫస్ట్ క్లాస్ విత్ డిస్టింక్షన్')}
+                          {t(
+                            'Dr. Balasaheb Sawant Konkan Krishi Vidyapeeth — First Class with Distinction',
+                            'డా. బాలాసాహెబ్ సావంత్ కొంకణ్ కృషి విద్యాపీఠం — ఫస్ట్ క్లాస్ విత్ డిస్టింక్షన్'
+                          )}
                         </p>
                       </div>
                     </div>
@@ -779,7 +782,10 @@ export function LandingPage() {
                           {t('Master of Science in Agriculture — Genetics & Plant Breeding', 'మాస్టర్ ఆఫ్ సైన్స్ ఇన్ అగ్రికల్చర్ — జెనెటిక్స్ & ప్లాంట్ బ్రీడింగ్')}
                         </p>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                          Professor Jayashankar Telangana Agricultural University (PJTSAU) — {t('ICAR NET Qualified, AIR 41', 'ICAR NET క్వాలిఫైడ్, AIR 41')}
+                          {t(
+                            'Professor Jayashankar Telangana Agricultural University (PJTSAU) — ICAR NET Qualified, AIR 41',
+                            'ప్రొఫెసర్ జయశంకర్ తెలంగాణ వ్యవసాయ విశ్వవిద్యాలయం (PJTSAU) — ICAR NET అర్హత, AIR 41'
+                          )}
                         </p>
                       </div>
                     </div>
@@ -801,7 +807,7 @@ export function LandingPage() {
                       <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-emerald-600 dark:bg-emerald-400" />
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold text-slate-900 dark:text-white">
-                          {t('ICAR – Indian Institute of Maize Research (IIMR)', 'ICAR – ఇండియన్ ఇన్స్టిట్యూట్ ఆఫ్ మేజ్ రీసెర్చ్')}
+                          {t('ICAR – Indian Institute of Maize Research (IIMR)', 'ICAR – భారతీయ మొక్కజొన్న పరిశోధనా సంస్థ (IIMR)')}
                         </p>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400">
                           {t('One Year — Maize Research & Crop Improvement', 'ఒక సంవత్సరం — మొక్కజొన్న పరిశోధన & పంట మెరుగుదల')}
@@ -812,7 +818,7 @@ export function LandingPage() {
                       <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-sky-600 dark:bg-sky-400" />
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold text-slate-900 dark:text-white">
-                          {t('National Fertilizers Limited (NFL)', 'నేషనల్ ఫర్టిలైజర్స్ లిమిటెడ్')}
+                          {t('National Fertilizers Limited (NFL)', 'నేషనల్ ఫెర్టిలైజర్స్ లిమిటెడ్ (NFL)')}
                         </p>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400">
                           {t('One Year — Management Trainee (Marketing)', 'ఒక సంవత్సరం — మేనేజ్‌మెంట్ ట్రైనీ (మార్కెటింగ్)')}
@@ -826,7 +832,7 @@ export function LandingPage() {
                           {t('Mandal Agriculture Officer (MAO)', 'మండల వ్యవసాయ అధికారి (MAO)')}
                         </p>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                          {t('Department of Agriculture, Government of Telangana — Current Posting: Tiryani Mandal', 'వ్యవసాయ శాఖ, తెలంగాణ ప్రభుత్వం — ప్రస్తుత పోస్టింగ్: తిర్యాణి మండల్')}
+                          {t('Department of Agriculture, Government of Telangana — Current Posting: Tiryani Mandal', 'వ్యవసాయ శాఖ, తెలంగాణ ప్రభుత్వం — ప్రస్తుత పోస్టింగ్: తిర్యాణి మండలం')}
                         </p>
                       </div>
                     </div>
@@ -878,7 +884,7 @@ export function LandingPage() {
               <p className="mt-4 text-sm leading-relaxed text-justify font-serif text-emerald-100/90 sm:text-base">
                 {t(
                   'To make agricultural administration smarter, more efficient, accessible, and technology-driven. Technology should not complicate agricultural work — it should simplify processes, reduce repetitive efforts, improve accessibility, and empower the people working at the grassroots level.',
-                  'వ్యవసాయ పాలనను మేధావిగా, సమర్థవంతంగా, అందుబాటులో మరియు సాంకేతికంగా ముందుకు తీసుకెళ్లాలి. సాంకేతికత వ్యవసాయ పనులను క్లిష్టతరం చేయకూడదు — ప్రక్రియలను సులభతరం చేయాలి, పునరావృత ప్రయత్నాలను తగ్గించాలి, అందుబాటును మెరుగుపరచాలి మరియు క్షేత్రస్థాయిలో పనిచేసే వ్యక్తులను శక్తివంతం చేయాలి.'
+                  'వ్యవసాయ పరిపాలనను మరింత సమర్థవంతంగా, సాంకేతిక ఆధారితంగా మరియు అందరికీ అందుబాటులో ఉండేలా తీర్చిదిద్దడం. సాంకేతికత వ్యవసాయ పనులను క్లిష్టతరం చేయకూడదు — ప్రక్రియలను సులభతరం చేయాలి, పునరావృత శ్రమను తగ్గించాలి, సేవలను చేరువ చేయాలి మరియు క్షేత్రస్థాయి సిబ్బంది, రైతులకు నిజమైన సాధికారతను అందించాలి.'
                 )}
               </p>
               <p className="mt-4 text-xs font-semibold text-gold-300">
@@ -897,7 +903,7 @@ export function LandingPage() {
           </div>
 
           <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-            {t('Ready to Experience Modern Agricultural Management?', 'ఆధునిక వ్యవసాయ పరిపాలనా వ్యవస్థను ఉపయోగించండి')}
+            {t('Ready to Experience Modern Agricultural Management?', 'ఆధునిక వ్యవసాయ పరిపాలనా వేదికను ప్రారంభించడానికి సిద్ధమా?')}
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-slate-600 dark:text-slate-400">
             {t(
@@ -913,7 +919,7 @@ export function LandingPage() {
               className="inline-flex cursor-pointer items-center gap-2.5 rounded-2xl bg-emerald-800 px-7 py-3.5 text-sm font-black text-white shadow-xl shadow-emerald-900/20 transition hover:bg-emerald-700 active:scale-[0.98]"
             >
               <LogIn className="h-4 w-4" />
-              <span>{t('Direct to Login Page', 'లాగిన్ పేజీకి వెళ్లండి')}</span>
+              <span>{t('Direct to Login Page', 'నేరుగా లాగిన్ అవ్వండి')}</span>
               <ArrowRight className="h-4 w-4" />
             </button>
             <button
@@ -1019,7 +1025,7 @@ export function LandingPage() {
             <OfficialChannelsSidebar inline />
             <div className="mt-5 flex flex-wrap items-center justify-center gap-4 text-xs font-semibold">
               <button type="button" onClick={() => navigate('/disclaimer')} className="cursor-pointer text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300">
-                {t('Disclaimer', 'నిరాకరణ (Disclaimer)')}
+                {t('Disclaimer', 'నిరాకరణ')}
               </button>
               <span className="text-slate-300 dark:text-slate-700">&bull;</span>
               <button type="button" onClick={() => navigate('/privacy-policy')} className="cursor-pointer text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300">
@@ -1048,8 +1054,8 @@ export function LandingPage() {
         href="https://wa.me/918308487046"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="WhatsApp: 83084 87046"
-        title="WhatsApp: 83084 87046"
+        aria-label={t('WhatsApp: 83084 87046', 'వాట్సాప్: 83084 87046')}
+        title={t('Contact via WhatsApp: 83084 87046', 'వాట్సాప్ ద్వారా సంప్రదించండి: 83084 87046')}
         className="fixed bottom-20 right-4 z-50 flex h-12 w-12 animate-slide-up items-center justify-center rounded-full bg-gradient-to-r from-[#25D366] to-[#1eb856] text-white shadow-xl shadow-emerald-600/40 ring-1 ring-white/20 backdrop-blur transition hover:-translate-y-0.5 hover:shadow-2xl"
       >
         <span className="relative flex h-12 w-12 items-center justify-center">

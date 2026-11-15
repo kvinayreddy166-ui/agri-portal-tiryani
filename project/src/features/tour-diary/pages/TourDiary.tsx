@@ -2145,7 +2145,8 @@ export function TourDiary() {
                                         if (newName) {
                                           const success = await renameDiaryPdf(item.id, newName);
                                           if (success) {
-                                            } else {
+                                            showToast('PDF renamed successfully', 'success');
+                                          } else {
                                             showToast('Failed to rename PDF.', 'error');
                                           }
                                         }

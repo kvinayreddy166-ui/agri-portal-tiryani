@@ -775,6 +775,24 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     };
   }, [values]);
 
+  // Fetch mandals for Place of Collection when ADA and district changes (for ADA, load based on District like MAO)
+  useEffect(() => {
+    if (isAssistantDirectorOfAgriculture(values.designation) && values.district && values.district !== 'Others') {
+      setPlaceOfCollectionMandals(getMandalsForDistrict(values.district));
+    } else {
+      setPlaceOfCollectionMandals([]);
+    }
+  }, [values.designation, values.district]);
+
+  useEffect(() => {
+    try {
+      safeStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+    } catch (error) {
+      console.error('Error in useEffect:', error);
+      setError('Failed to save form data to localStorage');
+    }
+  }, [values]);
+
   const validateAllFieldsFilled = (action: string) => {
     const empty = validateAllModuleFields(formScrollRef.current ?? document);
     if (!empty.length) return true;
@@ -807,24 +825,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       </div>
     );
   }
-
-  // Fetch mandals for Place of Collection when ADA and district changes (for ADA, load based on District like MAO)
-  useEffect(() => {
-    if (isAssistantDirectorOfAgriculture(values.designation) && values.district && values.district !== 'Others') {
-      setPlaceOfCollectionMandals(getMandalsForDistrict(values.district));
-    } else {
-      setPlaceOfCollectionMandals([]);
-    }
-  }, [values.designation, values.district]);
-
-  useEffect(() => {
-    try {
-      safeStorage.setItem(STORAGE_KEY, JSON.stringify(values));
-    } catch (error) {
-      console.error('Error in useEffect:', error);
-      setError('Failed to save form data to localStorage');
-    }
-  }, [values]);
 
   const setField = (key: keyof FertilizerPdfValues, value: string) => {
     // Validate officer phone number (10 digits)

@@ -241,14 +241,63 @@ describe('Dashboard — Officer vs Admin view isolation', () => {
     );
 
     // Admin-exclusive items are present
-    expect(html).toContain('Command Center');
     expect(html).toContain('Office Records');
     expect(html).toContain('Document Repository');
-    expect(html).toContain('Dealers Directory');
-    expect(html).toContain('Quality Control');
+    expect(html).toContain('Dealer Management');
+    expect(html).toContain('User Management');
     expect(html).toContain('Farmer Database');
-    expect(html).toContain('Reports');
     expect(html).toContain('Farm Mechanization');
-    expect(html).toContain('Subsidy &amp; Schemes');
+    expect(html).toContain('Knowledge Base');
+
+    // Items moved off admin to elevated officer
+    expect(html).not.toContain('Command Center');
+    expect(html).not.toContain('Reports');
+    expect(html).not.toContain('Dealers Directory');
+  });
+
+  it('renders elevated officer exclusive modules for elevated officer login', () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: 'elevated-1', email: 'agofficetiryani@gmail.com', user_metadata: { role: 'officer' } },
+      session: null,
+      loading: false,
+      authChecked: true,
+      appReady: true,
+      isAdminUser: false,
+      isElevatedOfficerUser: true,
+      isTestUser: false,
+      isDealerUser: false,
+      isOfficerUser: true,
+      officerProfile: null,
+      dealerId: null,
+      dealerName: null,
+      signIn: vi.fn(),
+      signInOfficerOtp: vi.fn(),
+      verifyOfficerOtp: vi.fn(),
+      registerOfficer: vi.fn(),
+      refreshOfficerProfile: vi.fn(),
+      signInDealer: vi.fn(),
+      signOut: vi.fn(),
+    });
+
+    const html = renderToString(
+      <MemoryRouter>
+        <ThemeProvider>
+          <LanguageProvider>
+            <Layout currentPage="dashboard" onNavigate={vi.fn()} onBack={vi.fn()}>
+              <div>Elevated Officer Content</div>
+            </Layout>
+          </LanguageProvider>
+        </ThemeProvider>
+      </MemoryRouter>
+    );
+
+    // Elevated officer has Command Center, Reports, Dealers Directory
+    expect(html).toContain('Command Center');
+    expect(html).toContain('Reports');
+    expect(html).toContain('Dealers Directory');
+    // But does not have admin-exclusive management consoles
+    expect(html).not.toContain('Dealer Management');
+    expect(html).not.toContain('User Management');
+    expect(html).not.toContain('Farm Mechanization');
   });
 });

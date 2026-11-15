@@ -193,14 +193,14 @@ export function getCommodityMSP(
     normalized.includes('arhar') ||
     normalized.includes('kandi') ||
     normalized.includes('pigeonpea') ||
-    (/tur/i.test(normalized) && !normalized.includes('turmeric'))
+    (/\btur\b/i.test(normalized) && !normalized.includes('turmeric'))
   ) {
     return CROP_MSP_BENCHMARKS['Tur (Arhar)'];
   }
   if (normalized.includes('green gram') || normalized.includes('moong') || normalized.includes('pesalu') || normalized.includes('mung')) {
     return CROP_MSP_BENCHMARKS['Moong'];
   }
-  if (normalized.includes('black gram') || normalized.includes('urad') || normalized.includes('minumulu') || /urd/i.test(normalized)) {
+  if (normalized.includes('black gram') || normalized.includes('urad') || normalized.includes('minumulu') || /\burd\b/i.test(normalized)) {
     return CROP_MSP_BENCHMARKS['Urad'];
   }
   if (normalized.includes('masur') || normalized.includes('lentil') || normalized.includes('masoor')) {
@@ -210,7 +210,7 @@ export function getCommodityMSP(
     normalized.includes('chana') ||
     normalized.includes('bengal gram') ||
     normalized.includes('chickpea') ||
-    (/gram/i.test(normalized) &&
+    (/\bgram\b/i.test(normalized) &&
       !normalized.includes('red gram') &&
       !normalized.includes('green gram') &&
       !normalized.includes('black gram') &&
@@ -235,7 +235,7 @@ export function getCommodityMSP(
   if (normalized.includes('nigerseed') || normalized.includes('niger')) {
     return CROP_MSP_BENCHMARKS['Nigerseed'];
   }
-  if (normalized.includes('mustard') || normalized.includes('rapeseed') || normalized.includes('sarson') || /rai/i.test(normalized)) {
+  if (normalized.includes('mustard') || normalized.includes('rapeseed') || normalized.includes('sarson') || /\brai\b/i.test(normalized)) {
     return CROP_MSP_BENCHMARKS['Rapeseed / Mustard'];
   }
   if (normalized.includes('safflower') || normalized.includes('kusuma') || normalized.includes('kardi')) {
@@ -255,12 +255,12 @@ export function getCommodityMSP(
   if (normalized.includes('wheat') || normalized.includes('gehun')) {
     return CROP_MSP_BENCHMARKS['Wheat'];
   }
-  if (normalized.includes('barley') || /jau/i.test(normalized)) {
+  if (normalized.includes('barley') || /\bjau\b/i.test(normalized)) {
     return CROP_MSP_BENCHMARKS['Barley'];
   }
 
   // Commercial / Fibres
-  if (/jute/i.test(normalized)) {
+  if (/\bjute\b/i.test(normalized)) {
     return CROP_MSP_BENCHMARKS['Jute'];
   }
 

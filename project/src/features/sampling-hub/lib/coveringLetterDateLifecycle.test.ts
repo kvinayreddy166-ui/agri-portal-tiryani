@@ -119,7 +119,7 @@ describe('Covering Letter Date Lifecycle & Stability', () => {
   });
 
   it('falls back to localTodayDate when no saved date exists, preventing blank input', () => {
-    let storageData: any = null;
+    const storageData = null as { letterDate?: string } | null;
     const resolvedDate = storageData?.letterDate || localTodayDate();
     expect(resolvedDate).toBeTruthy();
     expect(resolvedDate).toBe(localTodayDate());

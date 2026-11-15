@@ -153,7 +153,7 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
   const doc = new jsPDF('l', 'mm', 'a4');
   await setupPdfUnicodeFonts(doc);
 
-  let tableData = [...rawTableData];
+  const tableData = [...rawTableData];
 
   // If table is empty, generate empty rows for the month
   if (tableData.length === 0) {

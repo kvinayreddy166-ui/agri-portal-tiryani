@@ -35,6 +35,7 @@ describe('mandiPrices service', () => {
         },
       },
     });
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network offline in unit test')));
     vi.restoreAllMocks();
   });
 
@@ -146,6 +147,7 @@ describe('mandiPrices service', () => {
 
   describe('fetchMandiPrices', () => {
     it('returns records from live proxy or verified fallback', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Offline in test runner')));
       const res = await fetchMandiPrices({ state: 'Telangana' });
       expect(res.records.length).toBeGreaterThan(0);
       expect(['ogd-live', 'agmarknet-verified']).toContain(res.source);
