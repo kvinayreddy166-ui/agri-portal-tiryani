@@ -70,6 +70,29 @@ const RISK_META: Record<DealerScorecard['riskLevel'], { bar: string; avatar: str
   },
 };
 
+/** Indian financial year label (April–March) for an ISO date, e.g. "2025-26". */
+function financialYearLabel(dateStr?: string | null): string | null {
+  if (!dateStr || dateStr.length < 7) return null;
+  const y = Number(dateStr.slice(0, 4));
+  const m = Number(dateStr.slice(5, 7));
+  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12) return null;
+  return m >= 4
+    ? `${y}-${String((y + 1) % 100).padStart(2, '0')}`
+    : `${y - 1}-${String(y % 100).padStart(2, '0')}`;
+}
+
+/** Matches a date against a year filter — "2025" (calendar) or "2025-26" (FY). */
+function yearFilterMatches(dateStr: string | null | undefined, filter: string): boolean {
+  if (!dateStr) return false;
+  if (filter.includes('-')) return financialYearLabel(dateStr) === filter;
+  return dateStr.slice(0, 4) === filter;
+}
+
+function yearOptionSort(a: string, b: string): number {
+  const diff = Number(b.slice(0, 4)) - Number(a.slice(0, 4));
+  return diff !== 0 ? diff : b.localeCompare(a);
+}
+
 const LAB_STATUS_ORDER = ['DRAFT', 'DISPATCHED', 'RECEIVED_LAB', 'TEST_PASSED', 'TEST_FAILED'] as const;
 const LAB_STATUS_LABELS: Record<string, { en: string; te: string }> = {
   DRAFT: { en: 'Draft', te: 'డ్రాఫ్ట్' },
@@ -344,11 +367,11 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
     const years = new Set<string>();
     for (const s of samplePipeline) {
       for (const d of [s.sampledDate, s.dispatchedAt, s.reportReceivedAt]) {
-        const y = typeof d === 'string' ? d.slice(0, 4) : '';
-        if (/^\d{4}$/.test(y)) years.add(y);
+        const fy = financialYearLabel(d);
+        if (fy) years.add(fy);
       }
     }
-    return Array.from(years).sort((a, b) => b.localeCompare(a));
+    return Array.from(years).sort(yearOptionSort);
   }, [samplePipeline]);
 
   const filteredSamples = useMemo(() => {
@@ -365,7 +388,7 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
     if (sampleYearFilter !== 'all') {
       list = list.filter((s) =>
         [s.sampledDate, s.dispatchedAt, s.reportReceivedAt].some(
-          (d) => typeof d === 'string' && d.slice(0, 4) === sampleYearFilter
+          (d) => yearFilterMatches(d, sampleYearFilter)
         )
       );
     }
@@ -384,10 +407,10 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
   const orderYears = useMemo(() => {
     const years = new Set<string>();
     for (const o of data?.orders ?? []) {
-      const y = (o.order_date ?? '').slice(0, 4);
-      if (/^\d{4}$/.test(y)) years.add(y);
+      const fy = financialYearLabel(o.order_date);
+      if (fy) years.add(fy);
     }
-    return Array.from(years).sort((a, b) => b.localeCompare(a));
+    return Array.from(years).sort(yearOptionSort);
   }, [data]);
 
   const filteredOrders = useMemo(() => {
@@ -411,7 +434,7 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
       list = list.filter((o) => (o.reply_status ?? 'PENDING') === orderReplyFilter);
     }
     if (orderYearFilter !== 'all') {
-      list = list.filter((o) => (o.order_date ?? '').slice(0, 4) === orderYearFilter);
+      list = list.filter((o) => yearFilterMatches(o.order_date, orderYearFilter));
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -432,10 +455,10 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
   const inspectionYears = useMemo(() => {
     const years = new Set<string>();
     for (const i of inspectionItems) {
-      const y = (i.date ?? '').slice(0, 4);
-      if (/^\d{4}$/.test(y)) years.add(y);
+      const fy = financialYearLabel(i.date);
+      if (fy) years.add(fy);
     }
-    return Array.from(years).sort((a, b) => b.localeCompare(a));
+    return Array.from(years).sort(yearOptionSort);
   }, [inspectionItems]);
 
   const filteredInspections = useMemo(() => {
@@ -447,7 +470,7 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
       list = list.filter((i) => i.commodity === inspectionCommodityFilter);
     }
     if (inspectionYearFilter !== 'all') {
-      list = list.filter((i) => (i.date ?? '').slice(0, 4) === inspectionYearFilter);
+      list = list.filter((i) => yearFilterMatches(i.date, inspectionYearFilter));
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -624,38 +647,29 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
           {/* Order filters */}
           <div className="mb-3 space-y-2">
             <div className="flex flex-wrap items-center gap-1.5">
-              {(['all', 'fertilizer', 'pesticide', 'seed'] as const).map((commodity) => (
-                <button
-                  key={commodity}
-                  type="button"
-                  onClick={() => setOrderCommodityFilter(commodity)}
-                  className={`rounded-full px-3 py-1.5 text-[11px] font-black transition ${
-                    orderCommodityFilter === commodity
-                      ? 'bg-emerald-700 text-white shadow-2xs hover:bg-emerald-600 dark:bg-emerald-600'
-                      : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-emerald-800 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-800'
-                  }`}
+              <select
+                value={orderCommodityFilter}
+                onChange={(e) => setOrderCommodityFilter(e.target.value as 'all' | StatutoryCommodity)}
+                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                aria-label={t('Filter orders by commodity', 'వస్తువు ప్రకారం ఆర్డర్లు ఫిల్టర్ చేయండి')}
+              >
+                <option value="all">{t('All Commodities', 'అన్ని వస్తువులు')}</option>
+                {(['fertilizer', 'pesticide', 'seed'] as const).map((commodity) => (
+                  <option key={commodity} value={commodity}>{t(COMMODITY_LABELS[commodity].en, COMMODITY_LABELS[commodity].te)}</option>
+                ))}
+              </select>
+              {activeTab === 'stop_sale' && (
+                <select
+                  value={orderTypeFilter}
+                  onChange={(e) => setOrderTypeFilter(e.target.value)}
+                  className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  aria-label={t('Filter orders by type', 'రకం ప్రకారం ఆర్డర్లు ఫిల్టర్ చేయండి')}
                 >
-                  {commodity === 'all'
-                    ? t('All Commodities', 'అన్ని వస్తువులు')
-                    : t(COMMODITY_LABELS[commodity].en, COMMODITY_LABELS[commodity].te)}
-                </button>
-              ))}
-              {activeTab === 'stop_sale' && (['all', 'stop_sale', 'revocation'] as const).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setOrderTypeFilter(type)}
-                  className={`rounded-full px-3 py-1.5 text-[11px] font-black transition ${
-                    orderTypeFilter === type
-                      ? 'bg-violet-700 text-white shadow-2xs hover:bg-violet-600 dark:bg-violet-600'
-                      : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-violet-800 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  {type === 'all'
-                    ? t('All Types', 'అన్ని రకాలు')
-                    : type === 'stop_sale' ? t('Stop Sale', 'స్టాప్ సేల్') : t('Revocation', 'రద్దు ఆర్డర్')}
-                </button>
-              ))}
+                  <option value="all">{t('All Types', 'అన్ని రకాలు')}</option>
+                  <option value="stop_sale">{t('Stop Sale', 'స్టాప్ సేల్')}</option>
+                  <option value="revocation">{t('Revocation', 'రద్దు ఆర్డర్')}</option>
+                </select>
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
               <button
@@ -691,7 +705,7 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
               >
                 <option value="all">{t('All Years', 'అన్ని సంవత్సరాలు')}</option>
                 {orderYears.map((year) => (
-                  <option key={year} value={year}>{year}</option>
+                  <option key={year} value={year}>{year.includes('-') ? `FY ${year}` : year}</option>
                 ))}
               </select>
               <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700">
@@ -775,22 +789,17 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
         <div className="space-y-2">
           {/* Inspection filters */}
           <div className="mb-3 flex flex-wrap items-center gap-1.5">
-            {(['all', 'fertilizer', 'pesticide', 'seed'] as const).map((commodity) => (
-              <button
-                key={commodity}
-                type="button"
-                onClick={() => setInspectionCommodityFilter(commodity)}
-                className={`rounded-full px-3 py-1.5 text-[11px] font-black transition ${
-                  inspectionCommodityFilter === commodity
-                    ? 'bg-emerald-700 text-white shadow-2xs hover:bg-emerald-600 dark:bg-emerald-600'
-                    : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-emerald-800 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-800'
-                }`}
-              >
-                {commodity === 'all'
-                  ? t('All Commodities', 'అన్ని వస్తువులు')
-                  : t(COMMODITY_LABELS[commodity].en, COMMODITY_LABELS[commodity].te)}
-              </button>
-            ))}
+            <select
+              value={inspectionCommodityFilter}
+              onChange={(e) => setInspectionCommodityFilter(e.target.value as 'all' | StatutoryCommodity)}
+              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              aria-label={t('Filter inspections by commodity', 'వస్తువు ప్రకారం తనిఖీలు ఫిల్టర్ చేయండి')}
+            >
+              <option value="all">{t('All Commodities', 'అన్ని వస్తువులు')}</option>
+              {(['fertilizer', 'pesticide', 'seed'] as const).map((commodity) => (
+                <option key={commodity} value={commodity}>{t(COMMODITY_LABELS[commodity].en, COMMODITY_LABELS[commodity].te)}</option>
+              ))}
+            </select>
             <select
               value={inspectionYearFilter}
               onChange={(e) => setInspectionYearFilter(e.target.value)}
@@ -799,7 +808,7 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
             >
               <option value="all">{t('All Years', 'అన్ని సంవత్సరాలు')}</option>
               {inspectionYears.map((year) => (
-                <option key={year} value={year}>{year}</option>
+                <option key={year} value={year}>{year.includes('-') ? `FY ${year}` : year}</option>
               ))}
             </select>
             <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700">
@@ -964,22 +973,17 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
         <div className="space-y-3">
           {/* Commodity filter */}
           <div className="flex flex-wrap items-center gap-1.5">
-            {(['all', 'fertilizer', 'pesticide', 'seed'] as const).map((commodity) => (
-              <button
-                key={commodity}
-                type="button"
-                onClick={() => setSampleCommodityFilter(commodity)}
-                className={`rounded-full px-3 py-1.5 text-[11px] font-black transition ${
-                  sampleCommodityFilter === commodity
-                    ? 'bg-emerald-700 text-white shadow-2xs hover:bg-emerald-600 dark:bg-emerald-600'
-                    : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-emerald-800 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-800'
-                }`}
-              >
-                {commodity === 'all'
-                  ? t('All Commodities', 'అన్ని వస్తువులు')
-                  : t(COMMODITY_LABELS[commodity].en, COMMODITY_LABELS[commodity].te)}
-              </button>
-            ))}
+            <select
+              value={sampleCommodityFilter}
+              onChange={(e) => setSampleCommodityFilter(e.target.value as 'all' | StatutoryCommodity)}
+              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              aria-label={t('Filter samples by commodity', 'వస్తువు ప్రకారం నమూనాలు ఫిల్టర్ చేయండి')}
+            >
+              <option value="all">{t('All Commodities', 'అన్ని వస్తువులు')}</option>
+              {(['fertilizer', 'pesticide', 'seed'] as const).map((commodity) => (
+                <option key={commodity} value={commodity}>{t(COMMODITY_LABELS[commodity].en, COMMODITY_LABELS[commodity].te)}</option>
+              ))}
+            </select>
           </div>
 
           {/* Status + Year filters */}
@@ -1028,7 +1032,7 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
             >
               <option value="all">{t('All Years', 'అన్ని సంవత్సరాలు')}</option>
               {sampleYears.map((year) => (
-                <option key={year} value={year}>{year}</option>
+                <option key={year} value={year}>{year.includes('-') ? `FY ${year}` : year}</option>
               ))}
             </select>
             <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700">

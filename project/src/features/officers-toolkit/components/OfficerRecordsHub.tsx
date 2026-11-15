@@ -55,6 +55,32 @@ const COMMODITY_BADGE_STYLES: Record<DocumentCommodity, string> = {
   seed: 'bg-sky-100 text-sky-800 ring-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:ring-sky-800/60',
 };
 
+/** Indian financial year label (April–March) for an ISO date, e.g. "2025-26". */
+function financialYearLabel(dateStr?: string | null): string | null {
+  if (!dateStr || dateStr.length < 7) return null;
+  const y = Number(dateStr.slice(0, 4));
+  const m = Number(dateStr.slice(5, 7));
+  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12) return null;
+  return m >= 4
+    ? `${y}-${String((y + 1) % 100).padStart(2, '0')}`
+    : `${y - 1}-${String(y % 100).padStart(2, '0')}`;
+}
+
+function financialYearLabelFromTime(ts: number): string | null {
+  if (!ts) return null;
+  const d = new Date(ts);
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  return m >= 4
+    ? `${y}-${String((y + 1) % 100).padStart(2, '0')}`
+    : `${y - 1}-${String(y % 100).padStart(2, '0')}`;
+}
+
+function yearOptionSort(a: string, b: string): number {
+  const diff = Number(b.slice(0, 4)) - Number(a.slice(0, 4));
+  return diff !== 0 ? diff : b.localeCompare(a);
+}
+
 const COMMODITY_LABELS: Record<DocumentCommodity, { en: string; te: string }> = {
   fertilizer: { en: 'Fertilizer', te: 'ఎరువు' },
   pesticide: { en: 'Pesticide', te: 'పురుగుమందు' },
@@ -596,18 +622,6 @@ export function OfficerRecordsHub() {
     }
   };
 
-  // Available years extracted from document history
-  const availableYears = useMemo(() => {
-    const years = new Set<string>();
-    documents.forEach((d) => {
-      if (d.document_date && d.document_date.length >= 4) {
-        years.add(d.document_date.slice(0, 4));
-      }
-    });
-    if (years.size === 0) years.add(new Date().getFullYear().toString());
-    return Array.from(years).sort().reverse();
-  }, [documents]);
-
   // Parse a record/document date string to a timestamp (supports ISO and DD-MM-YYYY / DD/MM/YYYY)
   const parseItemDate = useCallback((value?: string | null): number => {
     if (!value) return 0;
@@ -617,6 +631,28 @@ export function OfficerRecordsHub() {
     if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1])).getTime();
     return 0;
   }, []);
+
+  // Available years (calendar + financial year) from documents and records
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    documents.forEach((d) => {
+      if (d.document_date && d.document_date.length >= 4) {
+        years.add(d.document_date.slice(0, 4));
+        const fy = financialYearLabel(d.document_date);
+        if (fy) years.add(fy);
+      }
+    });
+    records.forEach((r) => {
+      const ts = parseItemDate(r.recordDate);
+      if (ts) {
+        years.add(String(new Date(ts).getFullYear()));
+        const fy = financialYearLabelFromTime(ts);
+        if (fy) years.add(fy);
+      }
+    });
+    if (years.size === 0) years.add(new Date().getFullYear().toString());
+    return Array.from(years).sort(yearOptionSort);
+  }, [documents, records, parseItemDate]);
 
   // Filtered Documents
   const filteredDocuments = useMemo(() => {
@@ -654,10 +690,12 @@ export function OfficerRecordsHub() {
         }
       }
 
-      // Year Filter
+      // Year Filter (calendar "2026" or financial "2026-27")
       if (yearFilter !== 'all') {
         const docYear = doc.document_date ? doc.document_date.slice(0, 4) : '';
-        if (docYear !== yearFilter) return false;
+        const docFy = financialYearLabel(doc.document_date) ?? financialYearLabelFromTime(parseItemDate(doc.document_date));
+        const matches = yearFilter.includes('-') ? docFy === yearFilter : docYear === yearFilter;
+        if (!matches) return false;
       }
 
       // Month Filter
@@ -688,7 +726,7 @@ export function OfficerRecordsHub() {
 
       return true;
     });
-  }, [documents, categoryFilter, commodityFilter, districtFilter, mandalFilter, isAdminUser, officerProfile, yearFilter, monthFilter, dateFilter, searchQuery]);
+  }, [documents, categoryFilter, commodityFilter, districtFilter, mandalFilter, isAdminUser, officerProfile, yearFilter, monthFilter, dateFilter, searchQuery, parseItemDate]);
 
   // Filtered Form Records
   const filteredRecords = useMemo(() => {
@@ -716,7 +754,10 @@ export function OfficerRecordsHub() {
       // Year / Month / Quick-date filters (recordDate may be ISO or DD-MM-YYYY)
       const recTime = parseItemDate(rec.recordDate);
       if (yearFilter !== 'all' && recTime) {
-        if (new Date(recTime).getFullYear().toString() !== yearFilter) return false;
+        const recYear = new Date(recTime).getFullYear().toString();
+        const recFy = financialYearLabelFromTime(recTime);
+        const matches = yearFilter.includes('-') ? recFy === yearFilter : recYear === yearFilter;
+        if (!matches) return false;
       }
       if (monthFilter !== 'all' && recTime) {
         if ((new Date(recTime).getMonth() + 1).toString().padStart(2, '0') !== monthFilter) return false;
@@ -1046,7 +1087,7 @@ export function OfficerRecordsHub() {
               <select
                 value={districtFilter}
                 onChange={(e) => setDistrictFilter(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               >
                 <option value="all">{t('All Districts', 'అన్ని జిల్లాలు')}</option>
                 {TELANGANA_DISTRICTS.map((district) => (
@@ -1056,7 +1097,7 @@ export function OfficerRecordsHub() {
               <select
                 value={mandalFilter}
                 onChange={(e) => setMandalFilter(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               >
                 <option value="all">{t('All Mandals', 'అన్ని మండలం')}</option>
                 {districtFilter !== 'all' && TELANGANA_DISTRICT_MANDAL_MAPPING[districtFilter]?.map((mandal) => (
@@ -1073,7 +1114,7 @@ export function OfficerRecordsHub() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value as SavedRecordsCategoryFilter)}
-            className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
           >
             <option value="all">{t('All Categories', 'అన్ని విభాగాలు')}</option>
             <option value="stop_sales">{t('Stop Sales', 'స్టాప్ సేల్‌లు')}</option>
@@ -1088,7 +1129,7 @@ export function OfficerRecordsHub() {
           <select
             value={commodityFilter}
             onChange={(e) => setCommodityFilter(e.target.value as typeof commodityFilter)}
-            className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
           >
             <option value="all">{t('All Commodities', 'అన్ని వస్తువులు')}</option>
             <option value="fertilizer">{t('Fertilizer', 'ఎరువు')}</option>
@@ -1111,12 +1152,12 @@ export function OfficerRecordsHub() {
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
             >
               <option value="all">{t('All Years', 'అన్ని సంవత్సరాలు')}</option>
               {availableYears.map((yr) => (
                 <option key={yr} value={yr}>
-                  {yr}
+                  {yr.includes('-') ? `FY ${yr}` : yr}
                 </option>
               ))}
             </select>
@@ -1127,7 +1168,7 @@ export function OfficerRecordsHub() {
             <select
               value={monthFilter}
               onChange={(e) => setMonthFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
             >
               <option value="all">{t('All Months', 'అన్ని నెలలు')}</option>
               <option value="01">01 - {t('Jan', 'జన')}</option>
@@ -1149,13 +1190,20 @@ export function OfficerRecordsHub() {
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value as typeof dateFilter)}
-            className="rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-700 outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
           >
             <option value="all">{t('All Quick Dates', 'అన్ని తేదీలు')}</option>
             <option value="today">{t('Today', 'ఈ రోజు')}</option>
             <option value="7days">{t('Last 7 Days', 'గత 7 రోజులు')}</option>
             <option value="30days">{t('Last 30 Days', 'గత 30 రోజులు')}</option>
           </select>
+
+          {/* Result count badge */}
+          <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700">
+            {(activeTab === 'documents' ? filteredDocuments.length : filteredRecords.length)} {t('items', 'అంశాలు')}
+            {(activeTab === 'documents' ? filteredDocuments.length : filteredRecords.length) !== (activeTab === 'documents' ? documents.length : records.length) &&
+              ` / ${activeTab === 'documents' ? documents.length : records.length}`}
+          </span>
 
           {/* Admin-only filter reset */}
           {isAdminUser && (
