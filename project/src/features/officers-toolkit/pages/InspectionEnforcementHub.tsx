@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Ban, Bug, ChevronDown, ChevronRight, ClipboardCheck, FileText, FlaskConical, PackageX, Sprout } from 'lucide-react';
+import { Ban, Bug, ChevronDown, ChevronRight, ClipboardCheck, FileText, FlaskConical, PackageX, Scale, Sprout } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -21,6 +21,9 @@ const FertilizerSeizureOrderEntry = lazy(() => import('../components/FertilizerS
 const SeedSeizureOrderEntry = lazy(() => import('../components/SeedSeizureOrderEntry').then((m) => ({ default: m.SeedSeizureOrderEntry })));
 const PesticideSeizureOrderEntry = lazy(() => import('../components/PesticideSeizureOrderEntry').then((m) => ({ default: m.PesticideSeizureOrderEntry })));
 const SeedStopSaleRevokeEntry = lazy(() => import('../components/SeedStopSaleRevokeEntry').then((m) => ({ default: m.SeedStopSaleRevokeEntry })));
+const FertilizerReanalysis = lazy(() =>
+  import('../../sampling-hub/components/FertilizerReanalysis').then((m) => ({ default: m.FertilizerReanalysis }))
+);
 
 const LazySubLoader = () => (
   <div className="flex items-center justify-center p-8">
@@ -41,7 +44,7 @@ const chipClasses: Record<string, string> = {
   amber: 'bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/60',
 };
 
-type HubCardKey = 'inspections' | 'notices' | 'stopSale' | 'seizure';
+type HubCardKey = 'inspections' | 'notices' | 'stopSale' | 'seizure' | 'reanalysis';
 
 const cardThemes: Record<
   string,
@@ -111,6 +114,19 @@ const cardThemes: Record<
     itemHoverBg: 'hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30',
     accentGlow: 'from-indigo-600 via-blue-600 to-indigo-700',
   },
+  violet: {
+    iconBg: 'bg-gradient-to-br from-violet-600 to-purple-700 text-white shadow-md shadow-violet-900/10',
+    borderActive: 'border-violet-600/50 ring-2 ring-violet-500/15 dark:border-violet-500',
+    borderIdle: 'border-slate-200/90 dark:border-slate-800',
+    borderHover: 'hover:border-violet-500/40 hover:shadow-md hover:shadow-violet-950/5',
+    badgeBg: 'bg-violet-50 text-violet-800 ring-1 ring-violet-200/80 dark:bg-violet-950/60 dark:text-violet-300 dark:ring-violet-800/60',
+    badgeText: '1 Tool',
+    badgeTeText: '1 టూల్',
+    chevronOpen: 'bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300',
+    itemHoverBorder: 'hover:border-violet-300 dark:hover:border-violet-700',
+    itemHoverBg: 'hover:bg-violet-50/40 dark:hover:bg-violet-950/30',
+    accentGlow: 'from-violet-600 via-purple-500 to-violet-700',
+  },
   // Backward compatibility aliases
   cyan: {
     iconBg: 'bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-md shadow-amber-900/10',
@@ -177,6 +193,7 @@ export function InspectionEnforcementHub() {
   const [showFertilizerSeizure, setShowFertilizerSeizure] = useState(false);
   const [showSeedSeizure, setShowSeedSeizure] = useState(false);
   const [showPesticideSeizure, setShowPesticideSeizure] = useState(false);
+  const [showReanalysis, setShowReanalysis] = useState(false);
 
   const toggleCard = (card: HubCardKey) =>
     setOpenCard((current) => (current === card ? null : card));
@@ -262,6 +279,18 @@ export function InspectionEnforcementHub() {
         { label: 'Pesticide Seizure', teLabel: 'పురుగుమందుల జప్తి ఆర్డర్', desc: 'Form XV / Rule 29 stock seizure', teDesc: 'ఫారం XV / రూల్ 29 ప్రకారం జప్తి', icon: Bug, tone: 'amber', onClick: () => setShowPesticideSeizure(true) },
       ],
     },
+    {
+      key: 'reanalysis' as const,
+      title: 'Sample Reanalysis',
+      teTitle: 'నమూనా పునఃవిశ్లేషణ',
+      subtitle: 'Reanalysis cases & covering letters',
+      teSubtitle: 'పునఃవిశ్లేషణ కేసులు & కవరింగ్ పత్రాలు',
+      icon: Scale,
+      theme: 'violet',
+      items: [
+        { label: 'Fertilizer Reanalysis', teLabel: 'ఎరువుల పునఃవిశ్లేషణ', desc: 'Form L reanalysis, declarations & SCN', teDesc: 'ఫారం L పునఃవిశ్లేషణ, డిక్లరేషన్లు & నోటీసు', icon: FlaskConical, tone: 'amber', onClick: () => setShowReanalysis(true) },
+      ],
+    },
   ];
 
   return (
@@ -320,8 +349,15 @@ export function InspectionEnforcementHub() {
                     <p className="truncate text-sm sm:text-base font-black leading-tight text-slate-900 dark:text-white font-[var(--font-heading)]">
                       {t(card.title, card.teTitle)}
                     </p>
-                    <span className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${theme.badgeBg}`}>
-                      {t(theme.badgeText, theme.badgeTeText)}
+                    <span className="flex shrink-0 items-center gap-1">
+                      <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${theme.badgeBg}`}>
+                        {t(theme.badgeText, theme.badgeTeText)}
+                      </span>
+                      {card.key === 'reanalysis' && (
+                        <span className="whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-800 ring-1 ring-amber-300/80 dark:bg-amber-950/60 dark:text-amber-300 dark:ring-amber-700/60">
+                          {t('Under Development', 'అభివృద్ధిలో ఉన్నది')}
+                        </span>
+                      )}
                     </span>
                   </div>
                   <p className="mt-1 line-clamp-1 text-xs font-medium leading-snug text-slate-500 dark:text-slate-400">
@@ -680,6 +716,12 @@ export function InspectionEnforcementHub() {
             </div>
           </section>
         </div>
+      )}
+
+      {showReanalysis && (
+        <Suspense fallback={<LazySubLoader />}>
+          <FertilizerReanalysis onClose={() => setShowReanalysis(false)} />
+        </Suspense>
       )}
     </div>
   );

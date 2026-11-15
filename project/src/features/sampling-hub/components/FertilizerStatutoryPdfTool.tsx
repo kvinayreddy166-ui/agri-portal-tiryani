@@ -43,7 +43,6 @@ import { useSampleTargets } from '../../../shared/hooks/useSampleTargets';
 import { SampleTargetSelect } from '../../../shared/components/SampleTargetSelect';
 import type { Dealer } from '../../../shared/types/database';
 
-
 type FieldConfig = {
   key: keyof FertilizerPdfValues;
   label: string;
