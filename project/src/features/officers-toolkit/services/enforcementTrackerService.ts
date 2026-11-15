@@ -91,6 +91,8 @@ export interface SamplePipelineItem {
   daysInStage: number;
   labReportRef?: string | null;
   failureFinding?: string | null;
+  mandal?: string;
+  district?: string;
 }
 
 export function getStatutoryNonComplianceInfo(commodity: StatutoryCommodity) {
@@ -683,12 +685,17 @@ export class EnforcementTrackerService {
           failureFinding = s.commodity === 'pesticide' ? 'Misbranded' : s.commodity === 'fertilizer' ? 'Not according to Specifications' : 'Substandard';
         }
       }
+      const json = (s.covering_letter_json ?? {}) as Record<string, unknown>;
+      const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+      const loc = (...keys: string[]) => keys.map((k) => str(json[k])).find(Boolean);
+      const rawDistrict = loc('district', 'manualDistrict');
+      const rawMandal = loc('mandal', 'manualMandal', 'placeOfCollectionMandal', 'manualPlaceOfCollection', 'placeOfCollection');
       return {
         id: s.id,
         sampleCode: s.sample_code,
         dealerName: s.firm_name,
         commodity: s.commodity,
-        productLabel: pipelineProductLabel(s.commodity, (s.covering_letter_json ?? {}) as Record<string, unknown>),
+        productLabel: pipelineProductLabel(s.commodity, json),
         labStatus: s.lab_status,
         sampledDate: s.date_of_sampling,
         dispatchedAt: s.dispatched_at,
@@ -696,6 +703,8 @@ export class EnforcementTrackerService {
         daysInStage: daysBetween(stageAnchor(s)),
         labReportRef: s.lab_report_ref,
         failureFinding,
+        mandal: rawMandal === 'Others' ? loc('manualMandal', 'manualPlaceOfCollection') ?? rawMandal : rawMandal,
+        district: rawDistrict === 'Others' ? loc('manualDistrict') ?? rawDistrict : rawDistrict,
       };
     });
   }

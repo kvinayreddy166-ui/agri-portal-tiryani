@@ -9,7 +9,6 @@ import { HelmetProvider } from 'react-helmet-async';
 import { SEO, OrganizationSchema } from '../shared/components/seo/SEO';
 
 const OfflineScreen = lazy(() => import('../shared/components/ui/OfflineScreen').then((m) => ({ default: m.OfflineScreen })));
-const UpdateBanner = lazy(() => import('../shared/components/UpdateBanner').then((m) => ({ default: m.UpdateBanner })));
 import {
   ALWAYS_LIGHT_PATHS,
   PUBLIC_AUTH_ROUTES,
@@ -315,7 +314,6 @@ function App() {
               <OrganizationSchema />
               <Suspense fallback={null}>
                 <OfflineScreen />
-                <UpdateBanner />
               </Suspense>
               <GlobalMobileDatePickerProvider />
               <AppContent />

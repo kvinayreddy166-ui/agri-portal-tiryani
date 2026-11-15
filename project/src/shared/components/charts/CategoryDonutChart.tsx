@@ -45,6 +45,7 @@ export const CategoryDonutChart = React.memo(function CategoryDonutChart({
               paddingAngle={3}
               cornerRadius={6}
               strokeWidth={0}
+              isAnimationActive={false}
             >
               {chartData.map((entry) => (
                 <Cell key={entry.name} fill={entry.fill} />

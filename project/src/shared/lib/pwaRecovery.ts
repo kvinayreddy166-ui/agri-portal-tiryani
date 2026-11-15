@@ -138,8 +138,9 @@ async function syncServiceWorker() {
 
 /**
  * Owns the app's service-worker lifecycle: dev cleanup, production sync, the
- * controllerchange reload, and update detection (which notifies UpdateBanner
- * via 'serviceWorkerUpdateAvailable' — activation stays user-approved).
+ * controllerchange reload, and update checks. There is no update banner —
+ * a waiting worker is activated automatically on page load/refresh, and
+ * periodic checks only download new versions in the background.
  */
 export function initServiceWorkerLifecycle() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
@@ -167,7 +168,7 @@ export function initServiceWorkerLifecycle() {
 
   window.addEventListener('load', () => {
     void syncServiceWorker();
-    void checkForUpdates();
+    void applyUpdateOnRefresh();
   });
 
   // Listen for service worker controller change - reload after new SW activates
@@ -179,48 +180,68 @@ export function initServiceWorkerLifecycle() {
     window.location.reload();
   });
 
-  const notifyUpdateAvailable = () => {
-    window.dispatchEvent(new CustomEvent('serviceWorkerUpdateAvailable', {
-      detail: { version: 'waiting' }
-    }));
+  const waitForWaitingWorker = (registration: ServiceWorkerRegistration, timeoutMs = 10000) => {
+    return new Promise<ServiceWorker | null>((resolve) => {
+      if (registration.waiting) return resolve(registration.waiting);
+
+      let settled = false;
+      const finish = (worker: ServiceWorker | null) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        registration.removeEventListener('updatefound', onUpdateFound);
+        resolve(worker);
+      };
+      const onStateChange = (event: Event) => {
+        if ((event.target as ServiceWorker).state === 'installed') finish(registration.waiting);
+      };
+      const onUpdateFound = () => {
+        registration.installing?.addEventListener('statechange', onStateChange);
+      };
+      const timer = window.setTimeout(() => finish(registration.waiting), timeoutMs);
+
+      registration.addEventListener('updatefound', onUpdateFound);
+      if (registration.installing) onUpdateFound();
+    });
   };
 
-  const watchRegistrationForUpdates = (registration: ServiceWorkerRegistration) => {
-    const watchInstalling = () => {
-      const worker = registration.installing;
-      if (!worker) return;
-      worker.addEventListener('statechange', () => {
-        // A finished install while a controller exists = new version waiting
-        // for explicit user approval.
-        if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-          notifyUpdateAvailable();
-        }
-      });
-    };
-    registration.addEventListener('updatefound', watchInstalling);
-    if (registration.installing) watchInstalling();
-    if (registration.waiting && navigator.serviceWorker.controller) {
-      notifyUpdateAvailable();
+  // On refresh: activate any waiting worker so the reload picks up the new
+  // version. controllerchange reloads the page once it takes control.
+  let updateApplyStarted = false;
+  const applyUpdateOnRefresh = async () => {
+    if (updateApplyStarted) return;
+    updateApplyStarted = true;
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) return;
+
+      let worker = registration.waiting;
+      if (!worker) {
+        try { await registration.update(); } catch {}
+        worker = await waitForWaitingWorker(registration, 10000);
+      }
+      worker?.postMessage({ type: 'SKIP_WAITING' });
+    } catch (error) {
+      if (import.meta.env.DEV) console.warn('[PWA] Update check failed:', error);
     }
   };
 
-  // Check for updates: update() only downloads and installs a newer service
-  // worker — it still waits for explicit user approval before activating.
+  // Periodically check for updates (every 5 minutes) - downloads new versions
+  // in the background; they activate on the next refresh.
   const checkForUpdates = async () => {
     try {
       const registration = await navigator.serviceWorker.getRegistration();
       if (!registration) return;
-      watchRegistrationForUpdates(registration);
       try { await registration.update(); } catch {}
-      if (registration.waiting && navigator.serviceWorker.controller) {
-        notifyUpdateAvailable();
-      }
     } catch (error) {
       if (import.meta.env.DEV) console.warn('[PWA] Service worker check failed:', error);
     }
   };
 
-  void checkForUpdates();
+  // Check once shortly after load in case the SW was still installing
+  window.setTimeout(() => {
+    void applyUpdateOnRefresh();
+  }, 3000);
 
   // Periodically check for updates (every 5 minutes) - detection only, no activation
   setInterval(() => {

@@ -1489,10 +1489,6 @@ export function OfficerRecordsHub() {
                           {doc.document_category}
                         </span>
 
-                        <span className="inline-flex items-center uppercase rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-mono font-bold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-                          {doc.file_format}
-                        </span>
-
                         <SampleDocumentBadges doc={doc} t={t} />
 
                         {renderUploadStatusBadge(doc.upload_status)}
@@ -1697,9 +1693,6 @@ export function OfficerRecordsHub() {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="inline-flex items-center uppercase rounded-lg bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
                           {doc.document_category}
-                        </span>
-                        <span className="inline-flex items-center uppercase rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-mono font-bold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-                          {doc.file_format}
                         </span>
                         <SampleDocumentBadges doc={doc} t={t} />
                       </div>

@@ -538,7 +538,8 @@ export function getPesticidePdfFileName(formType: PesticideStatutoryFormType, va
 }
 
 export function getAllPesticidePdfFileName(values: PesticidePdfValues) {
-  return `${getSampleFilePart(values)}_FormVC_FormVD_FormVE_Docket.pdf`;
+  const date = (formatDate(values.sampleDrawnDate) || 'Date').replace(/\//g, '-');
+  return `Pesticide_Form_ALL_${getSampleFilePart(values)}_${date}.pdf`;
 }
 
 function createDocument(

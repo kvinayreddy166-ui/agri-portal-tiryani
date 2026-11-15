@@ -4,7 +4,7 @@ import { localTodayDate } from '../../../shared/utils/dateUtils';
 // Enable by running the app locally (npm run dev).
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Eye, FlaskConical, RotateCcw, Save, FileText, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { Eye, FlaskConical, RotateCcw, Save, FileText, ChevronDown, ChevronUp, HelpCircle, UserCheck, Store, ClipboardList, Mail } from 'lucide-react';
 import {
   FertilizerPdfValues,
   FertilizerStatutoryFormType,
@@ -36,7 +36,7 @@ import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLette
 const showCoveringLetter = true;
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { upsertCoveringLetterSample } from '../services/coveringLetterQueue';
-import { missingRequiredFieldRefs, requiredFieldsErrorMessage, revealFirstMissingField } from '../lib/statutoryRequiredFields';
+import { validateAllModuleFields } from '../lib/statutoryRequiredFields';
 import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
 import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
 import { useSampleTargets } from '../../../shared/hooks/useSampleTargets';
@@ -572,7 +572,7 @@ const fertilizerFieldSections: SectionConfig[] = [
       { key: 'manualMandal', label: 'ENTER MANDAL NAME', placeholder: 'Enter mandal name', condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
       { key: 'placeOfCollectionMandal', label: 'PLACE OF COLLECTION (MANDAL)', type: 'select', options: [], condition: (values) => isAssistantDirectorOfAgriculture(values.designation) },
       { key: 'manualPlaceOfCollection', label: 'ENTER PLACE OF COLLECTION / MANDAL NAME', placeholder: 'Enter place of collection / mandal name', condition: (values) => isAssistantDirectorOfAgriculture(values.designation) && values.placeOfCollectionMandal === 'Others' },
-      { key: 'pinCode', label: 'PIN CODE', placeholder: 'Enter PIN Code (optional)' },
+      { key: 'pinCode', label: 'PIN CODE', placeholder: 'Enter PIN Code' },
       { key: 'placeOfCollection', label: 'PLACE OF COLLECTION', condition: (values) => !isAssistantDirectorOfAgriculture(values.designation) },
       { key: 'date', label: 'DATE', type: 'date' },
     ],
@@ -594,7 +594,7 @@ const fertilizerFieldSections: SectionConfig[] = [
       { key: 'manualDealerManufacturerImporterName', label: 'ENTER DEALER/MANUFACTURER/IMPORTER NAME', placeholder: 'Enter dealer/manufacturer/importer name' },
       { key: 'batchDetails', label: 'BATCH NO. AND DATE OF MANUFACTURE/IMPORT' },
       { key: 'stockReceiptDate', label: 'DATE OF RECEIPT OF STOCK', type: 'date' },
-      { key: 'wholesalerSource', label: 'WHOLESALER/ SOURCE', type: 'textarea', placeholder: 'Enter wholesaler/source name (Optional)' },
+      { key: 'wholesalerSource', label: 'WHOLESALER/ SOURCE', type: 'textarea', placeholder: 'Enter wholesaler/source name' },
       { key: 'stockPosition', label: 'STOCK POSITION OF LOT', placeholder: 'Eg: 50 Bags @ 50 Kgs' },
       { key: 'physicalCondition', label: 'PHYSICAL CONDITION OF SAMPLE', type: 'select', options: physicalConditionOptions },
       { key: 'bagSource', label: 'SAMPLES DRAWN FROM OPEN BAGS / STITCHED BAGS / BULK', type: 'select', options: bagSourceOptions },
@@ -735,6 +735,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   const [message, setMessage] = useState<string | null>(null);
   const [placeOfCollectionMandals, setPlaceOfCollectionMandals] = useState<string[]>([]);
   const isSavingDraft = useRef(false);
+  const formScrollRef = useRef<HTMLDivElement>(null);
   const [savedDrafts, setSavedDrafts] = useState<SavedFertilizerDraft[]>(() => {
     try {
       return loadFertilizerDrafts(draftsKey);
@@ -775,20 +776,13 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
     };
   }, [values]);
 
-  const getMissingRequiredFieldRefs = () => {
-    const nameGradeFocusKey = documentValues.fertilizerCategory === 'Micro Nutrient Fertilizers'
-      ? (documentValues.microNutrientTypeGrade === 'Other' ? 'manualMicroNutrientTypeGrade' : 'microNutrientTypeGrade')
-      : documentValues.fertilizerCategory === 'Water Soluble Fertilizers'
-        ? (documentValues.waterSolubleTypeGrade === 'Other' ? 'manualWaterSolubleTypeGrade' : 'waterSolubleTypeGrade')
-        : (documentValues.fertilizerTypeGrade === 'Other' ? 'manualFertilizerTypeGrade' : 'fertilizerTypeGrade');
-    return missingRequiredFieldRefs([
-      { label: 'CODE NO. OF SAMPLE', value: documentValues.sampleCode || documentValues.codeNumber, focusKey: 'sampleCode' },
-      { label: 'NAME AND GRADE OF FERTILIZER', value: (resolveFertilizerTypeGrade(documentValues) || documentValues.nameGrade || '').trim(), focusKey: nameGradeFocusKey },
-      { label: 'DEALER / PARTY NAME', value: documentValues.dealerName, focusKey: 'dealerName' },
-    ]);
+  const validateAllFieldsFilled = (action: string) => {
+    const empty = validateAllModuleFields(formScrollRef.current ?? document);
+    if (!empty.length) return true;
+    const names = empty.slice(0, 8).map((f) => f.label);
+    setMessage(`Please fill all fields before ${action}. Empty: ${names.join(', ')}${empty.length > 8 ? ` and ${empty.length - 8} more` : ''}.`);
+    return false;
   };
-
-  const getMissingRequiredFields = () => getMissingRequiredFieldRefs().map((ref) => ref.label);
 
   // Error boundary for rendering
   if (error) {
@@ -1318,13 +1312,6 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       return;
     }
 
-    const missingFields = getMissingRequiredFields();
-    if (missingFields.length) {
-      setMessage(requiredFieldsErrorMessage(missingFields));
-      revealFirstMissingField(getMissingRequiredFieldRefs());
-      return;
-    }
-
     setBusyAction('download');
     setPreviewError(null);
     try {
@@ -1374,12 +1361,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
       return;
     }
 
-    const missingFields = getMissingRequiredFields();
-    if (missingFields.length) {
-      setMessage(requiredFieldsErrorMessage(missingFields));
-      revealFirstMissingField(getMissingRequiredFieldRefs());
-      return;
-    }
+    if (!validateAllFieldsFilled('downloading')) return;
 
     setBusyAction('downloadAll');
     setPreviewError(null);
@@ -1411,11 +1393,8 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
   };
 
   const handleDownloadAllConfirm = async () => {
-    const missingFields = getMissingRequiredFields();
-    if (missingFields.length) {
+    if (!validateAllFieldsFilled('downloading')) {
       setShowDownloadAllDialog(false);
-      setMessage(requiredFieldsErrorMessage(missingFields));
-      revealFirstMissingField(getMissingRequiredFieldRefs());
       return;
     }
 
@@ -1616,7 +1595,7 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
             </div>
           </header>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
+          <div ref={formScrollRef} className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
             <div className="mb-2 flex justify-end gap-1">
               <button
                 type="button"
@@ -2294,8 +2273,26 @@ function buildDealerNameAddress(values: FertilizerPdfValues) {
   return addressParts.join('\n');
 }
 
+const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  'INSPECTOR DETAILS': UserCheck,
+  'SAMPLE DETAILS': ClipboardList,
+  'COMPOSITION': FlaskConical,
+  'DEALER DETAILS': Store,
+  'COVERING LETTER DETAILS': Mail,
+};
+
+const SECTION_ICON_CHIP: Record<string, string> = {
+  emerald: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300',
+  blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300',
+  amber: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300',
+  maroon: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300',
+  slate: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
+  purple: 'bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300',
+};
+
 function FieldSection({ title, children, color = 'slate', onReset, isCollapsible = false, subtitle, isCollapsed, onToggle }: { title: string; children: React.ReactNode; color?: 'emerald' | 'blue' | 'amber' | 'maroon' | 'slate' | 'purple'; onReset?: () => void; isCollapsible?: boolean; subtitle?: string; isCollapsed?: boolean; onToggle?: () => void }) {
   const isCoveringLetter = title === 'COVERING LETTER DETAILS';
+  const SectionIcon = SECTION_ICONS[title];
   
   const dividerStyles = {
     emerald: 'border-emerald-200 dark:border-emerald-800/60',
@@ -2351,6 +2348,11 @@ function FieldSection({ title, children, color = 'slate', onReset, isCollapsible
                   <ChevronIcon className="h-3.5 w-3.5" />
                 </button>
               )}
+              {SectionIcon && (
+                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${SECTION_ICON_CHIP[color]}`}>
+                  <SectionIcon className="h-3.5 w-3.5" />
+                </span>
+              )}
               <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
             </div>
             {subtitle && <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>}
@@ -2385,6 +2387,11 @@ function FieldSection({ title, children, color = 'slate', onReset, isCollapsible
               >
                 <ChevronIcon className="h-3.5 w-3.5" />
               </button>
+            )}
+            {SectionIcon && (
+              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${SECTION_ICON_CHIP[color]}`}>
+                <SectionIcon className="h-3.5 w-3.5" />
+              </span>
             )}
             <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
           </div>

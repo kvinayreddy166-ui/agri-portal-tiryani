@@ -2,7 +2,12 @@ import { safeStorage } from './safeStorage';
 
 const PINNED_KEY = 'agronix-pinned-modules';
 const RECENT_KEY = 'agronix-recent-modules';
+const UNPINNED_DEFAULTS_KEY = 'agronix-unpinned-default-modules';
 const MAX_RECENTS = 8;
+
+// Modules pinned by default in the All Modules directory. Users can still
+// unpin them — the dismissal is remembered separately so defaults don't return.
+const DEFAULT_PINNED_MODULES = ['officer-records'];
 
 function readIdList(key: string): string[] {
   try {
@@ -18,14 +23,26 @@ function writeIdList(key: string, ids: string[]) {
 }
 
 export function getPinnedModules(): string[] {
-  return readIdList(PINNED_KEY);
+  const dismissed = readIdList(UNPINNED_DEFAULTS_KEY);
+  const defaults = DEFAULT_PINNED_MODULES.filter((id) => !dismissed.includes(id));
+  return [...new Set([...defaults, ...readIdList(PINNED_KEY)])];
 }
 
 export function togglePinnedModule(id: string): string[] {
-  const pinned = getPinnedModules();
-  const next = pinned.includes(id) ? pinned.filter((p) => p !== id) : [...pinned, id];
-  writeIdList(PINNED_KEY, next);
-  return next;
+  const stored = readIdList(PINNED_KEY);
+  const dismissed = readIdList(UNPINNED_DEFAULTS_KEY);
+  const isPinned = getPinnedModules().includes(id);
+
+  if (isPinned) {
+    writeIdList(PINNED_KEY, stored.filter((p) => p !== id));
+    if (DEFAULT_PINNED_MODULES.includes(id) && !dismissed.includes(id)) {
+      writeIdList(UNPINNED_DEFAULTS_KEY, [...dismissed, id]);
+    }
+  } else {
+    writeIdList(PINNED_KEY, [...stored, id]);
+    writeIdList(UNPINNED_DEFAULTS_KEY, dismissed.filter((d) => d !== id));
+  }
+  return getPinnedModules();
 }
 
 export function getRecentModules(): string[] {

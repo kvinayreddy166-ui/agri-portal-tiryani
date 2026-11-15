@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Briefcase, CalendarClock, FlaskConical, Scale, Search, X } from 'lucide-react';
+import { AlertTriangle, BadgeCheck, Briefcase, CalendarClock, FlaskConical, MapPin, Phone, Scale, Search, X } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
+import { supabase } from '../../../shared/lib/supabase';
+import type { Dealer } from '../../../shared/types/database';
 import {
   EnforcementTrackerService,
   normalizeDealerName,
@@ -61,6 +63,42 @@ export function DealerProfileDrawer({ dealerName, data, onClose }: DealerProfile
     return { inspections, orders, samples, cases, scorecard };
   }, [data, key]);
 
+  const [dealerRecord, setDealerRecord] = useState<Dealer | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setDealerRecord(null);
+    const pattern = dealerName.replace(/[%_]/g, '').trim();
+    if (!pattern) return;
+    void (async () => {
+      try {
+        const { data: rows } = await supabase
+          .from('dealers')
+          .select('dealer_name, license_number, location, district, mandal, phone_number, dealer_category, ifms_id')
+          .ilike('dealer_name', `%${pattern}%`)
+          .limit(20);
+        if (cancelled) return;
+        const list = (rows ?? []) as Dealer[];
+        const exact = list.find((d) => normalizeDealerName(d.dealer_name) === key);
+        setDealerRecord(exact ?? list[0] ?? null);
+      } catch {
+        // dealer directory unavailable — fall back to record-derived details
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [dealerName, key]);
+
+  const licenseNo =
+    dealerRecord?.license_number ||
+    profile.inspections.find((i) => i.license_number)?.license_number ||
+    '';
+  const addressLine = [
+    dealerRecord?.location,
+    [dealerRecord?.mandal, dealerRecord?.district].filter(Boolean).join(', '),
+  ]
+    .filter((part) => part && String(part).trim())
+    .join(' · ');
+
   // Cases group the raw records below — counting them here would double-count
   // the same activity (a sample appears once as a sample and once via its case).
   const totalRecords =
@@ -90,6 +128,30 @@ export function DealerProfileDrawer({ dealerName, data, onClose }: DealerProfile
                 </>
               )}
             </p>
+            {(licenseNo || addressLine || dealerRecord?.phone_number) && (
+              <div className="mt-3 space-y-1.5 rounded-xl border border-slate-200 bg-slate-50/70 p-3 text-[11px] dark:border-slate-800 dark:bg-slate-800/40">
+                {licenseNo && (
+                  <p className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-200">
+                    <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                    <span className="min-w-0 truncate">
+                      {t('License / Authorization No.', 'లైసెన్స్ / అథారిటీ నం.')}: {licenseNo}
+                    </span>
+                  </p>
+                )}
+                {addressLine && (
+                  <p className="flex items-start gap-1.5 font-semibold text-slate-500 dark:text-slate-400">
+                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500" />
+                    <span className="min-w-0">{addressLine}</span>
+                  </p>
+                )}
+                {dealerRecord?.phone_number && (
+                  <p className="flex items-center gap-1.5 font-semibold text-slate-500 dark:text-slate-400">
+                    <Phone className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500" />
+                    <span className="min-w-0">{dealerRecord.phone_number}</span>
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           <button
             type="button"
@@ -105,16 +167,17 @@ export function DealerProfileDrawer({ dealerName, data, onClose }: DealerProfile
         <div className="flex-1 space-y-5 overflow-y-auto p-5">
           {/* Scorecard strip */}
           {profile.scorecard && (
-            <div className="grid grid-cols-4 gap-1.5 text-center text-[10px] font-bold">
+            <div className="flex divide-x divide-slate-100 overflow-hidden rounded-xl bg-slate-50/80 ring-1 ring-slate-100 dark:divide-slate-800 dark:bg-slate-800/40 dark:ring-slate-800">
               {[
-                { label: t('Inspections', 'తనిఖీలు'), value: profile.scorecard.inspections },
-                { label: t('Orders', 'ఆర్డర్లు'), value: profile.scorecard.orders },
-                { label: t('Show Cause', 'షో కారణం'), value: profile.scorecard.showCause },
-                { label: t('Seizures', 'సీజర్లు'), value: profile.scorecard.seizures },
+                { label: t('Inspections', 'తనిఖీలు'), value: profile.scorecard.inspections, cls: 'text-sky-600 dark:text-sky-400' },
+                { label: t('Stop Sale', 'స్టాప్ సేల్'), value: profile.scorecard.stopSale, cls: 'text-orange-600 dark:text-orange-400' },
+                { label: t('Show Cause', 'షో కారణం'), value: profile.scorecard.showCause, cls: 'text-amber-600 dark:text-amber-400' },
+                { label: t('Seizures', 'సీజర్లు'), value: profile.scorecard.seizures, cls: 'text-red-600 dark:text-red-400' },
+                { label: t('Samples', 'నమూనాలు'), value: profile.scorecard.samplesTotal, cls: profile.scorecard.samplesFailed > 0 ? 'text-red-600 dark:text-red-400' : 'text-violet-600 dark:text-violet-400' },
               ].map((m) => (
-                <div key={m.label} className="rounded-lg bg-slate-50 px-1 py-1.5 dark:bg-slate-800/60">
-                  <p className="text-sm font-black text-slate-800 dark:text-slate-100">{m.value}</p>
-                  <p className="text-slate-400">{m.label}</p>
+                <div key={m.label} className="min-w-0 flex-1 px-1.5 py-2 text-center">
+                  <p className={`text-base font-black leading-none ${m.cls}`}>{m.value}</p>
+                  <p className="mt-1 truncate text-[9px] font-black uppercase tracking-wide text-slate-400 dark:text-slate-500">{m.label}</p>
                 </div>
               ))}
             </div>

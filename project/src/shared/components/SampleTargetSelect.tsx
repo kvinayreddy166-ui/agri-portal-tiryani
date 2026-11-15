@@ -49,7 +49,7 @@ export function SampleTargetSelect({ targets, onPick, label = 'Select sample cod
           ))}
         </select>
       </label>
-      <label className="block">
+      <label className="block" data-validate-skip>
         <span className="mb-1 block text-[11px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
           {label}
         </span>

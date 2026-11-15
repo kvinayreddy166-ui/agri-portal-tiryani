@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Ban, Bell, BellOff, CalendarClock, Check, FlaskConical, Loader2, PackageX, Send, ShieldCheck, X } from 'lucide-react';
+import { AlertTriangle, Ban, Bell, BellOff, Check, ClipboardCheck, FlaskConical, Loader2, PackageX, Send, ShieldAlert, ShieldCheck, X } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { safeStorage } from '../../../shared/lib/safeStorage';
@@ -103,9 +103,11 @@ export function OfficerEnforcementStrip() {
     const highRiskDealers = EnforcementTrackerService.buildDealerScorecards(data).filter(
       (s) => s.riskLevel === 'HIGH' || s.riskLevel === 'CRITICAL'
     ).length;
-    const stopSaleOrders = data.orders.filter((o) => o.order_type === 'stop_sale').length;
+    const stopSaleOrders = data.orders.filter((o) => o.order_type === 'stop_sale' || o.order_type === 'revocation').length;
     const seizureOrders = data.orders.filter((o) => o.order_type === 'seizure').length;
-    return { urgentDeadlines: pendingDeadlines.length, urgentCount, activeSamples, highRiskDealers, stopSaleOrders, seizureOrders };
+    const scnOrders = data.orders.filter((o) => o.order_type === 'show_cause').length;
+    const inspections = data.inspections.length;
+    return { urgentDeadlines: pendingDeadlines.length, urgentCount, activeSamples, highRiskDealers, stopSaleOrders, seizureOrders, scnOrders, inspections };
   }, [data]);
 
   // Fire a once-per-day browser notification for urgent deadlines
@@ -155,11 +157,13 @@ export function OfficerEnforcementStrip() {
       'AGRONIX — Enforcement Summary',
       `Date: ${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`,
       `Officer: ${officerLabel}`,
+      `Inspections: ${stats.inspections}`,
       `Deadlines due: ${stats.urgentDeadlines}${stats.urgentCount > 0 ? ` (${stats.urgentCount} urgent)` : ''}`,
       `Active samples: ${stats.activeSamples}`,
       `High-risk dealers: ${stats.highRiskDealers}`,
       `Stop-sale orders: ${stats.stopSaleOrders}`,
       `Seizure orders: ${stats.seizureOrders}`,
+      `SCN / memos: ${stats.scnOrders}`,
     ].join('\n');
     try {
       await sendTelegramMessage(text);
@@ -266,15 +270,24 @@ export function OfficerEnforcementStrip() {
           {t('Could not load enforcement summary.', 'అమలు సారాంశం లోడ్ కాలేదు.')}
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
           {[
             {
-              to: '/officer-toolkit/enforcement-tracker?tab=deadlines',
-              icon: CalendarClock,
-              value: stats.urgentDeadlines,
+              to: '/officer-toolkit/enforcement-tracker?tab=inspections',
+              icon: ClipboardCheck,
+              value: stats.inspections,
+              sub: t('Inspections', 'తనిఖీలు'),
+              iconCls: 'text-teal-500',
+              numCls: 'text-teal-700 dark:text-teal-300',
+              hoverCls: 'hover:border-teal-300 dark:hover:border-teal-700',
+            },
+            {
+              to: '/officer-toolkit/enforcement-tracker?tab=scn',
+              icon: ShieldAlert,
+              value: stats.scnOrders,
               sub: stats.urgentCount > 0
                 ? `${stats.urgentCount} ${t('urgent', 'అత్యవసరం')}`
-                : t('Deadlines due', 'గడువులు'),
+                : t('SCN / Memos', 'షోకాజ్ నోటీసులు'),
               iconCls: 'text-red-500',
               numCls: 'text-red-700 dark:text-red-300',
               hoverCls: 'hover:border-red-300 dark:hover:border-red-700',
@@ -298,7 +311,7 @@ export function OfficerEnforcementStrip() {
               hoverCls: 'hover:border-amber-300 dark:hover:border-amber-700',
             },
             {
-              to: '/officer-toolkit/enforcement-tracker?tab=scorecards',
+              to: '/officer-toolkit/enforcement-tracker?tab=stop_sale',
               icon: Ban,
               value: stats.stopSaleOrders,
               sub: t('Stop sale orders', 'స్టాప్ సేల్ ఆర్డర్లు'),
@@ -307,7 +320,7 @@ export function OfficerEnforcementStrip() {
               hoverCls: 'hover:border-violet-300 dark:hover:border-violet-700',
             },
             {
-              to: '/officer-toolkit/enforcement-tracker?tab=scorecards',
+              to: '/officer-toolkit/enforcement-tracker?tab=seizure',
               icon: PackageX,
               value: stats.seizureOrders,
               sub: t('Seizure orders', 'జబ్తు ఆర్డర్లు'),

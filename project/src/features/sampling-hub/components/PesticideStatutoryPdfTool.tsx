@@ -1,6 +1,6 @@
 import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bug, Eye, FileText, HelpCircle, RotateCcw, Save } from 'lucide-react';
+import { Bug, Eye, FileText, HelpCircle, RotateCcw, Save, UserCheck, Store, Package, Factory } from 'lucide-react';
 import { PesticideCoveringLetterModal } from './PesticideCoveringLetterModal';
 import { PesticideInstructionModal } from '../../../shared/components/ui/PesticideInstructionModal';
 import {
@@ -34,7 +34,7 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { upsertCoveringLetterSample } from '../services/coveringLetterQueue';
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
-import { missingRequiredFieldRefs, requiredFieldsErrorMessage, revealFirstMissingField } from '../lib/statutoryRequiredFields';
+import { validateAllModuleFields } from '../lib/statutoryRequiredFields';
 import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
 import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
 import { useSampleTargets } from '../../../shared/hooks/useSampleTargets';
@@ -311,6 +311,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     setPdfPreview(null);
   };
   const isSavingDraft = useRef(false);
+  const formScrollRef = useRef<HTMLDivElement>(null);
   const [savedDrafts, setSavedDrafts] = useState<SavedPesticideDraft[]>(() => loadDrafts(draftsKey));
 
   useEffect(() => {
@@ -333,19 +334,13 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     return { ...values, district, manualDistrict: '', division, manualDivision: division, sampleDrawingMandal: placeOfCollection, manualPlaceOfCollection: '', mandal: division, manualMandal: '', place: placeOfCollection || values.place, premisesLocation: placeOfCollection || values.premisesLocation };
   }, [values]);
 
-  const getMissingRequiredFieldRefs = () => {
-    const formulationType = values.formulationType === 'Others' ? values.manualFormulationType : values.formulationType;
-    return missingRequiredFieldRefs([
-      { label: 'C & DA CODE', value: values.cdaCode || values.sampleSerialNumber, focusKey: 'cdaCode' },
-      { label: 'TRADE NAME', value: values.tradeName, focusKey: 'tradeName' },
-      { label: 'TECHNICAL NAME', value: values.technicalName, focusKey: 'technicalName' },
-      { label: 'ACTIVE INGREDIENT', value: values.activeIngredient, focusKey: 'activeIngredient' },
-      { label: 'FORMULATION TYPE', value: formulationType, focusKey: values.formulationType === 'Others' ? 'manualFormulationType' : 'formulationType' },
-      { label: 'DEALER / LICENSEE NAME', value: values.dealerName, focusKey: 'dealerName' },
-    ]);
+  const validateAllFieldsFilled = (action: string) => {
+    const empty = validateAllModuleFields(formScrollRef.current ?? document);
+    if (!empty.length) return true;
+    const names = empty.slice(0, 8).map((f) => f.label);
+    setMessage(`Please fill all fields before ${action}. Empty: ${names.join(', ')}${empty.length > 8 ? ` and ${empty.length - 8} more` : ''}.`);
+    return false;
   };
-
-  const getMissingRequiredFields = () => getMissingRequiredFieldRefs().map((ref) => ref.label);
 
   // Fetch mandals for Place of Collection when ADA and district changes (for ADA, load based on District like MAO)
   useEffect(() => {
@@ -718,13 +713,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       return;
     }
 
-    const missingFields = getMissingRequiredFields();
-    if (missingFields.length) {
-      setMessage(requiredFieldsErrorMessage(missingFields));
-      revealFirstMissingField(getMissingRequiredFieldRefs());
-      return;
-    }
-
     setBusy(true);
     try {
       const doc = await generatePesticideStatutoryPdf(formType, documentValues, watermarkEnabled);
@@ -822,12 +810,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
       return;
     }
 
-    const missingFields = getMissingRequiredFields();
-    if (missingFields.length) {
-      setMessage(requiredFieldsErrorMessage(missingFields));
-      revealFirstMissingField(getMissingRequiredFieldRefs());
-      return;
-    }
+    if (!validateAllFieldsFilled('downloading')) return;
 
     setBusy(true);
     try {
@@ -858,11 +841,8 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   };
 
   const handleDownloadAllConfirm = async () => {
-    const missingFields = getMissingRequiredFields();
-    if (missingFields.length) {
+    if (!validateAllFieldsFilled('downloading')) {
       setShowDownloadAllDialog(false);
-      setMessage(requiredFieldsErrorMessage(missingFields));
-      revealFirstMissingField(getMissingRequiredFieldRefs());
       return;
     }
 
@@ -951,7 +931,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
+        <div ref={formScrollRef} className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-3">
             <div className="mb-2 flex justify-end gap-1">
               <button
                 type="button"
@@ -1338,7 +1318,23 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
   );
 }
 
+const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  'INSPECTOR DETAILS': UserCheck,
+  'PRODUCT DETAILS': Package,
+  'MANUFACTURER DETAILS': Factory,
+  'DEALER DETAILS': Store,
+};
+
+const SECTION_ICON_CHIP: Record<string, string> = {
+  emerald: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300',
+  blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300',
+  amber: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300',
+  slate: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
+  purple: 'bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300',
+};
+
 function FieldSection({ title, children, color = 'slate', onReset }: { title: string; children: React.ReactNode; color?: 'emerald' | 'blue' | 'amber' | 'slate' | 'purple'; onReset?: () => void }) {
+  const SectionIcon = SECTION_ICONS[title];
   const dividerStyles = {
     emerald: 'border-emerald-200 dark:border-emerald-800/60',
     blue: 'border-blue-200 dark:border-blue-800/60',
@@ -1374,7 +1370,14 @@ function FieldSection({ title, children, color = 'slate', onReset }: { title: st
   return (
     <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm dark:bg-slate-900`}>
       <div className={`flex items-center justify-between mb-2.5 pb-2 border-b ${dividerStyles[color]}`}>
-        <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
+        <div className="flex items-center gap-2">
+          {SectionIcon && (
+            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${SECTION_ICON_CHIP[color]}`}>
+              <SectionIcon className="h-3.5 w-3.5" />
+            </span>
+          )}
+          <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
+        </div>
         {onReset && (
           <button
             type="button"
@@ -1431,7 +1434,7 @@ function PdfInput({ field, value, onChange, options, values }: { field: FieldCon
   );
 
   return (
-    <div data-field-key={field.key} className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
+    <div data-field-key={field.key} data-validate-skip={field.key === 'otherInformation' ? '' : undefined} className={field.type === 'textarea' ? 'sm:col-span-2' : ''}>
       <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300">
         <span>{displayLabel}</span>
         {field.type === 'date' && value ? (

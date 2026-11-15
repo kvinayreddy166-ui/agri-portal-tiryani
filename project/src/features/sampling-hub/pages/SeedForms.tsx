@@ -1,6 +1,6 @@
 import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Eye, FileText, RotateCcw, Save } from 'lucide-react';
+import { Eye, FileText, RotateCcw, Save, UserCheck, Store, Microscope, Sprout } from 'lucide-react';
 import { SeedInstructionModal } from '../../../shared/components/ui/SeedInstructionModal';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
@@ -22,7 +22,7 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { getDefaultCoveringLetterFinancialYear } from '../hooks/useCoveringLetterMetadata';
 import { upsertCoveringLetterSample } from '../services/coveringLetterQueue';
-import { missingRequiredFields, requiredFieldsErrorMessage, revealField } from '../lib/statutoryRequiredFields';
+import { validateAllModuleFields } from '../lib/statutoryRequiredFields';
 import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
 import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
 import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
@@ -242,6 +242,15 @@ export function SeedForms({
   const [selectedDraftName, setSelectedDraftName] = useState('');
   const sampleDetailsRef = useRef(null);
   const dealerDetailsRef = useRef(null);
+  const formGridRef = useRef<HTMLDivElement>(null);
+
+  const validateAllFieldsFilled = (action: string) => {
+    const empty = validateAllModuleFields(formGridRef.current ?? document);
+    if (!empty.length) return true;
+    const names = empty.slice(0, 8).map((f) => f.label);
+    setMessage(`Please fill all fields before ${action}. Empty: ${names.join(', ')}${empty.length > 8 ? ` and ${empty.length - 8} more` : ''}.`);
+    return false;
+  };
   const { toasts, removeToast, showSuccess, showInfo, showSaved, showDeleted, showLoaded, showQueue, showReset } = useToast();
   const [confirmAction, setConfirmAction] = useState<{ title: string; message?: string; action: () => void } | null>(null);
   const { dealers: directoryDealers } = useDealers('seed');
@@ -478,12 +487,7 @@ export function SeedForms({
 
   const buildValidatedPdf = async (kind: any, { skipValidation = false }: { skipValidation?: boolean } = {}) => {
     if (!skipValidation) {
-      const error = validateSeedForm(form, kind);
-      if (error) {
-        setMessage(error);
-        revealSeedFormField(error);
-        return null;
-      }
+      if (!validateAllFieldsFilled('downloading')) return null;
     }
 
     try {
@@ -496,7 +500,7 @@ export function SeedForms({
   };
 
   const completeGenerate = async (kind: any) => {
-    const doc = await buildValidatedPdf(kind);
+    const doc = await buildValidatedPdf(kind, { skipValidation: kind !== 'ALL' });
     if (!doc) return;
     const metadata = {
       type: 'seed_statutory_form',
@@ -532,11 +536,8 @@ export function SeedForms({
   };
 
   const handleDownloadAllConfirm = async () => {
-    const validationError = validateSeedForm(form, 'ALL');
-    if (validationError) {
+    if (!validateAllFieldsFilled('downloading')) {
       setShowDownloadAllDialog(false);
-      setMessage(validationError);
-      revealSeedFormField(validationError);
       return;
     }
 
@@ -722,7 +723,7 @@ export function SeedForms({
         </div>
       )}
 
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div ref={formGridRef} className="grid gap-3 lg:grid-cols-2">
         <Card title="INSPECTOR DETAILS" color="emerald">
           <Input label="INSPECTOR NAME" value={form.officerName} onChange={(value: any) => setField('officerName', value)} />
           <Select label="Qualification" value={form.qualification} onChange={(value: any) => setField('qualification', value)} options={QUALIFICATION_OPTIONS} />
@@ -947,7 +948,23 @@ export function SeedForms({
   );
 }
 
+const SECTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  'INSPECTOR DETAILS': UserCheck,
+  'LABORATORY DETAILS': Microscope,
+  'SAMPLE DETAILS': Sprout,
+  'DEALER DETAILS': Store,
+};
+
+const SECTION_ICON_CHIP: Record<string, string> = {
+  emerald: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300',
+  blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300',
+  amber: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300',
+  maroon: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300',
+  slate: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
+};
+
 function Card({ title, children, color = 'slate', onReset }: any) {
+  const SectionIcon = SECTION_ICONS[title];
   const dividerStyles: Record<string, string> = {
     emerald: 'border-emerald-200 dark:border-emerald-800/60',
     blue: 'border-blue-200 dark:border-blue-800/60',
@@ -983,7 +1000,14 @@ function Card({ title, children, color = 'slate', onReset }: any) {
   return (
     <div className={`rounded-lg border ${colorStyles[color]} bg-white p-3 shadow-sm dark:bg-slate-900`}>
       <div className={`flex items-center justify-between mb-2.5 pb-2 border-b ${dividerStyles[color]}`}>
-        <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
+        <div className="flex items-center gap-2">
+          {SectionIcon && (
+            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${SECTION_ICON_CHIP[color]}`}>
+              <SectionIcon className="h-3.5 w-3.5" />
+            </span>
+          )}
+          <h3 className={`text-sm font-black ${headerColors[color]}`}>{title}</h3>
+        </div>
         {onReset && (
           <button
             type="button"
@@ -1147,48 +1171,6 @@ function resolveSeedValues(form: any) {
 
 function isCottonSeedForm(form: any) {
   return resolveSeedValues(form).crop === 'Cotton';
-}
-
-function validateSeedForm(form: any, _kind: any) {
-  // Validation for Assistant Director of Agriculture custom location fields
-  if (isAssistantDirectorOfAgriculture(form.designation)) {
-    if (form.district === 'Others' && !form.manualDistrict.trim()) return 'Please enter DISTRICT NAME.';
-    if (isAssistantDirectorOfAgricultureT(form.designation)) {
-      if (!(form.office || '').trim()) return 'Please enter OFFICE.';
-    } else if (!form.manualDivision.trim()) return 'Please enter DIVISION NAME.';
-    if (form.placeOfCollectionMandal === 'Others' && !form.manualPlaceOfCollection.trim()) return 'Please enter PLACE OF COLLECTION / MANDAL NAME.';
-  }
-  
-  // Validation for District = Others for all designations
-  if (form.district === 'Others' && !form.manualDistrict.trim()) return 'Please enter DISTRICT NAME.';
-  
-  // Validation for Mandal = Others for non-ADA designations
-  if (!isAssistantDirectorOfAgriculture(form.designation) && form.mandal === 'Others' && !form.manualMandal.trim()) return 'Please enter MANDAL NAME.';
-
-  // Mandatory product/dealer details required on every statutory seed form
-  const missing = missingRequiredFields([
-    ['CODE NO. OF SAMPLE', form.codeNo || form.sampleCode],
-    ['CROP', resolveSeedValues(form).crop],
-    ['VARIETY', form.variety],
-    ['DEALER / PARTY NAME', form.dealerName],
-  ]);
-  if (missing.length) return requiredFieldsErrorMessage(missing);
-
-  return '';
-}
-
-function revealSeedFormField(error: string) {
-  const key = error.includes('DISTRICT NAME') ? 'manualDistrict'
-    : error.includes('OFFICE') ? 'office'
-    : error.includes('DIVISION NAME') ? 'manualDivision'
-    : error.includes('PLACE OF COLLECTION') ? 'manualPlaceOfCollection'
-    : error.includes('MANDAL NAME') ? 'manualMandal'
-    : error.includes('CODE NO. OF SAMPLE') ? 'codeNo'
-    : error.includes('CROP') ? 'crop'
-    : error.includes('VARIETY') ? 'variety'
-    : error.includes('DEALER / PARTY NAME') ? 'dealerName'
-    : null;
-  if (key) revealField(key);
 }
 
 async function buildSeedPdf(kind: any, form: any) {

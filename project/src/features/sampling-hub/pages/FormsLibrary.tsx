@@ -416,17 +416,7 @@ export function FormsLibrary() {
     setShowAddForm(true);
   };
 
-  const badgeClassesFor = (subGroup: PublicFormSubGroup) =>
-    subGroup === 'sampling'
-      ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300'
-      : subGroup === 'enforcement'
-      ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300'
-      : 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/40 dark:text-sky-300';
-
   const renderFormCard = (form: FormDownload) => {
-    const subGroup = classifyPublicForm(form);
-    const meta = PUBLIC_FORM_SUBGROUPS[subGroup];
-
     return (
       <div
         key={form.id}
@@ -437,11 +427,6 @@ export function FormsLibrary() {
             <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-1.5 mb-1">
-              <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${badgeClassesFor(subGroup)}`}>
-                {language === 'te' ? meta.badgeTelugu : meta.badge}
-              </span>
-            </div>
             <h3 className="text-sm font-black text-slate-900 dark:text-white leading-snug break-words font-[var(--font-heading)]">
               {form.title}
             </h3>

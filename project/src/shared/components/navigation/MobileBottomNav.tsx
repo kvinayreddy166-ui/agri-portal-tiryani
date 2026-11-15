@@ -1,5 +1,5 @@
-import React from 'react';
-import { Home, Scale, TestTubes, Store, LayoutGrid } from 'lucide-react';
+import React, { useState } from 'react';
+import { Home, Scale, TestTubes, Store, LayoutGrid, Gavel, ClipboardCheck } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface MobileBottomNavProps {
@@ -22,6 +22,11 @@ const SAMPLING_PAGES = new Set(['forms']);
 
 const DEALER_PAGES = new Set(['dealers', 'dealer-management']);
 
+const ENFORCEMENT_VIEWS = [
+  { label: 'Tracker', labelTe: 'ట్రాకర్', icon: Gavel, target: 'enforcement-tracker' },
+  { label: 'Action', labelTe: 'చర్య', icon: ClipboardCheck, target: 'inspection-enforcement' },
+];
+
 type TabId = 'home' | 'enforcement' | 'sampling' | 'dealers' | 'more';
 
 function activeTabFor(page: string): TabId {
@@ -35,12 +40,13 @@ function activeTabFor(page: string): TabId {
 export function MobileBottomNav({ currentPage, onNavigate, isAdminUser = false }: MobileBottomNavProps) {
   const { t } = useLanguage();
   const active = activeTabFor(currentPage);
+  const [enforcementOpen, setEnforcementOpen] = useState(false);
 
   const tabs: { id: TabId; label: string; labelTe: string; icon: typeof Home; target: string }[] = [
     { id: 'dealers', label: 'Dealers', labelTe: 'డీలర్లు', icon: Store, target: isAdminUser ? 'dealer-management' : 'dealers' },
     { id: 'sampling', label: 'Sampling', labelTe: 'సాంప్లింగ్', icon: TestTubes, target: 'forms' },
     { id: 'home', label: 'Home', labelTe: 'హోమ్', icon: Home, target: 'dashboard' },
-    { id: 'enforcement', label: 'Enforcement', labelTe: 'ఎన్‌ఫోర్స్‌మెంట్', icon: Scale, target: 'inspection-enforcement' },
+    { id: 'enforcement', label: 'Enforcement', labelTe: 'ఎన్‌ఫోర్స్‌మెంట్', icon: Scale, target: 'enforcement-tracker' },
     { id: 'more', label: 'More', labelTe: 'మరిన్ని', icon: LayoutGrid, target: 'all-modules' },
   ];
 
@@ -57,11 +63,19 @@ export function MobileBottomNav({ currentPage, onNavigate, isAdminUser = false }
           {tabs.map((tab) => {
             const isActive = active === tab.id;
             const Icon = tab.icon;
+            const isEnforcement = tab.id === 'enforcement';
             return (
+              <div key={tab.id} className="relative flex min-w-0 flex-1">
               <button
-                key={tab.id}
                 type="button"
-                onClick={() => onNavigate(tab.target)}
+                onClick={() => {
+                  if (isEnforcement) {
+                    setEnforcementOpen((open) => !open);
+                  } else {
+                    setEnforcementOpen(false);
+                    onNavigate(tab.target);
+                  }
+                }}
                 aria-current={isActive ? 'page' : undefined}
                 className="group relative flex min-w-0 flex-1 select-none flex-col items-center justify-center gap-1 rounded-2xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-500 active:scale-[0.96]"
               >
@@ -92,6 +106,43 @@ export function MobileBottomNav({ currentPage, onNavigate, isAdminUser = false }
                   aria-hidden
                 />
               </button>
+              {isEnforcement && enforcementOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setEnforcementOpen(false)} aria-hidden />
+                  <div className="absolute bottom-[calc(100%+10px)] right-0 z-50 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white/95 p-1.5 shadow-xl shadow-emerald-950/15 backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95">
+                    {ENFORCEMENT_VIEWS.map((view) => {
+                      const ViewIcon = view.icon;
+                      const viewActive = activeTabFor(currentPage) === 'enforcement' && currentPage === view.target;
+                      return (
+                        <button
+                          key={view.target}
+                          type="button"
+                          onClick={() => {
+                            setEnforcementOpen(false);
+                            onNavigate(view.target);
+                          }}
+                          className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
+                            viewActive
+                              ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200'
+                              : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${viewActive ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                            <ViewIcon className="h-4 w-4" />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-xs font-black leading-tight">{t(view.label, view.labelTe)}</span>
+                            <span className="block text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                              {view.target === 'enforcement-tracker' ? t('Deadlines & risk', 'గడువులు & రిస్క్') : t('Notices & orders', 'నోటీసులు & ఆర్డర్లు')}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+              </div>
             );
           })}
         </div>

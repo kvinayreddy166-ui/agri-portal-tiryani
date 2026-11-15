@@ -359,7 +359,8 @@ export function getFertilizerPdfFileName(formType: FertilizerStatutoryFormType, 
 }
 
 export function getAllFertilizerPdfFileName(values: FertilizerPdfValues) {
-  return `${getSampleCodeFilePart(values)}_FormJ_FormK_ADA_FormK_JDA_FormP.pdf`;
+  const date = (formatDate(values.samplingDate || values.date) || 'Date').replace(/\//g, '-');
+  return `Fertilizer_Form_ALL_${getSampleCodeFilePart(values)}_${date}.pdf`;
 }
 
 function createDocument(

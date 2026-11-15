@@ -51,7 +51,7 @@ export function DealerPartySelect({
   if (!isAdminUser && !isOfficerUser) return null;
 
   return (
-    <label className={`block ${className}`}>
+    <label className={`block ${className}`} data-validate-skip>
       <span className="mb-0.5 block text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300">
         {label}
       </span>
