@@ -188,3 +188,32 @@ export function useToast() {
 
   return { toasts, removeToast, showSuccess, showInfo, showWarning, showError, showReset, showSaved, showDeleted, showLoaded, showQueue };
 }
+
+const TOAST_NOTIFY_EVENT = 'agri:toast-notify';
+
+/**
+ * Fire a toast from non-React code (module-level helpers, callbacks).
+ * Requires a mounted listener — `useToastBridge` wires one up inside a component.
+ */
+export function notifyToast(type: ToastType, title: string, subtitle?: string, duration?: number) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(TOAST_NOTIFY_EVENT, { detail: { type, title, subtitle, duration } }));
+}
+
+/** Subscribes a component's toast instance to `notifyToast` calls. */
+export function useToastBridge(toast: ReturnType<typeof useToast>) {
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ type: ToastType; title: string; subtitle?: string; duration?: number }>).detail;
+      if (!detail?.title) return;
+      const { type, title, subtitle, duration } = detail;
+      if (type === 'success') toast.showSuccess(title, subtitle, duration);
+      else if (type === 'info') toast.showInfo(title, subtitle, duration);
+      else if (type === 'warning') toast.showWarning(title, subtitle, duration);
+      else toast.showError(title, subtitle, duration);
+    };
+    window.addEventListener(TOAST_NOTIFY_EVENT, handler);
+    return () => window.removeEventListener(TOAST_NOTIFY_EVENT, handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+}

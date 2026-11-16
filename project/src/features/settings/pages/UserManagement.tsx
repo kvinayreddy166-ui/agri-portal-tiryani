@@ -3,7 +3,10 @@ import { Users, RefreshCw, Trash2, ShieldAlert, CheckCircle2, PauseCircle, PlayC
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import { downloadCsv } from '../../../shared/utils/csvExport';
+import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { normalizeDistrictName } from '../../../shared/data/telanganaDistrictMandalData';
 
 
@@ -25,6 +28,8 @@ interface OfficerRow {
 
 export function UserManagement() {
   const { isAdminUser, user } = useAuth();
+  const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [adminOfficers, setAdminOfficers] = useState<OfficerRow[]>([]);
   const [loadingOfficers, setLoadingOfficers] = useState(false);
   const [officerToDelete, setOfficerToDelete] = useState<OfficerRow | null>(null);
@@ -105,7 +110,7 @@ export function UserManagement() {
     const officerEmail = officerToDelete.email.trim().toLowerCase();
 
     if (confirmInput !== 'delete' && confirmInput !== officerEmail) {
-      alert('Please type "DELETE" or the officer\'s email to confirm.');
+      toast.showWarning('Confirmation required', 'Please type "DELETE" or the officer\'s email to confirm.');
       return;
     }
 
@@ -125,7 +130,7 @@ export function UserManagement() {
       setTimeout(() => setActionSuccessMessage(null), 6000);
     } catch (err: unknown) {
       console.error('Admin officer deletion error:', err);
-      alert((err as Error)?.message || 'Failed to delete officer account. Please verify database permissions.');
+      toast.showError('Delete failed', (err as Error)?.message || 'Failed to delete officer account. Please verify database permissions.');
     } finally {
       setAdminDeleting(false);
     }
@@ -188,8 +193,11 @@ export function UserManagement() {
   const handleBulkStatus = async (nextStatus: 'active' | 'suspended') => {
     const targets = selectedOfficers.filter((o) => o.id !== user?.id);
     if (targets.length === 0) return;
-    const label = nextStatus === 'suspended' ? 'suspend' : 'reactivate';
-    if (!confirm(`${label === 'suspend' ? 'Suspend' : 'Reactivate'} ${targets.length} officer account(s)?`)) return;
+    const confirmed = await askConfirm({
+      title: `${nextStatus === 'suspended' ? 'Suspend' : 'Reactivate'} ${targets.length} officer account(s)?`,
+      confirmLabel: nextStatus === 'suspended' ? 'Suspend' : 'Reactivate',
+    });
+    if (!confirmed) return;
     setBulkActing(true);
     try {
       const { error } = await supabase
@@ -204,7 +212,7 @@ export function UserManagement() {
       setTimeout(() => setActionSuccessMessage(null), 6000);
     } catch (err: unknown) {
       console.error('Bulk status update error:', err);
-      alert((err as Error)?.message || 'Failed to update officer statuses.');
+      toast.showError('Update failed', (err as Error)?.message || 'Failed to update officer statuses.');
     } finally {
       setBulkActing(false);
     }
@@ -265,13 +273,12 @@ export function UserManagement() {
 
   const handleToggleSuspend = async (officer: OfficerRow) => {
     const nextStatus = officer.status === 'suspended' ? 'active' : 'suspended';
-    const actionLabel = nextStatus === 'suspended' ? 'suspend' : 'reactivate';
-    if (
-      !confirm(
-        `${actionLabel === 'suspend' ? 'Suspend' : 'Reactivate'} the account for ${officer.full_name} (${officer.email})?` +
-          (nextStatus === 'suspended' ? ' They will be signed out and cannot log in.' : '')
-      )
-    ) {
+    const confirmed = await askConfirm({
+      title: `${nextStatus === 'suspended' ? 'Suspend' : 'Reactivate'} the account for ${officer.full_name} (${officer.email})?`,
+      message: nextStatus === 'suspended' ? 'They will be signed out and cannot log in.' : undefined,
+      confirmLabel: nextStatus === 'suspended' ? 'Suspend' : 'Reactivate',
+    });
+    if (!confirmed) {
       return;
     }
     setSuspendingId(officer.id);
@@ -290,7 +297,7 @@ export function UserManagement() {
       setTimeout(() => setActionSuccessMessage(null), 6000);
     } catch (err: unknown) {
       console.error('Suspend/resume officer error:', err);
-      alert((err as Error)?.message || 'Failed to update officer status.');
+      toast.showError('Update failed', (err as Error)?.message || 'Failed to update officer status.');
     } finally {
       setSuspendingId(null);
     }
@@ -298,10 +305,7 @@ export function UserManagement() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">User Management</h1>
-        <p className="text-gray-600 dark:text-slate-300">Manage registered officer accounts</p>
-      </div>
+      <PageHeader title="User Management" description="Manage registered officer accounts" />
 
       {actionSuccessMessage && (
         <div className="flex items-center gap-2 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm">
@@ -310,7 +314,7 @@ export function UserManagement() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
+      <div className="portal-card p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
@@ -695,6 +699,8 @@ export function UserManagement() {
           </div>
         </div>
       )}
+      {confirmDialog}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

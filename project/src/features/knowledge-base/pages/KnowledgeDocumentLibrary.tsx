@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { FolderOpen, Loader2, RefreshCw, Eye, Power, PowerOff, Trash2, Search, ChevronLeft, ChevronRight, FileText, RotateCw } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
-import { useToast } from '../../../shared/components/ui/Toast';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
@@ -19,6 +20,7 @@ export function KnowledgeDocumentLibrary() {
   const { isAdminUser } = useAuth();
   const go = useKnowledgeNav();
   const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
 
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
   const [total, setTotal] = useState(0);
@@ -50,7 +52,11 @@ export function KnowledgeDocumentLibrary() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const handleDelete = async (doc: KnowledgeDocument) => {
-    if (!confirm(`Delete "${doc.title}"? This removes it from the Knowledge Base (chunks are removed).`)) return;
+    const confirmed = await askConfirm({
+      title: `Delete "${doc.title}"? This removes it from the Knowledge Base (chunks are removed).`,
+      confirmLabel: 'Delete',
+    });
+    if (!confirmed) return;
     try {
       await deleteDocument(doc.id);
       toast.showDeleted('Document deleted', doc.title);
@@ -181,6 +187,8 @@ export function KnowledgeDocumentLibrary() {
           <button disabled={page >= totalPages} onClick={() => setPage(page + 1)} className="rounded-lg border border-slate-300 p-2 disabled:opacity-40"><ChevronRight className="h-4 w-4" /></button>
         </div>
       )}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
+      {confirmDialog}
     </div>
   );
 }

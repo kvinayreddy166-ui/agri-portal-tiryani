@@ -36,6 +36,8 @@ import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import { repairTeluguRecord, repairTeluguText } from '../../../shared/utils/textRepair';
 import {
   DEFAULT_GRADES,
@@ -1362,6 +1364,8 @@ function recommendationNpkLabel(recommendation: CropRecommendation) {
 export function FertilizerCalculator() {
   const navigate = useNavigate();
   const { isAdminUser, isTestUser, isOfficerUser, user } = useAuth();
+  const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const [language, setLanguage] = useState<'en' | 'te'>('en');
   const toggleLanguage = () => setLanguage((current) => (current === 'en' ? 'te' : 'en'));
@@ -1670,7 +1674,7 @@ export function FertilizerCalculator() {
     if (!payload.name) return;
     const { error } = await saveFertilizerGradeRecord(payload, grade);
     if (error) {
-      alert(`Could not save fertilizer grade: ${supabaseErrorMessage(error)}`);
+      toast.showError('Save failed', `Could not save fertilizer grade: ${supabaseErrorMessage(error)}`);
       return;
     }
     const savedGrade: FertilizerGrade = {
@@ -1695,7 +1699,11 @@ export function FertilizerCalculator() {
   };
 
   const deleteGrade = async (grade: FertilizerGrade) => {
-    if (!window.confirm(`Delete fertilizer label "${grade.name}"?`)) return;
+    const gradeConfirmed = await askConfirm({
+      title: `Delete fertilizer label "${grade.name}"?`,
+      confirmLabel: 'Delete',
+    });
+    if (!gradeConfirmed) return;
     const key = gradeKey(grade);
     const serverId = grade.id && !grade.id.startsWith('local-') ? grade.id : null;
 
@@ -1704,7 +1712,7 @@ export function FertilizerCalculator() {
       if (deleteResponse.error) {
         const inactiveResponse = await supabase.from('fertilizer_grades').update({ is_active: false }).eq('id', serverId);
         if (inactiveResponse.error) {
-          alert('Could not delete fertilizer label. Please check Supabase admin permissions.');
+          toast.showError('Delete failed', 'Could not delete fertilizer label. Please check Supabase admin permissions.');
           return;
         }
       }
@@ -1738,7 +1746,7 @@ export function FertilizerCalculator() {
     if (!payload.crop_name) return;
     const { error } = await saveCropRecommendationRecord(payload, crop);
     if (error) {
-      alert(`Could not save crop recommendation: ${supabaseErrorMessage(error)}`);
+      toast.showError('Save failed', `Could not save crop recommendation: ${supabaseErrorMessage(error)}`);
       return;
     }
     const savedRecommendation: CropRecommendation = {
@@ -1758,7 +1766,11 @@ export function FertilizerCalculator() {
   };
 
   const deleteCrop = async (crop: CropRecommendation) => {
-    if (!window.confirm(`Delete crop recommendation "${crop.crop_name}"?`)) return;
+    const cropConfirmed = await askConfirm({
+      title: `Delete crop recommendation "${crop.crop_name}"?`,
+      confirmLabel: 'Delete',
+    });
+    if (!cropConfirmed) return;
     const serverId = crop.id && !crop.id.startsWith('local-') ? crop.id : null;
 
     if (serverId) {
@@ -1766,7 +1778,7 @@ export function FertilizerCalculator() {
       if (deleteResponse.error) {
         const inactiveResponse = await supabase.from('crop_fertilizer_recommendations').update({ is_active: false }).eq('id', serverId);
         if (inactiveResponse.error) {
-          alert('Could not delete crop recommendation. Please check Supabase admin permissions.');
+          toast.showError('Delete failed', 'Could not delete crop recommendation. Please check Supabase admin permissions.');
           return;
         }
       }
@@ -1778,7 +1790,7 @@ export function FertilizerCalculator() {
 
   const exportPdf = async () => {
     if (!activeCalculation || !activeCalculation.results || activeCalculation.results.length === 0) {
-      alert('Please perform a calculation before exporting PDF.');
+      toast.showWarning('Nothing to export', 'Please perform a calculation before exporting PDF.');
       return;
     }
 
@@ -1842,7 +1854,7 @@ export function FertilizerCalculator() {
       });
     } catch (error) {
       console.error('PDF export error:', error);
-      alert('Failed to export PDF. Please try again.');
+      toast.showError('Export failed', 'Failed to export PDF. Please try again.');
     }
   };
 
@@ -1850,7 +1862,7 @@ export function FertilizerCalculator() {
     try {
       // Check if we have valid calculation data
       if (!activeCalculation || !activeCalculation.results || activeCalculation.results.length === 0) {
-        alert('Please perform a calculation before sharing on WhatsApp.');
+        toast.showWarning('Nothing to share', 'Please perform a calculation before sharing on WhatsApp.');
         return;
       }
       
@@ -1871,7 +1883,7 @@ export function FertilizerCalculator() {
       
       if (!text || text.trim().length === 0) {
         console.error('WhatsApp share: Generated text is empty');
-        alert('Unable to generate WhatsApp message. Please try again.');
+        toast.showError('Share failed', 'Unable to generate WhatsApp message. Please try again.');
         return;
       }
       
@@ -1879,14 +1891,14 @@ export function FertilizerCalculator() {
       window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('WhatsApp share error:', error);
-      alert(`Failed to share on WhatsApp: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.showError('Share failed', `Failed to share on WhatsApp: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   const copyResult = async () => {
     try {
       if (!activeCalculation || !activeCalculation.results || activeCalculation.results.length === 0) {
-        alert('Please perform a calculation before copying the result.');
+        toast.showWarning('Nothing to copy', 'Please perform a calculation before copying the result.');
         return;
       }
 
@@ -1906,7 +1918,7 @@ export function FertilizerCalculator() {
       });
 
       if (!text || text.trim().length === 0) {
-        alert('Unable to generate result text. Please try again.');
+        toast.showError('Copy failed', 'Unable to generate result text. Please try again.');
         return;
       }
 
@@ -1915,7 +1927,7 @@ export function FertilizerCalculator() {
       window.setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Copy result error:', error);
-      alert('Failed to copy result. Please try again.');
+      toast.showError('Copy failed', 'Failed to copy result. Please try again.');
     }
   };
 
@@ -1946,7 +1958,7 @@ export function FertilizerCalculator() {
       created_by: user?.id || null,
     });
     if (error) {
-      alert('Could not save calculation. Please apply the latest Supabase migration.');
+      toast.showError('Save failed', 'Could not save calculation. Please apply the latest Supabase migration.');
       return;
     }
     setSaveNotice({
@@ -2880,6 +2892,8 @@ export function FertilizerCalculator() {
           </section>
         )}
       </div>
+      {confirmDialog}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

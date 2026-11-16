@@ -19,6 +19,8 @@ import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 import { parseExcelAndImportDealers } from '../../../shared/lib/excelParser';
 import { getContentType, inferFileTypeFromName, validateUploadFile } from '../../../shared/lib/fileTypes';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 
 
 
@@ -33,6 +35,8 @@ export function ExcelUploads() {
   const { isAdminUser, user } = useAuth();
 
   const { t } = useLanguage();
+  const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
 
   const [uploads, setUploads] = useState<ExcelUpload[]>([]);
 
@@ -228,7 +232,7 @@ export function ExcelUploads() {
 
           : 'Failed to upload file. Please make sure the Supabase uploads bucket and storage policies are applied.';
 
-      alert(message);
+      toast.showError('Upload failed', message);
 
     } finally {
 
@@ -270,7 +274,11 @@ export function ExcelUploads() {
 
   const handleDelete = async (id: string) => {
 
-    if (!confirm('Are you sure you want to delete this upload?')) return;
+    const confirmed = await askConfirm({
+      title: 'Are you sure you want to delete this upload?',
+      confirmLabel: 'Delete',
+    });
+    if (!confirmed) return;
 
     try {
 
@@ -284,7 +292,7 @@ export function ExcelUploads() {
 
       console.error('Error deleting upload:', error);
 
-      alert('Failed to delete upload');
+      toast.showError('Delete failed', 'Failed to delete upload');
 
     }
 
@@ -310,7 +318,7 @@ export function ExcelUploads() {
       fetchUploads();
     } catch (error) {
       console.error('Error renaming upload:', error);
-      alert(error instanceof Error ? error.message : 'Failed to rename file');
+      toast.showError('Rename failed', error instanceof Error ? error.message : 'Failed to rename file');
     }
   };
 
@@ -535,6 +543,8 @@ export function ExcelUploads() {
 
       )}
 
+      {confirmDialog}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
 
   );

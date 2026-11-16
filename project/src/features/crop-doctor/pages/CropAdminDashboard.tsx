@@ -13,6 +13,7 @@ import {
 } from '../../crop-management/services/cropService';
 import { validateImageUploadFile } from '../../../shared/lib/fileTypes';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 
 const NORMALIZED_TABLES = [
   ['crop_varieties', 'Varieties'],
@@ -100,6 +101,7 @@ const FIELD_CONFIGS: Record<string, string[][]> = {
 };
 
 export function CropAdminDashboard() {
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [selectedCrop, setSelectedCrop] = useState('paddy');
   const [otherCropName, setOtherCropName] = useState('');
   const [table, setTable] = useState(NORMALIZED_TABLES[0][0]);
@@ -187,7 +189,11 @@ export function CropAdminDashboard() {
   };
 
   const remove = async (row: any) => {
-    if (!confirm('Delete this crop intelligence record?')) return;
+    const confirmed = await askConfirm({
+      title: 'Delete this crop intelligence record?',
+      confirmLabel: 'Delete',
+    });
+    if (!confirmed) return;
     try {
       if (table.startsWith('ci_')) {
         await deleteCropIntelligenceCard(slug, table, row._index);
@@ -443,6 +449,7 @@ export function CropAdminDashboard() {
           </div>
         </div>
       )}
+      {confirmDialog}
     </div>
   );
 }

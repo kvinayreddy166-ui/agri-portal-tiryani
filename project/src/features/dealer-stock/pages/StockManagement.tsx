@@ -11,6 +11,8 @@ import { IconButton } from '../../../shared/components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue, type ExcelRow } from '../../../shared/utils/excelTotals';
 import { createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 
 const LazyFertilizerChart = lazy(() => import('../components/LazyFertilizerChart'));
 
@@ -60,6 +62,8 @@ const dateInFinancialYear = (value: string | undefined, financialYear: string) =
 
 export function StockManagement() {
   const { isAdminUser, isDealerUser } = useAuth();
+  const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [dealers, setDealers] = useState<Dealer[]>([]);
   const [stock, setStock] = useState<DealerStockAllocation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,7 +142,7 @@ export function StockManagement() {
 
   const handleAdd = async () => {
     if (!formData.dealer_id || !formData.fertilizer_type || formData.quantity_mts < 0) {
-      alert('Please select a dealer, fertilizer, and valid quantity.');
+      toast.showWarning('Missing details', 'Please select a dealer, fertilizer, and valid quantity.');
       return;
     }
 
@@ -160,14 +164,19 @@ export function StockManagement() {
     } catch (error) {
       console.error('Error adding dealer-wise stock:', error);
       const message = error instanceof Error ? error.message : 'Unknown error';
-      alert(
+      toast.showError(
+        'Add failed',
         `Failed to add dealer-wise stock: ${message}\n\nIf this mentions permission or policy, run the latest Supabase migration (stock inventory & dealer login).`
       );
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this fertilizer receipt entry?')) return;
+    const confirmed = await askConfirm({
+      title: 'Delete this fertilizer receipt entry?',
+      confirmLabel: 'Delete',
+    });
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase
@@ -180,7 +189,7 @@ export function StockManagement() {
       void fetchData();
     } catch (error) {
       console.error('Error deleting dealer-wise stock:', error);
-      alert('Failed to delete stock entry.');
+      toast.showError('Delete failed', 'Failed to delete stock entry.');
     }
   };
 
@@ -678,6 +687,8 @@ export function StockManagement() {
           )}
         </>
       )}
+      {confirmDialog}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

@@ -773,14 +773,6 @@ button {
   color: #052e16;
 }
 
-/* Line clamp utility */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
 /* Smooth transitions — strong ease-out for instant-feeling UI response */
 * {
   transition-timing-function: var(--ease-out);

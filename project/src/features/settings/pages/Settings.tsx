@@ -16,6 +16,7 @@ import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { safeStorage, clearUserStorage } from '../../../shared/lib/safeStorage';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 import { getMandalsForDistrict, QUALIFICATION_OPTIONS } from '../../../shared/data/telanganaDistrictMandalData';
 import {
@@ -27,6 +28,7 @@ import {
 } from '../../auth/lib/officerProfileForm';
 
 export function Settings() {
+  const toast = useToast();
   const { isAdminUser, isOfficerUser, user, officerProfile, signOut, refreshOfficerProfile } = useAuth();
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -146,7 +148,7 @@ export function Settings() {
     const cleanConfirm = deleteConfirmEmail.trim().toLowerCase();
     const cleanUserEmail = (user.email || '').trim().toLowerCase();
     if (cleanConfirm !== cleanUserEmail) {
-      alert('The confirmation email entered does not match your account email.');
+      toast.showWarning('Email mismatch', 'The confirmation email entered does not match your account email.');
       return;
     }
 
@@ -214,7 +216,7 @@ export function Settings() {
       window.location.href = '/login';
     } catch (error: unknown) {
       console.error('Error deleting account:', error);
-      alert((error as Error)?.message || 'Failed to delete account. Please contact administrator.');
+      toast.showError('Delete failed', (error as Error)?.message || 'Failed to delete account. Please contact administrator.');
       setDeleting(false);
     }
   };
@@ -607,6 +609,7 @@ export function Settings() {
           </div>
         </div>
       </div>
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

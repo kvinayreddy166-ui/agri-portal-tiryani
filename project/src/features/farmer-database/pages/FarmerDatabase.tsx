@@ -26,6 +26,8 @@ import {
   parseFarmerWorkbook,
   searchableText,
 } from '../lib/farmerImport';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 
 type FarmerRow = Partial<FarmerImportRow> & {
   id?: string;
@@ -228,6 +230,8 @@ function ExportMenu({ onExportExcel, showTelugu }: { onExportExcel: () => void; 
 
 export function FarmerDatabase() {
   const { isAdminUser, user } = useAuth();
+  const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [rows, setRows] = useState<FarmerRow[]>([]);
   const [analyticsRows, setAnalyticsRows] = useState<FarmerRow[]>([]);
   const [filterOptionRows, setFilterOptionRows] = useState<FarmerRow[]>([]);
@@ -458,7 +462,11 @@ export function FarmerDatabase() {
 
   const replaceDatabase = async () => {
     if (!isAdminUser || previewRows.length === 0) return;
-    if (!confirm(`Replace farmer database with ${previewRows.length.toLocaleString('en-IN')} rows?`)) return;
+    const confirmed = await askConfirm({
+      title: `Replace farmer database with ${previewRows.length.toLocaleString('en-IN')} rows?`,
+      confirmLabel: 'Replace',
+    });
+    if (!confirmed) return;
     setImporting(true);
     setImportMessage('Importing farmer database...');
     try {
@@ -499,7 +507,7 @@ export function FarmerDatabase() {
       })
       .in('id', ids);
     if (error) {
-      alert('Could not update phone/remarks.');
+      toast.showError('Update failed', 'Could not update phone/remarks.');
       return;
     }
     setSelected(null);
@@ -509,7 +517,7 @@ export function FarmerDatabase() {
 
   const exportFiltered = async () => {
     if (!analyticsRows.length) {
-      alert(emptyStateText);
+      toast.showWarning('No records', emptyStateText);
       return;
     }
     try {
@@ -561,7 +569,7 @@ export function FarmerDatabase() {
     await saveStyledWorkbook(workbook, 'farmer_database_filtered.xlsx');
     } catch (error) {
       console.error('Excel export failed:', error);
-      alert('Excel export failed. Please check your connection and try again.');
+      toast.showError('Export failed', 'Excel export failed. Please check your connection and try again.');
     }
   };
 
@@ -578,7 +586,7 @@ export function FarmerDatabase() {
     await saveStyledWorkbook(workbook, 'farmer_database_template.xlsx');
     } catch (error) {
       console.error('Template download failed:', error);
-      alert('Template download failed. Please check your connection and try again.');
+      toast.showError('Download failed', 'Template download failed. Please check your connection and try again.');
     }
   };
 
@@ -791,6 +799,8 @@ export function FarmerDatabase() {
           </div>
         </div>
       )}
+      {confirmDialog}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

@@ -7,7 +7,10 @@ import { Dealer } from '../../../shared/types/database';
 import { provisionAllDealerLogins, provisionDealerLogin } from '../../auth/lib/provisionDealerLogins';
 import { dealerEmailFromPhone, DEALER_DEFAULT_PASSWORD, normalizePhone } from '../../auth/lib/dealerAuth';
 import { cachedSupabaseRows } from '../../../shared/lib/offlineCache';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import { downloadCsv } from '../../../shared/utils/csvExport';
+import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import {
   TELANGANA_DISTRICTS,
   getMandalsForDistrict,
@@ -58,12 +61,16 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const canEditDealers = isAdminUser || isOfficerUser || isElevatedOfficerUser;
   const restrictToOwn = scopeToCreator && isOfficerUser && !isAdminUser;
   const { t } = useLanguage();
+  const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [activeTab, setActiveTab] = useState<DealerCategory>('fertilizer');
   const [dealers, setDealers] = useState<Dealer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [licenseFilter, setLicenseFilter] = useState<'all' | 'valid' | 'expired'>('all');
   const [loginFilter, setLoginFilter] = useState<'all' | 'with' | 'without'>('all');
+  const [districtFilter, setDistrictFilter] = useState('all');
+  const [mandalFilter, setMandalFilter] = useState('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
@@ -122,7 +129,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       setLoginPassword(DEALER_DEFAULT_PASSWORD);
       setShowLoginSetup(true);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Could not load dealers');
+      toast.showError('Load failed', err instanceof Error ? err.message : 'Could not load dealers');
     }
   };
 
@@ -130,38 +137,40 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
 
   const handleSetupSingleDealerLogin = async () => {
     if (!loginSetupDealerId) {
-      alert(t('Select a dealer first.', 'ముందు డీలర్‌ను ఎంచుకోండి.'));
+      toast.showWarning('Select a dealer', t('Select a dealer first.', 'ముందు డీలర్‌ను ఎంచుకోండి.'));
       return;
     }
     setProvisioningLogins(true);
     try {
       const result = await provisionDealerLogin(loginSetupDealerId, loginPassword);
       if (!result.ok) {
-        alert(result.error || t('Could not set up dealer login.', 'డీలర్ లాగిన్ సెటప్ కాలేదు.'));
+        toast.showError('Login setup failed', result.error || t('Could not set up dealer login.', 'డీలర్ లాగిన్ సెటప్ కాలేదు.'));
         return;
       }
-      alert(
+      toast.showInfo(
+        t('Login ready', 'లాగిన్ సిద్ధం'),
         t(
-          `Login ready for ${result.dealer_name}.\nPhone (login ID): ${result.phone}\nPassword: ${result.password}`,
-          `లాగిన్ సిద్ధం: ${result.dealer_name}.\nఫోన్ (లాగిన్ ID): ${result.phone}\nపాస్వర్డ్: ${result.password}`
-        )
+          `${result.dealer_name}\nPhone (login ID): ${result.phone}\nPassword: ${result.password}`,
+          `${result.dealer_name}\nఫోన్ (లాగిన్ ID): ${result.phone}\nపాస్వర్డ్: ${result.password}`
+        ),
+        15000
       );
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Could not provision dealer login');
+      toast.showError('Login setup failed', err instanceof Error ? err.message : 'Could not provision dealer login');
     } finally {
       setProvisioningLogins(false);
     }
   };
 
   const handleProvisionAllDealerLogins = async () => {
-    if (
-      !confirm(
-        t(
-          `Create or reset portal logins for ALL dealers with phone numbers? Password: ${loginPassword}`,
-          `ఫోన్ ఉన్న అన్ని డీలర్లకు లాగిన్ సృష్టించాలా/రీసెట్ చేయాలా? పాస్వర్డ్: ${loginPassword}`
-        )
-      )
-    ) {
+    const confirmed = await askConfirm({
+      title: t(
+        `Create or reset portal logins for ALL dealers with phone numbers? Password: ${loginPassword}`,
+        `ఫోన్ ఉన్న అన్ని డీలర్లకు లాగిన్ సృష్టించాలా/రీసెట్ చేయాలా? పాస్వర్డ్: ${loginPassword}`
+      ),
+      confirmLabel: 'Provision',
+    });
+    if (!confirmed) {
       return;
     }
     setProvisioningLogins(true);
@@ -171,14 +180,13 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
         result.failed > 0
           ? `\n\n${t('Failed', 'విఫలం')}: ${result.failed}`
           : '';
-      alert(
-        t(
-          `Set up: ${result.created}${failNote}`,
-          `సెటప్: ${result.created}${failNote}`
-        )
+      toast.showInfo(
+        t('Logins provisioned', 'లాగిన్‌లు సెటప్ అయ్యాయి'),
+        t(`Set up: ${result.created}${failNote}`, `సెటప్: ${result.created}${failNote}`),
+        8000
       );
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Could not provision dealer logins');
+      toast.showError('Provision failed', err instanceof Error ? err.message : 'Could not provision dealer logins');
     } finally {
       setProvisioningLogins(false);
     }
@@ -216,11 +224,11 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       missing.push(t('Expiry date', 'గడువు తేదీ'));
     }
     if (missing.length) {
-      alert(`${t('Please fill required fields:', 'దయచేసి అవసరమైన వివరాలు పూరించండి:')} ${missing.join(', ')}`);
+      toast.showWarning('Missing details', `${t('Please fill required fields:', 'దయచేసి అవసరమైన వివరాలు పూరించండి:')} ${missing.join(', ')}`);
       return;
     }
     if (!/^\d{10}$/.test(normalizePhone(payload.phone_number))) {
-      alert(t('Phone number must be exactly 10 digits.', 'ఫోన్ నంబర్ తప్పనిసరిగా 10 అంకెలు ఉండాలి.'));
+      toast.showWarning('Invalid phone', t('Phone number must be exactly 10 digits.', 'ఫోన్ నంబర్ తప్పనిసరిగా 10 అంకెలు ఉండాలి.'));
       return;
     }
     try {
@@ -229,12 +237,13 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       if (!String(insertPayload.mandal ?? '').trim()) delete insertPayload.mandal;
       const { error } = await supabase.from('dealers').insert([insertPayload]);
       if (error) throw error;
+      toast.showSuccess('Dealer added', payload.dealer_name);
       setShowAddForm(false);
       setFormData(emptyForm);
       void fetchDealers();
     } catch (error) {
       console.error('Error adding dealer:', error);
-      alert((error as { message?: string })?.message || 'Failed to add dealer');
+      toast.showError('Add failed', (error as { message?: string })?.message || 'Failed to add dealer');
     }
   };
 
@@ -243,7 +252,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       const dealer = dealers.find((d) => d.id === id);
       if (!dealer) return;
       if (!/^\d{10}$/.test(normalizePhone(dealer.phone_number))) {
-        alert(t('Phone number must be exactly 10 digits.', 'ఫోన్ నంబర్ తప్పనిసరిగా 10 అంకెలు ఉండాలి.'));
+        toast.showWarning('Invalid phone', t('Phone number must be exactly 10 digits.', 'ఫోన్ నంబర్ తప్పనిసరిగా 10 అంకెలు ఉండాలి.'));
         return;
       }
       const payload = {
@@ -255,22 +264,28 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       const { error } = await supabase.from('dealers').update(payload).eq('id', id);
       if (error) throw error;
       setEditingId(null);
+      toast.showSuccess('Dealer updated', dealer.dealer_name);
       void fetchDealers();
     } catch (error) {
       console.error('Error updating dealer:', error);
-      alert((error as { message?: string })?.message || 'Failed to update dealer');
+      toast.showError('Update failed', (error as { message?: string })?.message || 'Failed to update dealer');
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this dealer?')) return;
+    const confirmed = await askConfirm({
+      title: 'Delete this dealer?',
+      confirmLabel: 'Delete',
+    });
+    if (!confirmed) return;
     try {
       const { error } = await supabase.from('dealers').delete().eq('id', id);
       if (error) throw error;
+      toast.showSuccess('Dealer deleted');
       void fetchDealers();
     } catch (error) {
       console.error('Error deleting dealer:', error);
-      alert((error as { message?: string })?.message || 'Failed to delete dealer');
+      toast.showError('Delete failed', (error as { message?: string })?.message || 'Failed to delete dealer');
     }
   };
 
@@ -301,7 +316,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       setBulkDeleteConfirmOpen(false);
     } catch (error) {
       console.error('Error deleting dealers:', error);
-      alert((error as { message?: string })?.message || 'Failed to delete dealers');
+      toast.showError('Delete failed', (error as { message?: string })?.message || 'Failed to delete dealers');
     } finally {
       setBulkDeleting(false);
     }
@@ -325,10 +340,10 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
         const skippedNote = errors.length
           ? '\n\n' + t('Skipped rows:', 'విఫలమైన వరుసలు:') + '\n' + errors.slice(0, 10).join('\n')
           : '';
-        alert(`Imported ${imported} dealers${skippedNote}`);
+        toast.showSuccess(`Imported ${imported} dealers`, skippedNote || undefined, 8000);
         void fetchDealers();
       } else if (errors.length) {
-        alert(errors.join('\n'));
+        toast.showError('Import failed', errors.slice(0, 10).join('\n'));
       }
     } finally {
       setImporting(false);
@@ -365,9 +380,34 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
     );
   };
 
+  // Location filter options — only districts/mandals actually present in the
+  // loaded dealers (same approach as Enforcement Tracker / User Management).
+  const normLocText = (v?: string | null) => String(v ?? '').trim().toLowerCase();
+  const districtOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(dealers.map((d) => normalizeDistrictName(d.district)).filter(Boolean))
+      ).sort(),
+    [dealers]
+  );
+  const mandalOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    dealers
+      .filter((d) => districtFilter === 'all' || normalizeDistrictName(d.district) === districtFilter)
+      .forEach((d) => {
+        const m = String(d.mandal ?? '').trim();
+        if (m) seen.set(normLocText(m), m);
+      });
+    return Array.from(seen.values()).sort((a, b) => a.localeCompare(b));
+  }, [dealers, districtFilter]);
+
   const filteredDealers = useMemo(() => {
     const todayStr = new Date().toISOString().slice(0, 10);
     return dealers.filter((dealer) => {
+      if (isAdminUser) {
+        if (districtFilter !== 'all' && normalizeDistrictName(dealer.district) !== districtFilter) return false;
+        if (mandalFilter !== 'all' && normLocText(dealer.mandal) !== normLocText(mandalFilter)) return false;
+      }
       // Elevated officer directory: only dealers added by admin (or legacy
       // rows with no creator) — never dealers created by officers.
       if (
@@ -393,7 +433,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
         dealer.license_number.toLowerCase().includes(term)
       );
     });
-  }, [dealers, searchTerm, licenseFilter, loginFilter, isElevatedOfficerUser]);
+  }, [dealers, searchTerm, licenseFilter, loginFilter, isElevatedOfficerUser, isAdminUser, districtFilter, mandalFilter]);
 
   const pageCount = Math.max(1, Math.ceil(filteredDealers.length / DEALERS_PAGE_SIZE));
   const paginatedDealers = filteredDealers.slice(
@@ -403,7 +443,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [activeTab, searchTerm, licenseFilter, loginFilter]);
+  }, [activeTab, searchTerm, licenseFilter, loginFilter, districtFilter, mandalFilter]);
 
   const showIfms = activeTab === 'fertilizer';
   const validityLabel =
@@ -414,7 +454,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       <div className="space-y-4">
         <div className="h-8 w-56 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
         <div className="h-10 w-full max-w-md animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+        <div className="portal-card overflow-hidden">
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/60">
             <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
           </div>
@@ -433,16 +473,10 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-            {t('Dealers Directory', 'డీలర్ల డైరెక్టరీ')}
-          </h1>
-          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-            {t('Fertilizer, seed, and pesticide dealers', 'ఎరువులు, విత్తనాలు, పురుగుమందుల డీలర్లు')}
-          </p>
-        </div>
-        {canManageDealers && (
+      <PageHeader
+        title={t('Dealers Directory', 'డీలర్ల డైరెక్టరీ')}
+        description={t('Fertilizer, seed, and pesticide dealers', 'ఎరువులు, విత్తనాలు, పురుగుమందుల డీలర్లు')}
+        actions={canManageDealers ? (
           <div className="flex flex-wrap items-center gap-2">
             <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-within:ring-2 focus-within:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/60">
               <Upload className="h-4 w-4" />
@@ -501,8 +535,8 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
               {t('Add Dealer', 'డీలర్ జోడించండి')}
             </button>
           </div>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       <div className="inline-flex rounded-xl bg-slate-100 p-1 dark:bg-slate-800/70">
         {TABS.map((tab) => (
@@ -553,10 +587,31 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
           <option value="with">{t('Portal Login Set', 'పోర్టల్ లాగిన్ ఉన్నవి')}</option>
           <option value="without">{t('No Portal Login', 'పోర్టల్ లాగిన్ లేనివి')}</option>
         </select>
-        {(licenseFilter !== 'all' || loginFilter !== 'all') && (
+        {isAdminUser && (districtOptions.length > 0 || mandalOptions.length > 0) && (
+          <>
+            <select
+              value={districtFilter}
+              onChange={(e) => { setDistrictFilter(e.target.value); setMandalFilter('all'); }}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition focus:border-emerald-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+            >
+              <option value="all">{t('All Districts', 'అన్ని జిల్లా')}</option>
+              {districtOptions.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <select
+              value={mandalFilter}
+              onChange={(e) => setMandalFilter(e.target.value)}
+              disabled={mandalOptions.length === 0}
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition focus:border-emerald-500 focus:outline-none disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
+            >
+              <option value="all">{t('All Mandals', 'అన్ని మండలాలు')}</option>
+              {mandalOptions.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </>
+        )}
+        {(licenseFilter !== 'all' || loginFilter !== 'all' || districtFilter !== 'all' || mandalFilter !== 'all') && (
           <button
             type="button"
-            onClick={() => { setLicenseFilter('all'); setLoginFilter('all'); }}
+            onClick={() => { setLicenseFilter('all'); setLoginFilter('all'); setDistrictFilter('all'); setMandalFilter('all'); }}
             className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             {t('Clear', 'క్లియర్')}
@@ -764,7 +819,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900">
+      <div className="portal-card overflow-hidden">
         <div className="table-scroll">
           <table className="w-full min-w-[1020px] border-collapse text-sm">
             <thead>
@@ -964,6 +1019,8 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
           </div>
         </div>
       )}
+      {confirmDialog}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

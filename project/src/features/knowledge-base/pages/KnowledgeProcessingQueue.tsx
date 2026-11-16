@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ListChecks, Loader2, RefreshCw, AlertTriangle, RotateCw } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
-import { useToast } from '../../../shared/components/ui/Toast';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { fetchProcessingJobs, processDocument } from '../services/knowledgeService';
@@ -86,6 +86,7 @@ export function KnowledgeProcessingQueue() {
           ))}
         </div>
       )}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

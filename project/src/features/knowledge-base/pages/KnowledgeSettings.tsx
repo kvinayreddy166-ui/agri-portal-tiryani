@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Settings, Loader2, Plus, Trash2, Lightbulb } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
-import { useToast } from '../../../shared/components/ui/Toast';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { createSuggestedQuestion, deleteSuggestedQuestion, fetchAllSuggestedQuestions } from '../services/knowledgeService';
@@ -79,6 +79,7 @@ export function KnowledgeSettings() {
         </ul>
         <p className="mt-2">If Ollama is unavailable, keyword search still works and the assistant returns retrieved sources without an AI answer.</p>
       </div>
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

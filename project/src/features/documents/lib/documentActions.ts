@@ -121,22 +121,6 @@ export function openExternalUrl(url: string): boolean {
   }
 }
 
-/**
- * Wraps an async document/export handler so rejections surface to the user
- * instead of failing silently. Apply at the call site:
- *   onClick={guardedDocumentAction(exportToExcel)}
- */
-export function guardedDocumentAction(fn: () => Promise<unknown> | unknown): () => void {
-  return () => {
-    void Promise.resolve()
-      .then(() => fn())
-      .catch((error: unknown) => {
-        console.error('Document action failed:', error);
-        window.alert(documentActionErrorMessage(error));
-      });
-  };
-}
-
 /** Human-readable message for a failed document action. */
 export function documentActionErrorMessage(error: unknown, fallback = 'The document could not be generated. Please check your connection and try again.'): string {
   if (error instanceof Error && error.message) return `${fallback} (${error.message})`;

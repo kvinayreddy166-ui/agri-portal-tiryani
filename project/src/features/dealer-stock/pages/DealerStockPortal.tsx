@@ -20,6 +20,8 @@ import { currentFinancialYear } from '../../../shared/utils/financialYear';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { appendSummarySheet, totalValue } from '../../../shared/utils/excelTotals';
+import { ToastContainer, notifyToast, useToast, useToastBridge } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 
 type Section = 'entry' | 'saved';
 
@@ -342,6 +344,9 @@ function emptyDaily(category: StockCategory): DailyForm {
 export function DealerStockPortal() {
   const { dealerId, dealerName, user } = useAuth();
   const { t } = useLanguage();
+  const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
+  useToastBridge(toast);
   const [section, setSection] = useState<Section>('entry');
   const [menuOpen, setMenuOpen] = useState(false);
   const [category, setCategory] = useState<StockCategory>('fertilizer');
@@ -453,7 +458,7 @@ export function DealerStockPortal() {
     if (!dealerId || saving) return;
     const quantity = category === 'fertilizer' ? receiptForm.quantityMt : receiptForm.quantity;
     if (quantity <= 0 || !receiptForm.invoiceNo.trim()) {
-      alert(t('Enter quantity and invoice number.', 'పరిమాణం మరియు ఇన్వాయిస్ నంబర్ నమోదు చేయండి.'));
+      toast.showWarning('Missing details', t('Enter quantity and invoice number.', 'పరిమాణం మరియు ఇన్వాయిస్ నంబర్ నమోదు చేయండి.'));
       return;
     }
 
@@ -488,7 +493,7 @@ export function DealerStockPortal() {
       setMessage(t('Receipt saved.', 'రసీదు సేవ్ అయింది.'));
       setReceiptForm(emptyReceipt(category));
     } catch (error) {
-      alert(`${t('Could not save receipt', 'రసీదు సేవ్ చేయలేకపోయాం')}: ${error instanceof Error ? error.message : t('Unknown error', 'తెలియని లోపం')}`);
+      toast.showError(t('Save failed', 'సేవ్ విఫలమైంది'), `${t('Could not save receipt', 'రసీదు సేవ్ చేయలేకపోయాం')}: ${error instanceof Error ? error.message : t('Unknown error', 'తెలియని లోపం')}`);
     } finally {
       setSaving(false);
     }
@@ -506,12 +511,12 @@ export function DealerStockPortal() {
       });
 
     if (!preparedRows.length) {
-      alert(t('Add at least one daily stock row.', 'కనీసం ఒక రోజువారీ స్టాక్ వరుసను జోడించండి.'));
+      toast.showWarning(t('Nothing to save', 'సేవ్ చేయడానికి ఏమీ లేదు'), t('Add at least one daily stock row.', 'కనీసం ఒక రోజువారీ స్టాక్ వరుసను జోడించండి.'));
       return;
     }
 
     if (preparedRows.some(({ computed }) => computed.sales > computed.total || computed.closing_balance < 0)) {
-      alert(t('Sales cannot be more than available stock (Opening + Receipts). Closing stock must be Total - Sales.', 'అమ్మకాలు అందుబాటులో ఉన్న స్టాక్‌ కంటే ఎక్కువగా ఉండకూడదు (ప్రారంభం + రసీదులు). ముగింపు స్టాక్ మొత్తం - అమ్మకాలు కావాలి.'));
+      toast.showWarning(t('Invalid stock', 'చెల్లని స్టాక్'), t('Sales cannot be more than available stock (Opening + Receipts). Closing stock must be Total - Sales.', 'అమ్మకాలు అందుబాటులో ఉన్న స్టాక్‌ కంటే ఎక్కువగా ఉండకూడదు (ప్రారంభం + రసీదులు). ముగింపు స్టాక్ మొత్తం - అమ్మకాలు కావాలి.'));
       return;
     }
 
@@ -542,7 +547,7 @@ export function DealerStockPortal() {
       setMessage(t('Daily stock saved.', 'రోజువారీ స్టాక్ సేవ్ అయింది.'));
       setDailyRows([emptyDaily(category)]);
     } catch (error) {
-      alert(`${t('Could not save daily stock', 'రోజువారీ స్టాక్ సేవ్ చేయలేకపోయాం')}: ${error instanceof Error ? error.message : t('Unknown error', 'తెలియని లోపం')}`);
+      toast.showError(t('Save failed', 'సేవ్ విఫలమైంది'), `${t('Could not save daily stock', 'రోజువారీ స్టాక్ సేవ్ చేయలేకపోయాం')}: ${error instanceof Error ? error.message : t('Unknown error', 'తెలియని లోపం')}`);
     } finally {
       setSaving(false);
     }
@@ -550,7 +555,10 @@ export function DealerStockPortal() {
 
   const deleteEntry = async (row: StockInventoryLine) => {
     if (!row.id || deletingId) return;
-    const confirmed = window.confirm(t('Delete this saved entry?', 'ఈ సేవ్ చేసిన ఎంట్రీని తొలగించాలా?'));
+    const confirmed = await askConfirm({
+      title: t('Delete this saved entry?', 'ఈ సేవ్ చేసిన ఎంట్రీని తొలగించాలా?'),
+      confirmLabel: t('Delete', 'తొలగించు'),
+    });
     if (!confirmed) return;
 
     setDeletingId(row.id);
@@ -559,7 +567,7 @@ export function DealerStockPortal() {
       setRecords((current) => current.filter((item) => item.id !== row.id));
       setMessage(t('Saved entry deleted.', 'సేవ్ చేసిన ఎంట్రీ తొలగించబడింది.'));
     } catch (error) {
-      alert(`${t('Could not delete entry', 'ఎంట్రీని తొలగించలేకపోయాం')}: ${error instanceof Error ? error.message : t('Unknown error', 'తెలియని లోపం')}`);
+      toast.showError(t('Delete failed', 'తొలగించడం విఫలమైంది'), `${t('Could not delete entry', 'ఎంట్రీని తొలగించలేకపోయాం')}: ${error instanceof Error ? error.message : t('Unknown error', 'తెలియని లోపం')}`);
     } finally {
       setDeletingId('');
     }
@@ -645,6 +653,8 @@ export function DealerStockPortal() {
           />
         )}
       </main>
+      {confirmDialog}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }
@@ -1285,7 +1295,7 @@ function buildProductStats(dailyRows: StockInventoryLine[], receiptRows: StockIn
 async function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryLine[], category: StockCategory, unit: string, firmName: string, ifmsId: string) {
   try {
   if (!rows.length) {
-    alert('No records to export.');
+    notifyToast('warning', 'Nothing to export', 'No records to export.');
     return;
   }
   const excelRows = rows.map((row, index) => type === 'receipts'
@@ -1327,7 +1337,7 @@ async function exportSavedRows(type: 'receipts' | 'daily', rows: StockInventoryL
   await saveStyledWorkbook(workbook, `${CATEGORY_LABELS[category].toLowerCase()}-${type}-${Date.now()}.xlsx`);
   } catch (error) {
     console.error('Excel export failed:', error);
-    alert('Excel export failed. Please check your connection and try again.');
+    notifyToast('error', 'Export failed', 'Excel export failed. Please check your connection and try again.');
   }
 }
 

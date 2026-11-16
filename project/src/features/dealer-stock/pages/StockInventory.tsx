@@ -18,6 +18,8 @@ import {
   formatReportDateLabel,
 } from '../lib/stockInventory';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 
 const LazyStockChart = lazy(() => import('../components/LazyStockChart'));
 
@@ -79,6 +81,8 @@ interface InventoryRow {
 export function StockInventory() {
   const { isAdminUser } = useAuth();
   const { t, language } = useLanguage();
+  const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [rows, setRows] = useState<InventoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<StockCategory>('fertilizer');
@@ -240,11 +244,15 @@ export function StockInventory() {
 
   const handleDeleteLine = async (line: InventoryRow) => {
     if (!isAdminUser) return;
-    if (!confirm(`Delete ${line.product_type} stock submission from ${line.dealers?.dealer_name || 'this dealer'}?`)) return;
+    const confirmed = await askConfirm({
+      title: `Delete ${line.product_type} stock submission from ${line.dealers?.dealer_name || 'this dealer'}?`,
+      confirmLabel: 'Delete',
+    });
+    if (!confirmed) return;
 
     const { error } = await supabase.from('stock_inventory_lines').delete().eq('id', line.id);
     if (error) {
-      alert(`Could not delete submission: ${error.message}`);
+      toast.showError('Delete failed', `Could not delete submission: ${error.message}`);
       return;
     }
     await fetchData();
@@ -252,7 +260,7 @@ export function StockInventory() {
 
   const exportToExcel = async () => {
     if (!filteredRows.length) {
-      alert('No records to export.');
+      toast.showWarning('Nothing to export', 'No records to export.');
       return;
     }
 
@@ -589,6 +597,8 @@ export function StockInventory() {
           )}
         </section>
       )}
+      {confirmDialog}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

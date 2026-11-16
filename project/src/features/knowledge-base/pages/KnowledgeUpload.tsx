@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { UploadCloud, FileText, X, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
-import { useToast } from '../../../shared/components/ui/Toast';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
@@ -356,6 +356,7 @@ export function KnowledgeUpload() {
         }
         .dark .kb-input { background: rgb(15 23 42); border-color: rgb(51 65 85); color: rgb(226 232 240); }
       `}</style>
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import {
   ALL_ANDHRA_PRADESH_DISTRICTS,
   ALL_INDIAN_STATES,
@@ -36,6 +38,8 @@ const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
 
 export function MandiPricesWidget() {
   const { t } = useLanguage();
+  const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const { isAdminUser } = useAuth();
 
   const [selectedState, setSelectedState] = useState<string>('Telangana');
@@ -296,7 +300,7 @@ export function MandiPricesWidget() {
   // WhatsApp Share handler
   const handleShareWhatsApp = () => {
     if (filteredRecords.length === 0) {
-      alert(t('No mandi price records match the current filters.', 'ప్రస్తుత ఫిల్టర్లకు సరిపోలే మండి ధర రికార్డులు లేవు.'));
+      toast.showWarning(t('No records', 'రికార్డులు లేవు'), t('No mandi price records match the current filters.', 'ప్రస్తుత ఫిల్టర్లకు సరిపోలే మండి ధర రికార్డులు లేవు.'));
       return;
     }
     const text = buildMandiWhatsAppText(filteredRecords, t, selectedState);
@@ -312,7 +316,7 @@ export function MandiPricesWidget() {
     const modal = Number(modalForm.modal_price);
 
     if (!modalForm.market || !modalForm.commodity || isNaN(modal) || modal <= 0) {
-      alert(t('Please enter valid market, commodity, and modal price.', 'దయచేసి సరైన మార్కెట్, పంట మరియు మోడల్ ధరను నమోదు చేయండి.'));
+      toast.showWarning(t('Invalid input', 'చెల్లని ఇన్‌పుట్'), t('Please enter valid market, commodity, and modal price.', 'దయచేసి సరైన మార్కెట్, పంట మరియు మోడల్ ధరను నమోదు చేయండి.'));
       return;
     }
 
@@ -336,9 +340,13 @@ export function MandiPricesWidget() {
     }, 800);
   };
 
-  const handleDeletePrice = (id?: string) => {
+  const handleDeletePrice = async (id?: string) => {
     if (!id) return;
-    if (confirm(t('Remove this logged price record?', 'ఈ ధర రికార్డును తొలగించాలా?'))) {
+    const confirmed = await askConfirm({
+      title: t('Remove this logged price record?', 'ఈ ధర రికార్డును తొలగించాలా?'),
+      confirmLabel: t('Remove', 'తొలగించు'),
+    });
+    if (confirmed) {
       deleteCustomMandiPrice(id);
       loadPrices(true);
     }
@@ -1054,6 +1062,8 @@ export function MandiPricesWidget() {
           </div>
         </div>
       )}
+      {confirmDialog}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

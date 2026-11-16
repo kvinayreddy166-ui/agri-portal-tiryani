@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Tags, Loader2, Plus, Trash2, Pencil, X } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
-import { useToast } from '../../../shared/components/ui/Toast';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { createCategory, deleteCategory, fetchCategories, updateCategory } from '../services/knowledgeService';
@@ -10,6 +11,7 @@ import type { KnowledgeCategory } from '../types/index';
 export function KnowledgeCategories() {
   const { isAdminUser } = useAuth();
   const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [categories, setCategories] = useState<KnowledgeCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<KnowledgeCategory | null>(null);
@@ -54,7 +56,11 @@ export function KnowledgeCategories() {
   };
 
   const remove = async (c: KnowledgeCategory) => {
-    if (!confirm(`Delete category "${c.name}"? Documents using it will lose this category link.`)) return;
+    const confirmed = await askConfirm({
+      title: `Delete category "${c.name}"? Documents using it will lose this category link.`,
+      confirmLabel: 'Delete',
+    });
+    if (!confirmed) return;
     try {
       await deleteCategory(c.id);
       toast.showDeleted('Category deleted', c.name);
@@ -113,6 +119,8 @@ export function KnowledgeCategories() {
           </div>
         </div>
       )}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
+      {confirmDialog}
     </div>
   );
 }

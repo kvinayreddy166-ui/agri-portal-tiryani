@@ -24,6 +24,7 @@ import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { resolveFileIdentity, validateUploadFile } from '../../../shared/lib/fileTypes';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 
 type DocKind = 'go' | 'circular';
 type KindFilter = 'all' | DocKind;
@@ -66,6 +67,7 @@ function formatBytes(bytes?: number) {
 export function GosCirculars() {
   const { isAdminUser, user } = useAuth();
   const { t } = useLanguage();
+  const toast = useToast();
   const [documents, setDocuments] = useState<GosCircular[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -137,12 +139,12 @@ export function GosCirculars() {
 
   const handleAdd = async () => {
     if (!newDoc.title.trim()) {
-      alert(t('Please enter a title', 'దయచేసి శీర్షిక నమోదు చేయండి'));
+      toast.showWarning(t('Title required', 'శీర్షిక అవసరం'), t('Please enter a title', 'దయచేసి శీర్షిక నమోదు చేయండి'));
       return;
     }
 
     if (!selectedFile) {
-      alert(t('Please select a file to upload', 'దయచేసి అప్లోడ్ చేయడానికి ఫైల్ ఎంచుకోండి'));
+      toast.showWarning(t('File required', 'ఫైల్ అవసరం'), t('Please select a file to upload', 'దయచేసి అప్లోడ్ చేయడానికి ఫైల్ ఎంచుకోండి'));
       return;
     }
 
@@ -179,7 +181,7 @@ export function GosCirculars() {
       console.error('Error adding GO/circular:', error);
       const message =
         error instanceof Error ? error.message : 'Failed to upload document.';
-      alert(message);
+      toast.showError('Upload failed', message);
     } finally {
       setUploading(false);
     }
@@ -196,7 +198,7 @@ export function GosCirculars() {
       setDocToDelete(null);
     } catch (error) {
       console.error('Error deleting document:', error);
-      alert(t('Failed to delete document', 'పత్రాన్ని తొలగించడం విఫలమైంది'));
+      toast.showError('Delete failed', t('Failed to delete document', 'పత్రాన్ని తొలగించడం విఫలమైంది'));
     } finally {
       setIsDeleting(false);
     }
@@ -267,6 +269,7 @@ export function GosCirculars() {
           if (!isDeleting) setDocToDelete(null);
         }}
       />
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
 
       <ModulePageHeader
         icon={ScrollText}

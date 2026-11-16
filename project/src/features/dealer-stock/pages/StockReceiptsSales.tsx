@@ -12,6 +12,7 @@ import { IconButton } from '../../../shared/components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../../../shared/utils/excelTotals';
 import { createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 
 type DealerProfile = {
   id: string;
@@ -30,6 +31,7 @@ const categoryLabels: Record<StockCategory, string> = {
 };
 
 export default function StockReceiptsSales() {
+  const toast = useToast();
   const [records, setRecords] = useState<AdminStockRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [financialYear, setFinancialYear] = useState(financialYearForDate());
@@ -153,7 +155,7 @@ export default function StockReceiptsSales() {
 
   const exportToExcel = async () => {
     if (!filteredRecords.length) {
-      alert('No data to export');
+      toast.showWarning('Nothing to export', 'No data to export');
       return;
     }
     const rows = filteredRecords.map((record) => ({
@@ -310,6 +312,7 @@ export default function StockReceiptsSales() {
           </div>
         )}
       </section>
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

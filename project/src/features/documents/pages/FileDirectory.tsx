@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FolderOpen, Search } from 'lucide-react';
+import { ChevronRight, Cloud, FolderOpen, Search } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
+import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { FileActionButtons } from '../../../shared/components/ui/FileActionButtons';
@@ -62,16 +63,32 @@ interface QualityFileRow {
   created_at: string;
 }
 
+interface StorageItem {
+  name: string;
+  id: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  metadata?: { size?: number } | null;
+}
+
 const FILE_DIRECTORY_LIMIT = 240;
 const FILES_PAGE_SIZE = 80;
 
 export function FileDirectory() {
   const { t } = useLanguage();
+  const { isAdminUser } = useAuth();
+  const [view, setView] = useState<'library' | 'cloud'>('library');
   const [files, setFiles] = useState<UnifiedFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [currentPage, setCurrentPage] = useState(0);
+
+  // Cloud storage browser state (admin only)
+  const [cloudPath, setCloudPath] = useState('');
+  const [cloudItems, setCloudItems] = useState<StorageItem[]>([]);
+  const [cloudLoading, setCloudLoading] = useState(false);
+  const [cloudError, setCloudError] = useState('');
 
   const loadAllFiles = useCallback(async () => {
     try {
@@ -216,6 +233,44 @@ export function FileDirectory() {
     void loadAllFiles();
   }, [loadAllFiles]);
 
+  const loadCloudFolder = useCallback(async (path: string) => {
+    setCloudLoading(true);
+    setCloudError('');
+    try {
+      const { data, error } = await supabase.storage
+        .from('uploads')
+        .list(path || undefined, { limit: 500, sortBy: { column: 'name', order: 'asc' } });
+      if (error) throw error;
+      const items = (data || []) as StorageItem[];
+      items.sort((a, b) => {
+        const aFolder = a.id === null ? 0 : 1;
+        const bFolder = b.id === null ? 0 : 1;
+        if (aFolder !== bFolder) return aFolder - bFolder;
+        return a.name.localeCompare(b.name);
+      });
+      setCloudItems(items);
+    } catch (err) {
+      console.error('Cloud storage list failed:', err);
+      setCloudError(err instanceof Error ? err.message : 'Could not list cloud storage');
+      setCloudItems([]);
+    } finally {
+      setCloudLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (view === 'cloud' && isAdminUser) void loadCloudFolder(cloudPath);
+  }, [view, cloudPath, isAdminUser, loadCloudFolder]);
+
+  const cloudFolders = cloudItems.filter((item) => item.id === null);
+  const cloudFiles = cloudItems.filter((item) => item.id !== null);
+  const cloudCrumbs = cloudPath ? cloudPath.split('/').filter(Boolean) : [];
+
+  const cloudFileUrl = (name: string) => {
+    const { data } = supabase.storage.from('uploads').getPublicUrl(cloudPath ? `${cloudPath}/${name}` : name);
+    return data.publicUrl;
+  };
+
   const filtered = useMemo(() => {
     return files.filter((file) => {
       const query = search.toLowerCase();
@@ -276,6 +331,110 @@ export function FileDirectory() {
         )}
       />
 
+      {isAdminUser && (
+        <div className="inline-flex rounded-xl bg-slate-100 p-1 dark:bg-slate-800/70">
+          <button
+            type="button"
+            onClick={() => setView('library')}
+            className={`rounded-lg px-4 py-2 text-sm font-bold transition ${view === 'library' ? 'bg-white text-emerald-800 shadow-sm dark:bg-slate-900 dark:text-emerald-300' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`}
+          >
+            {t('Library', 'లైబ్రరీ')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('cloud')}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold transition ${view === 'cloud' ? 'bg-white text-emerald-800 shadow-sm dark:bg-slate-900 dark:text-emerald-300' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'}`}
+          >
+            <Cloud className="h-4 w-4" />
+            {t('Cloud Storage', 'క్లౌడ్ స్టోరేజ్')}
+          </button>
+        </div>
+      )}
+
+      {view === 'cloud' && isAdminUser ? (
+        <div className="portal-card overflow-hidden">
+          {/* Breadcrumb */}
+          <div className="flex flex-wrap items-center gap-1 border-b border-slate-100 px-4 py-3 text-sm font-semibold dark:border-slate-700">
+            <button
+              type="button"
+              onClick={() => setCloudPath('')}
+              className={`rounded-md px-2 py-1 transition hover:bg-slate-100 dark:hover:bg-slate-800 ${cloudPath === '' ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}`}
+            >
+              uploads/
+            </button>
+            {cloudCrumbs.map((crumb, index) => {
+              const crumbPath = cloudCrumbs.slice(0, index + 1).join('/');
+              const isLast = index === cloudCrumbs.length - 1;
+              return (
+                <React.Fragment key={crumbPath}>
+                  <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+                  <button
+                    type="button"
+                    onClick={() => setCloudPath(crumbPath)}
+                    className={`rounded-md px-2 py-1 transition hover:bg-slate-100 dark:hover:bg-slate-800 ${isLast ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-300'}`}
+                  >
+                    {crumb}/
+                  </button>
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {cloudLoading ? (
+            <div className="flex h-48 items-center justify-center">
+              <Spinner size="lg" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
+            </div>
+          ) : cloudError ? (
+            <div className="flex flex-col items-center p-12 text-slate-500">
+              <Cloud className="mb-3 h-12 w-12 opacity-40" />
+              <p>{cloudError}</p>
+            </div>
+          ) : cloudItems.length === 0 ? (
+            <div className="flex flex-col items-center p-12 text-slate-500">
+              <FolderOpen className="mb-3 h-12 w-12 opacity-40" />
+              <p>{t('This folder is empty', 'ఈ ఫోల్డర్ ఖాళీగా ఉంది')}</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
+              {cloudFolders.map((folder) => (
+                <button
+                  key={folder.name}
+                  type="button"
+                  onClick={() => setCloudPath(cloudPath ? `${cloudPath}/${folder.name}` : folder.name)}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                >
+                  <FolderOpen className="h-5 w-5 shrink-0 text-amber-500" />
+                  <span className="truncate text-sm font-bold text-slate-900 dark:text-white">{folder.name}/</span>
+                  <ChevronRight className="ml-auto h-4 w-4 text-slate-400" />
+                </button>
+              ))}
+              {cloudFiles.map((file) => {
+                const url = cloudFileUrl(file.name);
+                const sizeKb = file.metadata?.size ? `${(file.metadata.size / 1024).toFixed(1)} KB` : '';
+                const modified = file.updated_at || file.created_at;
+                return (
+                  <div
+                    key={file.name}
+                    className="flex items-center justify-between gap-2 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <FileTypeIcon fileName={file.name} fileType={inferFileTypeFromName(file.name)} fileUrl={url} size="sm" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{file.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {[sizeKb, modified ? new Date(modified).toLocaleDateString() : ''].filter(Boolean).join(' · ')}
+                        </p>
+                      </div>
+                    </div>
+                    <FileActionButtons fileUrl={url} fileName={file.name} fileType={inferFileTypeFromName(file.name)} size="sm" />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+      <>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -372,6 +531,8 @@ export function FileDirectory() {
           )}
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }

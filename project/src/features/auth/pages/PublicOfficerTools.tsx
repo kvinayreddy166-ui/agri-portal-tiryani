@@ -18,6 +18,7 @@ import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { FilePreviewModal } from '../../../shared/components/ui/FilePreviewModal';
 import { useLanguage } from '../../../shared/context/LanguageContext';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { supabase } from '../../../shared/lib/supabase';
 import { downloadFileFromUrl, fetchBlobUrl, revokeBlobUrl } from '../../../shared/lib/fileBlob';
 import { FormDownload } from '../../../shared/types/database';
@@ -271,6 +272,7 @@ export function comparePublicForms(a: FormDownload, b: FormDownload): number {
 }
 
 export function PublicOfficerTools() {
+  const toast = useToast();
   const location = useLocation();
   const navigate = useNavigate();
   const { language, t } = useLanguage();
@@ -534,7 +536,7 @@ export function PublicOfficerTools() {
       console.error('Download failed:', error);
       // Fallback: open in new tab
       window.open(form.file_url, '_blank', 'noopener,noreferrer');
-      alert(t('Download started in new tab. If it does not download, try right-clicking and "Save as".', 'డౌన్లోడ్ కొత్త ట్యాబ్‌లో ప్రారంభమైంది. డౌన్లోడ్ కాకపోతే, కుడి-క్లిక్ చేసి "సేవ్ యాజ్" ప్రయత్నించండి.'));
+      toast.showInfo('Download started', t('Download started in new tab. If it does not download, try right-clicking and "Save as".', 'డౌన్లోడ్ కొత్త ట్యాబ్‌లో ప్రారంభమైంది. డౌన్లోడ్ కాకపోతే, కుడి-క్లిక్ చేసి "సేవ్ యాజ్" ప్రయత్నించండి.'));
     } finally {
       setDownloadingFormId(null);
     }
@@ -1001,6 +1003,7 @@ export function PublicOfficerTools() {
             onClose={closePublicPreview}
           />
         )}
+        <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
       </div>
     );
 }

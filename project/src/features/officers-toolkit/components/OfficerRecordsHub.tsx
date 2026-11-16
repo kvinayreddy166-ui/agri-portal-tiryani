@@ -30,6 +30,7 @@ import {
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import {
   OfficerCloudSyncService,
   type UnifiedOfficerRecord,
@@ -55,17 +56,7 @@ const COMMODITY_BADGE_STYLES: Record<DocumentCommodity, string> = {
   seed: 'bg-sky-100 text-sky-800 ring-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:ring-sky-800/60',
 };
 
-/** Indian financial year label (April–March) for an ISO date, e.g. "2025-26". */
-function financialYearLabel(dateStr?: string | null): string | null {
-  if (!dateStr || dateStr.length < 7) return null;
-  const y = Number(dateStr.slice(0, 4));
-  const m = Number(dateStr.slice(5, 7));
-  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12) return null;
-  return m >= 4
-    ? `${y}-${String((y + 1) % 100).padStart(2, '0')}`
-    : `${y - 1}-${String(y % 100).padStart(2, '0')}`;
-}
-
+/** Indian financial year label (April–March) for a timestamp, e.g. "2025-26". */
 function financialYearLabelFromTime(ts: number): string | null {
   if (!ts) return null;
   const d = new Date(ts);
@@ -281,6 +272,86 @@ type SavedRecordsCategoryFilter =
 const normalizeSavedCategoryText = (value: unknown) =>
   String(value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
+// --- Location (district / mandal) filter helpers -------------------------
+// Records and document metadata store location under many different keys
+// (district, manualDistrict, payload.district, form.mandal, ...). Scan the
+// whole object recursively so every variant is found.
+
+const squashLocationKey = (value: unknown) =>
+  String(value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const KNOWN_DISTRICT_KEYS = new Set(
+  TELANGANA_DISTRICTS.map((d) => squashLocationKey(normalizeDistrictName(d)))
+);
+
+const KNOWN_MANDAL_KEYS = new Set(
+  Object.values(TELANGANA_DISTRICT_MANDAL_MAPPING)
+    .flat()
+    .map((m) => squashLocationKey(m).replace(/mandal$/, ''))
+);
+
+// Canonical display name per mandal (first mapping entry wins, dedupes the
+// "Hanamkonda" alias key that repeats "Hanumakonda" mandals).
+const MANDAL_DISPLAY_NAMES = new Map<string, string>();
+Object.values(TELANGANA_DISTRICT_MANDAL_MAPPING)
+  .flat()
+  .forEach((m) => {
+    const k = squashLocationKey(m).replace(/mandal$/, '');
+    if (!MANDAL_DISPLAY_NAMES.has(k)) MANDAL_DISPLAY_NAMES.set(k, m);
+  });
+
+function isKnownDistrictName(value: string): boolean {
+  return KNOWN_DISTRICT_KEYS.has(squashLocationKey(normalizeDistrictName(value)));
+}
+
+function collectLocationValues(source: unknown, keyPattern: RegExp, depth = 0): string[] {
+  if (depth > 5 || source == null || typeof source !== 'object') return [];
+  if (Array.isArray(source)) {
+    return source.flatMap((item) => collectLocationValues(item, keyPattern, depth + 1));
+  }
+  const out: string[] = [];
+  for (const [key, value] of Object.entries(source as Record<string, unknown>)) {
+    if (keyPattern.test(key)) {
+      if (typeof value === 'string' && value.trim()) out.push(value.trim());
+      else if (typeof value === 'number') out.push(String(value));
+    }
+    if (value && typeof value === 'object') {
+      out.push(...collectLocationValues(value, keyPattern, depth + 1));
+    }
+  }
+  return out;
+}
+
+/**
+ * Extracts district/mandal candidates from a metadata/details object plus an
+ * optional "Mandal, District" style location string. Location segments are only
+ * trusted when they resolve to a known Telangana district/mandal, so labels
+ * like "Field Inspection" or "Local Storage" never produce false matches.
+ */
+function getLocationCandidates(meta: unknown, location?: string | null) {
+  const districts = collectLocationValues(meta, /district/i);
+  const mandals = collectLocationValues(meta, /mandal/i);
+  if (location) {
+    for (const segment of location.split(',')) {
+      const seg = segment.trim();
+      if (!seg) continue;
+      if (isKnownDistrictName(seg)) districts.push(seg);
+      if (KNOWN_MANDAL_KEYS.has(squashLocationKey(seg).replace(/mandal$/, ''))) mandals.push(seg);
+    }
+  }
+  return { districts, mandals };
+}
+
+function districtMatchesFilter(candidates: string[], filter: string): boolean {
+  const target = squashLocationKey(normalizeDistrictName(filter));
+  return candidates.some((c) => squashLocationKey(normalizeDistrictName(c)) === target);
+}
+
+function mandalMatchesFilter(candidates: string[], filter: string): boolean {
+  const target = squashLocationKey(filter).replace(/mandal$/, '');
+  return candidates.some((c) => squashLocationKey(c).replace(/mandal$/, '') === target);
+}
+
 export function getRecordSavedCategory(record: UnifiedOfficerRecord): string {
   if (record.category !== 'order') return record.category;
 
@@ -332,6 +403,7 @@ export function getEnforcementTrackerHref(categoryFilter: string): string | null
 export function OfficerRecordsHub() {
   const { user, officerProfile, isAdminUser } = useAuth();
   const { t } = useLanguage();
+  const toast = useToast();
 
   // View tabs: documents (archived files) vs records (statutory form records)
   const [activeTab, setActiveTab] = useState<'documents' | 'records'>('documents');
@@ -487,7 +559,11 @@ export function OfficerRecordsHub() {
       const res = await OfficerDocumentArchiveService.retryFailedUploads();
       await loadAllData(true);
       const detail = res.errors && res.errors.length > 0 ? `\n\n${res.errors.slice(0, 3).join('\n')}` : '';
-      alert(t(`Retry finished: ${res.succeeded} uploaded, ${res.failed} remaining.${detail}`, `రీట్రై ముగిసింది: ${res.succeeded} అప్‌లోడ్ అయ్యాయి, ${res.failed} మిగిలి ఉన్నాయి.${detail}`));
+      toast.showInfo(
+        t(`Retry finished: ${res.succeeded} uploaded, ${res.failed} remaining.`, `రీట్రై ముగిసింది: ${res.succeeded} అప్‌లోడ్ అయ్యాయి, ${res.failed} మిగిలి ఉన్నాయి.`),
+        detail ? res.errors!.slice(0, 3).join('\n') : undefined,
+        8000
+      );
     } catch (err) {
       console.error('Retry failed:', err);
     } finally {
@@ -535,10 +611,13 @@ export function OfficerRecordsHub() {
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       console.error('[Preview Error]', error);
-      alert(t(
-        `Unable to load document preview: ${errorMsg}. You can still download the file.`,
-        `పత్రం ప్రివ్యూ లోడ్ చేయడం సాధ్యపడలేదు: ${errorMsg}. మీరు ఫైల్‌ను డౌన్‌లోడ్ చేసుకోవచ్చు.`
-      ));
+      toast.showError(
+        t('Preview unavailable', 'ప్రివ్యూ అందుబాటులో లేదు'),
+        t(
+          `Unable to load document preview: ${errorMsg}. You can still download the file.`,
+          `పత్రం ప్రివ్యూ లోడ్ చేయడం సాధ్యపడలేదు: ${errorMsg}. మీరు ఫైల్‌ను డౌన్‌లోడ్ చేసుకోవచ్చు.`
+        )
+      );
     }
   };
 
@@ -548,10 +627,7 @@ export function OfficerRecordsHub() {
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       console.error('[Download Error]', error);
-      alert(t(
-        `Download failed: ${errorMsg}`,
-        `డౌన్‌లోడ్ విఫలమైంది: ${errorMsg}`
-      ));
+      toast.showError(t('Download failed', 'డౌన్‌లోడ్ విఫలమైంది'), errorMsg);
     }
   };
 
@@ -567,11 +643,14 @@ export function OfficerRecordsHub() {
         const newStats = await OfficerDocumentArchiveService.getStorageOverview();
         setStorageStats(newStats);
       } else {
-        alert(res.message || t('Upload to cloud failed. Please try again.', 'క్లౌడ్‌కు అప్‌లోడ్ విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి.'));
+        toast.showError(
+          t('Upload failed', 'అప్‌లోడ్ విఫలమైంది'),
+          res.message || t('Upload to cloud failed. Please try again.', 'క్లౌడ్‌కు అప్‌లోడ్ విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి.')
+        );
       }
     } catch (err) {
       console.error('Upload to cloud failed:', err);
-      alert(t('Upload to cloud failed. Please try again.', 'క్లౌడ్‌కు అప్‌లోడ్ విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి.'));
+      toast.showError(t('Upload failed', 'అప్‌లోడ్ విఫలమైంది'), t('Upload to cloud failed. Please try again.', 'క్లౌడ్‌కు అప్‌లోడ్ విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి.'));
     } finally {
       setUploadingDocId(null);
     }
@@ -636,9 +715,10 @@ export function OfficerRecordsHub() {
   const availableYears = useMemo(() => {
     const years = new Set<string>();
     documents.forEach((d) => {
-      if (d.document_date && d.document_date.length >= 4) {
-        years.add(d.document_date.slice(0, 4));
-        const fy = financialYearLabel(d.document_date);
+      const ts = parseItemDate(d.document_date) || parseItemDate(d.created_at);
+      if (ts) {
+        years.add(String(new Date(ts).getFullYear()));
+        const fy = financialYearLabelFromTime(ts);
         if (fy) years.add(fy);
       }
     });
@@ -654,6 +734,57 @@ export function OfficerRecordsHub() {
     return Array.from(years).sort(yearOptionSort);
   }, [documents, records, parseItemDate]);
 
+  // Districts/mandals actually present in the loaded documents & records —
+  // the admin filter dropdowns only offer locations that have data. Mandal
+  // options are scoped to the selected district when one is chosen.
+  const { availableDistricts, availableMandals } = useMemo(() => {
+    const districtOptions = new Map<string, string>();
+    const mandalOptions = new Map<string, string>();
+    const items: Array<{ districts: string[]; mandals: string[] }> = [];
+
+    const ingest = (meta: unknown, location?: string | null) => {
+      const { districts, mandals } = getLocationCandidates(meta, location);
+      if (districts.length === 0 && mandals.length === 0) return;
+      items.push({ districts, mandals });
+      districts.forEach((d) => {
+        if (isKnownDistrictName(d)) {
+          const canon = normalizeDistrictName(d);
+          districtOptions.set(squashLocationKey(canon), canon);
+        }
+      });
+      mandals.forEach((m) => {
+        const k = squashLocationKey(m).replace(/mandal$/, '');
+        if (KNOWN_MANDAL_KEYS.has(k)) mandalOptions.set(k, MANDAL_DISPLAY_NAMES.get(k) ?? m.trim());
+      });
+    };
+
+    documents.forEach((d) => ingest(d.metadata_json, null));
+    records.forEach((r) => ingest(r.details, r.location));
+
+    let scopedMandals = mandalOptions;
+    if (districtFilter !== 'all') {
+      scopedMandals = new Map<string, string>();
+      for (const item of items) {
+        const inDistrict =
+          item.districts.length === 0 ||
+          item.districts.some((d) => districtMatchesFilter([d], districtFilter));
+        if (!inDistrict) continue;
+        item.mandals.forEach((m) => {
+          const k = squashLocationKey(m).replace(/mandal$/, '');
+          if (KNOWN_MANDAL_KEYS.has(k)) {
+            scopedMandals.set(k, MANDAL_DISPLAY_NAMES.get(k) ?? m.trim());
+          }
+        });
+      }
+    }
+
+    const byName = (a: string, b: string) => a.localeCompare(b);
+    return {
+      availableDistricts: Array.from(districtOptions.values()).sort(byName),
+      availableMandals: Array.from(scopedMandals.values()).sort(byName),
+    };
+  }, [documents, records, districtFilter]);
+
   // Filtered Documents
   const filteredDocuments = useMemo(() => {
     return documents.filter((doc) => {
@@ -665,47 +796,31 @@ export function OfficerRecordsHub() {
         if (getDocumentCommodity(doc) !== commodityFilter) return false;
       }
 
-      // District/Mandal filter (admin only) - uses document metadata
-      if (isAdminUser) {
-        const meta = doc.metadata_json as Record<string, unknown> | undefined;
-        const payload = meta?.payload as Record<string, unknown> | undefined;
-        const details = meta?.details as Record<string, unknown> | undefined;
-        const inspectionDetails = meta?.inspectionDetails as Record<string, unknown> | undefined;
-
-        if (districtFilter !== 'all') {
-          const docDistrict =
-            meta?.district ||
-            payload?.district ||
-            details?.district ||
-            inspectionDetails?.district;
-          if (docDistrict && normalizeDistrictName(String(docDistrict)) !== districtFilter) return false;
-        }
-        if (mandalFilter !== 'all') {
-          const docMandal =
-            meta?.mandal ||
-            payload?.mandal ||
-            details?.mandal ||
-            inspectionDetails?.mandal;
-          if (docMandal && String(docMandal).toLowerCase() !== mandalFilter.toLowerCase()) return false;
-        }
+      // District/Mandal filter (admin only) - scans all metadata keys
+      // (district, manualDistrict, payload/details/form nested objects, ...).
+      // Items without any location data are kept so the filter never hides
+      // records whose location simply isn't stored.
+      if (isAdminUser && (districtFilter !== 'all' || mandalFilter !== 'all')) {
+        const { districts, mandals } = getLocationCandidates(doc.metadata_json, null);
+        if (districtFilter !== 'all' && districts.length > 0 && !districtMatchesFilter(districts, districtFilter)) return false;
+        if (mandalFilter !== 'all' && mandals.length > 0 && !mandalMatchesFilter(mandals, mandalFilter)) return false;
       }
 
-      // Year Filter (calendar "2026" or financial "2026-27")
+      // Year / Month / Quick-date filters — parse document_date (ISO or
+      // DD-MM-YYYY) the same way record dates are parsed.
+      const docTime = parseItemDate(doc.document_date) || parseItemDate(doc.created_at);
       if (yearFilter !== 'all') {
-        const docYear = doc.document_date ? doc.document_date.slice(0, 4) : '';
-        const docFy = financialYearLabel(doc.document_date) ?? financialYearLabelFromTime(parseItemDate(doc.document_date));
+        if (!docTime) return false;
+        const docYear = String(new Date(docTime).getFullYear());
+        const docFy = financialYearLabelFromTime(docTime);
         const matches = yearFilter.includes('-') ? docFy === yearFilter : docYear === yearFilter;
         if (!matches) return false;
       }
-
-      // Month Filter
       if (monthFilter !== 'all') {
-        const docMonth = doc.document_date ? doc.document_date.slice(5, 7) : '';
-        if (docMonth !== monthFilter) return false;
+        if (!docTime || (new Date(docTime).getMonth() + 1).toString().padStart(2, '0') !== monthFilter) return false;
       }
-
       if (dateFilter !== 'all') {
-        const docTime = new Date(doc.document_date).getTime();
+        if (!docTime) return false;
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000;
         if (dateFilter === 'today' && now - docTime > oneDay) return false;
@@ -734,35 +849,30 @@ export function OfficerRecordsHub() {
       if (categoryFilter !== 'all' && getRecordSavedCategory(rec) !== categoryFilter) return false;
       if (commodityFilter !== 'all' && rec.commodity !== commodityFilter) return false;
 
-      // District/Mandal filter (admin only) - uses record details or location
-      if (isAdminUser) {
-        if (districtFilter !== 'all') {
-          const recDistrict =
-            rec.details?.district ||
-            rec.location ||
-            (rec as unknown as Record<string, unknown>).district;
-          if (recDistrict && normalizeDistrictName(String(recDistrict)) !== districtFilter) return false;
-        }
-        if (mandalFilter !== 'all') {
-          const recMandal =
-            rec.details?.mandal ||
-            (rec as unknown as Record<string, unknown>).mandal;
-          if (recMandal && String(recMandal).toLowerCase() !== mandalFilter.toLowerCase()) return false;
-        }
+      // District/Mandal filter (admin only) - scans record details (incl.
+      // nested form/payload objects and manualDistrict/manualMandal) plus
+      // known district/mandal segments of the display location string.
+      if (isAdminUser && (districtFilter !== 'all' || mandalFilter !== 'all')) {
+        const { districts, mandals } = getLocationCandidates(rec.details, rec.location);
+        if (districtFilter !== 'all' && districts.length > 0 && !districtMatchesFilter(districts, districtFilter)) return false;
+        if (mandalFilter !== 'all' && mandals.length > 0 && !mandalMatchesFilter(mandals, mandalFilter)) return false;
       }
 
-      // Year / Month / Quick-date filters (recordDate may be ISO or DD-MM-YYYY)
+      // Year / Month / Quick-date filters (recordDate may be ISO or DD-MM-YYYY).
+      // Records without a parseable date are excluded while a date filter is active.
       const recTime = parseItemDate(rec.recordDate);
-      if (yearFilter !== 'all' && recTime) {
+      if (yearFilter !== 'all') {
+        if (!recTime) return false;
         const recYear = new Date(recTime).getFullYear().toString();
         const recFy = financialYearLabelFromTime(recTime);
         const matches = yearFilter.includes('-') ? recFy === yearFilter : recYear === yearFilter;
         if (!matches) return false;
       }
-      if (monthFilter !== 'all' && recTime) {
-        if ((new Date(recTime).getMonth() + 1).toString().padStart(2, '0') !== monthFilter) return false;
+      if (monthFilter !== 'all') {
+        if (!recTime || (new Date(recTime).getMonth() + 1).toString().padStart(2, '0') !== monthFilter) return false;
       }
-      if (dateFilter !== 'all' && recTime) {
+      if (dateFilter !== 'all') {
+        if (!recTime) return false;
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000;
         if (dateFilter === 'today' && now - recTime > oneDay) return false;
@@ -831,7 +941,7 @@ export function OfficerRecordsHub() {
       );
 
       if (rows.length === 0) {
-        alert(t('No records found to export.', 'ఎగుమతి చేయడానికి రికార్డులు ఏవీ కనుగొనబడలేదు.'));
+        toast.showWarning(t('Nothing to export', 'ఎగుమతి చేయడానికి రికార్డులు లేవు'), t('No records match the current filters.', 'ప్రస్తుత ఫిల్టర్లకు సరిపోలే రికార్డులు లేవు.'));
         return;
       }
 
@@ -842,7 +952,7 @@ export function OfficerRecordsHub() {
       }
     } catch (err) {
       console.error('Failed to export report:', err);
-      alert(t('Failed to export report. Please try again.', 'నివేదిక ఎగుమతి విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి.'));
+      toast.showError(t('Export failed', 'ఎగుమతి విఫలమైంది'), t('Failed to export report. Please try again.', 'నివేదిక ఎగుమతి విఫలమైంది. దయచేసి మళ్ళీ ప్రయత్నించండి.'));
     } finally {
       setExportingType(null);
     }
@@ -1086,11 +1196,14 @@ export function OfficerRecordsHub() {
             <>
               <select
                 value={districtFilter}
-                onChange={(e) => setDistrictFilter(e.target.value)}
+                onChange={(e) => {
+                  setDistrictFilter(e.target.value);
+                  setMandalFilter('all');
+                }}
                 className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               >
                 <option value="all">{t('All Districts', 'అన్ని జిల్లాలు')}</option>
-                {TELANGANA_DISTRICTS.map((district) => (
+                {availableDistricts.map((district) => (
                   <option key={district} value={district}>{district}</option>
                 ))}
               </select>
@@ -1100,10 +1213,7 @@ export function OfficerRecordsHub() {
                 className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-black text-slate-700 outline-none transition focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
               >
                 <option value="all">{t('All Mandals', 'అన్ని మండలం')}</option>
-                {districtFilter !== 'all' && TELANGANA_DISTRICT_MANDAL_MAPPING[districtFilter]?.map((mandal) => (
-                  <option key={mandal} value={mandal}>{mandal}</option>
-                ))}
-                {districtFilter === 'all' && Object.values(TELANGANA_DISTRICT_MANDAL_MAPPING).flat().map((mandal) => (
+                {availableMandals.map((mandal) => (
                   <option key={mandal} value={mandal}>{mandal}</option>
                 ))}
               </select>
@@ -2372,6 +2482,8 @@ export function OfficerRecordsHub() {
         onConfirm={() => void handleDeleteRecord()}
         onCancel={() => setRecordToDelete(null)}
       />
+
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

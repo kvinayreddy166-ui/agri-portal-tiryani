@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BookOpen, Send, Loader2, Search, Sparkles, ThumbsUp, ThumbsDown, FileText, AlertTriangle } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
-import { useToast } from '../../../shared/components/ui/Toast';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
@@ -176,6 +176,7 @@ export function KnowledgeAssistant() {
         <AlertTriangle className="mr-1 inline h-3 w-3" />
         Information is based on documents in the AGRONIX Knowledge Base. Verify the latest official document before taking statutory or legal action.
       </p>
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

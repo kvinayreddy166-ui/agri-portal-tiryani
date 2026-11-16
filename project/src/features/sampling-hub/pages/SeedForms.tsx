@@ -1270,6 +1270,8 @@ function drawSeedFormVI(doc: any, form: any) {
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(PDF_TITLE_SIZE);
   doc.text('FORM VI', 105, p.y, { align: 'center' });
+  const formViWidth = doc.getTextWidth('FORM VI');
+  doc.line(105 - formViWidth / 2, p.y + 2, 105 + formViWidth / 2, p.y + 2);
   p.y += 8;
   doc.setFontSize(PDF_SUBTITLE_SIZE);
   doc.text('FORM OF NOTICE', 105, p.y, { align: 'center' });
@@ -1430,7 +1432,11 @@ function drawSeedFormVIII(doc: any, form: any) {
     { text: ' Samples of Seeds specified below to have same tested / Analyzed by Seed Analyst.' },
   ]);
   doc.setFont(PDF_FONT, 'bold');
-  doc.text(`Date: ${fmtDate(r.date) || '__________'}`, 28, p.y);
+  doc.text('Date:', 28, p.y);
+  const viiiDateLabelWidth = doc.getTextWidth('Date:');
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(fmtDate(r.date) || '__________', 28 + viiiDateLabelWidth + 2, p.y);
+  doc.setFont(PDF_FONT, 'bold');
   doc.text('Seed Inspector', 176, p.y, { align: 'right' });
   doc.setFont(PDF_FONT, 'normal');
   p.y += 16;

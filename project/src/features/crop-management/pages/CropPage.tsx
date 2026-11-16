@@ -18,6 +18,8 @@ import { getCropIntelligence } from '../../crop-doctor/lib/cropIntelligence';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 interface CropPageProps {
   cropType: string;
 }
@@ -78,6 +80,8 @@ const CROP_PAGE_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 export function CropPage({ cropType }: CropPageProps) {
   const { isAdminUser } = useAuth();
   const { language, t } = useLanguage();
+  const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [record, setRecord] = useState<CropIntelligenceRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
@@ -154,14 +158,19 @@ export function CropPage({ cropType }: CropPageProps) {
       void fetchCropIntelligence();
     } catch (error) {
       console.error('Error saving crop intelligence:', error);
-      alert(error instanceof Error ? error.message : 'Unable to save crop intelligence.');
+      toast.showError('Save failed', error instanceof Error ? error.message : 'Unable to save crop intelligence.');
     } finally {
       setSaving(false);
     }
   };
 
   const deleteRecord = async () => {
-    if (!record?.id || !confirm('Delete this crop intelligence record?')) return;
+    if (!record?.id) return;
+    const confirmed = await askConfirm({
+      title: 'Delete this crop intelligence record?',
+      confirmLabel: 'Delete',
+    });
+    if (!confirmed) return;
     try {
       const { error } = await supabase.from('crop_intelligence').delete().eq('id', record.id);
       if (error) throw error;
@@ -169,7 +178,7 @@ export function CropPage({ cropType }: CropPageProps) {
       setRecord(null);
     } catch (error) {
       console.error('Error deleting crop intelligence:', error);
-      alert('Unable to delete crop intelligence record.');
+      toast.showError('Delete failed', 'Unable to delete crop intelligence record.');
     }
   };
 
@@ -199,7 +208,7 @@ export function CropPage({ cropType }: CropPageProps) {
       void fetchCropIntelligence();
     } catch (error) {
       console.error('Error uploading source PDF:', error);
-      alert(error instanceof Error ? error.message : 'Unable to upload source PDF.');
+      toast.showError('Upload failed', error instanceof Error ? error.message : 'Unable to upload source PDF.');
     } finally {
       setUploading(false);
     }
@@ -399,6 +408,8 @@ export function CropPage({ cropType }: CropPageProps) {
           </div>
         </div>
       )}
+      {confirmDialog}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

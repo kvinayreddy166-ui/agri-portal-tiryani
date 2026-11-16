@@ -15,6 +15,8 @@ import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { FarmMechanizationDocument } from '../../../shared/types/database';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 
 const financialYears = ['2025-2026', '2026-2027', '2027-2028', '2028-2029', '2029-2030'];
 
@@ -25,6 +27,8 @@ const documentTypes = [
 
 export function FarmMechanization() {
   const { isAdminUser, user } = useAuth();
+  const toast = useToast();
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [financialYear, setFinancialYear] = useState(financialYears[0]);
   const [documents, setDocuments] = useState<FarmMechanizationDocument[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +71,7 @@ export function FarmMechanization() {
 
   const saveDocument = async () => {
     if (!title.trim() || !file) {
-      alert('Please enter a title and select a file');
+      toast.showWarning('Missing details', 'Please enter a title and select a file');
       return;
     }
 
@@ -106,14 +110,18 @@ export function FarmMechanization() {
       fetchDocuments();
     } catch (error) {
       console.error('Error saving farm mechanization document:', error);
-      alert('Failed to upload document. Please check storage/database setup.');
+      toast.showError('Upload failed', 'Failed to upload document. Please check storage/database setup.');
     } finally {
       setSaving(false);
     }
   };
 
   const deleteDocument = async (id: string) => {
-    if (!confirm('Delete this farm mechanization document?')) return;
+    const confirmed = await askConfirm({
+      title: 'Delete this farm mechanization document?',
+      confirmLabel: 'Delete',
+    });
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase
@@ -125,7 +133,7 @@ export function FarmMechanization() {
       fetchDocuments();
     } catch (error) {
       console.error('Error deleting farm mechanization document:', error);
-      alert('Failed to delete document');
+      toast.showError('Delete failed', 'Failed to delete document');
     }
   };
 
@@ -307,6 +315,8 @@ export function FarmMechanization() {
           </div>
         </div>
       )}
+      {confirmDialog}
+      <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>
   );
 }

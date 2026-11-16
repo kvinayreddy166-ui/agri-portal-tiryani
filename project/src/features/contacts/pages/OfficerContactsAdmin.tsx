@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Plus, RefreshCw, Search, Trash2, Upload, Phone, User, Building2 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 
 type OfficerType = 'AEO' | 'MAO' | 'ADA' | 'DAO';
 
@@ -33,6 +34,7 @@ const TELANGANA_DISTRICTS = [
 ];
 
 export function OfficerContactsAdmin() {
+  const { askConfirm, confirmDialog } = useConfirmDialog();
   const [contacts, setContacts] = useState<OfficerContact[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -157,7 +159,11 @@ export function OfficerContactsAdmin() {
   };
 
   const remove = async (contact: OfficerContact) => {
-    if (!confirm(`Delete ${contact.officer_type} contact for ${contact.district}?`)) return;
+    const confirmed = await askConfirm({
+      title: `Delete ${contact.officer_type} contact for ${contact.district}?`,
+      confirmLabel: 'Delete',
+    });
+    if (!confirmed) return;
     try {
       const { error } = await supabase
         .from('officer_contacts')
@@ -588,6 +594,7 @@ MAO,Jane Smith,Karimnagar,Karimnagar,Karimnagar,,9876543211,jane@example.com
           </div>
         </div>
       )}
+      {confirmDialog}
     </div>
   );
 }

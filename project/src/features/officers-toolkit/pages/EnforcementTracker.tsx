@@ -183,6 +183,15 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
   const [locationDistrict, setLocationDistrict] = useState<string>('all');
   const [locationMandal, setLocationMandal] = useState<string>('all');
 
+  // Deep-link support: ?dealer=<name> lands on Scorecards filtered to that
+  // dealer (used by the Dealer 360° drawer's "Open in Enforcement Tracker").
+  useEffect(() => {
+    const dealerParam = searchParams.get('dealer');
+    if (!dealerParam) return;
+    setActiveTab('scorecards');
+    setSearchQuery(dealerParam);
+  }, [searchParams]);
+
   const handleConfirmNonCompliance = async () => {
     if (!markingSample) return;
     setSubmittingLabReport(true);

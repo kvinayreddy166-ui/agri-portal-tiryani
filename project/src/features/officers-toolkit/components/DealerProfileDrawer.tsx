@@ -287,7 +287,8 @@ export function DealerProfileDrawer({ dealerName, data, onClose }: DealerProfile
         {/* Footer */}
         <div className="border-t border-slate-200 px-5 py-3 dark:border-slate-800">
           <Link
-            to={`/officer-toolkit/enforcement-tracker?tab=scorecards`}
+            to={`/officer-toolkit/enforcement-tracker?tab=scorecards&dealer=${encodeURIComponent(dealerName)}`}
+            onClick={onClose}
             className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-600"
           >
             <CalendarClock className="h-3.5 w-3.5" />
