@@ -305,7 +305,7 @@ function drawFromToSections(cursor: PdfCursor, officerDetails?: OfficerDetails, 
         'Hyderabad - 500036.',
       ]
     : [
-        'The Assistant Director of Agriculture,',
+        'The Asst. Director of Agriculture,',
         'Fertilizer Coding Centre,',
         'SAMETI Complex,',
         'Old Malakpet,',

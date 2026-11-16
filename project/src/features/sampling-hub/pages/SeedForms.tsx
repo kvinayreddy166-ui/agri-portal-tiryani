@@ -789,7 +789,7 @@ export function SeedForms({
           {isCottonCrop && <Input label="Produced & Packed by" value={form.producedPackedBy} onChange={(value: any) => setField('producedPackedBy', value)} placeholder="Enter Producer Details" textarea />}
           <Input label="Source of supply" value={form.sourceOfSupply} onChange={(value: any) => setField('sourceOfSupply', value)} placeholder="Enter Distributor/ Marketer Details" textarea />
           <SelectWithOther label="Kind of test required" valueKey="testRequired" otherKey="testRequiredOther" form={form} setField={setField} options={testOptions} />
-          <Input label="Remarks" value={form.remarks} onChange={(value: any) => setField('remarks', value)} textarea />
+          <Input label="Remarks" value={form.remarks} onChange={(value: any) => setField('remarks', value)} textarea skipValidation />
         </Card>
         </div>
 
@@ -852,9 +852,6 @@ export function SeedForms({
             <span>Generate Official Covering Letter</span>
           </button>
         </div>
-        <p className="mt-3 rounded-md border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-[11px] font-bold leading-4 text-red-700 dark:text-red-300">
-          Note: Please update sample details and dealer details before generating a new file.
-        </p>
         <p className="mt-2 rounded-md border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/40 px-3 py-2 text-[11px] font-bold leading-4 text-amber-700 dark:text-amber-300">
           Note: Samples are added to the Covering Letter queue only via <span className="font-black">Download All Forms → Download</span>. Preview and individual form downloads will not add them.
         </p>
@@ -1036,10 +1033,10 @@ function PreviewCard({ title, lines }: any) {
   );
 }
 
-function Input({ label, value, onChange, type = 'text', textarea = false, placeholder = '' }: any) {
+function Input({ label, value, onChange, type = 'text', textarea = false, placeholder = '', skipValidation = false }: any) {
   const className = 'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1.5 text-sm text-slate-950 dark:text-white outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:focus:bg-slate-800 dark:focus:ring-emerald-900/40';
   return (
-    <div>
+    <div data-validate-skip={skipValidation ? '' : undefined}>
       <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
         <span>{label}</span>
         {type === 'date' && value ? (

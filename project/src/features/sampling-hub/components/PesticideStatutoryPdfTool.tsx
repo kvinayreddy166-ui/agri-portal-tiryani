@@ -1219,9 +1219,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                 <span>Generate Official Covering Letter</span>
               </button>
             </div>
-            <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-bold leading-4 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">
-              Note: Please update sample details and dealer details before generating a new file.
-            </p>
             <p className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-bold leading-4 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
               Note: Samples are added to the Covering Letter queue only via <span className="font-black">Download All Forms → Download</span>. Preview and individual form downloads will not add them.
             </p>
