@@ -37,6 +37,7 @@ import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizu
 import { enforcementDeadlines, enforcementMindMap, type EnforcementDeadline, type MindMapNode } from '../data/fcoEnforcementMindMap';
 import { insecticideDeadlines, insecticideMindMap, insecticideOffenceEntries } from '../data/insecticideEnforcement';
 import { BackButton } from '../../../shared/components/ui/BackButton';
+import { applyDeterministicPdfMetadata } from '../../../shared/lib/pdfDeterministic';
 import { FertilizerFormPdfGenerator } from '../../sampling-hub/components/FertilizerFormPdfGenerator';
 import { FcoExplorer, type FcoExplorerSection } from '../components/FcoExplorer';
 import { InsecticideExplorer, type InsecticideExplorerSection } from '../components/InsecticideExplorer';
@@ -847,6 +848,7 @@ async function exportOffencesPdf(entries: FcoOffenceEntry[], meta: { filename: s
   const { jsPDF } = await import('jspdf');
   const autoTable = (await import('jspdf-autotable')).default;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  applyDeterministicPdfMetadata(doc, meta.filename);
   doc.setFont('times', 'bold');
   doc.setFontSize(14);
   doc.text(meta.title, doc.internal.pageSize.getWidth() / 2, 14, { align: 'center' });

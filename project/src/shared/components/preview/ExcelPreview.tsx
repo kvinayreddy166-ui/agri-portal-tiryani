@@ -139,6 +139,7 @@ export function ExcelPreview({ file, onClose, onDownload, className = '' }: Exce
             <button
               type="button"
               onClick={onClose}
+              aria-label="Close"
               disabled={loading}
               className="rounded-lg p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 disabled:opacity-50"
               title="Close"

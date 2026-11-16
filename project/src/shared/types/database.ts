@@ -1,20 +1,21 @@
 export interface Dealer {
   id: string;
   dealer_name: string;
-  ifms_id: string;
+  ifms_id: string | null;
   phone_number: string;
-  portal_email?: string;
+  portal_email?: string | null;
   license_number: string;
   issue_date: string;
   expiry_date: string;
   location: string;
   district?: string | null;
   mandal?: string | null;
-  dealer_category?: 'fertilizer' | 'seed' | 'pesticide';
+  dealer_category?: string;
   created_by?: string | null;
   created_by_name?: string | null;
-  created_at: string;
-  updated_at: string;
+  last_login_at?: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface FertilizerStock {
@@ -47,16 +48,16 @@ export interface DealerStockAllocation {
   id: string;
   dealer_id: string;
   fertilizer_type: string;
-  quantity_mts: number;
-  wholesaler_name?: string;
-  invoice_number?: string;
-  invoice_date?: string;
-  quantity_unit?: string;
-  quantity_bags?: number;
-  last_updated: string;
-  created_at: string;
-  dealer_name?: string;
-  dealer_location?: string;
+  quantity_mts: number | null;
+  wholesaler_name?: string | null;
+  invoice_number?: string | null;
+  invoice_date?: string | null;
+  quantity_unit?: string | null;
+  quantity_bags?: number | null;
+  last_updated: string | null;
+  created_at: string | null;
+  dealer_name?: string | null;
+  dealer_location?: string | null;
 }
 
 export interface Crop {
@@ -104,20 +105,20 @@ export interface FormDownload {
   id: string;
   title: string;
   label?: string | null;
-  description: string;
+  description: string | null;
   file_url: string | null;
-  file_type: string;
-  category: string;
-  created_at: string;
+  file_type: string | null;
+  category: string | null;
+  created_at: string | null;
 }
 
 export interface ExcelUpload {
   id: string;
   file_name: string;
   file_url: string;
-  upload_type: string;
-  created_at: string;
-  created_by: string;
+  upload_type: string | null;
+  created_at: string | null;
+  created_by: string | null;
 }
 
 export interface GosCircular {
@@ -135,13 +136,13 @@ export interface GosCircular {
 
 export interface FarmMechanizationDocument {
   id: string;
-  document_type: 'applications_received' | 'proceedings_generated';
+  document_type: string;
   financial_year: string;
   title: string;
   file_name: string;
   file_url: string;
-  created_at: string;
-  created_by: string;
+  created_at: string | null;
+  created_by: string | null;
 }
 
 export interface Settings {

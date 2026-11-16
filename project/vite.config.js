@@ -15,7 +15,7 @@ export default defineConfig({
   esbuild: {
     legalComments: 'none',
     drop: ['debugger'],
-    pure: ['console.log', 'console.debug'],
+    pure: ['console.log', 'console.debug', 'console.info'],
   },
   optimizeDeps: {
     include: [

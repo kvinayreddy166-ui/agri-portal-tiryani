@@ -1,5 +1,6 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
+import { applyDeterministicPdfMetadata } from '../../../shared/lib/pdfDeterministic';
 import { mergePdfs } from '../../../shared/utils/pdfHelpers';
 import type {
   ReanalysisCase,
@@ -16,6 +17,7 @@ type Ctx = { doc: JsPdfInstance; y: number };
 function createDoc(title: string) {
   return import('jspdf').then(({ jsPDF }) => {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    applyDeterministicPdfMetadata(doc, title);
     doc.setProperties({ title, subject: 'Fertilizer reanalysis', creator: 'AGRONIX' });
     return doc;
   });

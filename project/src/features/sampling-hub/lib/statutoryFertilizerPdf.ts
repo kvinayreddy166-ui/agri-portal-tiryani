@@ -1,6 +1,7 @@
 import { localTodayDate } from '../../../shared/utils/dateUtils';
 import type { jsPDF as JsPdfInstance } from 'jspdf';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
+import { applyDeterministicPdfMetadata } from '../../../shared/lib/pdfDeterministic';
 import { isAssistantDirectorOfAgriculture } from '../../../shared/data/assistantDirectorLocation';
 
 export type FertilizerStatutoryFormType = 'J' | 'K_ADA' | 'K_JDA' | 'P';
@@ -368,6 +369,7 @@ function createDocument(
   title: string
 ) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+  applyDeterministicPdfMetadata(doc, title);
   doc.setProperties({
     title,
     subject: 'Statutory fertilizer sampling form',

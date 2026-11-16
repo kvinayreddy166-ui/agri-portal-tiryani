@@ -33,6 +33,7 @@ import {
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../shared/lib/supabase';
+import { applyDeterministicPdfMetadata } from '../../../shared/lib/pdfDeterministic';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
@@ -1257,7 +1258,7 @@ async function saveFertilizerGradeRecord(
   const { composition: _composition, ...legacyPayload } = payload;
   const writePayload = async (record: typeof payload | typeof legacyPayload) => {
     if (serverId) {
-      return supabase.from('fertilizer_grades').update(record).eq('id', serverId);
+      return supabase.from('fertilizer_grades').update(record as never).eq('id', serverId);
     }
 
     const upsertResponse = await supabase.from('fertilizer_grades').upsert(record, { onConflict: 'name' });
@@ -1271,9 +1272,9 @@ async function saveFertilizerGradeRecord(
       .maybeSingle();
     if (existing.error) return existing;
     if (existing.data?.id) {
-      return supabase.from('fertilizer_grades').update(record).eq('id', existing.data.id);
+      return supabase.from('fertilizer_grades').update(record as never).eq('id', existing.data.id);
     }
-    return supabase.from('fertilizer_grades').insert(record);
+    return supabase.from('fertilizer_grades').insert(record as never);
   };
 
   let response = await writePayload(payload);
@@ -1292,27 +1293,27 @@ async function saveCropRecommendationRecord(
   const { nutrients: _nutrients, ...legacyPayload } = payload;
   const writePayload = async (record: typeof payload | typeof legacyPayload) => {
     if (serverId) {
-      return supabase.from('crop_fertilizer_recommendations').update(record).eq('id', serverId);
+      return supabase.from('crop_fertilizer_recommendations').update(record as never).eq('id', serverId);
     }
 
-    const upsertResponse = await supabase.from('crop_fertilizer_recommendations').upsert(record, { onConflict: 'crop_name' });
+    const upsertResponse = await supabase.from('crop_fertilizer_recommendations').upsert(record as never, { onConflict: 'crop_name' });
     if (!upsertResponse.error || !isMissingConflictTargetError(upsertResponse.error)) return upsertResponse;
 
     const existing = await supabase
       .from('crop_fertilizer_recommendations')
       .select('id')
-      .eq('crop_name', payload.crop_name)
-      .eq('crop', payload.crop)
-      .eq('zone', payload.zone)
-      .eq('season', payload.season)
-      .eq('variety', payload.variety)
+      .eq('crop_name', payload.crop_name as string)
+      .eq('crop', payload.crop as string)
+      .eq('zone', payload.zone as string)
+      .eq('season', payload.season as string)
+      .eq('variety', payload.variety as string)
       .limit(1)
       .maybeSingle();
     if (existing.error) return existing;
     if (existing.data?.id) {
-      return supabase.from('crop_fertilizer_recommendations').update(record).eq('id', existing.data.id);
+      return supabase.from('crop_fertilizer_recommendations').update(record as never).eq('id', existing.data.id);
     }
-    return supabase.from('crop_fertilizer_recommendations').insert(record);
+    return supabase.from('crop_fertilizer_recommendations').insert(record as never);
   };
 
   let response = await writePayload(payload);
@@ -1821,6 +1822,7 @@ export function FertilizerCalculator() {
       reportElement.remove();
 
       const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      applyDeterministicPdfMetadata(doc, `${farmerDetails.farmerName}|${farmerDetails.village}`);
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 18;
@@ -1956,7 +1958,7 @@ export function FertilizerCalculator() {
       input,
       output,
       created_by: user?.id || null,
-    });
+    } as never);
     if (error) {
       toast.showError('Save failed', 'Could not save calculation. Please apply the latest Supabase migration.');
       return;
@@ -2111,6 +2113,7 @@ export function FertilizerCalculator() {
                 onClick={resetFarmerDetails}
                 disabled={isResettingFarmer}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                aria-label={language === 'te' ? 'రైతు వివరాలను రీసెట్ చేయండి' : 'Reset Farmer Details'}
                 title={language === 'te' ? 'రైతు వివరాలను రీసెట్ చేయండి' : 'Reset Farmer Details'}
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isResettingFarmer ? 'animate-spin' : ''}`} />

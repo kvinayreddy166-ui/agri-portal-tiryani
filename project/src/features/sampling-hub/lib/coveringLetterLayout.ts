@@ -1,4 +1,5 @@
 import type { jsPDF as JsPdfInstance } from 'jspdf';
+import { applyDeterministicPdfMetadata } from '../../../shared/lib/pdfDeterministic';
 
 export const PAGE = {
   width: 210,
@@ -50,6 +51,7 @@ export function createCoveringLetterDocument(
   subject: string
 ) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+  applyDeterministicPdfMetadata(doc, `${title}|${subject}`);
   doc.setProperties({
     title,
     subject,

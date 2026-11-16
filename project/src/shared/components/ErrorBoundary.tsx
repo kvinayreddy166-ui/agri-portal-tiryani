@@ -2,6 +2,7 @@
 import { clearAppCacheAndReload, APP_BUILD_LABEL } from '../lib/appVersion';
 import { PortalLogo } from './ui/PortalLogo';
 import { isRecoverableChunkError, recoverFromStaleAssets } from '../lib/pwaRecovery';
+import { logClientError } from '../lib/errorDrain';
 
 interface Props {
   children: ReactNode;
@@ -24,7 +25,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     if (import.meta.env.DEV) console.error('App error:', error, info.componentStack);
-    
+    logClientError({
+      source: 'error-boundary',
+      error,
+      componentStack: info.componentStack ?? undefined,
+    });
+
     if (isRecoverableChunkError(error.message)) {
       // Try automatic recovery first
       void this.attemptAutomaticRecovery();

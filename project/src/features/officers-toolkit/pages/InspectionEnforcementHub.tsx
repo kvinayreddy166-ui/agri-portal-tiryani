@@ -53,9 +53,6 @@ const cardThemes: Record<
     borderActive: string;
     borderIdle: string;
     borderHover: string;
-    badgeBg: string;
-    badgeText: string;
-    badgeTeText: string;
     chevronOpen: string;
     itemHoverBorder: string;
     itemHoverBg: string;
@@ -67,9 +64,6 @@ const cardThemes: Record<
     borderActive: 'border-emerald-600/50 ring-2 ring-emerald-500/15 dark:border-emerald-500',
     borderIdle: 'border-slate-200/90 dark:border-slate-800',
     borderHover: 'hover:border-emerald-500/40 hover:shadow-md hover:shadow-emerald-950/5',
-    badgeBg: 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:ring-emerald-800/60',
-    badgeText: '3 Checklists',
-    badgeTeText: '3 చెక్‌లిస్టులు',
     chevronOpen: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
     itemHoverBorder: 'hover:border-emerald-300 dark:hover:border-emerald-700',
     itemHoverBg: 'hover:bg-emerald-50/40 dark:hover:bg-emerald-950/30',
@@ -80,9 +74,6 @@ const cardThemes: Record<
     borderActive: 'border-amber-600/50 ring-2 ring-amber-500/15 dark:border-amber-500',
     borderIdle: 'border-slate-200/90 dark:border-slate-800',
     borderHover: 'hover:border-amber-500/40 hover:shadow-md hover:shadow-amber-950/5',
-    badgeBg: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200/80 dark:bg-amber-950/60 dark:text-amber-300 dark:ring-amber-800/60',
-    badgeText: '3 Notices',
-    badgeTeText: '3 నోటీసులు',
     chevronOpen: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
     itemHoverBorder: 'hover:border-amber-300 dark:hover:border-amber-700',
     itemHoverBg: 'hover:bg-amber-50/40 dark:hover:bg-amber-950/30',
@@ -93,9 +84,6 @@ const cardThemes: Record<
     borderActive: 'border-rose-600/50 ring-2 ring-rose-500/15 dark:border-rose-500',
     borderIdle: 'border-slate-200/90 dark:border-slate-800',
     borderHover: 'hover:border-rose-500/40 hover:shadow-md hover:shadow-rose-950/5',
-    badgeBg: 'bg-rose-50 text-rose-800 ring-1 ring-rose-200/80 dark:bg-rose-950/60 dark:text-rose-300 dark:ring-rose-800/60',
-    badgeText: '3 Orders',
-    badgeTeText: '3 ఆర్డర్లు',
     chevronOpen: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
     itemHoverBorder: 'hover:border-rose-300 dark:hover:border-rose-700',
     itemHoverBg: 'hover:bg-rose-50/40 dark:hover:bg-rose-950/30',
@@ -106,9 +94,6 @@ const cardThemes: Record<
     borderActive: 'border-indigo-600/50 ring-2 ring-indigo-500/15 dark:border-indigo-500',
     borderIdle: 'border-slate-200/90 dark:border-slate-800',
     borderHover: 'hover:border-indigo-500/40 hover:shadow-md hover:shadow-indigo-950/5',
-    badgeBg: 'bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200/80 dark:bg-indigo-950/60 dark:text-indigo-300 dark:ring-indigo-800/60',
-    badgeText: '3 Seizures',
-    badgeTeText: '3 జప్తులు',
     chevronOpen: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300',
     itemHoverBorder: 'hover:border-indigo-300 dark:hover:border-indigo-700',
     itemHoverBg: 'hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30',
@@ -119,9 +104,6 @@ const cardThemes: Record<
     borderActive: 'border-violet-600/50 ring-2 ring-violet-500/15 dark:border-violet-500',
     borderIdle: 'border-slate-200/90 dark:border-slate-800',
     borderHover: 'hover:border-violet-500/40 hover:shadow-md hover:shadow-violet-950/5',
-    badgeBg: 'bg-violet-50 text-violet-800 ring-1 ring-violet-200/80 dark:bg-violet-950/60 dark:text-violet-300 dark:ring-violet-800/60',
-    badgeText: '1 Tool',
-    badgeTeText: '1 టూల్',
     chevronOpen: 'bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300',
     itemHoverBorder: 'hover:border-violet-300 dark:hover:border-violet-700',
     itemHoverBg: 'hover:bg-violet-50/40 dark:hover:bg-violet-950/30',
@@ -133,9 +115,6 @@ const cardThemes: Record<
     borderActive: 'border-amber-600/50 ring-2 ring-amber-500/15 dark:border-amber-500',
     borderIdle: 'border-slate-200/90 dark:border-slate-800',
     borderHover: 'hover:border-amber-500/40 hover:shadow-md hover:shadow-amber-950/5',
-    badgeBg: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200/80 dark:bg-amber-950/60 dark:text-amber-300 dark:ring-amber-800/60',
-    badgeText: '3 Notices',
-    badgeTeText: '3 నోటీసులు',
     chevronOpen: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
     itemHoverBorder: 'hover:border-amber-300 dark:hover:border-amber-700',
     itemHoverBg: 'hover:bg-amber-50/40 dark:hover:bg-amber-950/30',
@@ -146,9 +125,6 @@ const cardThemes: Record<
     borderActive: 'border-rose-600/50 ring-2 ring-rose-500/15 dark:border-rose-500',
     borderIdle: 'border-slate-200/90 dark:border-slate-800',
     borderHover: 'hover:border-rose-500/40 hover:shadow-md hover:shadow-rose-950/5',
-    badgeBg: 'bg-rose-50 text-rose-800 ring-1 ring-rose-200/80 dark:bg-rose-950/60 dark:text-rose-300 dark:ring-rose-800/60',
-    badgeText: '3 Orders',
-    badgeTeText: '3 ఆర్డర్లు',
     chevronOpen: 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
     itemHoverBorder: 'hover:border-rose-300 dark:hover:border-rose-700',
     itemHoverBg: 'hover:bg-rose-50/40 dark:hover:bg-rose-950/30',
@@ -350,9 +326,6 @@ export function InspectionEnforcementHub() {
                       {t(card.title, card.teTitle)}
                     </p>
                     <span className="flex shrink-0 items-center gap-1">
-                      <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${theme.badgeBg}`}>
-                        {t(theme.badgeText, theme.badgeTeText)}
-                      </span>
                       {card.key === 'reanalysis' && (
                         <span className="whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-800 ring-1 ring-amber-300/80 dark:bg-amber-950/60 dark:text-amber-300 dark:ring-amber-700/60">
                           {t('Under Development', 'అభివృద్ధిలో ఉన్నది')}

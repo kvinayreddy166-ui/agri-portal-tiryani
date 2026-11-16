@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 import { initServiceWorkerLifecycle, installPwaRecovery } from '../shared/lib/pwaRecovery';
+import { installGlobalErrorHandlers } from '../shared/lib/errorDrain';
 import { recordSiteHit } from '../shared/lib/siteHits';
 import './index.css';
 
@@ -17,6 +18,7 @@ declare global {
 window.__TIRYANI_APP_BOOTED__ = true;
 
 installPwaRecovery();
+installGlobalErrorHandlers();
 
 try {
   window.sessionStorage.removeItem('tiryani-startup-recovery-v1');

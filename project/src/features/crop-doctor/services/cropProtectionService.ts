@@ -2,6 +2,14 @@ import { supabase } from '../../../shared/lib/supabase';
 import { repairTeluguText } from '../../../shared/utils/textRepair';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+
+// The crop_protection_* tables are absent from the generated schema types;
+// queries against them intentionally fall back to cached/seed data on failure.
+function cropProtectionTable(table: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (supabase as unknown as { from: (relation: string) => any }).from(table);
+}
+
 export type CropProtectionCategory = 'weed' | 'pest' | 'disease' | 'nutrient';
 export type ControlType = 'cultural' | 'mechanical' | 'biological' | 'chemical' | 'general_ipm';
 export type SeverityLevel = 'low' | 'medium' | 'high';
@@ -119,8 +127,7 @@ export async function loadCropProtectionData(): Promise<CropProtectionCrop[]> {
 }
 
 async function loadSupabaseCropProtectionData() {
-  return supabase
-    .from('crop_protection_crops')
+  return cropProtectionTable('crop_protection_crops')
     .select(`
       id,
       crop_key,
@@ -178,8 +185,7 @@ async function loadSupabaseCropProtectionData() {
 
 export async function saveCropProtectionCrop(crop: Partial<CropProtectionCrop> & { id: string }) {
   clearCropProtectionCache();
-  return supabase
-    .from('crop_protection_crops')
+  return cropProtectionTable('crop_protection_crops')
     .update({
       name_en: crop.name_en?.trim() || 'Crop',
       name_te: crop.name_te?.trim() || '',
@@ -268,9 +274,9 @@ export async function saveCropProtectionItem(item: Partial<CropProtectionItem> &
   };
 
   if (item.id) {
-    return supabase.from('crop_protection_items').update(payload).eq('id', item.id);
+    return cropProtectionTable('crop_protection_items').update(payload).eq('id', item.id);
   }
-  return supabase.from('crop_protection_items').insert(payload);
+  return cropProtectionTable('crop_protection_items').insert(payload);
 }
 
 export function buildGeneralIpmItem(crop: CropProtectionCrop, category: CropProtectionCategory): CropProtectionItem {

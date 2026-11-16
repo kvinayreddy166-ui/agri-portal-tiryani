@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Camera, RefreshCw, Search, Sprout, Stethoscope } from 'lucide-react';
+import { AlertTriangle, Camera, RefreshCw, Search, Sparkles, Sprout, Stethoscope } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -10,6 +10,7 @@ import { ProtectionItemCard } from './ProtectionItemCard';
 import { CropProtectionAdmin } from './CropProtectionAdmin';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
+import { CropAiDiagnosisModal } from './CropAiDiagnosisModal';
 
 const categories: Array<{
   key: CropProtectionCategory;
@@ -39,6 +40,7 @@ export function CropProtectionDashboard({
   const [category, setCategory] = useState<CropProtectionCategory>('pest');
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'guidance' | 'admin'>('guidance');
+  const [isAiDiagnosisOpen, setIsAiDiagnosisOpen] = useState(false);
 
   useEffect(() => {
     if (!crops.length) return;
@@ -142,14 +144,25 @@ export function CropProtectionDashboard({
         </div>
       </section>
       )}
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-600 dark:text-emerald-300" />
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder={label('Search crop, pest or disease', language)}
-          className="h-10 w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-3 text-sm font-bold text-slate-900 shadow-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-600 dark:text-emerald-300" />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={label('Search crop, pest or disease', language)}
+            className="h-10 w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-3 text-sm font-bold text-slate-900 shadow-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsAiDiagnosisOpen(true)}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-700 via-green-600 to-emerald-700 px-3.5 text-xs font-black text-white shadow-sm transition hover:from-emerald-800 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          title={label('Identify from Photo', language)}
+        >
+          <Camera className="h-4 w-4" />
+          <span className="hidden sm:inline">{label('Identify from Photo', language)}</span>
+        </button>
       </div>
       <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">
@@ -168,11 +181,13 @@ export function CropProtectionDashboard({
             </button>
             <button
               type="button"
-              disabled
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-dashed border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 text-[11px] font-black text-emerald-800 dark:text-emerald-300 disabled:opacity-80"
-              title={label('AI photo diagnosis coming soon', language)}
+              onClick={() => setIsAiDiagnosisOpen(true)}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-emerald-500 bg-emerald-600 px-3 text-[11px] font-black text-white shadow-sm transition hover:bg-emerald-700 hover:scale-102 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              title={label('Identify from Photo', language)}
             >
-              <Camera className="h-3.5 w-3.5" /> {label('Identify from Photo', language)}
+              <Camera className="h-3.5 w-3.5" />
+              <span>{label('Identify from Photo', language)}</span>
+              <Sparkles className="h-3 w-3 text-emerald-200" />
             </button>
           </div>
         </div>
@@ -246,6 +261,19 @@ export function CropProtectionDashboard({
         </section>
       )}
       {activeTab === 'admin' && <CropProtectionAdmin crops={crops} isAdmin={isAdminUser} onSaved={onRefresh} />}
+
+      <CropAiDiagnosisModal
+        isOpen={isAiDiagnosisOpen}
+        onClose={() => setIsAiDiagnosisOpen(false)}
+        defaultCropKey={selectedCrop.crop_key}
+        crops={crops}
+        language={language}
+        onSelectMatchedItem={(cropKey, item) => {
+          setSelectedCropKey(cropKey);
+          setCategory(item.category);
+          setSearch(item.name_en);
+        }}
+      />
     </div>
   );
 }

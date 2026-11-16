@@ -142,6 +142,7 @@ export function PdfPreview({ file, onClose, onDownload, className = '' }: PdfPre
           <button
             type="button"
             onClick={handleZoomOut}
+            aria-label="Zoom out"
             disabled={loading}
             className="rounded-lg p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 disabled:opacity-50"
           >
@@ -151,6 +152,7 @@ export function PdfPreview({ file, onClose, onDownload, className = '' }: PdfPre
           <button
             type="button"
             onClick={handleZoomIn}
+            aria-label="Zoom in"
             disabled={loading}
             className="rounded-lg p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 disabled:opacity-50"
           >
@@ -173,6 +175,7 @@ export function PdfPreview({ file, onClose, onDownload, className = '' }: PdfPre
             <button
               type="button"
               onClick={onClose}
+              aria-label="Close"
               disabled={loading}
               className="rounded-lg p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 disabled:opacity-50"
             >

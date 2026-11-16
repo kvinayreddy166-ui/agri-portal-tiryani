@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useCropData } from '../../../shared/hooks/useCropData';
-import { Spinner } from '../../../shared/components/ui/Spinner';
+import { PageSkeleton } from '../../../shared/components/ui/PageSkeleton';
 
 const SECTION_TEXT: Record<string, [string, string]> = {
   overview: ['Crop Overview', 'పంట అవలోకనం'],
@@ -120,9 +120,7 @@ export function CropIntelligencePage({ cropSlug = 'paddy' }) {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
-      </div>
+      <PageSkeleton />
     );
   }
 

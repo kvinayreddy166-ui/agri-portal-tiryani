@@ -75,7 +75,7 @@ export async function fetchAggregatedFertilizerStock(): Promise<FertilizerStock[
 
   if (error) throw error;
 
-  return aggregateFertilizerStock(data || []);
+  return aggregateFertilizerStock((data || []).map((row) => ({ fertilizer_type: row.fertilizer_type ?? '', quantity_mts: row.quantity_mts ?? 0 })));
 }
 
 export async function fetchDailyFertilizerStockSummary(

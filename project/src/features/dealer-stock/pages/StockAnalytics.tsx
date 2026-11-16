@@ -8,6 +8,7 @@ import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { supabase } from '../../../shared/lib/supabase';
 import {
+  CATEGORY_UNITS,
   FINANCIAL_YEARS,
   StockCategory,
   StockInventoryLine,
@@ -163,7 +164,7 @@ function CommandCenter() {
         .order('dealer_name'),
       supabase
         .from('stock_inventory_lines')
-        .select('id, dealer_id, category, product_type, entry_type, opening_balance, receipts, total, sales, closing_balance, report_date, report_month, financial_year, unit, created_at, updated_at')
+        .select('id, dealer_id, category, product_type, opening_balance, receipts, total, sales, closing_balance, report_date, report_month, created_at, updated_at')
         .gte('report_date', range.start)
         .lte('report_date', range.end)
         .order('report_date', { ascending: false }),
@@ -180,7 +181,13 @@ function CommandCenter() {
       console.error(stockRes.error);
       setStockRows([]);
     } else {
-      setStockRows((stockRes.data || []) as StockRow[]);
+      setStockRows((stockRes.data || []).map((row) => ({
+        ...row,
+        category: row.category as StockCategory,
+        entry_type: 'daily_stock' as const,
+        financial_year: financialYearForDate(row.report_date),
+        unit: CATEGORY_UNITS[row.category as StockCategory]?.[0],
+      })) as unknown as StockRow[]);
     }
     setLoading(false);
   }, [filters.financialYear]);

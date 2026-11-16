@@ -166,7 +166,7 @@ function productsFor(category: StockCategory) {
 }
 
 async function saveStockLine(payload: StockLinePayload) {
-  const { error: rpcError } = await supabase.rpc('save_dealer_stock_line', { p_line: payload });
+  const { error: rpcError } = await supabase.rpc('save_dealer_stock_line' as never, { p_line: payload } as never);
   if (!rpcError) return;
 
   const errors: string[] = [`Save helper: ${errorMessage(rpcError)}`];
@@ -194,7 +194,7 @@ async function saveStockLine(payload: StockLinePayload) {
 }
 
 async function deleteStockLine(id: string) {
-  const { error: rpcError } = await supabase.rpc('delete_dealer_stock_line', { p_line_id: id });
+  const { error: rpcError } = await supabase.rpc('delete_dealer_stock_line' as never, { p_line_id: id } as never);
   if (!rpcError) return;
 
   const rpcMissing =

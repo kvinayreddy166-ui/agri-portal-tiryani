@@ -315,6 +315,7 @@ export function PesticideStopSaleRevokeEntry({ prefill }: { prefill?: SavedPestS
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<SavedPestRevokeOrder | null>(null);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const noticeBlocks = useMemo(() => buildRevokeModel(form), [form]);
   const previewHtml = useMemo(() => noticeBlocksHtml(noticeBlocks), [noticeBlocks]);
@@ -350,7 +351,14 @@ export function PesticideStopSaleRevokeEntry({ prefill }: { prefill?: SavedPestS
     } catch {}
   }, [form]);
 
-  const updateForm = (patch: Partial<PestRevokeFormState>) => setForm((current) => ({ ...current, ...patch }));
+  const updateForm = (patch: Partial<PestRevokeFormState>) => {
+    setForm((current) => ({ ...current, ...patch }));
+    setFieldErrors((current) => {
+      const next = { ...current };
+      for (const key of Object.keys(patch)) delete next[key];
+      return next;
+    });
+  };
   const { dealers: directoryDealers } = useDealers('pesticide');
   const applyDealerPick = (dealer: Dealer | null) => {
     if (!dealer) return;
@@ -392,8 +400,14 @@ export function PesticideStopSaleRevokeEntry({ prefill }: { prefill?: SavedPestS
   // Persist the record when the document is actually issued (download/print),
   // not merely when the form is filled in.
   const persistOrderForExport = async (): Promise<boolean> => {
+    const errors: Record<string, string> = {};
+    if (!String(form.firmName ?? '').trim()) errors.firmName = 'Firm name is required.';
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      showWarning('Please complete required fields', Object.values(errors)[0]);
+      return false;
+    }
     const dealer = String(form.firmName ?? '').trim();
-    if (!dealer) return false;
     const f = form as unknown as Record<string, unknown>;
     const ref = String(f.orderNumber || f.noticeNumber || f.memoNumber || f.refNumber || '').trim();
     const ok = await askConfirm({
@@ -611,7 +625,7 @@ export function PesticideStopSaleRevokeEntry({ prefill }: { prefill?: SavedPestS
         <h3 className="mb-2.5 pb-2 border-b border-amber-200/80 dark:border-amber-800/60 text-sm font-black uppercase tracking-wide text-amber-700 dark:text-amber-400 font-black">Dealer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <DealerPartySelect dealers={directoryDealers} onPick={applyDealerPick} label="Select dealer / party" />
-          <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
+          <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} error={fieldErrors.firmName} />
           <TextInput label="Licence No." value={form.licenceNumber} onChange={(value) => updateForm({ licenceNumber: value })} />
           <label className="block md:col-span-3">
             <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>

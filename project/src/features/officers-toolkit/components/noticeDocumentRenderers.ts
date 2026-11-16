@@ -1,6 +1,7 @@
 import type { FileChild } from 'docx';
 import { setupPdfUnicodeFonts, DOCX_TELUGU_FONT } from '../../../shared/lib/pdfUnicodeFonts';
 import { addEmblemImageWatermark } from '../../../shared/lib/pdfWatermark';
+import { applyDeterministicPdfMetadata } from '../../../shared/lib/pdfDeterministic';
 import { NOTICE_FONT_STACK, type NoticeBlock, type NoticeSegment } from './showCauseNoticeModel';
 
 export function escapeHtml(value: string) {
@@ -418,6 +419,7 @@ export async function renderNoticePdfDocument(
 ) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+  applyDeterministicPdfMetadata(doc, title);
   doc.setProperties({ title, subject: title, creator: 'AGRONIX' });
   doc.setLineHeightFactor(1.15);
   const fontName = await loadNoticeFonts(doc, font);

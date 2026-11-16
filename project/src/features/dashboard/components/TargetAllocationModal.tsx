@@ -135,7 +135,7 @@ export function TargetAllocationModal({ open, onClose, onSaved }: { open: boolea
       if (numeric !== null) rows.push({ ...base, numeric_target: numeric, code_number: null });
       for (const code of codes) rows.push({ ...base, numeric_target: null, code_number: code });
 
-      const { error: insertError } = await supabase.from('officer_target_allocations').insert(rows);
+      const { error: insertError } = await supabase.from('officer_target_allocations').insert(rows as never);
       if (insertError) throw insertError;
 
       onSaved?.();
@@ -153,7 +153,7 @@ export function TargetAllocationModal({ open, onClose, onSaved }: { open: boolea
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+        role="dialog" aria-modal="true" className="flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-700">
@@ -169,7 +169,7 @@ export function TargetAllocationModal({ open, onClose, onSaved }: { open: boolea
               )}
             </p>
           </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">
+          <button type="button" onClick={onClose} aria-label="Close" className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">
             <X className="h-5 w-5" />
           </button>
         </div>

@@ -22,6 +22,10 @@ jobs:
         working-directory: project
         run: npm ci
 
+      - name: Lint
+        working-directory: project
+        run: npm run lint
+
       - name: Typecheck
         working-directory: project
         run: npm run typecheck

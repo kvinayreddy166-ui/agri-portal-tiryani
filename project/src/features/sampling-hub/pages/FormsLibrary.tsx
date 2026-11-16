@@ -15,7 +15,7 @@ import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { classifyPublicForm, comparePublicForms, PUBLIC_FORM_SUBGROUPS, type PublicFormSubGroup, type PublicFormGroupMeta } from '../../auth/pages/PublicOfficerTools';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
-import { Spinner } from '../../../shared/components/ui/Spinner';
+import { PageSkeleton } from '../../../shared/components/ui/PageSkeleton';
 const folders = [
   { id: 'fertilizers', label: 'Fertilizer', telugu: 'ఎరువులు', icon: FlaskConical, tone: 'sky' },
   { id: 'seed', label: 'Seed', telugu: 'విత్తనాలు', icon: Sprout, tone: 'emerald' },
@@ -134,7 +134,7 @@ export function FormsLibrary() {
       if (error) throw error;
       const normalized = (data || []).map((row) => ({
         ...row,
-        category: normalizeCategory(row.category),
+        category: normalizeCategory(row.category || ''),
       }));
       setForms(normalized);
     } catch (error) {
@@ -424,7 +424,7 @@ export function FormsLibrary() {
       >
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800/80 ring-1 ring-slate-200/60 dark:ring-slate-700/60 shadow-2xs transition-transform duration-200 group-hover:scale-105">
-            <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
+            <FileTypeIcon fileName={form.title} fileType={form.file_type || undefined} fileUrl={form.file_url || undefined} size="sm" />
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-sm font-black text-slate-900 dark:text-white leading-snug break-words font-[var(--font-heading)]">
@@ -501,9 +501,7 @@ export function FormsLibrary() {
 
     if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
-      </div>
+      <PageSkeleton />
     );
   }
 
@@ -631,7 +629,7 @@ export function FormsLibrary() {
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-slate-400">{t('This will be visible to the public on the login page.', 'This will be visible to the public on the login page.')}</p>
               </div>
-              <button onClick={resetForm} className="rounded-lg p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100">
+              <button onClick={resetForm} aria-label={t('Close', 'మూసివేయి')} className="rounded-lg p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -891,7 +889,7 @@ export function FormsLibrary() {
         <FilePreviewModal
           fileUrl={previewForm.file_url}
           fileName={previewForm.title}
-          fileType={previewForm.file_type}
+          fileType={previewForm.file_type || undefined}
           onClose={closePreview}
         />
       )}

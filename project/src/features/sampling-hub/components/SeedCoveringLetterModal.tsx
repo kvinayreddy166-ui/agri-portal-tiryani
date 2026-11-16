@@ -504,7 +504,7 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-      <div className="flex max-h-[94vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
+      <div role="dialog" aria-modal="true" className="flex max-h-[94vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
         <header className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-white px-6 py-4 dark:border-slate-700 dark:from-emerald-950/40 dark:to-slate-900">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-red-600 text-white shadow-lg">
@@ -842,12 +842,13 @@ export function SeedCoveringLetterModal({ isOpen, onClose, officerDetails, cover
 
       {showPreviewDialog && previewPdfUrl && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/70 p-2 backdrop-blur-sm sm:p-4">
-          <div className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
+          <div role="dialog" aria-modal="true" className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
             <header className="flex shrink-0 items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
               <h3 className="text-sm font-black text-slate-900 dark:text-white">Covering Letter Preview</h3>
               <button
                 type="button"
                 onClick={closePreviewDialog}
+                aria-label="Close preview"
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
               >
                 <X className="h-4 w-4" />

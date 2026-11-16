@@ -107,7 +107,7 @@ export function DealerProfileDrawer({ dealerName, data, onClose }: DealerProfile
   return (
     <div className="fixed inset-0 z-[96] flex justify-end bg-slate-950/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="flex h-full w-full max-w-md flex-col bg-white shadow-2xl dark:bg-slate-900"
+        role="dialog" aria-modal="true" className="flex h-full w-full max-w-md flex-col bg-white shadow-2xl dark:bg-slate-900"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

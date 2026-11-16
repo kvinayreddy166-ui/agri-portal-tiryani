@@ -66,7 +66,7 @@ export function useTargetAllocations() {
 /** Lists MAO/ADA officers for the DNO allocation dropdown (RPC, DNO/admin only). */
 export async function listAllocationOfficers(district?: string): Promise<AllocationOfficer[]> {
   const { data, error } = await supabase.rpc('list_allocation_officers', {
-    p_district: district || null,
+    p_district: district || undefined,
   });
   if (error) throw error;
   return (data || []) as AllocationOfficer[];

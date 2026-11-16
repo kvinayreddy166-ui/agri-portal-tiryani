@@ -370,7 +370,7 @@ export function PublicOfficerTools() {
   }, [formsLibraryOpen]);
 
   const selectedStatutoryForms = useMemo(() => {
-    const list = statutoryForms.filter((form) => normalizePublicFormCategory(form.category) === statutoryFolder);
+    const list = statutoryForms.filter((form) => normalizePublicFormCategory(form.category || '') === statutoryFolder);
     return [...list].sort(comparePublicForms);
   }, [statutoryForms, statutoryFolder]);
 
@@ -466,7 +466,7 @@ export function PublicOfficerTools() {
       .map((f) => {
         const matchCount = statutoryForms.filter(
           (form) =>
-            normalizePublicFormCategory(form.category) === f.id &&
+            normalizePublicFormCategory(form.category || '') === f.id &&
             ((form.label || form.title || '').toLowerCase().includes(query) ||
               (form.description || '').toLowerCase().includes(query))
         ).length;
@@ -559,7 +559,7 @@ export function PublicOfficerTools() {
       >
         <div className="flex items-start gap-2.5 sm:gap-3 min-w-0 flex-1">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-200/50 dark:ring-slate-700/50">
-            <FileTypeIcon fileName={form.title} fileType={form.file_type} fileUrl={form.file_url || undefined} size="sm" />
+            <FileTypeIcon fileName={form.title} fileType={form.file_type || undefined} fileUrl={form.file_url || undefined} size="sm" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5 mb-1">
@@ -999,7 +999,7 @@ export function PublicOfficerTools() {
           <FilePreviewModal
             fileUrl={previewForm.file_url}
             fileName={previewForm.label || previewForm.title}
-            fileType={previewForm.file_type}
+            fileType={previewForm.file_type || undefined}
             onClose={closePublicPreview}
           />
         )}
@@ -1132,7 +1132,7 @@ function normalizePublicFormCategory(category: string) {
 }
 
 function normalizePublicFormRow(form: FormDownload): FormDownload {
-  return { ...form, category: normalizePublicFormCategory(form.category) };
+  return { ...form, category: normalizePublicFormCategory(form.category || '') };
 }
 
 function readCachedPublicForms() {

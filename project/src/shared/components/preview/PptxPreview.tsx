@@ -124,6 +124,7 @@ export function PptxPreview({ file, onClose, onDownload, className = '' }: PptxP
             <button
               type="button"
               onClick={handleDownload}
+              aria-label="Download"
               disabled={loading}
               className="rounded-lg p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 disabled:opacity-50"
               title="Download"
@@ -135,6 +136,7 @@ export function PptxPreview({ file, onClose, onDownload, className = '' }: PptxP
             <button
               type="button"
               onClick={onClose}
+              aria-label="Close"
               disabled={loading}
               className="rounded-lg p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 disabled:opacity-50"
               title="Close"

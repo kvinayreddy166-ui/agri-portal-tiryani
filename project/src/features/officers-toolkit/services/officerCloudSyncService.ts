@@ -108,7 +108,7 @@ export class OfficerCloudSyncService {
 
         const { error } = await supabase
           .from('officer_statutory_orders')
-          .upsert(payload, { onConflict: 'officer_id,order_number' });
+          .upsert(payload as never, { onConflict: 'officer_id,order_number' });
 
         if (!error) {
           syncedToCloud = true;
@@ -218,7 +218,7 @@ export class OfficerCloudSyncService {
 
           const { error } = await supabase
             .from('officer_inspections')
-            .insert(payload);
+            .insert(payload as never);
 
           if (!error) {
             syncedToCloud = true;
@@ -325,7 +325,7 @@ export class OfficerCloudSyncService {
 
           const { error } = await supabase
             .from('officer_samples')
-            .insert(payload);
+            .insert(payload as never);
 
           if (!error) {
             syncedToCloud = true;
@@ -369,7 +369,7 @@ export class OfficerCloudSyncService {
         ]);
 
         if (ordersRes.data) {
-          ordersRes.data.forEach((row: OfficerStatutoryOrderDbRecord & { id: string }) => {
+          (ordersRes.data as unknown as (OfficerStatutoryOrderDbRecord & { id: string })[]).forEach((row) => {
             if (row.order_number) cloudOrderRefs.add(String(row.order_number));
             records.push({
               id: row.id,
@@ -390,7 +390,7 @@ export class OfficerCloudSyncService {
         }
 
         if (inspRes.data) {
-          inspRes.data.forEach((row: OfficerInspectionDbRecord & { id: string }) => {
+          (inspRes.data as unknown as (OfficerInspectionDbRecord & { id: string })[]).forEach((row) => {
             const fj = row.findings_json as Record<string, unknown> | undefined;
             if (fj && typeof fj === 'object' && fj.id) cloudInspectionDraftIds.add(String(fj.id));
             records.push({
@@ -412,7 +412,7 @@ export class OfficerCloudSyncService {
         }
 
         if (samplesRes.data) {
-          samplesRes.data.forEach((row: OfficerSampleDbRecord & { id: string }) => {
+          (samplesRes.data as unknown as (OfficerSampleDbRecord & { id: string })[]).forEach((row) => {
             if (row.sample_code) cloudSampleCodes.add(String(row.sample_code));
             records.push({
               id: row.id,

@@ -1,5 +1,6 @@
 import { supabase, isAdmin } from '../../../shared/lib/supabase';
 import { compressForArchive, restoreArchivedDocument } from './documentCompressionService';
+import { computeCanonicalContentHash } from './documentCryptoService';
 import { OfficerDocumentQueue, type QueuedDocument } from './officerDocumentQueue';
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import type {
@@ -205,6 +206,15 @@ export class OfficerDocumentArchiveService {
     const storedSha256 = comp.storedSha256;
     const contentHash = storedSha256;
 
+    // Canonical content hash: stable across regenerations of the same
+    // document even when PDF trailer metadata (/ID, /CreationDate) differs.
+    // Stored inside metadata_json so duplicate detection needs no schema change.
+    const canonicalHash = await computeCanonicalContentHash(rawBytes);
+    const archiveMetadata: Record<string, unknown> = {
+      ...(input.metadata || {}),
+      __canonical_sha256: canonicalHash,
+    };
+
     // Build secure opaque R2 object key: officers/{user_id}/{year}/{month}/{document_id}.{extension}
     const dateObj = new Date(documentDate);
     const year = !isNaN(dateObj.getFullYear()) ? String(dateObj.getFullYear()) : new Date().getFullYear().toString();
@@ -232,6 +242,34 @@ export class OfficerDocumentArchiveService {
             success: true,
             documentId: existing.id,
             uploadStatus: 'saved_to_cloud',
+            objectKey: existing.object_key,
+            originalSize,
+            storedSize,
+            compressionMethod,
+            compressionStatus,
+            contentHash,
+            originalSha256,
+            storedSha256,
+            versionNumber: existing.version_number,
+            duplicate: true,
+          };
+        }
+
+        // Canonical dedup: identical document content re-generated produces
+        // the same canonical hash even when PDF metadata bytes differ.
+        const { data: canonicalMatch } = await supabase
+          .from('officer_document_archive')
+          .select('id, document_name, version_number, object_key, upload_status')
+          .eq('user_id', user.id)
+          .eq('metadata_json->>__canonical_sha256', canonicalHash)
+          .limit(1);
+
+        if (canonicalMatch && canonicalMatch.length > 0) {
+          const existing = canonicalMatch[0];
+          return {
+            success: true,
+            documentId: existing.id,
+            uploadStatus: existing.upload_status === 'saved_to_cloud' ? 'saved_to_cloud' : 'pending_retry',
             objectKey: existing.object_key,
             originalSize,
             storedSize,
@@ -297,6 +335,29 @@ export class OfficerDocumentArchiveService {
               duplicate: true,
             };
           }
+
+          // Canonical dedup for local records: same normalized content hash
+          // means an unchanged re-download.
+          const canonicalMatch = localList.find(
+            (item) => item.metadata_json?.__canonical_sha256 === canonicalHash
+          );
+          if (canonicalMatch) {
+            return {
+              success: true,
+              documentId: canonicalMatch.id,
+              uploadStatus: canonicalMatch.upload_status,
+              objectKey: canonicalMatch.object_key,
+              originalSize,
+              storedSize,
+              compressionMethod,
+              compressionStatus,
+              contentHash,
+              originalSha256,
+              storedSha256,
+              versionNumber: canonicalMatch.version_number,
+              duplicate: true,
+            };
+          }
         }
       } catch {
         // ignore
@@ -334,7 +395,7 @@ export class OfficerDocumentArchiveService {
       upload_status: uploadStatus,
       version_number: versionNumber,
       parent_document_id: parentDocId,
-      metadata_json: input.metadata || {},
+      metadata_json: archiveMetadata,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -379,7 +440,7 @@ export class OfficerDocumentArchiveService {
       uploadStatus,
       versionNumber,
       parentDocumentId: parentDocId,
-      metadata: input.metadata || {},
+      metadata: archiveMetadata,
       fileBlob: new Blob([bytesToStore as unknown as BlobPart], {
         type: compressionMethod === 'gzip' ? 'application/gzip' : mimeType,
       }),
@@ -446,7 +507,7 @@ export class OfficerDocumentArchiveService {
           upload_status: uploadStatus,
           version_number: versionNumber,
           parent_document_id: parentDocId,
-          metadata_json: input.metadata || {},
+          metadata_json: archiveMetadata,
         };
 
         const table = supabase.from('officer_document_archive') as unknown as OfficerDocumentArchiveTable;
@@ -510,7 +571,7 @@ export class OfficerDocumentArchiveService {
           const { data, error } = await query.order('created_at', { ascending: false });
 
           if (!error && data) {
-            data.forEach((row: OfficerDocumentArchiveRecord) => {
+            (data as unknown as OfficerDocumentArchiveRecord[]).forEach((row) => {
               records.push(row);
             });
           }

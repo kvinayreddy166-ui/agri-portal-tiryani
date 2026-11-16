@@ -79,6 +79,7 @@ const LazySimpleBarChart = lazy(() =>
 
 const emptyStateText = 'No farmer records found. Try name, phone number, PPB or village.';
 let localFarmerSeedCache: FarmerRow[] | null = null;
+let localFilterOptionsCache: FarmerFilterOptions | null = null;
 type IdleWorkId = number | ReturnType<typeof globalThis.setTimeout>;
 
 function scheduleIdleWork(callback: () => void, timeout = 1200): IdleWorkId {
@@ -234,7 +235,7 @@ export function FarmerDatabase() {
   const { askConfirm, confirmDialog } = useConfirmDialog();
   const [rows, setRows] = useState<FarmerRow[]>([]);
   const [analyticsRows, setAnalyticsRows] = useState<FarmerRow[]>([]);
-  const [filterOptionRows, setFilterOptionRows] = useState<FarmerRow[]>([]);
+  const [filterOptions, setFilterOptions] = useState<FarmerFilterOptions | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -260,12 +261,12 @@ export function FarmerDatabase() {
   useEffect(() => {
     let active = true;
     const idleId = scheduleIdleWork(() => {
-      loadLocalFarmerSeed()
-        .then((seedRows) => {
-          if (active) setFilterOptionRows(seedRows);
+      loadLocalFilterOptions()
+        .then((options) => {
+          if (active) setFilterOptions(options);
         })
         .catch(() => {
-          if (active) setFilterOptionRows([]);
+          if (active) setFilterOptions({ villages: [], crops: [] });
         });
     }, 1800);
     return () => {
@@ -413,10 +414,28 @@ export function FarmerDatabase() {
     setPage(0);
   }, [cropFilters, debouncedSearch, surveyFilter, villageFilters]);
 
-  const optionRows = filterOptionRows.length ? filterOptionRows : analyticsRows.length ? analyticsRows : rows;
-  const villageOptions = useMemo(() => unique(optionRows.map((row) => row.village_english).filter(Boolean)), [optionRows]);
-  const cropOptions = useMemo(() => unique(optionRows.map((row) => row.crop).filter(Boolean)), [optionRows]);
-  const villageLabelMap = useMemo(() => optionLabelMap(optionRows, 'village_english', 'village_telugu'), [optionRows]);
+  const optionRows = analyticsRows.length ? analyticsRows : rows;
+  const seedVillages = filterOptions?.villages ?? null;
+  const villageOptions = useMemo(() => {
+    if (seedVillages) return unique(seedVillages.map((v) => v.village_english).filter(Boolean));
+    return unique(optionRows.map((row) => row.village_english).filter(Boolean));
+  }, [seedVillages, optionRows]);
+  const cropOptions = useMemo(() => {
+    if (filterOptions) return unique(filterOptions.crops.filter(Boolean));
+    return unique(optionRows.map((row) => row.crop).filter(Boolean));
+  }, [filterOptions, optionRows]);
+  const villageLabelMap = useMemo(() => {
+    if (seedVillages) {
+      const labels = new Map<string, string>();
+      seedVillages.forEach((v) => {
+        if (v.village_english && v.village_telugu && !labels.has(v.village_english)) {
+          labels.set(v.village_english, v.village_telugu);
+        }
+      });
+      return labels;
+    }
+    return optionLabelMap(optionRows, 'village_english', 'village_telugu');
+  }, [seedVillages, optionRows]);
   const groups = useMemo(() => groupFarmerRows(rows), [rows]);
   const analytics = useMemo(() => buildAnalytics(analyticsRows), [analyticsRows]);
   const ureaAnalytics = useMemo(() => buildUreaRequirementAnalytics(analyticsRows), [analyticsRows]);
@@ -1282,6 +1301,24 @@ function farmerLocalKey(row: FarmerRow) {
     row.farmer_name_english,
     row.father_or_husband_name_english,
   ].map(searchableText).join('|');
+}
+
+interface FarmerFilterOptions {
+  villages: { village_english: string; village_telugu: string }[];
+  crops: string[];
+}
+
+async function loadLocalFilterOptions(): Promise<FarmerFilterOptions> {
+  if (localFilterOptionsCache) return localFilterOptionsCache;
+  try {
+    const response = await fetch('/farmer_database_filter_options.json', { cache: 'force-cache' });
+    if (!response.ok) return { villages: [], crops: [] };
+    const data = (await response.json()) as FarmerFilterOptions;
+    localFilterOptionsCache = data;
+    return data;
+  } catch {
+    return { villages: [], crops: [] };
+  }
 }
 
 async function loadLocalFarmerSeed() {

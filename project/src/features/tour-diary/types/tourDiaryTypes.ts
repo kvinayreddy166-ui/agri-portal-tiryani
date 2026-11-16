@@ -3,14 +3,15 @@ export interface TourDiary {
   officer_id: string;
   year: number;
   month: number;
-  opening_meter: number;
+  opening_meter: number | null;
   closing_meter: number | null;
-  total_km: number;
-  status: string;
-  officer_name?: string;
-  designation?: string;
-  district?: string;
-  mandal?: string;
+  total_km: number | null;
+  status: string | null;
+  officer_name?: string | null;
+  designation?: string | null;
+  district?: string | null;
+  division?: string | null;
+  mandal?: string | null;
 }
 
 export interface TourDiaryDraft {

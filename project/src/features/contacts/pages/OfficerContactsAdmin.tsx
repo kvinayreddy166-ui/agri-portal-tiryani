@@ -8,7 +8,7 @@ type OfficerType = 'AEO' | 'MAO' | 'ADA' | 'DAO';
 
 interface OfficerContact {
   id: string;
-  officer_type: OfficerType;
+  officer_type: string;
   name: string | null;
   district: string;
   division: string | null;
@@ -16,9 +16,9 @@ interface OfficerContact {
   cluster: string | null;
   phone: string;
   email: string | null;
-  active: boolean;
-  created_at: string;
-  updated_at: string;
+  active: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 const OFFICER_TYPES: OfficerType[] = ['AEO', 'MAO', 'ADA', 'DAO'];
@@ -321,7 +321,7 @@ export function OfficerContactsAdmin() {
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {filteredContacts.map((contact) => {
-              const Icon = getOfficerIcon(contact.officer_type);
+              const Icon = getOfficerIcon(contact.officer_type as OfficerType);
               return (
                 <article key={contact.id} className="grid gap-3 p-4 lg:grid-cols-[1fr_auto]">
                   <div className="flex items-center gap-3">
@@ -496,7 +496,7 @@ export function OfficerContactsAdmin() {
                   <input
                     type="checkbox"
                     id="active"
-                    checked={editing.active}
+                    checked={editing.active ?? false}
                     onChange={(e) => setEditing({ ...editing, active: e.target.checked })}
                     className="h-4 w-4 rounded border-slate-300"
                   />

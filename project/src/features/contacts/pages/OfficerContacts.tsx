@@ -12,7 +12,7 @@ type OfficerType = 'AEO' | 'MAO' | 'ADA' | 'DAO';
 
 interface OfficerContact {
   id: string;
-  officer_type: OfficerType;
+  officer_type: string;
   name: string | null;
   district: string;
   division: string | null;
@@ -334,7 +334,7 @@ export function OfficerContacts() {
           .eq('active', true)
           .not('division', 'is', null);
 
-        divisions = Array.from(new Set(divisionsData?.map(d => d.division) || [])).sort();
+        divisions = Array.from(new Set((divisionsData || []).map(d => d.division).filter((v): v is string => !!v))).sort();
 
         // Load mandals based on district and division
         let mandalQuery = supabase
@@ -350,7 +350,7 @@ export function OfficerContacts() {
         }
 
         const { data: mandalsData } = await mandalQuery;
-        mandals = Array.from(new Set(mandalsData?.map(d => d.mandal) || [])).sort();
+        mandals = Array.from(new Set((mandalsData || []).map(d => d.mandal).filter((v): v is string => !!v))).sort();
 
         // Load clusters if mandal is selected
         if (selectedMandal) {
@@ -368,7 +368,7 @@ export function OfficerContacts() {
           }
 
           const { data: clustersData } = await clusterQuery;
-          clusters = Array.from(new Set(clustersData?.map(d => d.cluster) || [])).sort();
+          clusters = Array.from(new Set((clustersData || []).map(d => d.cluster).filter((v): v is string => !!v))).sort();
         }
       }
 

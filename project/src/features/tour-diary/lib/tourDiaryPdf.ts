@@ -1,4 +1,5 @@
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
+import { applyDeterministicPdfMetadata } from '../../../shared/lib/pdfDeterministic';
 import { MONTHS, TOUR_DIARY_COLUMN_COUNT, getDaysInMonth, formatDate } from './tourDiaryData';
 import type { SpecialDateStatus } from '../types/tourDiaryTypes';
 
@@ -151,6 +152,7 @@ export async function generateTourDiaryPdf(options: GenerateTourDiaryPdfOptions)
 
   const [{ jsPDF }, { autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')]);
   const doc = new jsPDF('l', 'mm', 'a4');
+  applyDeterministicPdfMetadata(doc, `${displayName}|${currentYear}-${currentMonth}`);
   await setupPdfUnicodeFonts(doc);
 
   const tableData = [...rawTableData];

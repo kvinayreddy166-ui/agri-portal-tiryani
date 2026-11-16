@@ -295,6 +295,7 @@ export function SeedSeizureOrderEntry() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<SavedSeedSeizureOrder | null>(null);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const noticeBlocks = useMemo(() => buildSeizureModel(form), [form]);
   const previewHtml = useMemo(() => noticeBlocksHtml(noticeBlocks), [noticeBlocks]);
@@ -330,18 +331,34 @@ export function SeedSeizureOrderEntry() {
     } catch {}
   }, [form]);
 
-  const updateForm = (patch: Partial<SeedSeizureFormState>) => setForm((current) => ({ ...current, ...patch }));
+  const updateForm = (patch: Partial<SeedSeizureFormState>) => {
+    setForm((current) => ({ ...current, ...patch }));
+    setFieldErrors((current) => {
+      const next = { ...current };
+      for (const key of Object.keys(patch)) delete next[key];
+      return next;
+    });
+  };
   const { dealers: directoryDealers } = useDealers('seed');
   const applyDealerPick = (dealer: Dealer | null) => {
     if (!dealer) return;
     updateForm({ firmName: dealer.dealer_name, dealerAddress: dealerAddressLine(dealer) });
   };
 
-  const updateProduct = (id: string, patch: Partial<SeedSeizureProductRow>) =>
+  const updateProduct = (id: string, patch: Partial<SeedSeizureProductRow>) => {
     setForm((current) => ({
       ...current,
       products: current.products.map((row) => (row.id === id ? { ...row, ...patch } : row)),
     }));
+    if (patch.variety !== undefined || patch.crop !== undefined) {
+      setFieldErrors((current) => {
+        if (!current.productName) return current;
+        const next = { ...current };
+        delete next.productName;
+        return next;
+      });
+    }
+  };
 
   const addProduct = () => setForm((current) => ({ ...current, products: [...current.products, emptyProduct()] }));
   const removeProduct = (id: string) =>
@@ -366,8 +383,15 @@ export function SeedSeizureOrderEntry() {
   // Persist the record when the document is actually issued (download/print),
   // not merely when the form is filled in.
   const persistOrderForExport = async (): Promise<boolean> => {
+    const errors: Record<string, string> = {};
+    if (!String(form.firmName ?? '').trim()) errors.firmName = 'Firm name is required.';
+    if (!form.products.some((row) => row.variety.trim())) errors.productName = 'Enter the variety of at least one seed lot.';
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      showWarning('Please complete required fields', Object.values(errors)[0]);
+      return false;
+    }
     const dealer = String(form.firmName ?? '').trim();
-    if (!dealer) return false;
     const f = form as unknown as Record<string, unknown>;
     const ref = String(f.orderNumber || f.noticeNumber || f.memoNumber || f.refNumber || '').trim();
     const ok = await askConfirm({
@@ -583,7 +607,7 @@ export function SeedSeizureOrderEntry() {
         <h3 className="mb-2.5 pb-2 border-b border-emerald-200/80 dark:border-emerald-800/60 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Dealer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <DealerPartySelect dealers={directoryDealers} onPick={applyDealerPick} label="Select dealer / party" />
-          <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
+          <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} error={fieldErrors.firmName} />
           <label className="block md:col-span-3">
             <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>
             <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
@@ -654,10 +678,10 @@ export function SeedSeizureOrderEntry() {
                 {row.crop === 'Others' ? (
                   <TextInput label="Enter Crop" value={row.cropOther} onChange={(value) => updateProduct(row.id, { cropOther: value })} />
                 ) : (
-                  <TextInput label="Variety" value={row.variety} onChange={(value) => updateProduct(row.id, { variety: value })} />
+                  <TextInput label="Variety" value={row.variety} onChange={(value) => updateProduct(row.id, { variety: value })} error={index === 0 ? fieldErrors.productName : undefined} />
                 )}
                 {row.crop === 'Others' && (
-                  <TextInput label="Variety" value={row.variety} onChange={(value) => updateProduct(row.id, { variety: value })} />
+                  <TextInput label="Variety" value={row.variety} onChange={(value) => updateProduct(row.id, { variety: value })} error={index === 0 ? fieldErrors.productName : undefined} />
                 )}
                 <TextInput label="Lot / Batch No." value={row.lotNo} onChange={(value) => updateProduct(row.id, { lotNo: value })} />
                 <TextInput label="Source / Purchased from" value={row.source} onChange={(value) => updateProduct(row.id, { source: value })} />

@@ -23,7 +23,7 @@ import { FileActionButtons } from '../../../shared/components/ui/FileActionButto
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { resolveFileIdentity, validateUploadFile } from '../../../shared/lib/fileTypes';
-import { Spinner } from '../../../shared/components/ui/Spinner';
+import { PageSkeleton } from '../../../shared/components/ui/PageSkeleton';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 
 type DocKind = 'go' | 'circular';
@@ -230,9 +230,7 @@ export function GosCirculars() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
-      </div>
+      <PageSkeleton />
     );
   }
 

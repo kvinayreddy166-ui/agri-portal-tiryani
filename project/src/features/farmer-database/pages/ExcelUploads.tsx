@@ -18,7 +18,7 @@ import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 
 import { parseExcelAndImportDealers } from '../../../shared/lib/excelParser';
 import { getContentType, inferFileTypeFromName, validateUploadFile } from '../../../shared/lib/fileTypes';
-import { Spinner } from '../../../shared/components/ui/Spinner';
+import { PageSkeleton } from '../../../shared/components/ui/PageSkeleton';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 
@@ -328,11 +328,7 @@ export function ExcelUploads() {
 
     return (
 
-      <div className="flex h-64 items-center justify-center">
-
-        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
-
-      </div>
+      <PageSkeleton />
 
     );
 
@@ -465,7 +461,7 @@ export function ExcelUploads() {
         <div className="portal-card divide-y divide-slate-100 overflow-hidden dark:divide-slate-700">
 
           {uploads.map((upload) => {
-            const fileType = inferFileTypeFromName(upload.file_name, upload.upload_type);
+            const fileType = inferFileTypeFromName(upload.file_name, upload.upload_type ?? undefined);
             return (
               <div
                 key={upload.id}
@@ -482,10 +478,10 @@ export function ExcelUploads() {
                           onChange={(e) => setRenameValue(e.target.value)}
                           className="min-w-0 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-bold text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
                         />
-                        <button type="button" onClick={handleRename} className="rounded-lg bg-emerald-700 p-1.5 text-white">
+                        <button type="button" onClick={handleRename} aria-label="Save name" className="rounded-lg bg-emerald-700 p-1.5 text-white">
                           <Save className="h-4 w-4" />
                         </button>
-                        <button type="button" onClick={() => setRenamingId(null)} className="rounded-lg border border-slate-300 p-1.5 text-slate-600 dark:border-slate-600 dark:text-slate-300">
+                        <button type="button" onClick={() => setRenamingId(null)} aria-label="Cancel rename" className="rounded-lg border border-slate-300 p-1.5 text-slate-600 dark:border-slate-600 dark:text-slate-300">
                           <X className="h-4 w-4" />
                         </button>
                       </div>
@@ -494,7 +490,7 @@ export function ExcelUploads() {
                     )}
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       {t('Uploaded by', 'అప్లోడ్')}: {upload.created_by} ·{' '}
-                      {new Date(upload.created_at).toLocaleString()}
+                      {upload.created_at ? new Date(upload.created_at).toLocaleString() : '-'}
                     </p>
                   </div>
                 </div>

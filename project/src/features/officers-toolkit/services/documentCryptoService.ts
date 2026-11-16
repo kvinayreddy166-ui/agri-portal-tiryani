@@ -37,6 +37,38 @@ export function detectDigitalSignature(bytes: Uint8Array): boolean {
   }
 }
 
+/**
+ * Content hash that is stable across regenerations of the same document.
+ *
+ * PDF generators embed volatile metadata (/ID trailer entry, /CreationDate,
+ * /ModDate) so byte-identical content can still hash differently. This
+ * normalizes those fields before hashing so re-downloads of an unchanged
+ * document produce the same hash. Non-PDF payloads hash as-is.
+ */
+export async function computeCanonicalContentHash(data: Uint8Array): Promise<string> {
+  const isPdf =
+    data.length > 5 &&
+    data[0] === 0x25 && // %
+    data[1] === 0x50 && // P
+    data[2] === 0x44 && // D
+    data[3] === 0x46 && // F
+    data[4] === 0x2d;   // -
+  if (!isPdf) return computeSha256(data);
+
+  let binary = '';
+  for (let i = 0; i < data.length; i += 0x8000) {
+    binary += String.fromCharCode(...data.subarray(i, i + 0x8000));
+  }
+  const normalized = binary
+    .replace(
+      /\/ID\s*\[\s*<[0-9A-Fa-f]+>\s*<[0-9A-Fa-f]+>\s*\]/g,
+      '/ID[<00000000000000000000000000000000><00000000000000000000000000000000>]'
+    )
+    .replace(/\/CreationDate\s*\((?:\\.|[^\\)])*\)/g, "/CreationDate(D:19700101000000+00'00')")
+    .replace(/\/ModDate\s*\((?:\\.|[^\\)])*\)/g, "/ModDate(D:19700101000000+00'00')");
+  return computeSha256(new TextEncoder().encode(normalized));
+}
+
 function containsSubsequence(source: Uint8Array, pattern: number[]): boolean {
   const pLen = pattern.length;
   if (pLen === 0 || source.length < pLen) return false;

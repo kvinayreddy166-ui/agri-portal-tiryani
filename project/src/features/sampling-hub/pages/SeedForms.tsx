@@ -16,6 +16,7 @@ import {
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { withOthersOption, effectiveLocationValue, isAssistantDirectorOfAgriculture, isAssistantDirectorOfAgricultureT, ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT, statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
+import { applyDeterministicPdfMetadata } from '../../../shared/lib/pdfDeterministic';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -1176,6 +1177,7 @@ function isCottonSeedForm(form: any) {
 async function buildSeedPdf(kind: any, form: any) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  applyDeterministicPdfMetadata(doc, `${kind}|${form?.codeNo || ''}|${form?.date || form?.collectionDate || ''}`);
   await setupPdfUnicodeFonts(doc);
   doc.setProperties({ title: `Seed Form ${kind}`, creator: 'AGRONIX' });
 

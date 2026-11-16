@@ -11,6 +11,7 @@ import { IconButton } from '../../../shared/components/ui/DesignSystem';
 import { appendSheetWithTotals, appendSummarySheet, totalValue, type ExcelRow } from '../../../shared/utils/excelTotals';
 import { createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
 import { Spinner } from '../../../shared/components/ui/Spinner';
+import { PageSkeleton } from '../../../shared/components/ui/PageSkeleton';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 
@@ -81,6 +82,7 @@ export function StockManagement() {
     fertilizer_type: 'Urea',
     quantity_mts: 0,
   });
+  const [fieldErrors, setFieldErrors] = useState<{ dealer_id?: string; quantity_mts?: string }>({});
 
   useEffect(() => {
     void fetchData();
@@ -141,10 +143,12 @@ export function StockManagement() {
   };
 
   const handleAdd = async () => {
-    if (!formData.dealer_id || !formData.fertilizer_type || formData.quantity_mts < 0) {
-      toast.showWarning('Missing details', 'Please select a dealer, fertilizer, and valid quantity.');
-      return;
-    }
+    const errors: { dealer_id?: string; quantity_mts?: string } = {};
+    if (!formData.dealer_id) errors.dealer_id = 'Please select a dealer';
+    if (!formData.fertilizer_type) errors.dealer_id = errors.dealer_id || 'Please select a fertilizer';
+    if (!(formData.quantity_mts > 0)) errors.quantity_mts = 'Enter a valid quantity greater than 0';
+    setFieldErrors(errors);
+    if (errors.dealer_id || errors.quantity_mts) return;
 
     try {
       await upsertDealerStockAllocation({
@@ -160,6 +164,7 @@ export function StockManagement() {
       }
       setShowAddForm(false);
       setFormData({ dealer_id: '', fertilizer_type: 'Urea', quantity_mts: 0 });
+      setFieldErrors({});
       void fetchData();
     } catch (error) {
       console.error('Error adding dealer-wise stock:', error);
@@ -194,7 +199,7 @@ export function StockManagement() {
   };
 
   const financialYearStock = useMemo(() => {
-    return stock.filter((item) => dateInFinancialYear(item.invoice_date || item.last_updated, financialYear));
+    return stock.filter((item) => dateInFinancialYear((item.invoice_date || item.last_updated) || undefined, financialYear));
   }, [financialYear, stock]);
 
   const dealerOptions = useMemo(() => {
@@ -315,9 +320,7 @@ export function StockManagement() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
-      </div>
+      <PageSkeleton />
     );
   }
 
@@ -471,8 +474,9 @@ export function StockManagement() {
                     <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-200">Dealer</label>
                     <select
                       value={formData.dealer_id}
-                      onChange={(e) => setFormData({ ...formData, dealer_id: e.target.value })}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                      onChange={(e) => { setFieldErrors((prev) => ({ ...prev, dealer_id: undefined })); setFormData({ ...formData, dealer_id: e.target.value }); }}
+                      className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:ring-4 dark:bg-slate-800 dark:text-white ${fieldErrors.dealer_id ? 'border-red-400 focus:border-red-500 focus:ring-red-100 dark:border-red-500/70' : 'border-slate-300 focus:border-emerald-500 focus:ring-emerald-100 dark:border-slate-600'}`}
+                      aria-invalid={Boolean(fieldErrors.dealer_id)}
                     >
                       <option value="">Select dealer</option>
                       {dealers.map((dealer) => (
@@ -481,6 +485,7 @@ export function StockManagement() {
                         </option>
                       ))}
                     </select>
+                    {fieldErrors.dealer_id && <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400" role="alert">{fieldErrors.dealer_id}</p>}
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-200">Fertilizer</label>
@@ -501,14 +506,16 @@ export function StockManagement() {
                       min="0"
                       step="0.01"
                       value={formData.quantity_mts}
-                      onChange={(e) => setFormData({ ...formData, quantity_mts: parseFloat(e.target.value) || 0 })}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                      onChange={(e) => { setFieldErrors((prev) => ({ ...prev, quantity_mts: undefined })); setFormData({ ...formData, quantity_mts: parseFloat(e.target.value) || 0 }); }}
+                      className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:ring-4 dark:bg-slate-800 dark:text-white ${fieldErrors.quantity_mts ? 'border-red-400 focus:border-red-500 focus:ring-red-100 dark:border-red-500/70' : 'border-slate-300 focus:border-emerald-500 focus:ring-emerald-100 dark:border-slate-600'}`}
+                      aria-invalid={Boolean(fieldErrors.quantity_mts)}
                     />
+                    {fieldErrors.quantity_mts && <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400" role="alert">{fieldErrors.quantity_mts}</p>}
                   </div>
                 </div>
                 <div className="mt-4 flex gap-2">
                   <button
-                    onClick={() => setShowAddForm(false)}
+                    onClick={() => { setShowAddForm(false); setFieldErrors({}); }}
                     className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     Cancel
@@ -658,8 +665,8 @@ export function StockManagement() {
                       </td>
                       <td className="max-w-[220px] truncate px-2.5 py-1.5">{item.wholesaler_name || '-'}</td>
                       <td className="px-2.5 py-1.5">{item.invoice_number || '-'}</td>
-                      <td className="px-2.5 py-1.5">{formatDate(item.invoice_date)}</td>
-                      <td className="px-2.5 py-1.5">{formatDate(item.last_updated)}</td>
+                      <td className="px-2.5 py-1.5">{formatDate(item.invoice_date || undefined)}</td>
+                      <td className="px-2.5 py-1.5">{formatDate(item.last_updated || undefined)}</td>
                       {isAdminUser && (
                         <td className="px-2.5 py-1.5 text-center">
                           <button

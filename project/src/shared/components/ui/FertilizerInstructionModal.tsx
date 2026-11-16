@@ -47,6 +47,7 @@ export function FertilizerInstructionModal({ isOpen, onClose }: FertilizerInstru
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-red-600 text-white shadow-lg transition hover:bg-red-700 hover:scale-110"
+          aria-label="Close"
           title="Close (ESC)"
         >
           <X className="h-5 w-5" />

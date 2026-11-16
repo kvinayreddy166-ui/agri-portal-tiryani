@@ -14,7 +14,7 @@ import { FileActionButtons } from '../../../shared/components/ui/FileActionButto
 import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { FarmMechanizationDocument } from '../../../shared/types/database';
-import { Spinner } from '../../../shared/components/ui/Spinner';
+import { PageSkeleton } from '../../../shared/components/ui/PageSkeleton';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 
@@ -38,6 +38,7 @@ export function FarmMechanization() {
     useState<FarmMechanizationDocument['document_type']>('applications_received');
   const [title, setTitle] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ title?: string; file?: string }>({});
 
   const counts = useMemo(() => {
     return {
@@ -70,10 +71,11 @@ export function FarmMechanization() {
   }, [fetchDocuments]);
 
   const saveDocument = async () => {
-    if (!title.trim() || !file) {
-      toast.showWarning('Missing details', 'Please enter a title and select a file');
-      return;
-    }
+    const errors: { title?: string; file?: string } = {};
+    if (!title.trim()) errors.title = 'Title is required';
+    if (!file) errors.file = 'Please select a file';
+    setFieldErrors(errors);
+    if (!title.trim() || !file) return;
 
     setSaving(true);
     try {
@@ -106,6 +108,7 @@ export function FarmMechanization() {
       setShowUpload(false);
       setTitle('');
       setFile(null);
+      setFieldErrors({});
       setDocumentType('applications_received');
       fetchDocuments();
     } catch (error) {
@@ -139,9 +142,7 @@ export function FarmMechanization() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
-      </div>
+      <PageSkeleton />
     );
   }
 
@@ -214,7 +215,7 @@ export function FarmMechanization() {
                     </p>
                     <p className="flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
-                      {new Date(document.created_at).toLocaleString()}
+                      {document.created_at ? new Date(document.created_at).toLocaleString() : '-'}
                     </p>
                   </div>
                   <div className="row-span-2 flex items-center gap-1 lg:row-span-1">
@@ -275,14 +276,16 @@ export function FarmMechanization() {
                 <input
                   type="text"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  onChange={(e) => { setFieldErrors((prev) => ({ ...prev, title: undefined })); setTitle(e.target.value); }}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-4 ${fieldErrors.title ? 'border-red-400 focus:border-red-500 focus:ring-red-100 dark:border-red-500/70' : 'border-gray-300 dark:border-slate-600 focus:border-emerald-500 focus:ring-emerald-100'}`}
                   placeholder="Enter document title"
+                  aria-invalid={Boolean(fieldErrors.title)}
                 />
+                {fieldErrors.title && <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400" role="alert">{fieldErrors.title}</p>}
               </div>
               <div>
                 <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">File</label>
-                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/60 px-3 py-2 hover:border-emerald-400 hover:bg-emerald-50">
+                <label className={`flex cursor-pointer items-center gap-2 rounded-lg border border-dashed px-3 py-2 ${fieldErrors.file ? 'border-red-400 bg-red-50 hover:border-red-500 dark:border-red-500/70 dark:bg-red-950/20' : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/60 hover:border-emerald-400 hover:bg-emerald-50'}`}>
                   <FileUp className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
                   <span className="truncate text-sm font-semibold text-gray-700 dark:text-slate-200">
                     {file ? file.name : 'Upload application or proceeding file'}
@@ -291,15 +294,16 @@ export function FarmMechanization() {
                     type="file"
                     className="hidden"
                     accept="image/*,.pdf,.doc,.docx,.xlsx,.xls,.csv"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    onChange={(e) => { setFieldErrors((prev) => ({ ...prev, file: undefined })); setFile(e.target.files?.[0] || null); }}
                   />
                 </label>
+                {fieldErrors.file && <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400" role="alert">{fieldErrors.file}</p>}
               </div>
             </div>
 
             <div className="mt-4 flex gap-2">
               <button
-                onClick={() => setShowUpload(false)}
+                onClick={() => { setShowUpload(false); setFieldErrors({}); }}
                 className="flex-1 rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-50"
               >
                 Cancel

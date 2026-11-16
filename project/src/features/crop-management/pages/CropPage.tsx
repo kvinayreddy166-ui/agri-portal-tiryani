@@ -17,7 +17,7 @@ import { useLanguage } from '../../../shared/context/LanguageContext';
 import { getCropIntelligence } from '../../crop-doctor/lib/cropIntelligence';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
-import { Spinner } from '../../../shared/components/ui/Spinner';
+import { PageSkeleton } from '../../../shared/components/ui/PageSkeleton';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 interface CropPageProps {
@@ -112,8 +112,8 @@ export function CropPage({ cropType }: CropPageProps) {
         .maybeSingle();
 
       if (error) throw error;
-      setRecord(data as CropIntelligenceRecord | null);
-      if (data) writeCropPageCache(slug, data as CropIntelligenceRecord);
+      setRecord(data as unknown as CropIntelligenceRecord | null);
+      if (data) writeCropPageCache(slug, data as unknown as CropIntelligenceRecord);
     } catch (error) {
       console.error('Error loading crop intelligence:', error);
       if (!cachedRecord) setRecord(null);
@@ -150,7 +150,7 @@ export function CropPage({ cropType }: CropPageProps) {
 
       const { error } = await supabase
         .from('crop_intelligence')
-        .upsert(payload, { onConflict: 'slug' });
+        .upsert(payload as never, { onConflict: 'slug' });
 
       if (error) throw error;
       clearCropPageCache(slug);
@@ -202,7 +202,7 @@ export function CropPage({ cropType }: CropPageProps) {
         content: nextRecord.content,
         risks: nextRecord.risks,
         updated_at: new Date().toISOString(),
-      }, { onConflict: 'slug' });
+      } as never, { onConflict: 'slug' });
       if (error) throw error;
       clearCropPageCache(slug);
       void fetchCropIntelligence();
@@ -216,9 +216,7 @@ export function CropPage({ cropType }: CropPageProps) {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
-      </div>
+      <PageSkeleton />
     );
   }
 

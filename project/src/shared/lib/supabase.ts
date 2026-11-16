@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from '../types/database.generated';
 
 import { safeStorage } from './safeStorage';
 const FALLBACK_SUPABASE_URL = 'https://szxtfeiswxugxukztnst.supabase.co';
@@ -57,7 +58,7 @@ if (import.meta.env.DEV) {
   console.log('Supabase: Anon key valid:', isValidAnonKey(supabaseAnonKey));
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     detectSessionInUrl: false,

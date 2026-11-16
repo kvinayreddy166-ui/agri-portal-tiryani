@@ -162,13 +162,38 @@ export function revealElement(el: HTMLElement): void {
   }
 }
 
+const INVALID_MARK_CLASS = 'js-fv-invalid';
+const INVALID_RING_CLASSES = ['ring-2', 'ring-red-500'] as const;
+
+function clearFieldInvalid(event: Event) {
+  const el = event.currentTarget as HTMLElement;
+  el.classList.remove(INVALID_MARK_CLASS, ...INVALID_RING_CLASSES);
+  el.removeEventListener('input', clearFieldInvalid);
+  el.removeEventListener('change', clearFieldInvalid);
+}
+
+function clearAllInvalidMarks(root: ParentNode) {
+  root.querySelectorAll<HTMLElement>(`.${INVALID_MARK_CLASS}`).forEach((el) => {
+    el.classList.remove(INVALID_MARK_CLASS, ...INVALID_RING_CLASSES);
+    el.removeEventListener('input', clearFieldInvalid);
+    el.removeEventListener('change', clearFieldInvalid);
+  });
+}
+
 /**
  * Validates that every field in the module is filled. Returns the list of
- * empty fields (empty array = valid). When `focusFirst` is true, scrolls to
- * and focuses the first empty field.
+ * empty fields (empty array = valid). Every empty field is marked with a
+ * persistent red ring until the user edits it; when `focusFirst` is true the
+ * first empty field is also scrolled to and focused.
  */
 export function validateAllModuleFields(root: ParentNode, options: { focusFirst?: boolean } = {}): EmptyModuleField[] {
+  clearAllInvalidMarks(root);
   const empty = emptyModuleFields(root);
+  empty.forEach(({ element }) => {
+    element.classList.add(INVALID_MARK_CLASS, ...INVALID_RING_CLASSES);
+    element.addEventListener('input', clearFieldInvalid);
+    element.addEventListener('change', clearFieldInvalid);
+  });
   if (options.focusFirst !== false && empty.length) revealElement(empty[0].element);
   return empty;
 }

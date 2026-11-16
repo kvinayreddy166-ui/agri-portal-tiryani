@@ -10,6 +10,7 @@ import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHead
 import { useAuth } from '../../../shared/context/AuthContext';
 import { addEmblemImageWatermark } from '../../../shared/lib/pdfWatermark';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
+import { applyDeterministicPdfMetadata } from '../../../shared/lib/pdfDeterministic';
 import { ActionButton, ExportMenu, CheckRow, Field, InspectionTheme, Modal, RowTable, Section, StatusButtons, StatusInput, SummaryChip, useInputClass } from '../inspection/ui';
 import { emptyStatus, formatDate, listOrNil, statusText } from '../inspection/types';
 import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField } from '../inspection/types';
@@ -160,6 +161,7 @@ export function SeedDealerInspection() {
   const [showPreview, setShowPreview] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -171,7 +173,7 @@ export function SeedDealerInspection() {
     savePersistedForm(FORM_KEY, form);
   }, [form]);
 
-  const set = <K extends keyof InspectionForm>(key: K, value: InspectionForm[K]) => { setDirty(true); if (error) setError(''); setForm((current) => ({ ...current, [key]: value })); };
+  const set = <K extends keyof InspectionForm>(key: K, value: InspectionForm[K]) => { setDirty(true); if (error) setError(''); setFieldErrors((current) => { if (!current[key as string]) return current; const next = { ...current }; delete next[key as string]; return next; }); setForm((current) => ({ ...current, [key]: value })); };
   const { dealers: directoryDealers } = useDealers('seed');
   const applyDealerPick = (dealer: Dealer | null) => {
     if (!dealer) return;
@@ -188,9 +190,11 @@ export function SeedDealerInspection() {
   const toggleSection = (id: number) => setOpenSections((current) => ({ ...current, [id]: !current[id] }));
 
   const validate = () => {
-    if (!form.inspectionDate?.trim()) return 'Please enter the date of inspection.';
-    if (!form.dealerName?.trim()) return 'Please enter the name of the dealer.';
-    return '';
+    const errors: Record<string, string> = {};
+    if (!form.inspectionDate?.trim()) errors.inspectionDate = 'Please enter the date of inspection.';
+    if (!form.dealerName?.trim()) errors.dealerName = 'Please enter the name of the dealer.';
+    setFieldErrors(errors);
+    return errors.inspectionDate || errors.dealerName || '';
   };
 
   const saveDraft = () => {
@@ -498,8 +502,8 @@ export function SeedDealerInspection() {
           <Section id={1} title="Dealer and Premises" subtitle="Items 1 to 6" open={openSections[1]} onToggle={toggleSection} progress={sectionProgress[1]}>
             <DealerPartySelect dealers={directoryDealers} onPick={applyDealerPick} label="Select dealer / party" />
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="1. Date of inspection" type="date" value={form.inspectionDate} onChange={(v) => set('inspectionDate', v)} required />
-              <Field label="2. Name of the dealer" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Firm / dealer name" required />
+              <Field label="1. Date of inspection" type="date" value={form.inspectionDate} onChange={(v) => set('inspectionDate', v)} required error={fieldErrors.inspectionDate} />
+              <Field label="2. Name of the dealer" value={form.dealerName} onChange={(v) => set('dealerName', v)} placeholder="Firm / dealer name" required error={fieldErrors.dealerName} />
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-700 dark:bg-slate-800/40">
               <p className="mb-2 text-xs font-bold text-slate-800 dark:text-slate-100">3. Location and place of business</p>
@@ -803,6 +807,7 @@ async function buildPdf(form: InspectionForm) {
   const { jsPDF } = await import('jspdf');
   const { default: autoTable } = await import('jspdf-autotable');
   const doc = new jsPDF('p', 'mm', 'a4');
+  applyDeterministicPdfMetadata(doc, `${form.dealerName}|${form.inspectionDate}`);
   doc.setLineHeightFactor(1.15);
   await setupPdfUnicodeFonts(doc);
   const pageWidth = doc.internal.pageSize.getWidth();

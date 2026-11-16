@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { ChevronDown, FileDown, FileSpreadsheet, FileText, Plus, Printer, Trash2 } from 'lucide-react';
 import type { Column, Status, StatusField } from './types';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
+import { FIELD_ERROR_CLASSES, FieldErrorMessage } from '../../../shared/components/ui/fieldError';
 
 export type InspectionTone = 'emerald' | 'sky' | 'rose';
 
@@ -230,6 +231,7 @@ export function Field({
   options,
   helper = '',
   required = false,
+  error,
 }: {
   label: string;
   value: string;
@@ -240,8 +242,9 @@ export function Field({
   options?: string[];
   helper?: string;
   required?: boolean;
+  error?: string;
 }) {
-  const inputClass = useInputClass();
+  const inputClass = `${useInputClass()}${error ? ` ${FIELD_ERROR_CLASSES}` : ''}`;
   return (
     <div className="block">
       <div className={`${labelClass} flex items-center justify-between gap-2`}>
@@ -253,16 +256,17 @@ export function Field({
         </span>
       </div>
       {textarea ? (
-        <textarea rows={2} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} required={required} />
+        <textarea rows={2} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} required={required} aria-invalid={error ? 'true' : undefined} />
       ) : options ? (
-        <select value={value} onChange={(e) => onChange(e.target.value)} className={inputClass} required={required}>
+        <select value={value} onChange={(e) => onChange(e.target.value)} className={inputClass} required={required} aria-invalid={error ? 'true' : undefined}>
           <option value="">Select…</option>
           {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
       ) : (
-        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} />
+        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} aria-invalid={error ? 'true' : undefined} />
       )}
-      {helper && <span className="mt-0.5 block text-[10px] font-semibold text-slate-400 dark:text-slate-500">{helper}</span>}
+      <FieldErrorMessage message={error} />
+      {!error && helper && <span className="mt-0.5 block text-[10px] font-semibold text-slate-400 dark:text-slate-500">{helper}</span>}
     </div>
   );
 }

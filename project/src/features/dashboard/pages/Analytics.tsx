@@ -6,7 +6,7 @@ import { savePdfDocument } from '../../documents/lib/documentActions';
 import { addTableSheet, createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
-import { StockCategory, currentReportDate, shiftReportDate } from '../../dealer-stock/lib/stockInventory';
+import { StockCategory, CATEGORY_UNITS, currentReportDate, financialYearForDate, shiftReportDate } from '../../dealer-stock/lib/stockInventory';
 
 type ReportKey =
   | 'dealer-directory'
@@ -477,20 +477,34 @@ async function fetchDealerRows(): Promise<DealerRow[]> {
   return (fallback.data || []) as DealerRow[];
 }
 
+const STOCK_LINE_COLUMNS = 'id, dealer_id, category, product_type, opening_balance, receipts, total, sales, closing_balance, report_date, report_month, created_at';
+
+function toStockRow(row: Record<string, unknown>): StockRow {
+  const category = (row.category as StockCategory) || 'fertilizer';
+  const reportDate = (row.report_date as string | null) || undefined;
+  return {
+    ...(row as StockRow),
+    category,
+    entry_type: 'daily_stock',
+    financial_year: financialYearForDate(reportDate),
+    unit: CATEGORY_UNITS[category]?.[0] ?? null,
+  };
+}
+
 async function fetchStockRows(): Promise<StockRow[]> {
   const primary = await supabase
     .from('stock_inventory_lines')
-    .select('id, dealer_id, category, product_type, entry_type, opening_balance, receipts, total, sales, closing_balance, invoice_date, invoice_no, supplier, report_date, report_month, financial_year, unit, created_at')
+    .select(STOCK_LINE_COLUMNS)
     .order('report_date', { ascending: false, nullsFirst: false })
     .limit(10000);
-  if (!primary.error) return (primary.data || []) as StockRow[];
+  if (!primary.error) return (primary.data || []).map(toStockRow);
 
   console.warn('Stock report query fallback:', primary.error);
   const fallback = await supabase
     .from('stock_inventory_lines')
-    .select('id, dealer_id, category, product_type, entry_type, opening_balance, receipts, total, sales, closing_balance, report_date, report_month, financial_year, created_at')
+    .select(STOCK_LINE_COLUMNS)
     .limit(10000);
-  return (fallback.data || []) as StockRow[];
+  return (fallback.data || []).map(toStockRow);
 }
 
 async function fetchReceiptRows(): Promise<ReceiptRow[]> {

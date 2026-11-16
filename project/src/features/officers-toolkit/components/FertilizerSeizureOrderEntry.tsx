@@ -36,6 +36,7 @@ import { DealerPartySelect } from '../../../shared/components/DealerPartySelect'
 import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 import type { Dealer } from '../../../shared/types/database';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
+import { FIELD_ERROR_CLASSES, FieldErrorMessage } from '../../../shared/components/ui/fieldError';
 interface FertSeizureProductRow {
   id: string;
   name: string;
@@ -302,6 +303,7 @@ export function FertilizerSeizureOrderEntry() {
   const [orderToDelete, setOrderToDelete] = useState<SavedFertSeizureOrder | null>(null);
   const [stepsGuideOpen, setStepsGuideOpen] = useState(true);
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const noticeBlocks = useMemo(() => buildSeizureModel(form), [form]);
   const previewHtml = useMemo(() => noticeBlocksHtml(noticeBlocks), [noticeBlocks]);
@@ -337,18 +339,34 @@ export function FertilizerSeizureOrderEntry() {
     } catch {}
   }, [form]);
 
-  const updateForm = (patch: Partial<FertSeizureFormState>) => setForm((current) => ({ ...current, ...patch }));
+  const updateForm = (patch: Partial<FertSeizureFormState>) => {
+    setForm((current) => ({ ...current, ...patch }));
+    setFieldErrors((current) => {
+      const next = { ...current };
+      for (const key of Object.keys(patch)) delete next[key];
+      return next;
+    });
+  };
   const { dealers: directoryDealers } = useDealers('fertilizer');
   const applyDealerPick = (dealer: Dealer | null) => {
     if (!dealer) return;
     updateForm({ firmName: dealer.dealer_name, dealerAddress: dealerAddressLine(dealer) });
   };
 
-  const updateProduct = (id: string, patch: Partial<FertSeizureProductRow>) =>
+  const updateProduct = (id: string, patch: Partial<FertSeizureProductRow>) => {
     setForm((current) => ({
       ...current,
       products: current.products.map((row) => (row.id === id ? { ...row, ...patch } : row)),
     }));
+    if (patch.name !== undefined) {
+      setFieldErrors((current) => {
+        if (!current.productName) return current;
+        const next = { ...current };
+        delete next.productName;
+        return next;
+      });
+    }
+  };
 
   const addProduct = () => setForm((current) => ({ ...current, products: [...current.products, emptyProduct()] }));
   const removeProduct = (id: string) =>
@@ -373,8 +391,15 @@ export function FertilizerSeizureOrderEntry() {
   // Persist the record when the document is actually issued (download/print),
   // not merely when the form is filled in.
   const persistOrderForExport = async (): Promise<boolean> => {
+    const errors: Record<string, string> = {};
+    if (!String(form.firmName ?? '').trim()) errors.firmName = 'Firm name is required.';
+    if (!form.products.some((row) => row.name.trim())) errors.productName = 'Enter the name of at least one fertilizer.';
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      showWarning('Please complete required fields', Object.values(errors)[0]);
+      return false;
+    }
     const dealer = String(form.firmName ?? '').trim();
-    if (!dealer) return false;
     const f = form as unknown as Record<string, unknown>;
     const ref = String(f.orderNumber || f.noticeNumber || f.memoNumber || f.refNumber || '').trim();
     const ok = await askConfirm({
@@ -626,7 +651,7 @@ export function FertilizerSeizureOrderEntry() {
         <h3 className="mb-2.5 pb-2 border-b border-sky-200/80 dark:border-sky-800/60 text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Dealer Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <DealerPartySelect dealers={directoryDealers} onPick={applyDealerPick} label="Select dealer / party" />
-          <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} />
+          <TextInput label="Firm Name" value={form.firmName} onChange={(value) => updateForm({ firmName: value })} error={fieldErrors.firmName} />
           <label className="block md:col-span-3">
             <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Firm Address</span>
             <span className="mb-1 block text-[10px] font-semibold leading-tight text-slate-400 dark:text-slate-500">
@@ -717,8 +742,10 @@ export function FertilizerSeizureOrderEntry() {
                     value={row.name}
                     onChange={(event) => updateProduct(row.id, { name: event.target.value })}
                     rows={1}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                    aria-invalid={index === 0 && fieldErrors.productName ? 'true' : undefined}
+                    className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100${index === 0 && fieldErrors.productName ? ` ${FIELD_ERROR_CLASSES}` : ''}`}
                   />
+                  {index === 0 && <FieldErrorMessage message={fieldErrors.productName} />}
                 </label>
                 <TextInput label="Name of the Manufacturer" value={row.manufacturer} onChange={(value) => updateProduct(row.id, { manufacturer: value })} />
                 <TextInput label="Quantity" value={row.quantityMt} onChange={(value) => updateProduct(row.id, { quantityMt: value })} />

@@ -74,6 +74,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [importing, setImporting] = useState(false);
   const [provisioningLogins, setProvisioningLogins] = useState(false);
   const [showLoginSetup, setShowLoginSetup] = useState(false);
@@ -211,35 +212,28 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
 
   const handleAdd = async () => {
     const payload = buildPayload();
-    const missing = [
-      ['dealer_name', t('Dealer name', 'డీలర్ పేరు')],
-      ['phone_number', t('Phone number', 'ఫోన్ నంబర్')],
-      ['license_number', t('License number', 'లైసెన్స్ నంబర్')],
-      ['location', t('Address', 'చిరునామా')],
-    ]
-      .filter(([key]) => !String(payload[key as keyof typeof payload] ?? '').trim())
-      .map(([, label]) => label);
-    if (!payload.issue_date) missing.push(t('License issue date', 'లైసెన్స్ జారీ తేదీ'));
-    if (activeTab !== 'pesticide' && !payload.expiry_date) {
-      missing.push(t('Expiry date', 'గడువు తేదీ'));
+    const requiredMsg = t('Required', 'అవసరం');
+    const errors: Record<string, string> = {};
+    for (const key of ['dealer_name', 'phone_number', 'license_number', 'location'] as const) {
+      if (!String(payload[key] ?? '').trim()) errors[key] = requiredMsg;
     }
-    if (missing.length) {
-      toast.showWarning('Missing details', `${t('Please fill required fields:', 'దయచేసి అవసరమైన వివరాలు పూరించండి:')} ${missing.join(', ')}`);
-      return;
+    if (!payload.issue_date) errors.issue_date = requiredMsg;
+    if (activeTab !== 'pesticide' && !payload.expiry_date) errors.expiry_date = requiredMsg;
+    if (!errors.phone_number && !/^\d{10}$/.test(normalizePhone(payload.phone_number))) {
+      errors.phone_number = t('Must be exactly 10 digits', 'తప్పనిసరిగా 10 అంకెలు ఉండాలి');
     }
-    if (!/^\d{10}$/.test(normalizePhone(payload.phone_number))) {
-      toast.showWarning('Invalid phone', t('Phone number must be exactly 10 digits.', 'ఫోన్ నంబర్ తప్పనిసరిగా 10 అంకెలు ఉండాలి.'));
-      return;
-    }
+    setFieldErrors(errors);
+    if (Object.keys(errors).length) return;
     try {
       const insertPayload = { ...payload } as Record<string, unknown>;
       if (!String(insertPayload.district ?? '').trim()) delete insertPayload.district;
       if (!String(insertPayload.mandal ?? '').trim()) delete insertPayload.mandal;
-      const { error } = await supabase.from('dealers').insert([insertPayload]);
+      const { error } = await supabase.from('dealers').insert([insertPayload] as never);
       if (error) throw error;
       toast.showSuccess('Dealer added', payload.dealer_name);
       setShowAddForm(false);
       setFormData(emptyForm);
+      setFieldErrors({});
       void fetchDealers();
     } catch (error) {
       console.error('Error adding dealer:', error);
@@ -760,7 +754,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
               </div>
               <button
                 type="button"
-                onClick={() => setShowAddForm(false)}
+                onClick={() => { setShowAddForm(false); setFieldErrors({}); }}
                 className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800"
               >
                 <X className="h-5 w-5" />
@@ -770,6 +764,13 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
               <FormFields
                 formData={formData}
                 setFormData={setFormData}
+                errors={fieldErrors}
+                clearError={(key) => setFieldErrors((prev) => {
+                  if (!prev[key]) return prev;
+                  const next = { ...prev };
+                  delete next[key];
+                  return next;
+                })}
                 showIfms={showIfms}
                 activeTab={activeTab}
                 t={t}
@@ -778,7 +779,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
             <div className="flex gap-3 border-t border-slate-100 px-6 py-4 dark:border-slate-800">
               <button
                 type="button"
-                onClick={() => setShowAddForm(false)}
+                onClick={() => { setShowAddForm(false); setFieldErrors({}); }}
                 className="flex-1 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
               >
                 {t('Cancel', 'రద్దు')}
@@ -1073,19 +1074,29 @@ function TablePagination({
 function FormFields({
   formData,
   setFormData,
+  errors,
+  clearError,
   showIfms,
   activeTab,
   t,
 }: {
   formData: typeof emptyForm;
   setFormData: React.Dispatch<React.SetStateAction<typeof emptyForm>>;
+  errors: Record<string, string>;
+  clearError: (key: string) => void;
   showIfms: boolean;
   activeTab: DealerCategory;
   t: (en: string, te: string) => string;
 }) {
   const inputCls =
     'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 transition placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40';
+  const inputErrorCls =
+    'border-red-400 focus:border-red-500 focus:ring-red-100 dark:border-red-500/70 dark:focus:ring-red-900/40';
+  const errorCls = 'mt-1 text-xs font-semibold text-red-600 dark:text-red-400';
   const labelCls = 'mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400';
+  const fieldCls = (key: string) => `${inputCls} ${errors[key] ? inputErrorCls : ''}`;
+  const renderFieldError = (name: string) =>
+    errors[name] ? <p className={errorCls} role="alert">{errors[name]}</p> : null;
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="sm:col-span-2">
@@ -1095,9 +1106,11 @@ function FormFields({
         <input
           type="text"
           value={formData.dealer_name}
-          onChange={(e) => setFormData({ ...formData, dealer_name: e.target.value })}
-          className={inputCls}
+          onChange={(e) => { clearError('dealer_name'); setFormData({ ...formData, dealer_name: e.target.value }); }}
+          className={fieldCls('dealer_name')}
+          aria-invalid={Boolean(errors.dealer_name)}
         />
+        {renderFieldError('dealer_name')}
       </div>
       {showIfms && (
         <div>
@@ -1120,10 +1133,12 @@ function FormFields({
           pattern="[0-9]{10}"
           maxLength={10}
           value={formData.phone_number}
-          onChange={(e) => setFormData({ ...formData, phone_number: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+          onChange={(e) => { clearError('phone_number'); setFormData({ ...formData, phone_number: e.target.value.replace(/\D/g, '').slice(0, 10) }); }}
           placeholder="9876543210"
-          className={inputCls}
+          className={fieldCls('phone_number')}
+          aria-invalid={Boolean(errors.phone_number)}
         />
+        {renderFieldError('phone_number')}
       </div>
       <div>
         <label className={labelCls}>
@@ -1132,9 +1147,11 @@ function FormFields({
         <input
           type="text"
           value={formData.license_number}
-          onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
-          className={inputCls}
+          onChange={(e) => { clearError('license_number'); setFormData({ ...formData, license_number: e.target.value }); }}
+          className={fieldCls('license_number')}
+          aria-invalid={Boolean(errors.license_number)}
         />
+        {renderFieldError('license_number')}
       </div>
       <div>
         <label className={labelCls}>
@@ -1143,9 +1160,11 @@ function FormFields({
         <input
           type="date"
           value={formData.issue_date}
-          onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
-          className={inputCls}
+          onChange={(e) => { clearError('issue_date'); setFormData({ ...formData, issue_date: e.target.value }); }}
+          className={fieldCls('issue_date')}
+          aria-invalid={Boolean(errors.issue_date)}
         />
+        {renderFieldError('issue_date')}
       </div>
       {activeTab !== 'pesticide' && (
         <div>
@@ -1155,9 +1174,11 @@ function FormFields({
           <input
             type="date"
             value={formData.expiry_date}
-            onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
-            className={inputCls}
+            onChange={(e) => { clearError('expiry_date'); setFormData({ ...formData, expiry_date: e.target.value }); }}
+            className={fieldCls('expiry_date')}
+            aria-invalid={Boolean(errors.expiry_date)}
           />
+          {renderFieldError('expiry_date')}
         </div>
       )}
       {activeTab === 'pesticide' && (
@@ -1201,9 +1222,11 @@ function FormFields({
         <input
           type="text"
           value={formData.location}
-          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-          className={inputCls}
+          onChange={(e) => { clearError('location'); setFormData({ ...formData, location: e.target.value }); }}
+          className={fieldCls('location')}
+          aria-invalid={Boolean(errors.location)}
         />
+        {renderFieldError('location')}
       </div>
     </div>
   );
@@ -1311,6 +1334,7 @@ function DisplayRow({
               <button
                 type="button"
                 onClick={onDelete}
+                aria-label={t('Delete dealer', 'డీలర్ తొలగించండి')}
                 title={t('Delete dealer', 'డీలర్ తొలగించండి')}
                 className="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:hover:bg-red-900/30 dark:hover:text-red-400"
               >
@@ -1358,7 +1382,7 @@ function EditRow({
         <td className="px-4 py-3 align-middle">
           <input
             type="text"
-            value={dealer.ifms_id}
+            value={dealer.ifms_id ?? ''}
             onChange={(e) => updateLocalDealer(dealer.id, 'ifms_id', e.target.value)}
             className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
           />
@@ -1445,6 +1469,7 @@ function EditRow({
             <button
               type="button"
               onClick={onUpdate}
+              aria-label="Save changes"
               title="Save"
               className="rounded-lg p-1.5 text-emerald-600 transition hover:bg-emerald-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:hover:bg-emerald-900/30"
             >
@@ -1453,6 +1478,7 @@ function EditRow({
             <button
               type="button"
               onClick={onCancel}
+              aria-label="Cancel editing"
               title="Cancel"
               className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 dark:hover:bg-slate-800"
             >

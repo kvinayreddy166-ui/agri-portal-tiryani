@@ -95,6 +95,7 @@ export function DocxPreview({ file, onClose, onDownload, className = '' }: DocxP
             <button
               type="button"
               onClick={onClose}
+              aria-label="Close"
               disabled={loading}
               className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 disabled:opacity-50"
               title="Close"
