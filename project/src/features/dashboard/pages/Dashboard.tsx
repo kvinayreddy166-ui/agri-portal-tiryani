@@ -104,6 +104,27 @@ type FarmerDashboardStats = {
 
 let farmerDashboardStatsCache: FarmerDashboardStats | null = null;
 
+type DealerSummaryRow = {
+  dealer_category?: string | null;
+  created_by?: string | null;
+  district?: string | null;
+  mandal?: string | null;
+};
+
+async function fetchAllDealerSummaries() {
+  const rows: DealerSummaryRow[] = [];
+  const pageSize = 1000;
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from('dealers')
+      .select('dealer_category, created_by, district, mandal')
+      .range(from, from + pageSize - 1);
+    if (error) return { data: null, error };
+    rows.push(...((data ?? []) as DealerSummaryRow[]));
+    if (!data || data.length < pageSize) return { data: rows, error: null };
+  }
+}
+
 function getTimeGreeting(): { en: string; te: string; emoji: string } {
   const hour = new Date().getHours();
   if (hour >= 5 && hour < 12) return { en: 'Good morning', te: 'శుభోదయం', emoji: '☀️' };
@@ -153,8 +174,8 @@ export const Dashboard = React.memo(function Dashboard() {
           ? supabase.from('officer_profiles').select('id, district, designation').limit(10000)
           : Promise.resolve({ data: [] as { id?: string; district?: string; designation?: string }[] }),
         wantsAdminCounts
-          ? supabase.from('dealers').select('dealer_category, created_by, district, mandal').limit(10000)
-          : Promise.resolve({ data: [] as { dealer_category?: string | null; created_by?: string | null; district?: string | null; mandal?: string | null }[] }),
+          ? fetchAllDealerSummaries()
+          : Promise.resolve({ data: [] as DealerSummaryRow[], error: null }),
       ]);
 
       setMandalData(contentRes?.content || null);

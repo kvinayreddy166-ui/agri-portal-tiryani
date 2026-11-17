@@ -43,14 +43,28 @@ const DEALER_COLUMNS =
 const DEALER_COLUMNS_LEGACY =
   'id, dealer_name, ifms_id, phone_number, portal_email, license_number, issue_date, expiry_date, location, dealer_category, created_by, created_by_name, created_at, updated_at';
 
+const DEALERS_FETCH_PAGE = 1000;
+
 async function fetchDealerRows(category?: DealerCategory) {
-  let query = supabase.from('dealers').select(DEALER_COLUMNS);
-  if (category) query = query.eq('dealer_category', category);
-  const { data, error } = await query.order('dealer_name').limit(600);
-  if (!error) return { data, error };
-  let legacy = supabase.from('dealers').select(DEALER_COLUMNS_LEGACY);
-  if (category) legacy = legacy.eq('dealer_category', category);
-  return legacy.order('dealer_name').limit(600);
+  const fetchAll = async (columns: string) => {
+    const rows: Dealer[] = [];
+    for (let from = 0; ; from += DEALERS_FETCH_PAGE) {
+      let query = supabase
+        .from('dealers')
+        .select(columns)
+        .order('dealer_name')
+        .order('id')
+        .range(from, from + DEALERS_FETCH_PAGE - 1);
+      if (category) query = query.eq('dealer_category', category);
+      const { data, error } = await query;
+      if (error) return { data: null, error };
+      rows.push(...((data ?? []) as Dealer[]));
+      if (!data || data.length < DEALERS_FETCH_PAGE) return { data: rows, error: null };
+    }
+  };
+  const primary = await fetchAll(DEALER_COLUMNS);
+  if (!primary.error) return primary;
+  return fetchAll(DEALER_COLUMNS_LEGACY);
 }
 
 export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: boolean }) {
@@ -91,7 +105,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
     setLoading(true);
     try {
       const rows = await cachedSupabaseRows<Dealer>(
-        `dealers:${user?.id ?? 'anon'}:${activeTab}:${restrictToOwn ? 'mine' : 'all'}:v5`,
+        `dealers:${user?.id ?? 'anon'}:${activeTab}:${restrictToOwn ? 'mine' : 'all'}:v6`,
         () => fetchDealerRows(activeTab),
         []
       );
@@ -121,7 +135,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const openLoginSetup = async () => {
     try {
       const data = await cachedSupabaseRows<Dealer>(
-        `dealers:login-setup:${user?.id ?? 'admin'}:v5`,
+        `dealers:login-setup:${user?.id ?? 'admin'}:v6`,
         () => fetchDealerRows(),
         []
       );
@@ -322,6 +336,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
     setImporting(true);
     try {
       const { parseExcelAndImportDealers } = await import('../../../shared/lib/excelParser');
+      const officerScope = isOfficerUser && !isAdminUser;
       const { imported, errors } = await parseExcelAndImportDealers(file, activeTab, {
         created_by: user?.id ?? null,
         created_by_name:
@@ -329,7 +344,12 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
           (user?.user_metadata?.full_name as string | undefined) ||
           user?.email ||
           null,
-      });
+      }, officerScope
+        ? {
+            district: normalizeDistrictName(officerProfile?.district) || '',
+            mandal: officerProfile?.mandal || '',
+          }
+        : null);
       if (imported > 0) {
         const skippedNote = errors.length
           ? '\n\n' + t('Skipped rows:', 'విఫలమైన వరుసలు:') + '\n' + errors.slice(0, 10).join('\n')

@@ -26,6 +26,65 @@ export function normalizeFileFormat(format: string | undefined, filename: string
   return 'pdf';
 }
 
+
+const ARCHIVE_SEGMENT_INVALID_RE = /[^a-z0-9_-]+/g;
+
+/**
+ * Sanitizes a value for use as an R2 key folder segment.
+ */
+export function sanitizeArchivePathSegment(value: string | undefined | null): string {
+  const cleaned = (value || '')
+    .toLowerCase()
+    .replace(ARCHIVE_SEGMENT_INVALID_RE, '-')
+    .replace(/^-+|-+$/g, '');
+  return cleaned || 'general';
+}
+
+/**
+ * Resolves the commodity folder for an archived document. Prefers the explicit
+ * `metadata.commodity` set by statutory forms (fertilizer/seed/pesticide),
+ * then infers from module/filename, defaulting to 'general'.
+ */
+export function resolveArchiveCommodity(
+  metadata: Record<string, unknown> | undefined,
+  sourceModule: string | undefined,
+  filename: string | undefined
+): string {
+  const explicit = metadata?.commodity;
+  if (typeof explicit === 'string' && explicit.trim()) {
+    return sanitizeArchivePathSegment(explicit);
+  }
+  const haystack = `${sourceModule || ''} ${filename || ''}`.toLowerCase();
+  if (haystack.includes('pesticide') || haystack.includes('insecticide')) return 'pesticide';
+  if (haystack.includes('fertiliz') || haystack.includes('urea')) return 'fertilizer';
+  if (haystack.includes('seed')) return 'seed';
+  return 'general';
+}
+
+export interface ArchiveObjectKeyParts {
+  userId: string;
+  documentId: string;
+  documentCategory: string;
+  commodity: string;
+  documentDate: string;
+  ext: string;
+}
+
+/**
+ * Builds the folder-style R2 object key:
+ *   officers/{userId}/{category}/{commodity}/{year}/{month}/{documentId}.{ext}
+ * The `officers/{userId}/` prefix is unchanged so tenant isolation still holds;
+ * legacy `officers/{userId}/{year}/{month}/...` keys remain valid for reads.
+ */
+export function buildArchiveObjectKey(parts: ArchiveObjectKeyParts): string {
+  const dateObj = new Date(parts.documentDate);
+  const year = !isNaN(dateObj.getFullYear()) ? String(dateObj.getFullYear()) : new Date().getFullYear().toString();
+  const month = !isNaN(dateObj.getMonth()) ? String(dateObj.getMonth() + 1).padStart(2, '0') : String(new Date().getMonth() + 1).padStart(2, '0');
+  const category = sanitizeArchivePathSegment(parts.documentCategory);
+  const commodity = sanitizeArchivePathSegment(parts.commodity);
+  return `officers/${parts.userId}/${category}/${commodity}/${year}/${month}/${parts.documentId}.${parts.ext}`;
+}
+
 export interface DocumentArchiveInput {
   filename: string;
   documentCategory: DocumentCategory;
@@ -215,12 +274,17 @@ export class OfficerDocumentArchiveService {
       __canonical_sha256: canonicalHash,
     };
 
-    // Build secure opaque R2 object key: officers/{user_id}/{year}/{month}/{document_id}.{extension}
-    const dateObj = new Date(documentDate);
-    const year = !isNaN(dateObj.getFullYear()) ? String(dateObj.getFullYear()) : new Date().getFullYear().toString();
-    const month = !isNaN(dateObj.getMonth()) ? String(dateObj.getMonth() + 1).padStart(2, '0') : String(new Date().getMonth() + 1).padStart(2, '0');
+    // Build folder-style R2 object key:
+    // officers/{user_id}/{category}/{commodity}/{year}/{month}/{document_id}.{extension}
     const ext = fileFormat;
-    const objectKey = `officers/${userId}/${year}/${month}/${documentId}.${ext}`;
+    const objectKey = buildArchiveObjectKey({
+      userId,
+      documentId,
+      documentCategory: input.documentCategory,
+      commodity: resolveArchiveCommodity(input.metadata, input.sourceModule, input.filename),
+      documentDate,
+      ext,
+    });
 
     // 2. Check for Duplicate Upload via Original SHA-256 Content Hash
     let versionNumber = 1;
@@ -605,7 +669,14 @@ export class OfficerDocumentArchiveService {
                 document_number: q.documentNumber || null,
                 document_date: q.documentDate,
                 source_module: q.sourceModule,
-                object_key: q.objectKey || `officers/${q.userId}/${q.id}/${q.documentName}`,
+                object_key: q.objectKey || buildArchiveObjectKey({
+                  userId: q.userId,
+                  documentId: q.id,
+                  documentCategory: q.documentCategory,
+                  commodity: resolveArchiveCommodity(q.metadata, q.sourceModule, q.documentName),
+                  documentDate: q.documentDate,
+                  ext: normalizeFileFormat(q.fileFormat, q.documentName),
+                }),
                 file_format: q.fileFormat,
                 mime_type: q.mimeType,
                 original_size: q.originalSize,
@@ -1092,8 +1163,17 @@ export class OfficerDocumentArchiveService {
     const month = !isNaN(dateObj.getMonth()) ? String(dateObj.getMonth() + 1).padStart(2, '0') : String(new Date().getMonth() + 1).padStart(2, '0');
     const ext = normalizeFileFormat(doc.file_format, doc.document_name);
     const ownerIds = [doc.user_id, doc.object_key?.split('/')[1]].filter(Boolean) as string[];
+    const commodity = resolveArchiveCommodity(doc.metadata_json, doc.source_module, doc.document_name);
     for (const uid of ownerIds) {
       push(`officers/${uid}/${year}/${month}/${doc.id}.${ext}`);
+      push(buildArchiveObjectKey({
+        userId: uid,
+        documentId: doc.id,
+        documentCategory: doc.document_category,
+        commodity,
+        documentDate: doc.document_date,
+        ext,
+      }));
     }
     return keys;
   }
@@ -1153,6 +1233,17 @@ export class OfficerDocumentArchiveService {
     const ext = normalizeFileFormat(doc.file_format, doc.document_name);
     candidateKeys.add(`officers/${userId}/${year}/${month}/${doc.id}.${ext}`);
     candidateKeys.add(`officers/${doc.user_id}/${year}/${month}/${doc.id}.${ext}`);
+    const recoveryCommodity = resolveArchiveCommodity(doc.metadata_json, doc.source_module, doc.document_name);
+    for (const uid of Array.from(new Set([userId, doc.user_id].filter(Boolean) as string[]))) {
+      candidateKeys.add(buildArchiveObjectKey({
+        userId: uid,
+        documentId: doc.id,
+        documentCategory: doc.document_category,
+        commodity: recoveryCommodity,
+        documentDate: doc.document_date,
+        ext,
+      }));
+    }
 
     const workerUrl = this.getWorkerUrl();
     const sessionUser = await this.getCurrentUser();
@@ -1251,7 +1342,8 @@ export class OfficerDocumentArchiveService {
   }
 
   /**
-   * Lists the Supabase 'uploads' bucket under officers/{userId}/{year}/{month}
+   * Walks the Supabase 'uploads' bucket under officers/{userId}/ (both the
+   * legacy {year}/{month} layout and the category/commodity folder layout)
    * and returns object keys whose filename starts with the document id.
    * Used when the canonical object-key guess fails during cloud recovery.
    */
@@ -1263,23 +1355,29 @@ export class OfficerDocumentArchiveService {
     const docId = String(doc.id || '');
     if (!docId) return [];
 
+    const matchesDoc = (name: string) => name.startsWith(`${docId}.`) || name === docId;
+
     for (const uid of userIds) {
       try {
-        const { data: yearFolders } = await supabase.storage.from('uploads').list(`officers/${uid}`);
-        for (const yearFolder of yearFolders || []) {
-          if (yearFolder.id !== null) continue; // files can't sit at this level
-          const { data: monthFolders } = await supabase.storage.from('uploads').list(`officers/${uid}/${yearFolder.name}`);
-          for (const monthFolder of monthFolders || []) {
-            if (monthFolder.id !== null) continue;
-            const prefix = `officers/${uid}/${yearFolder.name}/${monthFolder.name}`;
-            const { data: files } = await supabase.storage.from('uploads').list(prefix);
-            for (const file of files || []) {
-              if (file.id === null) continue;
-              if (file.name.startsWith(`${docId}.`) || file.name === docId) {
-                keys.add(`${prefix}/${file.name}`);
+        // Breadth-first walk of the officer's storage tree. Legacy layout is
+        // officers/{uid}/{year}/{month}/{file}; the current layout adds
+        // category/commodity levels:
+        // officers/{uid}/{category}/{commodity}/{year}/{month}/{file}.
+        let prefixes = [`officers/${uid}`];
+        for (let depth = 0; depth < 5 && prefixes.length; depth++) {
+          const next: string[] = [];
+          for (const prefix of prefixes) {
+            const { data: items } = await supabase.storage.from('uploads').list(prefix);
+            for (const item of items || []) {
+              const child = `${prefix}/${item.name}`;
+              if (item.id === null) {
+                next.push(child);
+              } else if (matchesDoc(item.name)) {
+                keys.add(child);
               }
             }
           }
+          prefixes = next;
         }
       } catch {
         // listing unsupported or bucket unreachable — skip this user
@@ -1351,7 +1449,15 @@ export class OfficerDocumentArchiveService {
     const ext = normalizeFileFormat(doc.fileFormat, doc.documentName);
     // Always scope the cloud object key to the currently authenticated officer,
     // fixing stale keys left behind by anonymous/guest queue entries.
-    const objectKey = `officers/${user.id}/${year}/${month}/${doc.id}.${ext}`;
+    const commodity = resolveArchiveCommodity(doc.metadata, doc.sourceModule, doc.documentName);
+    const objectKey = buildArchiveObjectKey({
+      userId: user.id,
+      documentId: doc.id,
+      documentCategory: doc.documentCategory,
+      commodity,
+      documentDate: doc.documentDate,
+      ext,
+    });
 
     let uploaded = false;
     let lastError: string | undefined;
@@ -1365,6 +1471,7 @@ export class OfficerDocumentArchiveService {
         formData.append('documentId', doc.id);
         if (doc.documentNumber) formData.append('documentNumber', doc.documentNumber);
         formData.append('category', doc.documentCategory);
+        formData.append('commodity', commodity);
         formData.append('sourceModule', doc.sourceModule);
         formData.append('mimeType', doc.mimeType);
         formData.append('originalSize', String(doc.originalSize));

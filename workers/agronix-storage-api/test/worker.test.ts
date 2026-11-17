@@ -256,7 +256,7 @@ describe('agronix-storage-api Worker', () => {
       const uploadRes = await worker.fetch(req, mockEnv);
       expect(uploadRes.status).toBe(200);
       const uploadData = await uploadRes.json();
-      expect(uploadData.objectKey).toBe('officers/officer-a-111/2026/11/doc-uuid-999.pdf');
+      expect(uploadData.objectKey).toBe('officers/officer-a-111/order/general/2026/11/doc-uuid-999.pdf');
       expect(uploadData.compressionMethod).toBe('gzip');
 
       // Now test GET /api/documents/download and verify it automatically decompresses

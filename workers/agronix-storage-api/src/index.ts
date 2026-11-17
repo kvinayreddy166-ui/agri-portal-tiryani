@@ -47,6 +47,7 @@ export default {
         let documentId: string;
         let documentNumber: string | undefined;
         let category: string;
+        let commodity: string | undefined;
         let sourceModule: string;
         let mimeType: string;
         let originalSize: number;
@@ -69,6 +70,7 @@ export default {
           documentId = (formData.get('documentId') as string) || crypto.randomUUID();
           documentNumber = (formData.get('documentNumber') as string) || undefined;
           category = (formData.get('category') as string) || 'general';
+          commodity = (formData.get('commodity') as string) || undefined;
           sourceModule = (formData.get('sourceModule') as string) || 'toolkit';
           mimeType = (formData.get('mimeType') as string) || file.type || 'application/pdf';
           originalSize = Number(formData.get('originalSize')) || bytes.byteLength;
@@ -85,6 +87,7 @@ export default {
           documentId = request.headers.get('x-document-id') || crypto.randomUUID();
           documentNumber = request.headers.get('x-document-number') || undefined;
           category = request.headers.get('x-document-category') || 'general';
+          commodity = request.headers.get('x-commodity') || undefined;
           sourceModule = request.headers.get('x-source-module') || 'toolkit';
           mimeType = request.headers.get('content-type') || 'application/pdf';
           originalSize = Number(request.headers.get('x-original-size')) || bytes.byteLength;
@@ -106,6 +109,7 @@ export default {
           documentId,
           documentNumber,
           category,
+          commodity,
           sourceModule,
           mimeType,
           originalSize,
@@ -280,7 +284,7 @@ function getCorsHeaders(origin: string, allowedOriginsConfig?: string): HeadersI
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-filename, x-document-id, x-document-number, x-document-category, x-source-module, x-original-size, x-compression-status, x-compression-method, x-original-sha256, x-stored-sha256, x-year, x-month',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-filename, x-document-id, x-document-number, x-document-category, x-commodity, x-source-module, x-original-size, x-compression-status, x-compression-method, x-original-sha256, x-stored-sha256, x-year, x-month',
     'Access-Control-Expose-Headers': 'Content-Disposition, Content-Type, x-original-sha256, x-restored-original, x-compression-method',
     'Access-Control-Allow-Credentials': 'true',
   };

@@ -1,6 +1,17 @@
 import type { AuthenticatedUser, Env, HealthResponse, UploadResponse } from './types';
 
 /**
+ * Sanitizes a value for use as an R2 key folder segment.
+ */
+function sanitizeKeySegment(value: string | undefined | null): string {
+  const cleaned = (value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return cleaned || 'general';
+}
+
+/**
  * Checks R2 bucket connectivity
  */
 export async function probeR2Health(env: Env): Promise<HealthResponse> {
@@ -51,6 +62,7 @@ export interface PutDocumentParams {
   documentId: string;
   documentNumber?: string;
   category: string;
+  commodity?: string;
   sourceModule: string;
   mimeType: string;
   originalSize: number;
@@ -65,7 +77,7 @@ export interface PutDocumentParams {
 
 /**
  * Uploads a document to Cloudflare R2 under the officer's private path.
- * Supports opaque UUID format: `officers/${userId}/${year}/${month}/${documentId}.${ext}`
+ * Supports folder layout: `officers/${userId}/${category}/${commodity}/${year}/${month}/${documentId}.${ext}`
  */
 export async function uploadDocumentToR2(
   env: Env,
@@ -78,6 +90,7 @@ export async function uploadDocumentToR2(
     documentId,
     documentNumber,
     category,
+    commodity,
     sourceModule,
     mimeType,
     originalSize,
@@ -91,9 +104,15 @@ export async function uploadDocumentToR2(
   const sanitizedFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
   const ext = sanitizedFilename.split('.').pop() || 'pdf';
 
-  // Construct secure opaque R2 object key
+  // Folder-style key layout (R2 is flat — "/" segments act as folders):
+  //   officers/{userId}/{category}/{commodity}/{year}/{month}/{documentId}.{ext}
+  // Older objects keep their legacy `officers/{userId}/{year}/{month}/...`
+  // keys; both remain readable since tenant isolation only checks the
+  // `officers/{userId}/` prefix.
+  const categorySegment = sanitizeKeySegment(category);
+  const commoditySegment = sanitizeKeySegment(commodity);
   const objectKey = year && month
-    ? `officers/${user.id}/${year}/${month}/${documentId}.${ext}`
+    ? `officers/${user.id}/${categorySegment}/${commoditySegment}/${year}/${month}/${documentId}.${ext}`
     : `officers/${user.id}/${documentId}/${sanitizedFilename}`;
 
   const storedSize = bytes.byteLength;
@@ -106,6 +125,7 @@ export async function uploadDocumentToR2(
     documentId,
     documentNumber: documentNumber || '',
     category,
+    commodity: commoditySegment,
     sourceModule,
     originalFilename: sanitizedFilename,
     originalMimeType: mimeType,
@@ -162,4 +182,35 @@ export async function deleteDocumentFromR2(
 ): Promise<boolean> {
   await env.OFFICER_RECORDS_BUCKET.delete(objectKey);
   return true;
+}
+
+export interface ListedR2Object {
+  key: string;
+  size: number;
+  uploaded?: string;
+  customMetadata?: Record<string, string>;
+}
+
+/**
+ * Lists every object under officers/ in the R2 bucket (paginated).
+ * Admin-only inventory used by the archive reconciliation tooling.
+ */
+export async function listOfficerDocuments(env: Env): Promise<ListedR2Object[]> {
+  const objects: ListedR2Object[] = [];
+  let cursor: string | undefined;
+
+  do {
+    const page = await env.OFFICER_RECORDS_BUCKET.list({ prefix: 'officers/', cursor, limit: 1000 });
+    for (const obj of page.objects) {
+      objects.push({
+        key: obj.key,
+        size: obj.size,
+        uploaded: obj.uploaded ? obj.uploaded.toISOString() : undefined,
+        customMetadata: obj.customMetadata,
+      });
+    }
+    cursor = page.truncated ? page.cursor : undefined;
+  } while (cursor);
+
+  return objects;
 }

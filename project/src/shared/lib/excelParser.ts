@@ -1,6 +1,9 @@
 import { supabase } from './supabase';
 import { fetchFileBuffer } from './fileBlob';
-import { normalizeDistrictName } from '../data/telanganaDistrictMandalData';
+import {
+  normalizeDistrictName,
+  TELANGANA_DISTRICT_MANDAL_MAPPING,
+} from '../data/telanganaDistrictMandalData';
 
 export interface ParsedDealerRow {
   dealer_name: string;
@@ -91,10 +94,39 @@ async function rowsFromFirstHeaderSheet(sheet: any): Promise<Record<string, unkn
   });
 }
 
+export interface DealerImportJurisdiction {
+  district?: string | null;
+  mandal?: string | null;
+}
+
+const squashLocationKey = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+function canonicalMandalInDistrict(mandal: string, district: string): string {
+  const key = squashLocationKey(mandal);
+  if (!key) return '';
+  const list = TELANGANA_DISTRICT_MANDAL_MAPPING[normalizeDistrictName(district)] ?? [];
+  return list.find((m) => squashLocationKey(m) === key) || mandal.trim();
+}
+
+function resolveDealerDistrict(dealer: ParsedDealerRow): string {
+  const direct = normalizeDistrictName(dealer.district);
+  if (direct) return direct;
+  const key = squashLocationKey(dealer.mandal || '');
+  if (!key) return '';
+  for (const [district, mandals] of Object.entries(TELANGANA_DISTRICT_MANDAL_MAPPING)) {
+    if (mandals.some((m) => squashLocationKey(m) === key)) {
+      return normalizeDistrictName(district);
+    }
+  }
+  return '';
+}
+
 export async function parseExcelAndImportDealers(
   file: File,
   category: ParsedDealerRow['dealer_category'] = 'fertilizer',
-  attribution: { created_by?: string | null; created_by_name?: string | null } = {}
+  attribution: { created_by?: string | null; created_by_name?: string | null } = {},
+  jurisdiction?: DealerImportJurisdiction | null
 ): Promise<{ imported: number; errors: string[] }> {
   const XLSX = await import('xlsx');
   const buffer = await file.arrayBuffer();
@@ -123,6 +155,40 @@ export async function parseExcelAndImportDealers(
     return { imported: 0, errors: ['No valid dealer rows found in the spreadsheet.'] };
   }
 
+  // Officers may only import dealers inside their own mandal/district
+  // jurisdiction; admin imports (no jurisdiction) keep every row.
+  const jurDistrict = normalizeDistrictName(jurisdiction?.district);
+  const jurMandalKey = squashLocationKey(jurisdiction?.mandal || '');
+  let importable = dealers;
+  if (jurDistrict || jurMandalKey) {
+    importable = [];
+    let outsideJurisdiction = 0;
+    for (const dealer of dealers) {
+      const rowDistrict = resolveDealerDistrict(dealer);
+      const rowMandal = dealer.mandal?.trim() || '';
+      const rowMandalCanon = rowMandal
+        ? canonicalMandalInDistrict(rowMandal, rowDistrict || jurDistrict)
+        : '';
+      const districtOk = !jurDistrict || squashLocationKey(rowDistrict) === squashLocationKey(jurDistrict);
+      const mandalOk = !jurMandalKey || squashLocationKey(rowMandalCanon) === jurMandalKey;
+      if (districtOk && mandalOk) {
+        if (rowDistrict) dealer.district = rowDistrict;
+        if (rowMandalCanon) dealer.mandal = rowMandalCanon;
+        importable.push(dealer);
+      } else {
+        outsideJurisdiction += 1;
+      }
+    }
+    if (outsideJurisdiction > 0) {
+      errors.push(
+        `${outsideJurisdiction} row(s) skipped — outside your jurisdiction (${[jurisdiction?.mandal, jurDistrict].filter(Boolean).join(', ')}).`
+      );
+    }
+    if (importable.length === 0) {
+      return { imported: 0, errors };
+    }
+  }
+
   const { data: existing } = await supabase
     .from('dealers')
     .select('license_number, ifms_id')
@@ -131,7 +197,7 @@ export async function parseExcelAndImportDealers(
   const existingKeys = new Set(
     (existing || []).flatMap((dealer) => [dealer.license_number, dealer.ifms_id].filter(Boolean))
   );
-  const newDealers = dealers.filter(
+  const newDealers = importable.filter(
     (dealer) => !existingKeys.has(dealer.license_number) && (!dealer.ifms_id || !existingKeys.has(dealer.ifms_id))
   );
 
