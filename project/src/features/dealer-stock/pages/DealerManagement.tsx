@@ -75,7 +75,7 @@ async function fetchDealerRows(category?: DealerCategory) {
     const rows: Dealer[] = [];
     for (const { data, error } of results) {
       if (error) return { data: null, error };
-      rows.push(...((data ?? []) as Dealer[]));
+      rows.push(...((data ?? []) as unknown as Dealer[]));
     }
     return { data: rows, error: null };
   };
@@ -113,36 +113,121 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const [loginPassword, setLoginPassword] = useState(DEALER_DEFAULT_PASSWORD);
   const [allDealersForLogin, setAllDealersForLogin] = useState<Dealer[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [locationRows, setLocationRows] = useState<{ district: string; mandal: string }[]>([]);
   const [selectedDealerIds, setSelectedDealerIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
   const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState('');
 
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 350);
+    return () => clearTimeout(id);
+  }, [searchTerm]);
+
+  // Applies every active filter to a dealers query. `withLocation` is false
+  // for the legacy-column fallback where district/mandal don't exist.
+  const applyDealerFilters = useCallback(
+    (query: any, withLocation = true) => {
+      let q = query.eq('dealer_category', activeTab);
+      if (restrictToOwn && user?.id) q = q.eq('created_by', user.id);
+      if (isElevatedOfficerUser) {
+        q = q.or(`created_by.is.null,created_by.eq.${ADMIN_USER_ID}`);
+      }
+      if (withLocation && isAdminUser) {
+        if (districtFilter !== 'all') q = q.eq('district', districtFilter);
+        if (mandalFilter !== 'all') q = q.ilike('mandal', mandalFilter);
+      }
+      const todayStr = new Date().toISOString().slice(0, 10);
+      if (licenseFilter === 'expired') q = q.lt('expiry_date', todayStr);
+      else if (licenseFilter === 'valid') q = q.gte('expiry_date', todayStr);
+      if (loginFilter === 'with') q = q.not('portal_email', 'is', null).neq('portal_email', '');
+      else if (loginFilter === 'without') q = q.is('portal_email', null);
+      const term = debouncedSearch.toLowerCase();
+      if (term) {
+        const safe = term.replace(/[%,()"'\\]/g, '');
+        if (safe) {
+          q = q.or(
+            `dealer_name.ilike.%${safe}%,location.ilike.%${safe}%,license_number.ilike.%${safe}%`
+          );
+        }
+      }
+      return q;
+    },
+    [activeTab, restrictToOwn, user?.id, isElevatedOfficerUser, isAdminUser, districtFilter, mandalFilter, licenseFilter, loginFilter, debouncedSearch]
+  );
+
   const fetchDealers = useCallback(async () => {
     setLoading(true);
     try {
-      const rows = await cachedSupabaseRows<Dealer>(
-        `dealers:${user?.id ?? 'anon'}:${activeTab}:${restrictToOwn ? 'mine' : 'all'}:v6`,
-        () => fetchDealerRows(activeTab),
-        []
-      );
-      setDealers(restrictToOwn ? rows.filter((d) => d.created_by === user?.id) : rows);
+      const from = currentPage * DEALERS_PAGE_SIZE;
+      const runPage = (columns: string, withLocation: boolean) =>
+        applyDealerFilters(
+          supabase.from('dealers').select(columns, { count: 'exact' }),
+          withLocation
+        )
+          .order('dealer_name')
+          .order('id')
+          .range(from, from + DEALERS_PAGE_SIZE - 1);
+
+      let res = await runPage(DEALER_COLUMNS, true);
+      if (res.error) res = await runPage(DEALER_COLUMNS_LEGACY, false);
+      if (res.error) throw res.error;
+
+      setDealers((res.data ?? []) as Dealer[]);
+      setTotalCount(res.count ?? 0);
     } catch (error) {
       console.error('Error fetching dealers:', error);
-      const { data: fallback } = await fetchDealerRows();
-      let filtered = (fallback || []).filter(
-        (d) => (d.dealer_category || 'fertilizer') === activeTab
-      );
-      if (restrictToOwn) filtered = filtered.filter((d) => d.created_by === user?.id);
-      setDealers(filtered as Dealer[]);
+      toast.showError('Load failed', (error as { message?: string })?.message || 'Could not load dealers');
+      setDealers([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
-  }, [activeTab, user?.id, restrictToOwn]);
+  }, [applyDealerFilters, currentPage, toast]);
+
+  // District/mandal dropdown options — light two-column paginated fetch.
+  const fetchLocationOptions = useCallback(async () => {
+    try {
+      const head = await supabase
+        .from('dealers')
+        .select('id', { count: 'exact', head: true })
+        .eq('dealer_category', activeTab);
+      const total = head.count ?? 0;
+      const pages = Math.max(1, Math.ceil(total / DEALERS_FETCH_PAGE));
+      const results = await Promise.all(
+        Array.from({ length: pages }, (_, i) =>
+          supabase
+            .from('dealers')
+            .select('district, mandal')
+            .eq('dealer_category', activeTab)
+            .range(i * DEALERS_FETCH_PAGE, (i + 1) * DEALERS_FETCH_PAGE - 1)
+        )
+      );
+      const rows: { district: string; mandal: string }[] = [];
+      for (const { data, error } of results) {
+        if (error) return;
+        for (const row of (data ?? []) as { district?: string | null; mandal?: string | null }[]) {
+          rows.push({
+            district: normalizeDistrictName(row.district) || '',
+            mandal: String(row.mandal ?? '').trim(),
+          });
+        }
+      }
+      setLocationRows(rows);
+    } catch {
+      // Options are best-effort; the table still works without them.
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     void fetchDealers();
   }, [fetchDealers]);
+
+  useEffect(() => {
+    void fetchLocationOptions();
+  }, [fetchLocationOptions]);
 
   useEffect(() => {
     setSelectedDealerIds(new Set());
@@ -412,27 +497,52 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
     }
   };
 
-  const handleExportCsv = () => {
+  const handleExportCsv = async () => {
     const tabLabel = TABS.find((tab) => tab.id === activeTab)?.label ?? activeTab;
-    downloadCsv(
-      `dealers-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`,
-      ['Dealer Name', 'IFMS ID', 'Phone', 'Portal Email', 'License Number', 'Issue Date', 'Expiry Date', 'Location', 'District', 'Mandal', 'Category', 'Created By', 'Created On'],
-      filteredDealers.map((d) => [
-        d.dealer_name,
-        d.ifms_id || '',
-        d.phone_number || '',
-        d.portal_email || '',
-        d.license_number || '',
-        formatDealerDate(d.issue_date),
-        formatDealerDate(d.expiry_date),
-        d.location || '',
-        normalizeDistrictName(d.district) || '',
-        d.mandal || '',
-        tabLabel,
-        d.created_by_name || '',
-        d.created_at ? new Date(d.created_at).toLocaleString() : '',
-      ])
-    );
+    setLoading(true);
+    try {
+      const head = await applyDealerFilters(
+        supabase.from('dealers').select('id', { count: 'exact', head: true }),
+        true
+      );
+      const total = head.count ?? 0;
+      const pages = Math.max(1, Math.ceil(total / DEALERS_FETCH_PAGE));
+      const results = await Promise.all(
+        Array.from({ length: pages }, (_, i) =>
+          applyDealerFilters(
+            supabase.from('dealers').select(DEALER_COLUMNS).range(
+              i * DEALERS_FETCH_PAGE,
+              (i + 1) * DEALERS_FETCH_PAGE - 1
+            ),
+            true
+          )
+        )
+      );
+      const rows = results.flatMap((r) => (r.data ?? []) as Dealer[]);
+      downloadCsv(
+        `dealers-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`,
+        ['Dealer Name', 'IFMS ID', 'Phone', 'Portal Email', 'License Number', 'Issue Date', 'Expiry Date', 'Location', 'District', 'Mandal', 'Category', 'Created By', 'Created On'],
+        rows.map((d) => [
+          d.dealer_name,
+          d.ifms_id || '',
+          d.phone_number || '',
+          d.portal_email || '',
+          d.license_number || '',
+          formatDealerDate(d.issue_date),
+          formatDealerDate(d.expiry_date),
+          d.location || '',
+          normalizeDistrictName(d.district) || '',
+          d.mandal || '',
+          tabLabel,
+          d.created_by_name || '',
+          d.created_at ? new Date(d.created_at).toLocaleString() : '',
+        ])
+      );
+    } catch (error) {
+      toast.showError('Export failed', (error as { message?: string })?.message || 'Could not export dealers');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateLocalDealer = (id: string, field: string, value: string) => {
@@ -442,69 +552,36 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   };
 
   // Location filter options — only districts/mandals actually present in the
-  // loaded dealers (same approach as Enforcement Tracker / User Management).
-  const normLocText = (v?: string | null) => String(v ?? '').trim().toLowerCase();
+  // visible dealers (same approach as Enforcement Tracker / User Management).
   const districtOptions = useMemo(
     () =>
-      Array.from(
-        new Set(dealers.map((d) => normalizeDistrictName(d.district)).filter(Boolean))
-      ).sort(),
-    [dealers]
+      Array.from(new Set(locationRows.map((r) => r.district).filter(Boolean))).sort(),
+    [locationRows]
   );
   const mandalOptions = useMemo(() => {
     const seen = new Map<string, string>();
-    dealers
-      .filter((d) => districtFilter === 'all' || normalizeDistrictName(d.district) === districtFilter)
-      .forEach((d) => {
-        const m = String(d.mandal ?? '').trim();
-        if (m) seen.set(normLocText(m), m);
+    locationRows
+      .filter((r) => districtFilter === 'all' || r.district === districtFilter)
+      .forEach((r) => {
+        if (r.mandal) seen.set(r.mandal.toLowerCase(), r.mandal);
       });
     return Array.from(seen.values()).sort((a, b) => a.localeCompare(b));
-  }, [dealers, districtFilter]);
+  }, [locationRows, districtFilter]);
 
-  const filteredDealers = useMemo(() => {
-    const todayStr = new Date().toISOString().slice(0, 10);
-    return dealers.filter((dealer) => {
-      if (isAdminUser) {
-        if (districtFilter !== 'all' && normalizeDistrictName(dealer.district) !== districtFilter) return false;
-        if (mandalFilter !== 'all' && normLocText(dealer.mandal) !== normLocText(mandalFilter)) return false;
-      }
-      // Elevated officer directory: only dealers added by admin (or legacy
-      // rows with no creator) — never dealers created by officers.
-      if (
-        isElevatedOfficerUser &&
-        dealer.created_by &&
-        dealer.created_by !== ADMIN_USER_ID
-      ) {
-        return false;
-      }
-      if (licenseFilter !== 'all') {
-        const expiry = String(dealer.expiry_date || '').slice(0, 10);
-        const isExpired = Boolean(expiry) && expiry < todayStr;
-        if (licenseFilter === 'expired' ? !isExpired : isExpired) return false;
-      }
-      if (loginFilter !== 'all') {
-        const hasLogin = Boolean(String(dealer.portal_email || '').trim());
-        if (loginFilter === 'with' ? !hasLogin : hasLogin) return false;
-      }
-      const term = searchTerm.toLowerCase();
-      return (
-        dealer.dealer_name.toLowerCase().includes(term) ||
-        dealer.location.toLowerCase().includes(term) ||
-        dealer.license_number.toLowerCase().includes(term)
-      );
-    });
-  }, [dealers, searchTerm, licenseFilter, loginFilter, isElevatedOfficerUser, isAdminUser, districtFilter, mandalFilter]);
-
-  const pageCount = Math.max(1, Math.ceil(filteredDealers.length / DEALERS_PAGE_SIZE));
-  const paginatedDealers = filteredDealers.slice(
-    currentPage * DEALERS_PAGE_SIZE,
-    currentPage * DEALERS_PAGE_SIZE + DEALERS_PAGE_SIZE
-  );
+  // Rows are fetched one server page at a time; `dealers` is already the slice.
+  const paginatedDealers = dealers;
+  const pageCount = Math.max(1, Math.ceil(totalCount / DEALERS_PAGE_SIZE));
 
   useEffect(() => {
     setCurrentPage(0);
   }, [activeTab, searchTerm, licenseFilter, loginFilter, districtFilter, mandalFilter]);
+
+  // If the last row(s) on a page were deleted, step back instead of showing an empty page.
+  useEffect(() => {
+    if (!loading && dealers.length === 0 && currentPage > 0) {
+      setCurrentPage((p) => p - 1);
+    }
+  }, [dealers, loading, currentPage]);
 
   const showIfms = activeTab === 'fertilizer';
   const validityLabel =
@@ -562,7 +639,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
               <button
                 type="button"
                 onClick={handleExportCsv}
-                disabled={filteredDealers.length === 0}
+                disabled={totalCount === 0}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/60"
               >
                 <Download className="h-4 w-4" />
@@ -679,7 +756,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
           </button>
         )}
         <span className="shrink-0 text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400">
-          {filteredDealers.length} {t('dealers', 'డీలర్లు')}
+          {totalCount} {t('dealers', 'డీలర్లు')}
         </span>
       </div>
 
@@ -999,7 +1076,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
             </tbody>
           </table>
         </div>
-        {filteredDealers.length === 0 && (
+        {totalCount === 0 && (
           <div className="px-6 py-14 text-center">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
               <Users className="h-6 w-6 text-slate-400" />
@@ -1018,11 +1095,11 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
             </p>
           </div>
         )}
-        {filteredDealers.length > 0 && (
+        {totalCount > 0 && (
           <TablePagination
             currentPage={currentPage}
             pageCount={pageCount}
-            total={filteredDealers.length}
+            total={totalCount}
             pageSize={DEALERS_PAGE_SIZE}
             onPageChange={setCurrentPage}
           />
