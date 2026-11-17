@@ -162,17 +162,17 @@ export function ExcelUploads() {
 
       try {
 
-        const { imported, errors } = await parseExcelAndImportDealers(file, 'fertilizer');
+        const { imported, updated = 0, errors } = await parseExcelAndImportDealers(file, 'fertilizer');
 
-        if (imported > 0) {
+        if (imported > 0 || updated > 0) {
 
           setImportMessage(
 
             t(
 
-              `Imported ${imported} dealer row(s) from spreadsheet.`,
+              `Imported ${imported} dealer row(s)${updated ? `, updated ${updated}` : ''} from spreadsheet.`,
 
-              `స్ప్రెడ్‌షీట్ నుండి ${imported} డీలర్ రికార్డులు దిగుమతి అయ్యాయి.`
+              `స్ప్రెడ్‌షీట్ నుండి ${imported} డీలర్ రికార్డులు దిగుమతి అయ్యాయి${updated ? `, ${updated} నవీకరించబడ్డాయి` : ''}.`
 
             )
 

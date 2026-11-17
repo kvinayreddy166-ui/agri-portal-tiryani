@@ -112,17 +112,28 @@ type DealerSummaryRow = {
 };
 
 async function fetchAllDealerSummaries() {
-  const rows: DealerSummaryRow[] = [];
+  const { count, error: countError } = await supabase
+    .from('dealers')
+    .select('id', { count: 'exact', head: true });
+  if (countError) return { data: null, error: countError };
+
   const pageSize = 1000;
-  for (let from = 0; ; from += pageSize) {
-    const { data, error } = await supabase
-      .from('dealers')
-      .select('dealer_category, created_by, district, mandal')
-      .range(from, from + pageSize - 1);
+  const pages = Math.ceil((count ?? 0) / pageSize);
+  const results = await Promise.all(
+    Array.from({ length: pages }, (_, i) =>
+      supabase
+        .from('dealers')
+        .select('dealer_category, created_by, district, mandal')
+        .range(i * pageSize, (i + 1) * pageSize - 1)
+    )
+  );
+
+  const rows: DealerSummaryRow[] = [];
+  for (const { data, error } of results) {
     if (error) return { data: null, error };
     rows.push(...((data ?? []) as DealerSummaryRow[]));
-    if (!data || data.length < pageSize) return { data: rows, error: null };
   }
+  return { data: rows, error: null };
 }
 
 function getTimeGreeting(): { en: string; te: string; emoji: string } {

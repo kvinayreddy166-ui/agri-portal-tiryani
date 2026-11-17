@@ -37,6 +37,11 @@ const emptyForm = {
   mandal: '',
 };
 const DEALERS_PAGE_SIZE = 25;
+
+const formatDealerDate = (value?: string | null) => {
+  const m = String(value ?? '').slice(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : '';
+};
 const DEALER_COLUMNS =
   'id, dealer_name, ifms_id, phone_number, portal_email, license_number, issue_date, expiry_date, location, district, mandal, dealer_category, created_by, created_by_name, created_at, updated_at';
 // Fallback for databases where the district/mandal migration hasn't been applied yet.
@@ -47,20 +52,32 @@ const DEALERS_FETCH_PAGE = 1000;
 
 async function fetchDealerRows(category?: DealerCategory) {
   const fetchAll = async (columns: string) => {
+    let countQuery = supabase.from('dealers').select('id', { count: 'exact', head: true });
+    if (category) countQuery = countQuery.eq('dealer_category', category);
+    const { count, error: countError } = await countQuery;
+    if (countError) return { data: null, error: countError };
+
+    const total = count ?? 0;
+    const pages = Math.ceil(total / DEALERS_FETCH_PAGE);
+    const results = await Promise.all(
+      Array.from({ length: pages }, (_, i) => {
+        let query = supabase
+          .from('dealers')
+          .select(columns)
+          .order('dealer_name')
+          .order('id')
+          .range(i * DEALERS_FETCH_PAGE, (i + 1) * DEALERS_FETCH_PAGE - 1);
+        if (category) query = query.eq('dealer_category', category);
+        return query;
+      })
+    );
+
     const rows: Dealer[] = [];
-    for (let from = 0; ; from += DEALERS_FETCH_PAGE) {
-      let query = supabase
-        .from('dealers')
-        .select(columns)
-        .order('dealer_name')
-        .order('id')
-        .range(from, from + DEALERS_FETCH_PAGE - 1);
-      if (category) query = query.eq('dealer_category', category);
-      const { data, error } = await query;
+    for (const { data, error } of results) {
       if (error) return { data: null, error };
       rows.push(...((data ?? []) as Dealer[]));
-      if (!data || data.length < DEALERS_FETCH_PAGE) return { data: rows, error: null };
     }
+    return { data: rows, error: null };
   };
   const primary = await fetchAll(DEALER_COLUMNS);
   if (!primary.error) return primary;
@@ -242,9 +259,38 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       const insertPayload = { ...payload } as Record<string, unknown>;
       if (!String(insertPayload.district ?? '').trim()) delete insertPayload.district;
       if (!String(insertPayload.mandal ?? '').trim()) delete insertPayload.mandal;
-      const { error } = await supabase.from('dealers').insert([insertPayload] as never);
-      if (error) throw error;
-      toast.showSuccess('Dealer added', payload.dealer_name);
+
+      // Same IFMS ID (fertilizer) or license number means the dealer already
+      // exists — update that record instead of inserting a duplicate.
+      const ifmsKey = String(insertPayload.ifms_id ?? '').trim();
+      const licenseKey = String(insertPayload.license_number ?? '').trim();
+      let existingQuery = supabase
+        .from('dealers')
+        .select('id')
+        .eq('dealer_category', activeTab);
+      if (activeTab === 'fertilizer' && ifmsKey) {
+        existingQuery = existingQuery.eq('ifms_id', ifmsKey);
+      } else if (licenseKey && licenseKey !== 'N/A') {
+        existingQuery = existingQuery.eq('license_number', licenseKey);
+      } else {
+        existingQuery = existingQuery.eq('id', '00000000-0000-0000-0000-000000000000');
+      }
+      const { data: existingRows } = await existingQuery.limit(1);
+      const existingId = existingRows?.[0]?.id as string | undefined;
+
+      if (existingId) {
+        const { created_by: _cb, created_by_name: _cbn, ...updatePayload } = insertPayload;
+        const { error } = await supabase
+          .from('dealers')
+          .update({ ...updatePayload, updated_at: new Date().toISOString() } as never)
+          .eq('id', existingId);
+        if (error) throw error;
+        toast.showSuccess('Dealer updated', payload.dealer_name);
+      } else {
+        const { error } = await supabase.from('dealers').insert([insertPayload] as never);
+        if (error) throw error;
+        toast.showSuccess('Dealer added', payload.dealer_name);
+      }
       setShowAddForm(false);
       setFormData(emptyForm);
       setFieldErrors({});
@@ -337,7 +383,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
     try {
       const { parseExcelAndImportDealers } = await import('../../../shared/lib/excelParser');
       const officerScope = isOfficerUser && !isAdminUser;
-      const { imported, errors } = await parseExcelAndImportDealers(file, activeTab, {
+      const { imported, updated = 0, errors } = await parseExcelAndImportDealers(file, activeTab, {
         created_by: user?.id ?? null,
         created_by_name:
           officerProfile?.full_name ||
@@ -350,11 +396,12 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
             mandal: officerProfile?.mandal || '',
           }
         : null);
-      if (imported > 0) {
+      if (imported > 0 || updated > 0) {
+        const updatedNote = updated > 0 ? `, ${updated} updated` : '';
         const skippedNote = errors.length
           ? '\n\n' + t('Skipped rows:', 'విఫలమైన వరుసలు:') + '\n' + errors.slice(0, 10).join('\n')
           : '';
-        toast.showSuccess(`Imported ${imported} dealers`, skippedNote || undefined, 8000);
+        toast.showSuccess(`Imported ${imported} dealers${updatedNote}`, skippedNote || undefined, 8000);
         void fetchDealers();
       } else if (errors.length) {
         toast.showError('Import failed', errors.slice(0, 10).join('\n'));
@@ -376,8 +423,8 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
         d.phone_number || '',
         d.portal_email || '',
         d.license_number || '',
-        d.issue_date || '',
-        d.expiry_date || '',
+        formatDealerDate(d.issue_date),
+        formatDealerDate(d.expiry_date),
         d.location || '',
         normalizeDistrictName(d.district) || '',
         d.mandal || '',
@@ -1311,7 +1358,7 @@ function DisplayRow({
       <td className={`${cellCls} font-mono text-xs text-slate-600 dark:text-slate-400`}>{dealer.license_number}</td>
       {isPermanent && (
         <td className={`${cellCls} text-xs tabular-nums text-slate-600 dark:text-slate-400`}>
-          {dealer.issue_date ? new Date(dealer.issue_date).toLocaleDateString() : '—'}
+          {dealer.issue_date ? formatDealerDate(dealer.issue_date) || '—' : '—'}
         </td>
       )}
       {!isPermanent && (
@@ -1326,7 +1373,7 @@ function DisplayRow({
                   : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
               }`}
             >
-              {validityDate.toLocaleDateString()}
+              {formatDealerDate(dealer.expiry_date) || validityDate?.toLocaleDateString()}
             </span>
           ) : (
             <span className="text-xs text-slate-400">—</span>

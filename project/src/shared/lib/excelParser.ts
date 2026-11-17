@@ -62,7 +62,7 @@ function rowToDealer(
     license_number: String(row.license_number || row.license || '').trim() || 'N/A',
     issue_date: parseDate(row.issue_date || row.license_issue_date || row.issued),
     expiry_date: expiry,
-    location: String(row.location || row.address || row.village || '').trim() || 'Tiryani',
+    location: String(row.address || row.location || row.village || '').trim() || 'Tiryani',
     district: normalizeDistrictName(String(row.district || row.dist || '').trim()) || undefined,
     mandal: String(row.mandal || row.mandals || '').trim() || undefined,
     dealer_category: category,
@@ -127,7 +127,7 @@ export async function parseExcelAndImportDealers(
   category: ParsedDealerRow['dealer_category'] = 'fertilizer',
   attribution: { created_by?: string | null; created_by_name?: string | null } = {},
   jurisdiction?: DealerImportJurisdiction | null
-): Promise<{ imported: number; errors: string[] }> {
+): Promise<{ imported: number; updated: number; errors: string[] }> {
   const XLSX = await import('xlsx');
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
@@ -152,7 +152,7 @@ export async function parseExcelAndImportDealers(
   }
 
   if (dealers.length === 0) {
-    return { imported: 0, errors: ['No valid dealer rows found in the spreadsheet.'] };
+    return { imported: 0, updated: 0, errors: ['No valid dealer rows found in the spreadsheet.'] };
   }
 
   // Officers may only import dealers inside their own mandal/district
@@ -185,39 +185,117 @@ export async function parseExcelAndImportDealers(
       );
     }
     if (importable.length === 0) {
-      return { imported: 0, errors };
+      return { imported: 0, updated: 0, errors };
     }
   }
 
   const { data: existing } = await supabase
     .from('dealers')
-    .select('license_number, ifms_id')
+    .select('id, license_number, ifms_id')
     .eq('dealer_category', category);
 
-  const existingKeys = new Set(
-    (existing || []).flatMap((dealer) => [dealer.license_number, dealer.ifms_id].filter(Boolean))
-  );
-  const newDealers = importable.filter(
-    (dealer) => !existingKeys.has(dealer.license_number) && (!dealer.ifms_id || !existingKeys.has(dealer.ifms_id))
-  );
-
-  if (newDealers.length === 0) {
-    return { imported: 0, errors: ['All dealer rows already exist.'] };
+  const idByIfms = new Map<string, string>();
+  const idByLicense = new Map<string, string>();
+  for (const dealer of existing || []) {
+    const ifms = String(dealer.ifms_id ?? '').trim();
+    const license = String(dealer.license_number ?? '').trim();
+    if (ifms) idByIfms.set(ifms, dealer.id);
+    if (license && license !== 'N/A') idByLicense.set(license, dealer.id);
   }
 
-  const { error } = await supabase.from('dealers').insert(
-    newDealers.map((dealer) => ({
-      ...dealer,
-      created_by: attribution.created_by ?? null,
-      created_by_name: attribution.created_by_name ?? null,
-    }))
-  );
-  if (error) {
-    errors.push(error.message);
-    return { imported: 0, errors };
+  const licenseKeyOf = (dealer: ParsedDealerRow) =>
+    dealer.license_number && dealer.license_number !== 'N/A' ? dealer.license_number : '';
+
+  // Collapse duplicate keys inside the file itself (last row wins) so the
+  // same IFMS ID / license never produces two inserts.
+  const pending: ParsedDealerRow[] = [];
+  const pendingByIfms = new Map<string, number>();
+  const pendingByLicense = new Map<string, number>();
+  const unmapPending = (row: ParsedDealerRow, idx: number) => {
+    if (row.ifms_id && pendingByIfms.get(row.ifms_id) === idx) pendingByIfms.delete(row.ifms_id);
+    const lic = licenseKeyOf(row);
+    if (lic && pendingByLicense.get(lic) === idx) pendingByLicense.delete(lic);
+  };
+  for (const dealer of importable) {
+    const ifmsIdx = dealer.ifms_id ? pendingByIfms.get(dealer.ifms_id) : undefined;
+    const licIdx = licenseKeyOf(dealer) ? pendingByLicense.get(licenseKeyOf(dealer)) : undefined;
+    const hitIdx = ifmsIdx !== undefined ? ifmsIdx : licIdx;
+    if (hitIdx !== undefined) {
+      unmapPending(pending[hitIdx], hitIdx);
+      pending[hitIdx] = dealer;
+    } else {
+      const idx = pending.length;
+      pending.push(dealer);
+      if (dealer.ifms_id) pendingByIfms.set(dealer.ifms_id, idx);
+      const lic = licenseKeyOf(dealer);
+      if (lic) pendingByLicense.set(lic, idx);
+    }
   }
 
-  return { imported: newDealers.length, errors };
+  // Rows matching an existing IFMS ID or license update that dealer
+  // instead of creating a duplicate; the rest are inserted.
+  const toInsert: ParsedDealerRow[] = [];
+  const toUpdate = new Map<string, ParsedDealerRow>();
+  for (const dealer of pending) {
+    const existingId =
+      (dealer.ifms_id && idByIfms.get(dealer.ifms_id)) ||
+      (licenseKeyOf(dealer) && idByLicense.get(licenseKeyOf(dealer))) ||
+      null;
+    if (existingId) {
+      toUpdate.set(existingId, dealer);
+    } else {
+      toInsert.push(dealer);
+    }
+  }
+
+  if (toInsert.length === 0 && toUpdate.size === 0) {
+    return { imported: 0, updated: 0, errors: ['All dealer rows already exist.'] };
+  }
+
+  let updated = 0;
+  const updateEntries = [...toUpdate.entries()];
+  for (let i = 0; i < updateEntries.length; i += 100) {
+    const chunk = updateEntries.slice(i, i + 100);
+    const results = await Promise.all(
+      chunk.map(([id, dealer]) =>
+        supabase
+          .from('dealers')
+          .update({
+            dealer_name: dealer.dealer_name,
+            ifms_id: dealer.ifms_id,
+            phone_number: dealer.phone_number,
+            license_number: dealer.license_number,
+            issue_date: dealer.issue_date,
+            expiry_date: dealer.expiry_date,
+            location: dealer.location,
+            ...(dealer.district !== undefined ? { district: dealer.district } : {}),
+            ...(dealer.mandal !== undefined ? { mandal: dealer.mandal } : {}),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', id)
+      )
+    );
+    for (const { error } of results) {
+      if (error) errors.push(error.message);
+      else updated += 1;
+    }
+  }
+
+  if (toInsert.length > 0) {
+    const { error } = await supabase.from('dealers').insert(
+      toInsert.map((dealer) => ({
+        ...dealer,
+        created_by: attribution.created_by ?? null,
+        created_by_name: attribution.created_by_name ?? null,
+      }))
+    );
+    if (error) {
+      errors.push(error.message);
+      return { imported: 0, updated, errors };
+    }
+  }
+
+  return { imported: toInsert.length, updated, errors };
 }
 
 export interface ExcelPreviewData {
