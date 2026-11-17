@@ -2553,6 +2553,15 @@ export type Database = {
         Args: { p_created_by: string }
         Returns: boolean
       }
+      dealer_directory_aggregates: {
+        Args: never
+        Returns: {
+          dealer_category: string
+          district: string
+          mandal: string
+          dealer_count: number
+        }[]
+      }
       dealer_portal_email: { Args: { phone: string }; Returns: string }
       delete_officer_account: { Args: { p_user_id: string }; Returns: Json }
       get_dealer_login_info: {

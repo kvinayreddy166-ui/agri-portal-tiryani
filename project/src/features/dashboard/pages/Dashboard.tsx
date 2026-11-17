@@ -106,33 +106,20 @@ let farmerDashboardStatsCache: FarmerDashboardStats | null = null;
 
 type DealerSummaryRow = {
   dealer_category?: string | null;
-  created_by?: string | null;
   district?: string | null;
   mandal?: string | null;
+  dealer_count?: number | null;
 };
 
+// Single request via the dealer_directory_aggregates() RPC — returns
+// pre-aggregated counts instead of paging through every dealer row.
 async function fetchAllDealerSummaries() {
-  const { count, error: countError } = await supabase
-    .from('dealers')
-    .select('id', { count: 'exact', head: true });
-  if (countError) return { data: null, error: countError };
-
-  const pageSize = 1000;
-  const pages = Math.ceil((count ?? 0) / pageSize);
-  const results = await Promise.all(
-    Array.from({ length: pages }, (_, i) =>
-      supabase
-        .from('dealers')
-        .select('dealer_category, created_by, district, mandal')
-        .range(i * pageSize, (i + 1) * pageSize - 1)
-    )
-  );
-
-  const rows: DealerSummaryRow[] = [];
-  for (const { data, error } of results) {
-    if (error) return { data: null, error };
-    rows.push(...((data ?? []) as DealerSummaryRow[]));
-  }
+  const { data, error } = await supabase.rpc('dealer_directory_aggregates' as never);
+  if (error) return { data: null, error };
+  const rows = ((data ?? []) as DealerSummaryRow[]).map((row) => ({
+    ...row,
+    dealer_count: Number(row.dealer_count ?? 0),
+  }));
   return { data: rows, error: null };
 }
 
@@ -212,7 +199,7 @@ export const Dashboard = React.memo(function Dashboard() {
       const catCounts = new Map<string, number>();
       (dealersRes.data || []).forEach((row) => {
         const category = dealerCategoryLabel(row.dealer_category);
-        catCounts.set(category, (catCounts.get(category) || 0) + 1);
+        catCounts.set(category, (catCounts.get(category) || 0) + (row.dealer_count ?? 0));
       });
       setDealerCategoryData(
         Array.from(catCounts.entries())
@@ -232,10 +219,11 @@ export const Dashboard = React.memo(function Dashboard() {
           normalizeDistrictName(row.district) ||
           'Not Set';
         const mandalLabel = (mandal && MANDAL_CANONICAL.get(squashPlace(mandal))) || mandal || 'Not Set';
-        mandalTotals.set(mandalLabel, (mandalTotals.get(mandalLabel) || 0) + 1);
+        const weight = row.dealer_count ?? 0;
+        mandalTotals.set(mandalLabel, (mandalTotals.get(mandalLabel) || 0) + weight);
         if (!byDistrict.has(district)) byDistrict.set(district, new Map());
         const m = byDistrict.get(district)!;
-        m.set(mandalLabel, (m.get(mandalLabel) || 0) + 1);
+        m.set(mandalLabel, (m.get(mandalLabel) || 0) + weight);
       });
       if (byDistrict.size > 0) {
         // Build the union of all mandals that actually have dealers in any district.
