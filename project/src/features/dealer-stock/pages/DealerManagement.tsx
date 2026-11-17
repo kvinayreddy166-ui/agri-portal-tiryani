@@ -80,6 +80,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const [activeTab, setActiveTab] = useState<DealerCategory>('fertilizer');
   const [dealers, setDealers] = useState<Dealer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSkeleton, setShowSkeleton] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [licenseFilter, setLicenseFilter] = useState<'all' | 'valid' | 'expired'>('all');
   const [loginFilter, setLoginFilter] = useState<'all' | 'with' | 'without'>('all');
@@ -167,6 +168,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       setTotalCount(0);
     } finally {
       setLoading(false);
+      setShowSkeleton(false);
     }
   }, [applyDealerFilters, currentPage]);
 
@@ -542,6 +544,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   // Clear rows on tab switch so the skeleton shows instead of stale-category data.
   useEffect(() => {
     setDealers([]);
+    setShowSkeleton(true);
   }, [activeTab]);
 
   // If the last row(s) on a page were deleted, step back instead of showing an empty page.
@@ -555,7 +558,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const validityLabel =
     activeTab === 'pesticide' ? t('Validity', 'చెల్లుబాటు') : t('Valid Until', 'చెల్లుబాటు తేదీ');
 
-  if (loading && dealers.length === 0) {
+  if (showSkeleton) {
     return (
       <div className="space-y-4">
         <div className="h-8 w-56 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
