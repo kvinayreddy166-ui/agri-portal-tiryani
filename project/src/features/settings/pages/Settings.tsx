@@ -17,12 +17,9 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { safeStorage, clearUserStorage } from '../../../shared/lib/safeStorage';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
-import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
-import { getMandalsForDistrict, QUALIFICATION_OPTIONS } from '../../../shared/data/telanganaDistrictMandalData';
+import { QUALIFICATION_OPTIONS } from '../../../shared/data/telanganaDistrictMandalData';
 import {
   OFFICER_DESIGNATION_OPTIONS,
-  OFFICER_DISTRICTS,
-  OFFICER_DISTRICT_TO_MANDAL_KEY,
   officerShowsDivision,
   officerShowsMandal,
 } from '../../auth/lib/officerProfileForm';
@@ -49,15 +46,11 @@ export function Settings() {
     phone: '',
   });
 
-  const editMandals = getMandalsForDistrict(OFFICER_DISTRICT_TO_MANDAL_KEY[profileForm.district] || profileForm.district);
   const editShowsMandal = officerShowsMandal(profileForm.designation);
   const editShowsDivision = officerShowsDivision(profileForm.designation);
   const qualificationOptions = QUALIFICATION_OPTIONS.some((q) => q.value === profileForm.qualification)
     ? QUALIFICATION_OPTIONS
     : [{ label: profileForm.qualification, value: profileForm.qualification }, ...QUALIFICATION_OPTIONS];
-  const mandalOptions = editMandals.includes(profileForm.mandal) || profileForm.mandal === 'District HQ'
-    ? editMandals
-    : [profileForm.mandal, ...editMandals];
 
   const startEditProfile = () => {
     if (!officerProfile) return;
@@ -82,10 +75,17 @@ export function Settings() {
 
     const fullName = profileForm.fullName.trim();
     const phone = profileForm.phone.trim().replace(/\D/g, '');
-    const mandal = editShowsMandal ? profileForm.mandal.trim() : 'District HQ';
-    const division = editShowsDivision ? profileForm.division.trim() : '';
+    // Jurisdiction fields (district/mandal/division) are admin-managed and locked for officers
+    const lockedDesignation = profileForm.designation || officerProfile.designation || 'AEO';
+    const mandal = officerShowsMandal(lockedDesignation)
+      ? (officerProfile.mandal || '').trim() || 'District HQ'
+      : 'District HQ';
+    const division = officerShowsDivision(lockedDesignation)
+      ? (officerProfile.division || '').trim()
+      : '';
+    const district = officerProfile.district || '';
 
-    if (!fullName || !profileForm.district || !profileForm.designation || (editShowsMandal && !mandal) || (editShowsDivision && !division) || !phone) {
+    if (!fullName || !district || !lockedDesignation || (officerShowsMandal(lockedDesignation) && !mandal) || (officerShowsDivision(lockedDesignation) && !division) || !phone) {
       setProfileError('Please fill in all mandatory fields.');
       return;
     }
@@ -104,7 +104,7 @@ export function Settings() {
           designation: profileForm.designation,
           hrms_id: profileForm.hrmsId.trim() || null,
           qualification: profileForm.qualification || null,
-          district: profileForm.district,
+          district,
           mandal,
           division: division || null,
           phone,
@@ -122,7 +122,7 @@ export function Settings() {
           designation: profileForm.designation,
           hrms_id: profileForm.hrmsId.trim(),
           qualification: profileForm.qualification,
-          district: profileForm.district,
+          district,
           mandal,
           division,
           phone,
@@ -315,50 +315,34 @@ export function Settings() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">District *</label>
-                  <select
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">District</label>
+                  <input
+                    type="text"
                     value={profileForm.district}
-                    onChange={(e) => {
-                      const dist = e.target.value;
-                      const distMandals = getMandalsForDistrict(OFFICER_DISTRICT_TO_MANDAL_KEY[dist] || dist);
-                      setProfileForm({ ...profileForm, district: dist, mandal: distMandals[0] || profileForm.mandal, division: '' });
-                    }}
-                    className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
-                  >
-                    {OFFICER_DISTRICTS.map((d) => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
+                    disabled
+                    className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/60 px-3 py-2.5 text-sm text-gray-500 dark:text-slate-400 cursor-not-allowed"
+                  />
                 </div>
                 {editShowsDivision && (
                   <div>
-                    <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Division *</label>
-                    <DivisionPicker
-                      district={OFFICER_DISTRICT_TO_MANDAL_KEY[profileForm.district] || profileForm.district}
+                    <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Division</label>
+                    <input
+                      type="text"
                       value={profileForm.division}
-                      onChange={(v) => setProfileForm({ ...profileForm, division: v })}
-                      selectClassName="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
-                      inputClassName="mt-2 w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
-                      inputPlaceholder="e.g. Asifabad / Bellampalli"
+                      disabled
+                      className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/60 px-3 py-2.5 text-sm text-gray-500 dark:text-slate-400 cursor-not-allowed"
                     />
                   </div>
                 )}
                 {editShowsMandal && (
                   <div>
-                    <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Mandal / Jurisdiction *</label>
-                    <select
+                    <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Mandal / Jurisdiction</label>
+                    <input
+                      type="text"
                       value={profileForm.mandal}
-                      onChange={(e) => setProfileForm({ ...profileForm, mandal: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
-                    >
-                      {!mandalOptions.includes(profileForm.mandal) && profileForm.mandal && (
-                        <option value={profileForm.mandal}>{profileForm.mandal}</option>
-                      )}
-                      {mandalOptions.map((m) => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                      <option value="District HQ">District HQ / Others</option>
-                    </select>
+                      disabled
+                      className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/60 px-3 py-2.5 text-sm text-gray-500 dark:text-slate-400 cursor-not-allowed"
+                    />
                   </div>
                 )}
                 <div>
