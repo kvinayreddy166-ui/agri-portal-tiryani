@@ -537,7 +537,12 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [activeTab, searchTerm, licenseFilter, loginFilter, districtFilter, mandalFilter]);
+  }, [activeTab, debouncedSearch, licenseFilter, loginFilter, districtFilter, mandalFilter]);
+
+  // Clear rows on tab switch so the skeleton shows instead of stale-category data.
+  useEffect(() => {
+    setDealers([]);
+  }, [activeTab]);
 
   // If the last row(s) on a page were deleted, step back instead of showing an empty page.
   useEffect(() => {
@@ -550,7 +555,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const validityLabel =
     activeTab === 'pesticide' ? t('Validity', 'చెల్లుబాటు') : t('Valid Until', 'చెల్లుబాటు తేదీ');
 
-  if (loading) {
+  if (loading && dealers.length === 0) {
     return (
       <div className="space-y-4">
         <div className="h-8 w-56 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
@@ -1383,7 +1388,7 @@ function DisplayRow({
               const isAdminCreated = !dealer.created_by || dealer.created_by === ADMIN_USER_ID;
               const addedBy =
                 dealer.created_by_name ||
-                (isAdminCreated ? 'K. Vinay Reddy' : null);
+                (isAdminCreated ? 'Admin' : null);
               return addedBy ? (
                 <div className="truncate text-[11px] text-slate-400 dark:text-slate-500">
                   {t('Added by', 'కలిపినవారు')}: {addedBy}

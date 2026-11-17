@@ -58,9 +58,6 @@ const LazySimpleBarChart = lazy(() =>
 const LazyCategoryDonutChart = lazy(() =>
   import('../../../shared/components/charts/CategoryDonutChart').then((module) => ({ default: module.CategoryDonutChart }))
 );
-const LazyStackedBarChart = lazy(() =>
-  import('../../../shared/components/charts/StackedBarChart').then((module) => ({ default: module.StackedBarChart }))
-);
 
 const ChartErrorFallback = () => (
   <div className="flex h-64 items-center justify-center rounded-lg bg-slate-50 text-slate-500 dark:bg-slate-800/50 dark:text-slate-400">
@@ -145,6 +142,25 @@ export const Dashboard = React.memo(function Dashboard() {
     rows: Record<string, string | number>[];
     bars: { key: string; label: string }[];
   } | null>(null);
+  // District totals derived from the location chart rows (mandal detail
+  // is no longer displayed — admin sees a district-wise chart only).
+  const dealerDistrictData = useMemo(
+    () =>
+      (dealerLocationChart?.rows ?? [])
+        .map((row) => ({
+          name: String(row.name ?? ""),
+          count: Object.entries(row).reduce(
+            (sum, [k, v]) =>
+              k === "name" || k === "_otherMandalsDetail"
+                ? sum
+                : sum + (typeof v === "number" ? v : 0),
+            0
+          ),
+        }))
+        .filter((d) => d.count > 0)
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
+    [dealerLocationChart]
+  );
   const adminChartSteps = useSequentialChartSteps(
     isAdminUser && (designationCounts.length > 0 || dealerCategoryData.length > 0),
     2
@@ -602,32 +618,25 @@ export const Dashboard = React.memo(function Dashboard() {
               </div>
               <Suspense fallback={<div className="grid grid-cols-1 gap-6 lg:grid-cols-5"><div className="lg:col-span-3 h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /><div className="lg:col-span-2 h-56 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /></div>}>
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-                {dealerLocationChart && dealerLocationChart.rows.length > 0 && (
+                {dealerDistrictData.length > 0 && (
                   <div className="lg:col-span-3">
                     <h3 className="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">
-                      {t('Dealers by District & Mandal', 'జిల్లా & మండలం వారీగా డీలర్లు')}
+                      {t('Dealers by District', 'జిల్లా వారీగా డీలర్లు')}
                     </h3>
                     <ErrorBoundary FallbackComponent={ChartErrorFallback}>
                       <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />}>
-                        <LazyStackedBarChart
-                          data={dealerLocationChart.rows}
-                          xKey="name"
-                          bars={dealerLocationChart.bars.map((b) => ({
-                            ...b,
-                            label:
-                              b.label === '__OTHER_MANDALS__'
-                                ? t('Other Mandals', 'ఇతర మండలాలు')
-                                : b.label === '__NOT_SET__'
-                                  ? t('Not Set', 'సెట్ కాలేదు')
-                                  : b.label,
-                          }))}
+                        <LazySimpleBarChart
+                          data={dealerDistrictData.slice(0, 15)}
+                          dataKey="count"
+                          nameKey="name"
+                          height={280}
                         />
                       </Suspense>
                     </ErrorBoundary>
                   </div>
                 )}
                 {dealerCategoryData.length > 0 && (
-                  <div className={dealerLocationChart?.rows.length ? 'lg:col-span-2' : 'lg:col-span-5'}>
+                  <div className={dealerDistrictData.length ? 'lg:col-span-2' : 'lg:col-span-5'}>
                     <h3 className="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">
                       {t('Dealers by Category', 'వర్గం వారీగా డీలర్లు')}
                     </h3>

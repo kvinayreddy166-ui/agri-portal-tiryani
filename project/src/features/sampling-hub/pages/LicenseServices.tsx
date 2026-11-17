@@ -45,26 +45,114 @@ const DISTRICT_DDO_CODES: Record<string, string> = {
 };
 
 const DIVISION_DDO_CODES: Record<string, Record<string, string>> = {
-  'Mahabubnagar': {
-    'Mahabubnagar Rural': '22010102002',
+  'Adilabad': {
+    'Adilabad Rural': '01010102005',
+    'Boath': '01020102002',
+  },
+  'Bhadradri Kothagudem': {
+    'Aswaraopeta': '09020102001',
+    'Bhadrachalam': '09030102001',
+    'Kothagudem': '09010102001',
+    'Manuguru': '09040102001',
+    'Yellandu': '09050102002',
+  },
+  'Hanumakonda': {
+    'Parkal': '12040102019',
+  },
+  'Jagtial': {
+    'Dharmapuri': '06010102004',
+    'Jagtial': '06010102001',
+    'Korutla': '06030102001',
+  },
+  'Jangaon': {
+    'Ghanpur (Station)': '19020102015',
+    'Jangoan': '19010102016',
+    'Palakurthy': '19030102001',
   },
   'Jayashankar Bhupalpally': {
-    'Mahadevpur': '08030102001',
     'Bhupalpally': '08010102020',
+    'Mahadevpur': '08030102001',
+  },
+  'Jogulamba Gadwal': {
+    'Alampur': '26020102002',
+    'Gadwal': '26010102001',
+    'Ieeja': '26020102002',
+  },
+  'Kamareddy': {
+    'Banswada': '15020102003',
+    'Bichkunda': '15030102001',
+    'Kamareddy': '15040102001',
+  },
+  'Karimnagar': {
+    'Choppadandi': '13020102002',
+    'Huzurabad': '13030102001',
+    'Karimnagar': '13020102001',
+    'Manakondur': '13010102008',
+  },
+  'Khammam': {
+    'Khammam Urban': '31010102001',
+    'Kusumanchi': '31040102001',
+    'Madhira': '31030102001',
+    'Sathupalli': '31050102002',
+    'Wyra': '31020102001',
   },
   'Kumurambheem Asifabad': {
     'Asifabad': '02010102001',
     'Kagaznagar': '02020102001',
+    'Penchicalpet': '02020102001',
     'Sirpur U': '02010102002',
   },
   'Kumrambheem Asifabad': {
     'Asifabad': '02010102001',
     'Kagaznagar': '02020102001',
+    'Penchicalpet': '02020102001',
     'Sirpur U': '02010102002',
   },
+  'Mahabubabad': {
+    'Mahabubabad': '10010102005',
+    'Maripeda': '10030102017',
+  },
+  'Mahabubnagar': {
+    'Devarakadra': '22010102007',
+    'Jadcherla': '22020102001',
+    'Mahabubnagar Rural': '22010102002',
+  },
   'Mancherial': {
-    'Mancherial': '03010102001',
+    'Bellampally': '03020102001',
+    'Bheemini': '03020102002',
     'Chennur': '03030102001',
+    'Mancherial': '03010102001',
+  },
+  'Medak': {
+    'Kowdipally': '17020102002',
+    'Medak': '17010102001',
+    'Narsapur': '17020102001',
+    'Ramayampet': '17030102001',
+  },
+  'Medchal–Malkajgiri': {
+    'Malkajgiri': '21010102002',
+    'Medchal': '21010102001',
+  },
+  'Mulugu': {
+    'Eturunagaram': '35020102001',
+    'Mulugu': '35010102001',
+  },
+  'Nagarkurnool': {
+    'Achampet': '28020102001',
+    'Kalwakurthy': '28030102003',
+    'Kollapur': '28040102001',
+    'Nagarkurnool': '28010102001',
+  },
+  'Nalgonda': {
+    'Devarakonda': '29030102004',
+    'Miryalaguda': '29040102003',
+    'Munugode': '29020102001',
+    'Nakrekal': '29050102001',
+    'Nalgonda': '29010102002',
+  },
+  'Warangal': {
+    'Narsampet': '11020102018',
+    'Wardhannapet': '11040102002',
   },
 };
 

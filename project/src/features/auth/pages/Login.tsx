@@ -34,7 +34,7 @@ const TEST_EMAIL = 'test@gmail.com';
 export function Login() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [loginMode, setLoginMode] = useState<'staff' | 'officer' | 'dealer'>('officer');
+  const [loginMode, setLoginMode] = useState<'officer' | 'dealer'>('officer');
   const [officerEmail, setOfficerEmail] = useState('');
   const [officerPassword, setOfficerPassword] = useState('');
 
@@ -207,8 +207,8 @@ export function Login() {
                 </div>
               </div>
 
-              {/* 3-Way Mode Switcher */}
-              <div className="mb-4 grid animate-slide-up grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 text-xs sm:text-sm font-semibold ring-1 ring-inset ring-slate-200/70 dark:bg-slate-800 dark:ring-slate-700">
+              {/* Mode Switcher */}
+              <div className="mb-4 grid animate-slide-up grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 text-xs sm:text-sm font-semibold ring-1 ring-inset ring-slate-200/70 dark:bg-slate-800 dark:ring-slate-700">
                 <button
                   type="button"
                   onClick={() => { setLoginMode('officer'); setError(null); setSuccessMessage(null); }}
@@ -216,13 +216,6 @@ export function Login() {
                 >
                   <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
                   <span>{t('Officer', 'అధికారి')}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setLoginMode('staff'); setError(null); setSuccessMessage(null); }}
-                  className={`rounded-lg px-2 py-2 transition font-bold ${loginMode === 'staff' ? 'bg-gradient-to-br from-emerald-700 to-emerald-900 text-white shadow-md shadow-emerald-900/25' : 'text-slate-500 hover:text-emerald-800 dark:hover:text-emerald-300'}`}
-                >
-                  {t('Admin', 'అడ్మిన్')}
                 </button>
                 <button
                   type="button"
