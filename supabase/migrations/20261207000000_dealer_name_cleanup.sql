@@ -6611,7 +6611,7 @@ FROM (VALUES
 ('1130123','Shiva Krishna Agro Services'),
 ('1381557','Shivalayam Traders'),
 ('497628','Sri Ayyappa Traders Chennur'),
-('1098224','Sri Balaji Mutually Aided Coo'),
+('1098224','Sri Balaji Mutually Aided Coop.Society Ltd'),
 ('1289011','Sri Laxmi Fertilizers'),
 ('1656625','Sri Rama Fertilizers, Pesticides and Seeds'),
 ('654937','Sri Sai Gayathri Fertilizers, Pesticides and Seeds'),

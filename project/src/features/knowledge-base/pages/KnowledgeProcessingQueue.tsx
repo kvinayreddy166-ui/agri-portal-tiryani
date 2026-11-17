@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ListChecks, Loader2, RefreshCw, AlertTriangle, RotateCw } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
@@ -10,6 +10,8 @@ import type { ProcessingJob } from '../types/index';
 export function KnowledgeProcessingQueue() {
   const { isAdminUser } = useAuth();
   const toast = useToast();
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
   const [jobs, setJobs] = useState<ProcessingJob[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,11 +20,11 @@ export function KnowledgeProcessingQueue() {
     try {
       setJobs(await fetchProcessingJobs());
     } catch (e) {
-      toast.showReset('Load failed', (e as Error).message);
+      toastRef.current.showReset('Load failed', (e as Error).message);
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     load();

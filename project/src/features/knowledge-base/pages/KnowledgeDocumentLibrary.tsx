@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FolderOpen, Loader2, RefreshCw, Eye, Power, PowerOff, Trash2, Search, ChevronLeft, ChevronRight, FileText, RotateCw } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
@@ -20,6 +20,8 @@ export function KnowledgeDocumentLibrary() {
   const { isAdminUser } = useAuth();
   const go = useKnowledgeNav();
   const toast = useToast();
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
   const { askConfirm, confirmDialog } = useConfirmDialog();
 
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
@@ -41,11 +43,11 @@ export function KnowledgeDocumentLibrary() {
       setDocuments(docs);
       setTotal(t);
     } catch (e) {
-      toast.showReset('Load failed', (e as Error).message);
+      toastRef.current.showReset('Load failed', (e as Error).message);
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, search, statusFilter, typeFilter, toast]);
+  }, [page, pageSize, search, statusFilter, typeFilter]);
 
   useEffect(() => { load(); }, [load]);
 

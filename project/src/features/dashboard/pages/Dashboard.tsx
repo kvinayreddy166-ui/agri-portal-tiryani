@@ -145,7 +145,6 @@ export const Dashboard = React.memo(function Dashboard() {
     rows: Record<string, string | number>[];
     bars: { key: string; label: string }[];
   } | null>(null);
-  const [dashboardCacheBuster, setDashboardCacheBuster] = useState(0);
   const adminChartSteps = useSequentialChartSteps(
     isAdminUser && (designationCounts.length > 0 || dealerCategoryData.length > 0),
     2
@@ -215,9 +214,9 @@ export const Dashboard = React.memo(function Dashboard() {
         // Prefer the district that actually contains the mandal — stored
         // district may be wrong/missing for imported or legacy rows.
         const district =
-          (mandal && MANDAL_TO_DISTRICT.get(squashPlace(mandal))) ||
-          normalizeDistrictName(row.district) ||
-          'Not Set';
+          normalizeDistrictName(
+            (mandal && MANDAL_TO_DISTRICT.get(squashPlace(mandal))) || row.district
+          ) || 'Not Set';
         const mandalLabel = (mandal && MANDAL_CANONICAL.get(squashPlace(mandal))) || mandal || 'Not Set';
         const weight = row.dealer_count ?? 0;
         mandalTotals.set(mandalLabel, (mandalTotals.get(mandalLabel) || 0) + weight);
@@ -277,7 +276,6 @@ export const Dashboard = React.memo(function Dashboard() {
           rows,
           bars: barKeys.map((key, i) => ({ key, label: barLabels[i] })),
         });
-        setDashboardCacheBuster((b) => b + 1);
       } else {
         setDealerLocationChart(null);
       }
@@ -297,7 +295,7 @@ export const Dashboard = React.memo(function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, isAdminUser, isElevatedOfficerUser, dashboardCacheBuster]);
+  }, [user?.id, isAdminUser, isElevatedOfficerUser]);
 
   useEffect(() => {
     void fetchDashboardData();

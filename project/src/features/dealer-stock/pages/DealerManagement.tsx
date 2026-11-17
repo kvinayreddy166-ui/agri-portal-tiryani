@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Edit2, Trash2, Users, Search, Save, X, KeyRound, Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase, ADMIN_USER_ID } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -7,6 +7,7 @@ import { Dealer } from '../../../shared/types/database';
 import { provisionAllDealerLogins, provisionDealerLogin } from '../../auth/lib/provisionDealerLogins';
 import { dealerEmailFromPhone, DEALER_DEFAULT_PASSWORD, normalizePhone } from '../../auth/lib/dealerAuth';
 import { cachedSupabaseRows } from '../../../shared/lib/offlineCache';
+import { fetchAllRows } from '../../../shared/lib/pagedFetch';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import { downloadCsv } from '../../../shared/utils/csvExport';
@@ -48,40 +49,18 @@ const DEALER_COLUMNS =
 const DEALER_COLUMNS_LEGACY =
   'id, dealer_name, ifms_id, phone_number, portal_email, license_number, issue_date, expiry_date, location, dealer_category, created_by, created_by_name, created_at, updated_at';
 
-const DEALERS_FETCH_PAGE = 1000;
-
 async function fetchDealerRows(category?: DealerCategory) {
-  const fetchAll = async (columns: string) => {
-    let countQuery = supabase.from('dealers').select('id', { count: 'exact', head: true });
-    if (category) countQuery = countQuery.eq('dealer_category', category);
-    const { count, error: countError } = await countQuery;
-    if (countError) return { data: null, error: countError };
-
-    const total = count ?? 0;
-    const pages = Math.ceil(total / DEALERS_FETCH_PAGE);
-    const results = await Promise.all(
-      Array.from({ length: pages }, (_, i) => {
-        let query = supabase
-          .from('dealers')
-          .select(columns)
-          .order('dealer_name')
-          .order('id')
-          .range(i * DEALERS_FETCH_PAGE, (i + 1) * DEALERS_FETCH_PAGE - 1);
-        if (category) query = query.eq('dealer_category', category);
-        return query;
-      })
-    );
-
-    const rows: Dealer[] = [];
-    for (const { data, error } of results) {
-      if (error) return { data: null, error };
-      rows.push(...((data ?? []) as unknown as Dealer[]));
-    }
-    return { data: rows, error: null };
-  };
+  const fetchAll = (columns: string) =>
+    fetchAllRows<Dealer>({
+      table: 'dealers',
+      columns,
+      order: [{ column: 'dealer_name' }, { column: 'id' }],
+      applyFilters: category ? (q) => q.eq('dealer_category', category) : undefined,
+    });
   const primary = await fetchAll(DEALER_COLUMNS);
-  if (!primary.error) return primary;
-  return fetchAll(DEALER_COLUMNS_LEGACY);
+  if (!primary.error) return { data: primary.data, error: null };
+  const fallback = await fetchAll(DEALER_COLUMNS_LEGACY);
+  return { data: fallback.data, error: fallback.error };
 }
 
 export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: boolean }) {
@@ -93,6 +72,10 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const restrictToOwn = scopeToCreator && isOfficerUser && !isAdminUser;
   const { t } = useLanguage();
   const toast = useToast();
+  // useToast returns a fresh object each render; keep a ref so callbacks that
+  // depend on it don't retrigger effects in an infinite fetch loop.
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
   const { askConfirm, confirmDialog } = useConfirmDialog();
   const [activeTab, setActiveTab] = useState<DealerCategory>('fertilizer');
   const [dealers, setDealers] = useState<Dealer[]>([]);
@@ -179,41 +162,31 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       setTotalCount(res.count ?? 0);
     } catch (error) {
       console.error('Error fetching dealers:', error);
-      toast.showError('Load failed', (error as { message?: string })?.message || 'Could not load dealers');
+      toastRef.current.showError('Load failed', (error as { message?: string })?.message || 'Could not load dealers');
       setDealers([]);
       setTotalCount(0);
     } finally {
       setLoading(false);
     }
-  }, [applyDealerFilters, currentPage, toast]);
+  }, [applyDealerFilters, currentPage]);
 
-  // District/mandal dropdown options — light two-column paginated fetch.
+  // District/mandal dropdown options — one aggregate RPC call returns the
+  // distinct location combos instead of paging the whole dealers table.
   const fetchLocationOptions = useCallback(async () => {
     try {
-      const head = await supabase
-        .from('dealers')
-        .select('id', { count: 'exact', head: true })
-        .eq('dealer_category', activeTab);
-      const total = head.count ?? 0;
-      const pages = Math.max(1, Math.ceil(total / DEALERS_FETCH_PAGE));
-      const results = await Promise.all(
-        Array.from({ length: pages }, (_, i) =>
-          supabase
-            .from('dealers')
-            .select('district, mandal')
-            .eq('dealer_category', activeTab)
-            .range(i * DEALERS_FETCH_PAGE, (i + 1) * DEALERS_FETCH_PAGE - 1)
-        )
-      );
+      const { data, error } = await supabase.rpc('dealer_directory_aggregates' as never);
+      if (error) return;
       const rows: { district: string; mandal: string }[] = [];
-      for (const { data, error } of results) {
-        if (error) return;
-        for (const row of (data ?? []) as { district?: string | null; mandal?: string | null }[]) {
-          rows.push({
-            district: normalizeDistrictName(row.district) || '',
-            mandal: String(row.mandal ?? '').trim(),
-          });
-        }
+      for (const row of (data ?? []) as {
+        dealer_category?: string | null;
+        district?: string | null;
+        mandal?: string | null;
+      }[]) {
+        if ((row.dealer_category || 'fertilizer') !== activeTab) continue;
+        rows.push({
+          district: normalizeDistrictName(row.district) || '',
+          mandal: String(row.mandal ?? '').trim(),
+        });
       }
       setLocationRows(rows);
     } catch {
@@ -501,24 +474,14 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
     const tabLabel = TABS.find((tab) => tab.id === activeTab)?.label ?? activeTab;
     setLoading(true);
     try {
-      const head = await applyDealerFilters(
-        supabase.from('dealers').select('id', { count: 'exact', head: true }),
-        true
-      );
-      const total = head.count ?? 0;
-      const pages = Math.max(1, Math.ceil(total / DEALERS_FETCH_PAGE));
-      const results = await Promise.all(
-        Array.from({ length: pages }, (_, i) =>
-          applyDealerFilters(
-            supabase.from('dealers').select(DEALER_COLUMNS).range(
-              i * DEALERS_FETCH_PAGE,
-              (i + 1) * DEALERS_FETCH_PAGE - 1
-            ),
-            true
-          )
-        )
-      );
-      const rows = results.flatMap((r) => (r.data ?? []) as Dealer[]);
+      const res = await fetchAllRows<Dealer>({
+        table: 'dealers',
+        columns: DEALER_COLUMNS,
+        order: [{ column: 'dealer_name' }, { column: 'id' }],
+        applyFilters: (q) => applyDealerFilters(q, true),
+      });
+      if (res.error) throw res.error;
+      const rows = res.data;
       downloadCsv(
         `dealers-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`,
         ['Dealer Name', 'IFMS ID', 'Phone', 'Portal Email', 'License Number', 'Issue Date', 'Expiry Date', 'Location', 'District', 'Mandal', 'Category', 'Created By', 'Created On'],

@@ -1,0 +1,44 @@
+-- Complete truncated trailing village-name fragments in dealer names.
+-- Fragment replaced by the unique village name found in location/mandal.
+
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Centre Buruguda', updated_at=now() WHERE id='02545a41-282b-4905-ada7-90c31b6e6d46';
+UPDATE public.dealers SET dealer_name='HACA Farmers Service Centre Kalva', updated_at=now() WHERE id='0260e679-ff42-4c34-9384-4ad93b642514';
+UPDATE public.dealers SET dealer_name='Agros Rythu Seva Kendram - Pegadapalle', updated_at=now() WHERE id='08a9909f-ae9c-40d8-ac8d-b98d7636376b';
+UPDATE public.dealers SET dealer_name='DCMS Farmers Service Center Nagapur', updated_at=now() WHERE id='13003148-ab16-49a2-a1ac-ab815a4267a4';
+UPDATE public.dealers SET dealer_name='M/S.SAI Raghavendra Traders Suryapet', updated_at=now() WHERE id='14ad9878-04ab-4929-b8e0-15cd276a37ac';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Center Suraram', updated_at=now() WHERE id='170b8810-ae71-4ebe-a93c-b5b2017b3699';
+UPDATE public.dealers SET dealer_name='HACA Farmers Service Centre Himmathnagar', updated_at=now() WHERE id='1f9c4b78-bc02-4679-9c0e-a1cf9c22094d';
+UPDATE public.dealers SET dealer_name='HACA Farmers Service Center Polkepahad', updated_at=now() WHERE id='20907df0-d151-44e7-b46a-d7a92a7bff7b';
+UPDATE public.dealers SET dealer_name='HACA Farmers Service Center Shivunipalle', updated_at=now() WHERE id='27155d7b-f5ac-41e4-afc8-f522aa5eca7e';
+UPDATE public.dealers SET dealer_name='Sri Sai Fertilizers and Pesticides, Seeds Kuravi', updated_at=now() WHERE id='325398f3-14ca-4530-a1f2-56085921fc08';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Center Tharigoppula', updated_at=now() WHERE id='3d9c1d35-58cc-4d6e-9f10-89fdb842f5ba';
+UPDATE public.dealers SET dealer_name='Uma Maheshwara Fertilizers Gopalpet', updated_at=now() WHERE id='45451f37-4d4d-46e1-8217-c6eadda3df40';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Center Kanchanpalle', updated_at=now() WHERE id='461b2997-e558-4bf0-afb2-2106cf8be443';
+UPDATE public.dealers SET dealer_name='Sri Sai Balaji Seeds, Fertilizers Machareddy', updated_at=now() WHERE id='4e552d6d-0ad1-4ba4-b22a-bd1a7768db05';
+UPDATE public.dealers SET dealer_name='Sri Raja Rajeshwara Fertilizers, Laxmanchanda', updated_at=now() WHERE id='4f0f64aa-ff17-4a87-a4e7-a94730b3a478';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Center Koppula', updated_at=now() WHERE id='526fb95e-22ff-4184-acf8-0ef7f962d1a0';
+UPDATE public.dealers SET dealer_name='Idcms Ltd Nizamabad Branch Lingampet', updated_at=now() WHERE id='59d7045c-2642-450b-be05-2204d2bdad59';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Centre Peddavangara', updated_at=now() WHERE id='5ba800f4-1939-417f-a5e2-0aa52b794a45';
+UPDATE public.dealers SET dealer_name='Venkatakrishna Fertilizers Warangal', updated_at=now() WHERE id='5c9266b5-0b12-4850-b8c1-322b6147da4e';
+UPDATE public.dealers SET dealer_name='Sri Srinivasa Fertilizers, Garimillapalle', updated_at=now() WHERE id='60aa9a17-b634-403b-bab0-19901772601b';
+UPDATE public.dealers SET dealer_name='HACA Farmers Service Center Kodakandla', updated_at=now() WHERE id='60c8729f-9785-4b1f-bdb2-925b3ca99e1c';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Center Atmakur', updated_at=now() WHERE id='6163ef93-4e35-4506-9cea-68af5c747227';
+UPDATE public.dealers SET dealer_name='HACA Farmers Service Center Makthal', updated_at=now() WHERE id='68bc7bbc-dc71-484e-aec0-c1ac32427e4d';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Center Bachannapet', updated_at=now() WHERE id='6a301625-4d70-4d15-9cbe-19aeadeeb15a';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Center Mulkanoor', updated_at=now() WHERE id='73d4b6bd-df37-4c3d-b9f5-86dfbf6728a9';
+UPDATE public.dealers SET dealer_name='HACA Farmers Service Centre Maganoor', updated_at=now() WHERE id='7b9c5d86-b8e0-48d5-9fd0-e77f864a88b4';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Center Narmetta', updated_at=now() WHERE id='886c4dd8-a674-41c1-9379-54f4a5965678';
+UPDATE public.dealers SET dealer_name='Sri Buggarajarajeswara FPO, Narayanaraopet', updated_at=now() WHERE id='91250388-c14c-4eb9-8bb5-410d178f38d4';
+UPDATE public.dealers SET dealer_name='DCMS Farmers Service Centre Dugnepalle', updated_at=now() WHERE id='98c9889e-e617-4286-88d5-737ce98eba19';
+UPDATE public.dealers SET dealer_name='Laxmi Chennakesava Traders Ghanpur', updated_at=now() WHERE id='98dabed7-a1fc-4c4d-8658-aef809f96ac0';
+UPDATE public.dealers SET dealer_name='Raithu Nestham Fertilizers Gudem', updated_at=now() WHERE id='a95401f5-0630-4bb5-a375-e1696824a565';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Center Kundaram', updated_at=now() WHERE id='b658a064-d61d-4b1e-8fd4-cde5a3c5a8d7';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Centre Chedurvalli', updated_at=now() WHERE id='bbdc41df-1a1a-43b3-a965-9cc4ec0b14be';
+UPDATE public.dealers SET dealer_name='Shubodhaya Gramaikya Sangam Narsingapoor', updated_at=now() WHERE id='d497880c-5475-4c39-b46e-e27d5486105b';
+UPDATE public.dealers SET dealer_name='HACA Farmers Service Center Zaffergadh', updated_at=now() WHERE id='dcf00495-d5b2-4a56-b65a-64107b0b00da';
+UPDATE public.dealers SET dealer_name='HACA Farmer Services Center Kothapalle', updated_at=now() WHERE id='df88ada2-77ad-4b59-90f0-a3e39a8acab4';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Center Yacharam', updated_at=now() WHERE id='e2db4a5b-628e-4868-a300-593865fca83e';
+UPDATE public.dealers SET dealer_name='HACA Farmers Service Centre Neradgam', updated_at=now() WHERE id='ed8bc857-6cd7-4062-9b80-26364efad791';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Center Tadlapalle', updated_at=now() WHERE id='f1ca27df-f5f2-417b-898c-3a07cfd0d87a';
+UPDATE public.dealers SET dealer_name='HACA Farmer Service Center Vanaparthy', updated_at=now() WHERE id='f5b11ec9-6c45-40fb-8c83-956d39cfbb52';
+UPDATE public.dealers SET dealer_name='DCMS Farmer Service Centre Perkapalle', updated_at=now() WHERE id='fa735036-359a-4aee-bc8d-c0cbb676adb3';

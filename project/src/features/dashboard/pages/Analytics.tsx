@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronDown, Download, Eye, FileSpreadsheet, FileText, Filter, RefreshCw } from 'lucide-react';
-import { supabase } from '../../../shared/lib/supabase';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { savePdfDocument } from '../../documents/lib/documentActions';
 import { addTableSheet, createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { fetchAllRows } from '../../../shared/lib/pagedFetch';
 import { StockCategory, CATEGORY_UNITS, currentReportDate, financialYearForDate, shiftReportDate } from '../../dealer-stock/lib/stockInventory';
 
 type ReportKey =
@@ -461,20 +461,20 @@ function buildReportRows(
 }
 
 async function fetchDealerRows(): Promise<DealerRow[]> {
-  const primary = await supabase
-    .from('dealers')
-    .select('id, dealer_name, ifms_id, phone_number, license_number, expiry_date, location, dealer_category')
-    .order('dealer_name')
-    .limit(2000);
-  if (!primary.error) return (primary.data || []) as DealerRow[];
+  const primary = await fetchAllRows<DealerRow>({
+    table: 'dealers',
+    columns: 'id, dealer_name, ifms_id, phone_number, license_number, expiry_date, location, dealer_category',
+    order: [{ column: 'dealer_name' }],
+  });
+  if (!primary.error) return primary.data;
 
   console.warn('Dealer report query fallback:', primary.error);
-  const fallback = await supabase
-    .from('dealers')
-    .select('id, dealer_name, ifms_id, phone_number, license_number, expiry_date, location')
-    .order('dealer_name')
-    .limit(2000);
-  return (fallback.data || []) as DealerRow[];
+  const fallback = await fetchAllRows<DealerRow>({
+    table: 'dealers',
+    columns: 'id, dealer_name, ifms_id, phone_number, license_number, expiry_date, location',
+    order: [{ column: 'dealer_name' }],
+  });
+  return fallback.data;
 }
 
 const STOCK_LINE_COLUMNS = 'id, dealer_id, category, product_type, opening_balance, receipts, total, sales, closing_balance, report_date, report_month, created_at';
@@ -492,51 +492,53 @@ function toStockRow(row: Record<string, unknown>): StockRow {
 }
 
 async function fetchStockRows(): Promise<StockRow[]> {
-  const primary = await supabase
-    .from('stock_inventory_lines')
-    .select(STOCK_LINE_COLUMNS)
-    .order('report_date', { ascending: false, nullsFirst: false })
-    .limit(10000);
-  if (!primary.error) return (primary.data || []).map(toStockRow);
+  const primary = await fetchAllRows<Record<string, unknown>>({
+    table: 'stock_inventory_lines',
+    columns: STOCK_LINE_COLUMNS,
+    order: [{ column: 'report_date', ascending: false, nullsFirst: false }],
+    map: toStockRow,
+  });
+  if (!primary.error) return primary.data as StockRow[];
 
   console.warn('Stock report query fallback:', primary.error);
-  const fallback = await supabase
-    .from('stock_inventory_lines')
-    .select(STOCK_LINE_COLUMNS)
-    .limit(10000);
-  return (fallback.data || []).map(toStockRow);
+  const fallback = await fetchAllRows<Record<string, unknown>>({
+    table: 'stock_inventory_lines',
+    columns: STOCK_LINE_COLUMNS,
+    map: toStockRow,
+  });
+  return fallback.data as StockRow[];
 }
 
 async function fetchReceiptRows(): Promise<ReceiptRow[]> {
-  const primary = await supabase
-    .from('dealer_stock_allocation')
-    .select('id, dealer_id, fertilizer_type, quantity_mts, quantity_bags, quantity_unit, wholesaler_name, invoice_number, invoice_date, last_updated, created_at')
-    .order('invoice_date', { ascending: false, nullsFirst: false })
-    .limit(10000);
-  if (!primary.error) return (primary.data || []) as ReceiptRow[];
+  const primary = await fetchAllRows<ReceiptRow>({
+    table: 'dealer_stock_allocation',
+    columns: 'id, dealer_id, fertilizer_type, quantity_mts, quantity_bags, quantity_unit, wholesaler_name, invoice_number, invoice_date, last_updated, created_at',
+    order: [{ column: 'invoice_date', ascending: false, nullsFirst: false }],
+  });
+  if (!primary.error) return primary.data;
 
   console.warn('Receipt report query fallback:', primary.error);
-  const fallback = await supabase
-    .from('dealer_stock_allocation')
-    .select('id, dealer_id, fertilizer_type, quantity_mts, quantity_bags, wholesaler_name, invoice_number, last_updated, created_at')
-    .limit(10000);
-  return (fallback.data || []) as ReceiptRow[];
+  const fallback = await fetchAllRows<ReceiptRow>({
+    table: 'dealer_stock_allocation',
+    columns: 'id, dealer_id, fertilizer_type, quantity_mts, quantity_bags, wholesaler_name, invoice_number, last_updated, created_at',
+  });
+  return fallback.data;
 }
 
 async function fetchQualityRows(): Promise<QualityRow[]> {
-  const primary = await supabase
-    .from('quality_control_samples')
-    .select('id, category, financial_year, dealer_name, license_number, phone_number, location, sample_date, form_url, remarks, created_at')
-    .order('sample_date', { ascending: false, nullsFirst: false })
-    .limit(3000);
-  if (!primary.error) return (primary.data || []) as QualityRow[];
+  const primary = await fetchAllRows<QualityRow>({
+    table: 'quality_control_samples',
+    columns: 'id, category, financial_year, dealer_name, license_number, phone_number, location, sample_date, form_url, remarks, created_at',
+    order: [{ column: 'sample_date', ascending: false, nullsFirst: false }],
+  });
+  if (!primary.error) return primary.data;
 
   console.warn('Quality report query fallback:', primary.error);
-  const fallback = await supabase
-    .from('quality_control_samples')
-    .select('id, category, financial_year, dealer_name, license_number, phone_number, location, form_url, remarks, created_at')
-    .limit(3000);
-  return (fallback.data || []) as QualityRow[];
+  const fallback = await fetchAllRows<QualityRow>({
+    table: 'quality_control_samples',
+    columns: 'id, category, financial_year, dealer_name, license_number, phone_number, location, form_url, remarks, created_at',
+  });
+  return fallback.data;
 }
 
 function stockReportRow(dealerMap: Map<string, DealerRow>) {
