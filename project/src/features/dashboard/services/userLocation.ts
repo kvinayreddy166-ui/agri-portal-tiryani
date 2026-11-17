@@ -14,6 +14,14 @@ import { TIRYANI_COORDINATES } from './weatherService';
 const STORAGE_KEY = 'agronix_user_location_v1';
 const GEOLOCATION_TIMEOUT_MS = 10000;
 
+// Reverse-geocoding APIs return official spellings with diacritics
+// (e.g. "Asifābād" -> "Asifabad"); strip them so UI text stays plain.
+const stripDiacritics = (value: string): string =>
+  value.normalize('NFD').replace(/\p{M}/gu, '');
+
+
+const cleanPlace = (value: string): string => stripDiacritics(value).replace(/\s+/g, ' ').trim();
+
 export interface UserLocation {
   lat: number;
   lon: number;
@@ -47,6 +55,10 @@ export function getStoredUserLocation(): UserLocation | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as UserLocation;
     if (!Number.isFinite(parsed?.lat) || !Number.isFinite(parsed?.lon)) return null;
+    // Clean diacritics from previously cached geocoded names too.
+    parsed.name = cleanPlace(String(parsed.name ?? ''));
+    parsed.district = cleanPlace(String(parsed.district ?? ''));
+    parsed.state = cleanPlace(String(parsed.state ?? ''));
     return parsed;
   } catch {
     return null;
@@ -71,10 +83,10 @@ async function reverseGeocode(lat: number, lon: number): Promise<{ name: string;
   if (!res.ok) throw new Error(`Reverse geocode HTTP ${res.status}`);
   const data = await res.json();
 
-  const locality = String(data.locality || '').trim();
-  const city = String(data.city || '').trim();
-  const sub = String(data.principalSubdivision || '').trim();
-  const country = String(data.countryName || '').trim();
+  const locality = cleanPlace(String(data.locality || ''));
+  const city = cleanPlace(String(data.city || ''));
+  const sub = cleanPlace(String(data.principalSubdivision || ''));
+  const country = cleanPlace(String(data.countryName || ''));
 
   const place = locality || city || '';
   const name = [place, sub].filter(Boolean).join(', ') || `${lat.toFixed(3)}, ${lon.toFixed(3)}`;
