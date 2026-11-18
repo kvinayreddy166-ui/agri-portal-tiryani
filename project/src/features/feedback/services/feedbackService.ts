@@ -380,6 +380,9 @@ export async function adminSendNotifications(
     if (error) throw new Error(error.message || 'Failed to send notifications.');
     sent += chunk.length;
   }
+
+  // Web Push fan-out is handled by the notifications_dispatch_push_trigger
+  // (DB -> push-notify Edge Function), so no client-side call is needed here.
   return sent;
 }
 

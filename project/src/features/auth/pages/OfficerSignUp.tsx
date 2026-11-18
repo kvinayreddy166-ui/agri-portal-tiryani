@@ -79,11 +79,9 @@ export function OfficerSignUp() {
   const [revealed, setRevealed] = useState(false);
   const [confirmRevealed, setConfirmRevealed] = useState(false);
 
-  // Cloudflare Turnstile — one widget flow for OTP steps, one for registration
+  // Cloudflare Turnstile — widget on the details step only
   const [otpCaptchaToken, setOtpCaptchaToken] = useState<string | null>(null);
-  const [registerCaptchaToken, setRegisterCaptchaToken] = useState<string | null>(null);
   const otpTurnstileRef = useRef<TurnstileWidgetHandle>(null);
-  const registerTurnstileRef = useRef<TurnstileWidgetHandle>(null);
   const requireCaptcha = (token: string | null) => {
     if (isTurnstileEnabled() && !token) {
       setError(t('Please complete the security verification below.', 'దయచేసి దిగువ సెక్యూరిటీ ధృవీకరణను పూర్తి చేయండి.'));
@@ -114,7 +112,7 @@ export function OfficerSignUp() {
   }, [otpCooldown]);
 
   // Handle Step 1 -> Send OTP via Resend
-  const handleSendOtp = async (e?: React.FormEvent) => {
+  const handleSendOtp = async (e?: React.FormEvent, opts?: { skipCaptcha?: boolean }) => {
     if (e) e.preventDefault();
     setError(null);
     setSuccessMessage(null);
@@ -140,7 +138,7 @@ export function OfficerSignUp() {
       return;
     }
 
-    if (!requireCaptcha(otpCaptchaToken)) return;
+    if (!opts?.skipCaptcha && !requireCaptcha(otpCaptchaToken)) return;
 
     setLoading(true);
     const res = await ResendOtpService.sendOtp({
@@ -234,8 +232,6 @@ export function OfficerSignUp() {
       return;
     }
 
-    if (!requireCaptcha(registerCaptchaToken)) return;
-
     setLoading(true);
     const { error: regErr } = await registerOfficer({
       full_name: form.fullName.trim(),
@@ -248,9 +244,7 @@ export function OfficerSignUp() {
       phone: form.phone.trim(),
       email: form.email.trim().toLowerCase(),
       password: trimmedPassword,
-    }, registerCaptchaToken ?? undefined);
-    setRegisterCaptchaToken(null);
-    registerTurnstileRef.current?.reset();
+    });
 
     if (regErr) {
       setLoading(false);
@@ -622,7 +616,7 @@ export function OfficerSignUp() {
                   <button
                     type="button"
                     disabled={otpCooldown > 0 || loading}
-                    onClick={() => handleSendOtp()}
+                    onClick={() => handleSendOtp(undefined, { skipCaptcha: true })}
                     className="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline disabled:text-slate-400 flex items-center gap-1.5"
                   >
                     <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
@@ -636,15 +630,6 @@ export function OfficerSignUp() {
                   >
                     {t('Change Email Address', 'ఇమెయిల్ మార్చండి')}
                   </button>
-                </div>
-
-                <div className="flex justify-center">
-                  <TurnstileWidget
-                    ref={otpTurnstileRef}
-                    onVerify={setOtpCaptchaToken}
-                    onExpire={() => setOtpCaptchaToken(null)}
-                    onError={() => setOtpCaptchaToken(null)}
-                  />
                 </div>
 
                 <button
@@ -751,15 +736,6 @@ export function OfficerSignUp() {
                     <span>{password && confirmPassword && password === confirmPassword ? '✓' : '•'}</span>
                     <span>{t('Both passwords match', 'రెండు పాస్‌వర్డ్‌లు సరిపోలుతున్నాయి')}</span>
                   </div>
-                </div>
-
-                <div className="flex justify-center">
-                  <TurnstileWidget
-                    ref={registerTurnstileRef}
-                    onVerify={setRegisterCaptchaToken}
-                    onExpire={() => setRegisterCaptchaToken(null)}
-                    onError={() => setRegisterCaptchaToken(null)}
-                  />
                 </div>
 
                 <button

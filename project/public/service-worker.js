@@ -1,14 +1,14 @@
-const RESCUE_SW_VERSION = 'agronix-rescue-sw-v15';
+const RESCUE_SW_VERSION = 'agronix-rescue-sw-v16';
 const RECOVERY_URL = '/?refresh=sw-missing-asset&reason=missing-asset';
-const STATIC_CACHE_NAME = 'agronix-static-v15';
-const RUNTIME_CACHE_NAME = 'agronix-runtime-v15';
+const STATIC_CACHE_NAME = 'agronix-static-v16';
+const RUNTIME_CACHE_NAME = 'agronix-runtime-v16';
 
 // Get recovery URL that preserves current path for public routes
 function getRecoveryUrl(request) {
   const url = new URL(request.url);
   const currentPath = url.pathname;
   const isPublicRoute = currentPath.startsWith('/officer-toolkit/') || currentPath === '/officer-toolkit';
-  
+
   const recoveryUrl = new URL(isPublicRoute ? currentPath : '/', url.origin);
   recoveryUrl.searchParams.set('refresh', String(Date.now()));
   recoveryUrl.searchParams.set('reason', 'sw-missing-asset');
@@ -232,3 +232,53 @@ async function notifyClients(message) {
   const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
   clients.forEach((client) => client.postMessage(message));
 }
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    payload = { title: 'AGRONIX', body: event.data.text() };
+  }
+
+  const title = payload.title || 'AGRONIX';
+  const options = {
+    body: payload.body || payload.message || '',
+    icon: '/icons/icon-192x192.png?v=agronix-v2',
+    badge: '/icons/icon-192x192.png?v=agronix-v2',
+    tag: payload.tag || 'agronix-notification',
+    renotify: false,
+    data: {
+      link: payload.link || '/',
+      url: payload.link || '/',
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const link = event.notification.data?.link || event.notification.data?.url || '/';
+  const targetUrl = new URL(link, self.location.origin).href;
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        try {
+          const clientUrl = new URL(client.url);
+          if (clientUrl.origin === self.location.origin && 'focus' in client) {
+            client.navigate(targetUrl).catch(() => {});
+            return client.focus();
+          }
+        } catch {
+          // ignore malformed client URLs
+        }
+      }
+      return self.clients.openWindow(targetUrl);
+    })
+  );
+});

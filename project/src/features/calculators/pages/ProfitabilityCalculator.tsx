@@ -582,7 +582,7 @@ export function ProfitabilityCalculator() {
         {showCompactHeader ? (
           <ModulePageHeader
             className="mb-4"
-            title={t('Profit Calculator', 'లాభదాయకత కాలిక్యులేటర్')}
+            title={t('Crop Profitability Calculator', 'పంట లాభదాయకత కాలిక్యులేటర్')}
             subtitle={t(
               'Comprehensive cost of cultivation, yield economics and net profit assessment.',
               'సమగ్ర సాగు ఖర్చు, దిగుబడి ఆదాయం మరియు నికర లాభాల విశ్లేషణ.'
@@ -607,7 +607,7 @@ export function ProfitabilityCalculator() {
                       {t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు')}
                     </p>
                     <h1 className="text-base sm:text-lg md:text-xl font-black text-white leading-snug tracking-tight">
-                      {t('Profit Calculator', 'లాభదాయకత కాలిక్యులేటర్')}
+                      {t('Crop Profitability Calculator', 'పంట లాభదాయకత కాలిక్యులేటర్')}
                     </h1>
                     <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/90 leading-snug max-w-3xl">
                       {t(

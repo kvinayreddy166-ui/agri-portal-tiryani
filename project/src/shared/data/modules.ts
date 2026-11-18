@@ -13,6 +13,8 @@ export interface ModuleMenuItem {
   icon: LucideIcon;
   adminOnly?: boolean;
   officerAccess?: boolean;
+  /** Hidden from admin users — admins use the dedicated admin console instead. */
+  adminHidden?: boolean;
   hidden?: boolean;
   desc: string;
   descTe: string;
@@ -21,7 +23,7 @@ export interface ModuleMenuItem {
 export const MODULE_MENU_ITEMS: ModuleMenuItem[] = [
   // Overview
   { id: 'stock-analytics', label: 'Command Center', icon: PackageCheck, adminOnly: true, desc: 'Live stock, receipts and sales command view', descTe: 'లైవ్ స్టాక్, రసీట్లు & అమ్మకాల కమాండ్ వీక్షణ' },
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'Your daily overview and quick actions', descTe: 'మీ రోజువారీ అవలోకనం & త్వరిత చర్యలు' },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, hidden: true, desc: 'Your daily overview and quick actions', descTe: 'మీ రోజువారీ అవలోకనం & త్వరిత చర్యలు' },
   { id: 'analytics', label: 'Reports', icon: BarChart3, adminOnly: true, desc: 'Portal reports and analytics', descTe: 'పోర్టల్ నివేదికలు & విశ్లేషణలు' },
 
   // Statutory & Enforcement
@@ -49,7 +51,7 @@ export const MODULE_MENU_ITEMS: ModuleMenuItem[] = [
   { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText, desc: 'Government orders and circulars', descTe: 'ప్రభుత్వ ఉత్తర్వులు & సర్క్యులర్లు' },
   { id: 'government-portals', label: 'Government Portals', icon: Globe, desc: 'Links to official government portals', descTe: 'అధికారిక ప్రభుత్వ పోర్టళ్ళ లింక్‌లు' },
   { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen, adminOnly: true, officerAccess: true, desc: 'AI assistant over official agri documents', descTe: 'అధికారిక వ్యవసాయ పత్రాలపై AI అసిస్టెంట్' },
-  { id: 'feedback', label: 'Feedback & Suggestions', icon: MessageSquarePlus, desc: 'Report issues, request features and track your tickets', descTe: 'సమస్యలు నివేదించండి, ఫీచర్లు అభ్యర్థించండి & టికెట్లు ట్రాక్ చేయండి' },
+  { id: 'feedback', label: 'Feedback & Suggestions', icon: MessageSquarePlus, adminHidden: true, desc: 'Report issues, request features and track your tickets', descTe: 'సమస్యలు నివేదించండి, ఫీచర్లు అభ్యర్థించండి & టికెట్లు ట్రాక్ చేయండి' },
 
   // Records & Admin
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true, desc: 'Uploaded documents and files', descTe: 'అప్‌లోడ్ చేసిన పత్రాలు & ఫైళ్లు' },
@@ -70,6 +72,7 @@ const ADMIN_HIDDEN = new Set(['stock-analytics', 'analytics', 'dealers']);
 export function getVisibleModuleItems(isAdminUser: boolean, isOfficerUser = false, isElevatedOfficerUser = false) {
   return MODULE_MENU_ITEMS.filter((item) => {
     if (item.hidden) return false;
+    if (item.adminHidden && isAdminUser) return false;
     if (isElevatedOfficerUser) {
       return !ELEVATED_OFFICER_HIDDEN.has(item.id);
     }

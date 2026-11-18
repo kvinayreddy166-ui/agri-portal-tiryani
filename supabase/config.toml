@@ -372,6 +372,11 @@ verify_jwt = false
 [functions.reset-password]
 verify_jwt = false
 
+# push-notify does its own auth inside the function (admin JWT check OR
+# x-push-notify-secret for the notifications DB trigger via pg_net).
+[functions.push-notify]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.

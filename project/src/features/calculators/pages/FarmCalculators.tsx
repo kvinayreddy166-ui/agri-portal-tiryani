@@ -60,8 +60,8 @@ const calculatorItems = [
     text: 'text-teal-700 dark:text-teal-300',
   },
   {
-    title: 'Profit Calculator',
-    titleTe: 'లాభదాయకత కాలిక్యులేటర్',
+    title: 'Crop Profitability Calculator',
+    titleTe: 'పంట లాభదాయకత కాలిక్యులేటర్',
     description: 'Calculate cost of cultivation, yield and net profit.',
     descriptionTe: 'సాగు ఖర్చు, దిగుబడి మరియు నికర లాభాన్ని లెక్కించండి.',
     path: '/officer-toolkit/profitability-calculator',

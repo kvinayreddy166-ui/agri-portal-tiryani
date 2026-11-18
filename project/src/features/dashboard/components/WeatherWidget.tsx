@@ -132,7 +132,7 @@ export function WeatherWidget() {
 
   const handleDetectLocation = async () => {
     setLocating(true);
-    const loc = await detectUserLocation();
+    const loc = await detectUserLocation(true);
     setLocation(loc);
     setLocating(false);
     loadWeather(true, loc);
@@ -265,9 +265,9 @@ export function WeatherWidget() {
               disabled={locating}
               title={t('Use my current location', 'నా ప్రస్తుత స్థానాన్ని ఉపయోగించండి')}
               aria-label={t('Detect location', 'స్థానాన్ని గుర్తించండి')}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-400 text-emerald-950 shadow-sm ring-1 ring-amber-200/60 transition hover:bg-amber-300 active:scale-95 active:bg-amber-500 disabled:opacity-50"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white text-emerald-800 shadow-sm ring-1 ring-white/40 transition hover:bg-emerald-50 active:scale-95 active:bg-emerald-100 disabled:opacity-50"
             >
-              <MapPin className={`h-4 w-4 ${locating ? 'animate-pulse text-emerald-950' : ''}`} />
+              <MapPin className={`h-4 w-4 ${locating ? 'animate-pulse text-emerald-600' : ''}`} />
             </button>
           </div>
         </div>

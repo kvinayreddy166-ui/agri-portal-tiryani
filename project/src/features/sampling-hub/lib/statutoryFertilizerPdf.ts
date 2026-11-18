@@ -481,7 +481,7 @@ function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
   paragraph(cursor, '(3) Details of markings on the bags from where sample has been taken');
   if (values.markings.trim()) paragraph(cursor, values.markings, PAGE.marginX + 6, cursor.contentWidth - 6, 5, true);
   field(cursor, 'a) Type and Grade of Fertilizer', resolveFertilizerTypeGrade(values), 85, PAGE.marginX + 6, fieldOptions);
-  field(cursor, 'b) Name of Dealer/Manufacturer/Importer', resolveDealerManufacturerImporterName(values), 85, PAGE.marginX + 6, { ...fieldOptions, boldLabel: true });
+  field(cursor, 'b) Name of Dealer/Manufacturer/Importer', resolveDealerManufacturerImporterName(values), 85, PAGE.marginX + 6, { ...fieldOptions, boldLabelWord: 'Manufacturer' });
   field(cursor, 'c) Batch No. and Date of Manufacture/Import', values.batchDetails, 85, PAGE.marginX + 6, fieldOptions);
   field(cursor, 'd) Composition of Fertilizer', formatComposition(values), 85, PAGE.marginX + 6, fieldOptions);
 
@@ -655,7 +655,7 @@ function field(
   value: string,
   labelWidth: number,
   x = PAGE.marginX,
-  options: { lineHeight?: number; gap?: number; noPageBreak?: boolean; boldLabel?: boolean } = {}
+  options: { lineHeight?: number; gap?: number; noPageBreak?: boolean; boldLabel?: boolean; boldLabelWord?: string } = {}
 ) {
   const { doc } = cursor;
   doc.setFont(PDF_FONT, options.boldLabel ? 'bold' : 'normal');
@@ -673,24 +673,37 @@ function field(
   ensure(cursor, rowHeight, options.noPageBreak);
   
   // Apply hanging indent for wrapped label lines
-  if (labelLines.length > 1) {
-    // Draw first line at original position
-    doc.text(labelLines[0], x, cursor.y);
-    // Calculate indent based on first space after the number prefix (e.g., "(1) " or "6. ")
-    const firstSpaceMatch = labelLines[0].match(/^\(\d+\)\s+/) || labelLines[0].match(/^\d+\.\s+/);
-    const indentWidth = firstSpaceMatch ? doc.getTextWidth(firstSpaceMatch[0]) : 8;
-    // Draw subsequent lines with hanging indent
-    for (let i = 1; i < labelLines.length; i++) {
-      doc.text(labelLines[i], x + indentWidth, cursor.y + i * lineHeight);
-    }
-  } else {
-    doc.text(labelLines, x, cursor.y);
-  }
+  const firstSpaceMatch = labelLines[0]?.match(/^\(\d+\)\s+/) || labelLines[0]?.match(/^\d+\.\s+/);
+  const indentWidth = firstSpaceMatch ? doc.getTextWidth(firstSpaceMatch[0]) : 8;
+  labelLines.forEach((line, i) => {
+    drawLabelLine(doc, line, i === 0 ? x : x + indentWidth, cursor.y + i * lineHeight, options.boldLabelWord, options.boldLabel);
+  });
   
   doc.setFont(PDF_FONT, 'normal');
   doc.text(':', colonX, cursor.y);
   doc.text(valueLines, valueX, cursor.y);
   cursor.y += rowHeight;
+}
+
+function drawLabelLine(doc: JsPdfInstance, line: string, x: number, y: number, boldWord?: string, baseBold = false) {
+  const idx = boldWord ? line.indexOf(boldWord) : -1;
+  const baseStyle = baseBold ? 'bold' : 'normal';
+  if (idx === -1) {
+    doc.setFont(PDF_FONT, baseStyle);
+    doc.text(line, x, y);
+    return;
+  }
+  const before = line.slice(0, idx);
+  const word = line.slice(idx, idx + boldWord!.length);
+  const after = line.slice(idx + boldWord!.length);
+  doc.setFont(PDF_FONT, baseStyle);
+  if (before) doc.text(before, x, y);
+  const offset = before ? doc.getTextWidth(before) : 0;
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text(word, x + offset, y);
+  const endX = x + offset + doc.getTextWidth(word);
+  doc.setFont(PDF_FONT, baseStyle);
+  if (after) doc.text(after, endX, y);
 }
 
 export function heading(cursor: PdfCursor, value: string, noPageBreak = false) {

@@ -491,7 +491,7 @@ export function OfficerRecordsHub() {
 
   // Modals
   const [selectedRecord, setSelectedRecord] = useState<UnifiedOfficerRecord | null>(null);
-  const [previewDoc, setPreviewDoc] = useState<{ doc: OfficerDocumentArchiveRecord; url: string } | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<{ doc: OfficerDocumentArchiveRecord; url: string | null } | null>(null);
 
   // Mobile browsers (especially iOS Safari) cannot render PDFs/DOCX inside iframes
   const isMobileDevice = useMemo(
@@ -648,10 +648,21 @@ export function OfficerRecordsHub() {
 
   // Document Management Actions
   const handlePreview = async (doc: OfficerDocumentArchiveRecord) => {
+    // Open the modal immediately — the blob URL resolves in the background
+    // so the user gets instant feedback instead of a dead-feeling tap.
+    setPreviewDoc({ doc, url: null });
     try {
       const url = await OfficerDocumentArchiveService.previewDocument(doc);
-      setPreviewDoc({ doc, url });
+      setPreviewDoc((current) => {
+        if (current?.doc.id !== doc.id) {
+          // Modal was closed or swapped while fetching — don't leak the blob URL
+          URL.revokeObjectURL(url);
+          return current;
+        }
+        return { doc, url };
+      });
     } catch (error) {
+      setPreviewDoc((current) => (current?.doc.id === doc.id ? null : current));
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       console.error('[Preview Error]', error);
       toast.showError(
@@ -2385,8 +2396,9 @@ export function OfficerRecordsHub() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => window.open(previewDoc.url, '_blank', 'noopener')}
-                  className="rounded-lg bg-slate-100 p-2 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
+                  onClick={() => previewDoc.url && window.open(previewDoc.url, '_blank', 'noopener')}
+                  disabled={!previewDoc.url}
+                  className="rounded-lg bg-slate-100 p-2 text-slate-700 hover:bg-slate-200 disabled:opacity-40 dark:bg-slate-800 dark:text-slate-300"
                   title={t('Open in Browser', 'బ్రౌజర్‌లో తెరవండి')}
                   aria-label={t('Open in Browser', 'బ్రౌజర్‌లో తెరవండి')}
                 >
@@ -2404,7 +2416,7 @@ export function OfficerRecordsHub() {
                 <button
                   type="button"
                   onClick={() => {
-                    URL.revokeObjectURL(previewDoc.url);
+                    if (previewDoc.url) URL.revokeObjectURL(previewDoc.url);
                     setPreviewDoc(null);
                   }}
                   className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -2416,6 +2428,17 @@ export function OfficerRecordsHub() {
 
             <div className="flex-1 bg-slate-100 dark:bg-slate-950">
               {(() => {
+                if (!previewDoc.url) {
+                  return (
+                    <div className="flex h-full flex-col items-center justify-center gap-3">
+                      <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        {t('Loading preview…', 'ప్రివ్యూ లోడ్ అవుతోంది…')}
+                      </p>
+                    </div>
+                  );
+                }
+                const url = previewDoc.url;
                 const mime = previewDoc.doc.mime_type || '';
                 const canInlinePreview =
                   previewDoc.doc.file_format === 'pdf' ||
@@ -2440,7 +2463,7 @@ export function OfficerRecordsHub() {
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          onClick={() => window.open(previewDoc.url, '_blank', 'noopener')}
+                          onClick={() => window.open(url, '_blank', 'noopener')}
                           className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
                         >
                           <ExternalLink className="h-3.5 w-3.5" />
@@ -2461,7 +2484,7 @@ export function OfficerRecordsHub() {
 
                 return (
                   <iframe
-                    src={previewDoc.url}
+                    src={url}
                     title="Document Preview"
                     className="h-full w-full border-none"
                   />

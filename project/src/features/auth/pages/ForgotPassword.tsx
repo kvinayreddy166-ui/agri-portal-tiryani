@@ -45,11 +45,9 @@ export function ForgotPassword() {
   const [devOtpNotice, setDevOtpNotice] = useState<string | null>(null);
   const [otpCooldown, setOtpCooldown] = useState(0);
 
-  // Cloudflare Turnstile — OTP steps share one widget, password reset has its own
+  // Cloudflare Turnstile — widget on the email step only
   const [otpCaptchaToken, setOtpCaptchaToken] = useState<string | null>(null);
-  const [resetCaptchaToken, setResetCaptchaToken] = useState<string | null>(null);
   const otpTurnstileRef = useRef<TurnstileWidgetHandle>(null);
-  const resetTurnstileRef = useRef<TurnstileWidgetHandle>(null);
   const requireCaptcha = (token: string | null) => {
     if (isTurnstileEnabled() && !token) {
       setError(t('Please complete the security verification below.', 'దయచేసి దిగువ సెక్యూరిటీ ధృవీకరణను పూర్తి చేయండి.'));
@@ -68,7 +66,7 @@ export function ForgotPassword() {
   }, [otpCooldown]);
 
   // Step 1: Send OTP for Password Reset
-  const handleSendOtp = async (e?: React.FormEvent) => {
+  const handleSendOtp = async (e?: React.FormEvent, opts?: { skipCaptcha?: boolean }) => {
     if (e) e.preventDefault();
     setError(null);
     setSuccessMessage(null);
@@ -80,7 +78,7 @@ export function ForgotPassword() {
       return;
     }
 
-    if (!requireCaptcha(otpCaptchaToken)) return;
+    if (!opts?.skipCaptcha && !requireCaptcha(otpCaptchaToken)) return;
 
     setLoading(true);
     const res = await ResendOtpService.sendOtp({
@@ -164,17 +162,12 @@ export function ForgotPassword() {
       return;
     }
 
-    if (!requireCaptcha(resetCaptchaToken)) return;
-
     setLoading(true);
     const resetRes = await ResendOtpService.resetPassword({
       email: email.trim().toLowerCase(),
       token: otp.trim(),
       newPassword: cleanPassword,
-      captchaToken: resetCaptchaToken ?? undefined,
     });
-    setResetCaptchaToken(null);
-    resetTurnstileRef.current?.reset();
     setLoading(false);
 
     if (resetRes.success) {
@@ -353,7 +346,7 @@ export function ForgotPassword() {
                   <button
                     type="button"
                     disabled={otpCooldown > 0 || loading}
-                    onClick={() => handleSendOtp()}
+                    onClick={() => handleSendOtp(undefined, { skipCaptcha: true })}
                     className="flex items-center gap-1.5 font-semibold text-emerald-700 hover:underline disabled:text-slate-400 dark:text-emerald-400 dark:disabled:text-slate-500"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
@@ -363,15 +356,6 @@ export function ForgotPassword() {
                         : t('Resend Verification Code', 'కోడ్ మళ్ళీ పంపండి')}
                     </span>
                   </button>
-                </div>
-
-                <div className="flex justify-center">
-                  <TurnstileWidget
-                    ref={otpTurnstileRef}
-                    onVerify={setOtpCaptchaToken}
-                    onExpire={() => setOtpCaptchaToken(null)}
-                    onError={() => setOtpCaptchaToken(null)}
-                  />
                 </div>
 
                 <button
@@ -456,15 +440,6 @@ export function ForgotPassword() {
                     <span>{password && confirmPassword && password === confirmPassword ? '✓' : '•'}</span>
                     <span>{t('Both passwords match', 'రెండు పాస్‌వర్డ్‌లు సరిపోలుతున్నాయి')}</span>
                   </div>
-                </div>
-
-                <div className="flex justify-center">
-                  <TurnstileWidget
-                    ref={resetTurnstileRef}
-                    onVerify={setResetCaptchaToken}
-                    onExpire={() => setResetCaptchaToken(null)}
-                    onError={() => setResetCaptchaToken(null)}
-                  />
                 </div>
 
                 <button

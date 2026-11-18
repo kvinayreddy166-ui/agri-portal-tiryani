@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, CheckCheck } from 'lucide-react';
+import { Bell, BellRing, Check, CheckCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useBackButtonOverlay } from '../../hooks/useBackButtonOverlay';
@@ -11,6 +11,14 @@ import {
   markNotificationRead,
 } from '../../../features/feedback/services/feedbackService';
 import type { AppNotification } from '../../../features/feedback/types';
+import {
+  disablePushNotifications,
+  enablePushNotifications,
+  getPushPermissionState,
+  hasActivePushSubscription,
+  syncPushSubscription,
+  VAPID_PUBLIC_KEY,
+} from '../../lib/pushNotifications';
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -31,6 +39,7 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unread, setUnread] = useState(0);
+  const [pushOn, setPushOn] = useState(false);
   const overlay = useBackButtonOverlay('notification-bell', () => setOpen(false));
   const pollRef = useRef<number | null>(null);
 
@@ -43,6 +52,8 @@ export function NotificationBell() {
   useEffect(() => {
     if (!user) return;
     void refresh();
+    void syncPushSubscription(user.id);
+    void hasActivePushSubscription().then(setPushOn);
     pollRef.current = window.setInterval(() => void refresh(), 60_000);
     return () => {
       if (pollRef.current) window.clearInterval(pollRef.current);
@@ -79,8 +90,21 @@ export function NotificationBell() {
     await markAllNotificationsRead();
   };
 
+  const handlePushToggle = async () => {
+    if (!user) return;
+    if (pushOn) {
+      await disablePushNotifications();
+      setPushOn(false);
+    } else {
+      setPushOn(await enablePushNotifications(user.id));
+    }
+  };
+
+  const pushSupported = getPushPermissionState() !== 'unsupported' && Boolean(VAPID_PUBLIC_KEY);
+  const pushDenied = getPushPermissionState() === 'denied';
+
   return (
-    <div className="relative">
+    <div>
       <button
         type="button"
         onClick={toggle}
@@ -104,25 +128,47 @@ export function NotificationBell() {
         <>
           <div className="fixed inset-0 z-40" onClick={overlay.closeOverlay} aria-hidden />
           <div
-            className="animate-pop-in absolute right-0 top-full z-50 mt-2 w-80 max-w-[90vw] origin-top-right overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-950/15 dark:border-slate-800 dark:bg-slate-900 dark:text-white sm:w-96"
+            className="animate-pop-in absolute right-0 top-full z-50 mt-2 w-72 origin-top-right overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-950/15 dark:border-slate-800 dark:bg-slate-900 dark:text-white sm:w-80"
             role="menu"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-              <p className="text-sm font-black">{t('Notifications', 'నోటిఫికేషన్లు')}</p>
+            <div className="flex items-center justify-between border-b border-slate-100 px-3.5 py-2.5 dark:border-slate-800">
+              <p className="font-[var(--font-stylish)] text-[13px] font-black tracking-tight">{t('Notifications', 'నోటిఫికేషన్లు')}</p>
               {unread > 0 && (
                 <button
                   type="button"
                   onClick={() => void handleMarkAll()}
-                  className="flex items-center gap-1 text-[11px] font-black text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300"
+                  className="flex items-center gap-1 text-[10px] font-black text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300"
                 >
-                  <CheckCheck className="h-3.5 w-3.5" />
+                  <CheckCheck className="h-3 w-3" />
                   {t('Mark all read', 'Mark all read')}
                 </button>
               )}
             </div>
-            <div className="max-h-96 overflow-y-auto">
+            {pushSupported && (
+              <button
+                type="button"
+                onClick={() => void handlePushToggle()}
+                className="flex w-full items-center gap-2.5 border-b border-slate-100 px-3.5 py-2.5 text-left transition hover:bg-emerald-50/60 dark:border-slate-800 dark:hover:bg-slate-800/60"
+              >
+                <BellRing className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <span className="flex-1 text-xs font-bold text-slate-800 dark:text-slate-100">
+                  {t('Phone alerts', 'ఫోన్ అలర్ట్స్')}
+                </span>
+                {pushOn ? (
+                  <span className="flex items-center gap-1 text-[10px] font-black text-emerald-700 dark:text-emerald-300">
+                    <Check className="h-3 w-3" />
+                    {t('On', 'On')}
+                  </span>
+                ) : pushDenied ? (
+                  <span className="text-[10px] font-bold text-slate-400">{t('Blocked', 'Blocked')}</span>
+                ) : (
+                  <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300">{t('Enable', 'Enable')}</span>
+                )}
+              </button>
+            )}
+            <div className="max-h-80 overflow-y-auto">
               {notifications.length === 0 ? (
-                <p className="px-4 py-8 text-center text-xs font-bold text-slate-400">
+                <p className="px-4 py-6 text-center text-[11px] font-bold text-slate-400">
                   {t('No notifications yet.', 'ఇంకా నోటిఫికేషన్లు లేవు.')}
                 </p>
               ) : (
@@ -131,17 +177,17 @@ export function NotificationBell() {
                     key={n.id}
                     type="button"
                     onClick={() => void handleClick(n)}
-                    className={`flex w-full items-start gap-3 border-b border-slate-50 px-4 py-3 text-left transition last:border-0 hover:bg-emerald-50/60 dark:border-slate-800/60 dark:hover:bg-slate-800/60 ${
+                    className={`flex w-full items-start gap-2.5 border-b border-slate-50 px-3.5 py-2.5 text-left transition last:border-0 hover:bg-emerald-50/60 dark:border-slate-800/60 dark:hover:bg-slate-800/60 ${
                       n.read_at ? 'opacity-60' : ''
                     }`}
                   >
-                    <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.read_at ? 'bg-slate-300 dark:bg-slate-600' : 'bg-emerald-500'}`} />
+                    <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${n.read_at ? 'bg-slate-300 dark:bg-slate-600' : 'bg-emerald-500'}`} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13px] font-black text-slate-800 dark:text-slate-100">{n.title}</span>
+                      <span className="block truncate text-xs font-bold text-slate-800 dark:text-slate-100">{n.title}</span>
                       {n.message && (
-                        <span className="mt-0.5 line-clamp-2 block text-xs font-semibold text-slate-500 dark:text-slate-400">{n.message}</span>
+                        <span className="mt-0.5 line-clamp-2 block text-[11px] font-semibold leading-snug text-slate-500 dark:text-slate-400">{n.message}</span>
                       )}
-                      <span className="mt-1 block text-[10px] font-bold text-slate-400">{timeAgo(n.created_at)}</span>
+                      <span className="mt-0.5 block text-[9px] font-bold uppercase tracking-wide text-slate-400">{timeAgo(n.created_at)}</span>
                     </span>
                   </button>
                 ))

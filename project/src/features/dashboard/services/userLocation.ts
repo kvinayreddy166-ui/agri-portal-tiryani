@@ -96,7 +96,7 @@ async function reverseGeocode(lat: number, lon: number): Promise<{ name: string;
   return { name, district, state };
 }
 
-function requestPosition(): Promise<GeolocationPosition> {
+function requestPosition(forceFresh: boolean): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
       reject(new Error('Geolocation not supported'));
@@ -105,7 +105,9 @@ function requestPosition(): Promise<GeolocationPosition> {
     navigator.geolocation.getCurrentPosition(resolve, reject, {
       enableHighAccuracy: false,
       timeout: GEOLOCATION_TIMEOUT_MS,
-      maximumAge: 10 * 60 * 1000,
+      // Allow a cached fix for passive detection; explicit re-detect
+      // (pin button) forces the browser to take a fresh position.
+      maximumAge: forceFresh ? 0 : 10 * 60 * 1000,
     });
   });
 }
@@ -115,14 +117,17 @@ let pendingDetection: Promise<UserLocation> | null = null;
 /**
  * Detect the user's location via GPS + reverse geocoding.
  * Concurrent callers share a single in-flight request so the browser
- * only shows one permission prompt.
+ * only shows one permission prompt. Pass forceFresh=true (e.g. the
+ * weather widget's pin button) to bypass the shared request and the
+ * browser's cached position.
  */
-export function detectUserLocation(): Promise<UserLocation> {
-  if (pendingDetection) return pendingDetection;
+export function detectUserLocation(forceFresh = false): Promise<UserLocation> {
+  if (pendingDetection && !forceFresh) return pendingDetection;
 
-  pendingDetection = (async (): Promise<UserLocation> => {
+  let detection!: Promise<UserLocation>;
+  detection = (async (): Promise<UserLocation> => {
     try {
-      const pos = await requestPosition();
+      const pos = await requestPosition(forceFresh);
       const { latitude: lat, longitude: lon } = pos.coords;
       try {
         const geo = await reverseGeocode(lat, lon);
@@ -157,11 +162,12 @@ export function detectUserLocation(): Promise<UserLocation> {
         code === 1 ? 'denied' : code === 2 ? 'unavailable' : code === 3 ? 'timeout' : 'unsupported';
       return { ...getDefaultUserLocation(), error };
     } finally {
-      pendingDetection = null;
+      if (pendingDetection === detection) pendingDetection = null;
     }
   })();
 
-  return pendingDetection;
+  if (!forceFresh) pendingDetection = detection;
+  return detection;
 }
 
 /**
@@ -171,11 +177,13 @@ export function detectUserLocation(): Promise<UserLocation> {
  */
 export function resolveUserLocation(): UserLocation {
   const stored = getStoredUserLocation();
-  if (stored && stored.source === 'gps' && Date.now() - stored.detectedAt < 24 * 60 * 60 * 1000) {
-    return stored;
-  }
-  // Never return an invalid fix — fall back to Tiryani defaults
-  if (stored && Number.isFinite(stored.lat) && Number.isFinite(stored.lon)) {
+  const isFreshGps =
+    stored &&
+    stored.source === 'gps' &&
+    Number.isFinite(stored.lat) &&
+    Number.isFinite(stored.lon) &&
+    Date.now() - stored.detectedAt < 24 * 60 * 60 * 1000;
+  if (isFreshGps) {
     return stored;
   }
   return getDefaultUserLocation();
