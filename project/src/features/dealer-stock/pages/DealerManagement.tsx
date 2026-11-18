@@ -721,7 +721,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       <PageHeader
         title={t('Dealers Directory', 'డీలర్ల డైరెక్టరీ')}
         description={t('Fertilizer, seed, and pesticide dealers', 'ఎరువులు, విత్తనాలు, పురుగుమందుల డీలర్లు')}
-        actions={canManageDealers ? (
+        actions={canManageDealers || isElevatedOfficerUser ? (
           <div className="flex flex-wrap items-center gap-2">
             <input
               ref={importInputRef}
@@ -748,17 +748,19 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
                   onPointerMove={resetDataMenuIdle}
                   onPointerDown={resetDataMenuIdle}
                 >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDataMenuOpen(false);
-                      importInputRef.current?.click();
-                    }}
-                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    <Upload className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                    {t('Import Excel', 'Excel దిగుమతి')}
-                  </button>
+                  {canManageDealers && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDataMenuOpen(false);
+                        importInputRef.current?.click();
+                      }}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <Upload className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      {t('Import Excel', 'Excel దిగుమతి')}
+                    </button>
+                  )}
                   <a
                     href={`/templates/dealer-import-template-${activeTab}.xlsx`}
                     download
@@ -768,20 +770,18 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
                     <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     {t('Template', 'టెంప్లేట్')}
                   </a>
-                  {isAdminUser && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDataMenuOpen(false);
-                        void handleExportExcel();
-                      }}
-                      disabled={totalCount === 0}
-                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-emerald-50 disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
-                    >
-                      <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                      {t('Export Excel', 'Excel ఎగుమతి')}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDataMenuOpen(false);
+                      void handleExportExcel();
+                    }}
+                    disabled={totalCount === 0}
+                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-emerald-50 disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    {t('Export Excel', 'Excel ఎగుమతి')}
+                  </button>
                 </div>
               )}
             </div>
@@ -796,21 +796,23 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
                 {provisioningLogins ? t('Setting up…', 'సెటప్…') : t('Setup dealer login', 'డీలర్ లాగిన్')}
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => {
-                setFormData({
-                  ...emptyForm,
-                  district: normalizeDistrictName(officerProfile?.district) || '',
-                  mandal: officerProfile?.mandal || '',
-                });
-                setShowAddForm(true);
-              }}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
-            >
-              <Plus className="h-4 w-4" />
-              {t('Add Dealer', 'డీలర్ జోడించండి')}
-            </button>
+            {canManageDealers && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({
+                    ...emptyForm,
+                    district: normalizeDistrictName(officerProfile?.district) || '',
+                    mandal: officerProfile?.mandal || '',
+                  });
+                  setShowAddForm(true);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+              >
+                <Plus className="h-4 w-4" />
+                {t('Add Dealer', 'డీలర్ జోడించండి')}
+              </button>
+            )}
           </div>
         ) : undefined}
       />
