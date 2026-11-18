@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Users, RefreshCw, Trash2, ShieldAlert, CheckCircle2, PauseCircle, PlayCircle, Download, Search } from 'lucide-react';
+import { Users, RefreshCw, Trash2, ShieldAlert, CheckCircle2, PauseCircle, PlayCircle, Download, Search, Bell, Send, X } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { Spinner } from '../../../shared/components/ui/Spinner';
@@ -8,6 +8,8 @@ import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog
 import { downloadCsv } from '../../../shared/utils/csvExport';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { normalizeDistrictName } from '../../../shared/data/telanganaDistrictMandalData';
+import { usePersistentState } from '../../../shared/hooks/usePersistentState';
+import { adminSendNotifications } from '../../feedback/services/feedbackService';
 
 
 interface OfficerRow {
@@ -41,11 +43,17 @@ export function UserManagement() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState('');
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [districtFilter, setDistrictFilter] = useState('all');
-  const [mandalFilter, setMandalFilter] = useState('all');
-  const [designationFilter, setDesignationFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [notifyOpen, setNotifyOpen] = useState(false);
+  const [notifyAudience, setNotifyAudience] = useState<'all' | 'filtered' | 'selected'>('all');
+  const [notifyTitle, setNotifyTitle] = useState('');
+  const [notifyMessage, setNotifyMessage] = useState('');
+  const [notifyLink, setNotifyLink] = useState('');
+  const [notifySending, setNotifySending] = useState(false);
+  const [searchQuery, setSearchQuery] = usePersistentState('tiryani-page-filters-user-management-search', '');
+  const [districtFilter, setDistrictFilter] = usePersistentState('tiryani-page-filters-user-management-district', 'all');
+  const [mandalFilter, setMandalFilter] = usePersistentState('tiryani-page-filters-user-management-mandal', 'all');
+  const [designationFilter, setDesignationFilter] = usePersistentState('tiryani-page-filters-user-management-designation', 'all');
+  const [statusFilter, setStatusFilter] = usePersistentState('tiryani-page-filters-user-management-status', 'all');
 
   const loadOfficerAccounts = useCallback(async () => {
     if (!isAdminUser) return;
@@ -190,6 +198,48 @@ export function UserManagement() {
 
   const selectedOfficers = adminOfficers.filter((o) => selectedIds.has(o.id));
 
+  const notifyRecipients = useMemo(() => {
+    if (notifyAudience === 'filtered') return filteredOfficers;
+    if (notifyAudience === 'selected') return selectedOfficers;
+    return adminOfficers;
+  }, [notifyAudience, filteredOfficers, selectedOfficers, adminOfficers]);
+
+  const openNotifyModal = () => {
+    setNotifyAudience(selectedIds.size > 0 ? 'selected' : 'all');
+    setNotifyTitle('');
+    setNotifyMessage('');
+    setNotifyLink('');
+    setNotifyOpen(true);
+  };
+
+  const handleSendNotification = async () => {
+    if (!notifyTitle.trim()) {
+      toast.showWarning('Title required', 'Please enter a notification title.');
+      return;
+    }
+    const ids = notifyRecipients.map((o) => o.id);
+    if (ids.length === 0) {
+      toast.showWarning('No recipients', 'The selected audience has no officers.');
+      return;
+    }
+    setNotifySending(true);
+    try {
+      const sent = await adminSendNotifications(ids, {
+        title: notifyTitle,
+        message: notifyMessage,
+        link: notifyLink || '/feedback',
+        type: 'admin_message',
+      });
+      setNotifyOpen(false);
+      setActionSuccessMessage(`Notification sent to ${sent} officer(s).`);
+      setTimeout(() => setActionSuccessMessage(null), 6000);
+    } catch (err) {
+      toast.showError('Send failed', (err as Error)?.message || 'Failed to send notifications.');
+    } finally {
+      setNotifySending(false);
+    }
+  };
+
   const handleBulkStatus = async (nextStatus: 'active' | 'suspended') => {
     const targets = selectedOfficers.filter((o) => o.id !== user?.id);
     if (targets.length === 0) return;
@@ -321,6 +371,15 @@ export function UserManagement() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Officer Accounts</h2>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={openNotifyModal}
+              disabled={adminOfficers.length === 0}
+              className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950/60"
+            >
+              <Bell className="w-3.5 h-3.5" />
+              Notify Officers
+            </button>
             <button
               type="button"
               onClick={handleExportCsv}
@@ -699,6 +758,130 @@ export function UserManagement() {
           </div>
         </div>
       )}
+      {/* Send Notification Modal */}
+      {notifyOpen && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="max-h-[92vh] w-full max-w-lg animate-pop-in overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl dark:bg-slate-900 sm:rounded-3xl">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                  <Bell className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Send Notification</h3>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">Officers see this in the notification bell</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNotifyOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                  Recipients
+                </label>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  {(
+                    [
+                      { id: 'all', label: `All officers (${adminOfficers.length})` },
+                      { id: 'filtered', label: `Filtered (${filteredOfficers.length})` },
+                      { id: 'selected', label: `Selected (${selectedOfficers.length})` },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setNotifyAudience(opt.id)}
+                      disabled={opt.id === 'filtered' && filteredOfficers.length === 0 || opt.id === 'selected' && selectedOfficers.length === 0}
+                      className={`rounded-xl border px-3 py-2.5 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                        notifyAudience === opt.id
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-200 dark:ring-emerald-800'
+                          : 'border-gray-200 bg-white text-gray-600 hover:border-emerald-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                  Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={notifyTitle}
+                  onChange={(e) => setNotifyTitle(e.target.value)}
+                  maxLength={120}
+                  placeholder="e.g. New Circular: Fertilizer Stock Verification"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-500/20"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                  Message <span className="font-normal normal-case text-gray-400">(optional)</span>
+                </label>
+                <textarea
+                  value={notifyMessage}
+                  onChange={(e) => setNotifyMessage(e.target.value)}
+                  rows={3}
+                  maxLength={500}
+                  placeholder="Short details shown under the title…"
+                  className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-500/20"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                  Link <span className="font-normal normal-case text-gray-400">(optional — where tapping opens)</span>
+                </label>
+                <input
+                  type="text"
+                  value={notifyLink}
+                  onChange={(e) => setNotifyLink(e.target.value)}
+                  maxLength={200}
+                  placeholder="/feedback"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-500/20"
+                />
+              </div>
+
+              <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+                Will send to <span className="font-black text-emerald-700 dark:text-emerald-300">{notifyRecipients.length}</span> officer(s).
+              </p>
+            </div>
+
+            <div className="mt-5 flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setNotifyOpen(false)}
+                disabled={notifySending}
+                className="px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:text-gray-900 disabled:opacity-50 dark:text-slate-300 dark:hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleSendNotification()}
+                disabled={notifySending || !notifyTitle.trim() || notifyRecipients.length === 0}
+                className="flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-black text-white shadow-md transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {notifySending ? <Spinner size="xs" className="text-white" label="Loading" /> : <Send className="h-4 w-4" />}
+                {notifySending ? 'Sending…' : `Send to ${notifyRecipients.length}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {confirmDialog}
       <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />
     </div>

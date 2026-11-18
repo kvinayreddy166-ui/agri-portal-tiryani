@@ -257,8 +257,23 @@ export async function setDocumentCategories(documentId: string, categoryIds: str
 }
 
 export async function deleteDocument(id: string): Promise<void> {
-  // Soft delete
-  const { error } = await supabase.from('knowledge_documents').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+  // Fetch the stored file path so the storage object can be removed too.
+  const { data: doc } = await supabase
+    .from('knowledge_documents')
+    .select('file_path')
+    .eq('id', id)
+    .maybeSingle();
+
+  const filePath = (doc as { file_path?: string } | null)?.file_path;
+  if (filePath) {
+    const { error: storageError } = await supabase.storage
+      .from('knowledge-documents')
+      .remove([filePath]);
+    if (storageError) console.warn('Failed to delete knowledge document file:', storageError.message);
+  }
+
+  // Permanent delete — chunks, jobs and category links cascade.
+  const { error } = await supabase.from('knowledge_documents').delete().eq('id', id);
   if (error) throw error;
 }
 

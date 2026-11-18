@@ -481,7 +481,7 @@ function drawFormJ(cursor: PdfCursor, values: FertilizerPdfValues) {
   paragraph(cursor, '(3) Details of markings on the bags from where sample has been taken');
   if (values.markings.trim()) paragraph(cursor, values.markings, PAGE.marginX + 6, cursor.contentWidth - 6, 5, true);
   field(cursor, 'a) Type and Grade of Fertilizer', resolveFertilizerTypeGrade(values), 85, PAGE.marginX + 6, fieldOptions);
-  field(cursor, 'b) Name of Dealer/Manufacturer/Importer', resolveDealerManufacturerImporterName(values), 85, PAGE.marginX + 6, fieldOptions);
+  field(cursor, 'b) Name of Dealer/Manufacturer/Importer', resolveDealerManufacturerImporterName(values), 85, PAGE.marginX + 6, { ...fieldOptions, boldLabel: true });
   field(cursor, 'c) Batch No. and Date of Manufacture/Import', values.batchDetails, 85, PAGE.marginX + 6, fieldOptions);
   field(cursor, 'd) Composition of Fertilizer', formatComposition(values), 85, PAGE.marginX + 6, fieldOptions);
 
@@ -655,10 +655,10 @@ function field(
   value: string,
   labelWidth: number,
   x = PAGE.marginX,
-  options: { lineHeight?: number; gap?: number; noPageBreak?: boolean } = {}
+  options: { lineHeight?: number; gap?: number; noPageBreak?: boolean; boldLabel?: boolean } = {}
 ) {
   const { doc } = cursor;
-  doc.setFont(PDF_FONT, 'normal');
+  doc.setFont(PDF_FONT, options.boldLabel ? 'bold' : 'normal');
   doc.setFontSize(BODY_SIZE);
 
   const lineHeight = options.lineHeight ?? ROW_LINE_HEIGHT;
@@ -687,6 +687,7 @@ function field(
     doc.text(labelLines, x, cursor.y);
   }
   
+  doc.setFont(PDF_FONT, 'normal');
   doc.text(':', colonX, cursor.y);
   doc.text(valueLines, valueX, cursor.y);
   cursor.y += rowHeight;

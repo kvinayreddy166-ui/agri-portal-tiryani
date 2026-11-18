@@ -17,7 +17,7 @@ import {
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
-import { uploadPortalFile } from '../../../shared/lib/uploadFile';
+import { deletePortalFile, uploadPortalFile } from '../../../shared/lib/uploadFile';
 import { GosCircular } from '../../../shared/types/database';
 import { FileActionButtons } from '../../../shared/components/ui/FileActionButtons';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
@@ -194,6 +194,8 @@ export function GosCirculars() {
     try {
       const { error } = await supabase.from('gos_circulars').delete().eq('id', target.id);
       if (error) throw error;
+      // Permanently remove the stored file as well (best-effort)
+      await deletePortalFile(target.file_url);
       fetchDocuments();
       setDocToDelete(null);
     } catch (error) {

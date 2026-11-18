@@ -18,6 +18,7 @@ import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 
 import { parseExcelAndImportDealers } from '../../../shared/lib/excelParser';
 import { getContentType, inferFileTypeFromName, validateUploadFile } from '../../../shared/lib/fileTypes';
+import { deletePortalFile } from '../../../shared/lib/uploadFile';
 import { PageSkeleton } from '../../../shared/components/ui/PageSkeleton';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
@@ -281,10 +282,18 @@ export function ExcelUploads() {
     if (!confirmed) return;
 
     try {
+      const { data: row } = await supabase
+        .from('excel_uploads')
+        .select('file_url')
+        .eq('id', id)
+        .maybeSingle();
 
       const { error } = await supabase.from('excel_uploads').delete().eq('id', id);
 
       if (error) throw error;
+
+      // Permanently remove the stored file as well (best-effort)
+      await deletePortalFile((row as { file_url?: string } | null)?.file_url);
 
       fetchUploads();
 

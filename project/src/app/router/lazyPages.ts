@@ -62,3 +62,5 @@ export const Disclaimer = lazy(() => import('../../features/legal/pages/Disclaim
 export const PrivacyPolicy = lazy(() => import('../../features/legal/pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })));
 export const TermsConditions = lazy(() => import('../../features/legal/pages/TermsConditions').then((m) => ({ default: m.TermsConditions })));
 export const ModuleDirectory = lazy(() => import('../../shared/components/navigation/ModuleDirectory').then((m) => ({ default: m.ModuleDirectory })));
+export const Feedback = lazy(() => import('../../features/feedback/pages/Feedback').then((m) => ({ default: m.Feedback })));
+export const FeedbackAdmin = lazy(() => import('../../features/feedback/pages/FeedbackAdmin').then((m) => ({ default: m.FeedbackAdmin })));

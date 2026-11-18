@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { getContentType } from '../../../shared/lib/fileTypes';
+import { deletePortalFile } from '../../../shared/lib/uploadFile';
 import { FileActionButtons } from '../../../shared/components/ui/FileActionButtons';
 import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -133,6 +134,9 @@ export function FarmMechanization() {
         .eq('id', id);
 
       if (error) throw error;
+      // Permanently remove the stored file as well (best-effort)
+      const doc = documents.find((d) => d.id === id);
+      await deletePortalFile(doc?.file_url);
       fetchDocuments();
     } catch (error) {
       console.error('Error deleting farm mechanization document:', error);

@@ -17,6 +17,7 @@ import {
   getMandalsForDistrict,
   normalizeDistrictName,
 } from '../../../shared/data/telanganaDistrictMandalData';
+import { usePersistentState } from '../../../shared/hooks/usePersistentState';
 
 type DealerCategory = 'fertilizer' | 'seed' | 'pesticide';
 
@@ -81,11 +82,11 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const [dealers, setDealers] = useState<Dealer[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSkeleton, setShowSkeleton] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [licenseFilter, setLicenseFilter] = useState<'all' | 'valid' | 'expired'>('all');
-  const [loginFilter, setLoginFilter] = useState<'all' | 'with' | 'without'>('all');
-  const [districtFilter, setDistrictFilter] = useState('all');
-  const [mandalFilter, setMandalFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = usePersistentState('tiryani-page-filters-dealer-management-search', '');
+  const [licenseFilter, setLicenseFilter] = usePersistentState<'all' | 'valid' | 'expired'>('tiryani-page-filters-dealer-management-license', 'all');
+  const [loginFilter, setLoginFilter] = usePersistentState<'all' | 'with' | 'without'>('tiryani-page-filters-dealer-management-login', 'all');
+  const [districtFilter, setDistrictFilter] = usePersistentState('tiryani-page-filters-dealer-management-district', 'all');
+  const [mandalFilter, setMandalFilter] = usePersistentState('tiryani-page-filters-dealer-management-mandal', 'all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState(emptyForm);

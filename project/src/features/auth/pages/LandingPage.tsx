@@ -32,6 +32,7 @@ import {
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { OfficialChannelsSidebar } from '../../../shared/components/ui/OfficialChannelsSidebar';
 import { FloatingActions } from '../../../shared/components/ui/FloatingActions';
+import { ScrollToTopButton } from '../../../shared/components/ui/ScrollToTopButton';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useAuth } from '../../../shared/context/AuthContext';
 
@@ -1066,6 +1067,7 @@ export function LandingPage() {
         </span>
       </a>
       <FloatingActions />
+      <ScrollToTopButton />
     </div>
   );
 }

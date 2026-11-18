@@ -58,6 +58,7 @@ const USER_ISOLATED_PREFIXES = [
   'tiryani-seed-',
   'tiryani-statutory-',
   'tiryani-covering-letter-',
+  'tiryani-page-filters-',
   'tiryani-inspector-',
   'tiryani-officer-',
   'tiryani-cached-',

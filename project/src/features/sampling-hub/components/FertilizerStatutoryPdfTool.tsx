@@ -757,7 +757,12 @@ export function FertilizerStatutoryPdfTool({ onClose }: { onClose: () => void })
 
   // Apply effective location values for Assistant Director of Agriculture
   const documentValues = useMemo(() => {
-    if (!isAssistantDirectorOfAgriculture(values.designation)) return values;
+    if (!isAssistantDirectorOfAgriculture(values.designation)) {
+      // Keep Place in sync with the selected mandal so restored drafts and
+      // any non-dropdown mandal entry still populate the PDF signature block.
+      const mandalPlace = effectiveLocationValue(values.mandal, values.manualMandal);
+      return mandalPlace && mandalPlace !== values.place ? { ...values, place: mandalPlace } : values;
+    }
     const district = effectiveLocationValue(values.district, values.manualDistrict);
     const division = values.manualDivision.trim();
     const placeOfCollection = effectiveLocationValue(values.placeOfCollectionMandal, values.manualPlaceOfCollection);

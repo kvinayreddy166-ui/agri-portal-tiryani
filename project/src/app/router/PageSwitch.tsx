@@ -18,6 +18,8 @@ import {
   ExcelUploads,
   FarmCalculators,
   FarmerDatabase,
+  Feedback,
+  FeedbackAdmin,
   FarmMechanization,
   FertilizerCalculator,
   FertilizerDealerInspection,
@@ -222,6 +224,20 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser
       return isAdminUser ? (
         <SafeSuspense fallback={<PageLoader />}>
           <UserManagement />
+        </SafeSuspense>
+      ) : (
+        <Dashboard />
+      );
+    case 'feedback':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <Feedback />
+        </SafeSuspense>
+      );
+    case 'feedback-admin':
+      return isAdminUser ? (
+        <SafeSuspense fallback={<PageLoader />}>
+          <FeedbackAdmin />
         </SafeSuspense>
       ) : (
         <Dashboard />

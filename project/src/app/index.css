@@ -880,6 +880,54 @@ button {
 .delay-500 { animation-delay: 500ms; }
 .delay-600 { animation-delay: 600ms; }
 
+/* Feedback & notifications micro-animations */
+@keyframes votePop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.animate-vote-pop {
+  animation: votePop 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes badgePop {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.animate-badge-pop {
+  animation: badgePop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes bellSwing {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(14deg); }
+  40% { transform: rotate(-12deg); }
+  60% { transform: rotate(8deg); }
+  80% { transform: rotate(-6deg); }
+}
+.animate-bell-swing {
+  animation: bellSwing 600ms ease-in-out;
+  transform-origin: top center;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-card-in {
+  animation: cardIn 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes chipSelect {
+  0% { transform: scale(0.92); }
+  60% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.animate-chip-select {
+  animation: chipSelect 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 /* Toolkit loader animations */
 @keyframes loadingBar {
   0% {

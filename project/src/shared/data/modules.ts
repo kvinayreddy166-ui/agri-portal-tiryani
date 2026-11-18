@@ -4,7 +4,7 @@ import {
   FolderOpen, Database, BookOpen, Gavel, CalendarDays,
   Phone, FileCheck, Files, Users,
   ClipboardCheck, FlaskConical, Calculator, Stethoscope, Scale,
-  Globe, Settings, Store, type LucideIcon,
+  Globe, Settings, Store, MessageSquarePlus, MessageSquareWarning, type LucideIcon,
 } from 'lucide-react';
 
 export interface ModuleMenuItem {
@@ -49,18 +49,20 @@ export const MODULE_MENU_ITEMS: ModuleMenuItem[] = [
   { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText, desc: 'Government orders and circulars', descTe: 'ప్రభుత్వ ఉత్తర్వులు & సర్క్యులర్లు' },
   { id: 'government-portals', label: 'Government Portals', icon: Globe, desc: 'Links to official government portals', descTe: 'అధికారిక ప్రభుత్వ పోర్టళ్ళ లింక్‌లు' },
   { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen, adminOnly: true, officerAccess: true, desc: 'AI assistant over official agri documents', descTe: 'అధికారిక వ్యవసాయ పత్రాలపై AI అసిస్టెంట్' },
+  { id: 'feedback', label: 'Feedback & Suggestions', icon: MessageSquarePlus, desc: 'Report issues, request features and track your tickets', descTe: 'సమస్యలు నివేదించండి, ఫీచర్లు అభ్యర్థించండి & టికెట్లు ట్రాక్ చేయండి' },
 
   // Records & Admin
   { id: 'file-directory', label: 'Document Repository', icon: FolderOpen, adminOnly: true, desc: 'Uploaded documents and files', descTe: 'అప్‌లోడ్ చేసిన పత్రాలు & ఫైళ్లు' },
   { id: 'excel', label: 'Office Records', icon: Archive, adminOnly: true, desc: 'Excel uploads and office records', descTe: 'ఎక్స్‌ల్స్ అప్‌లోడ్‌లు & కార్యాలయ రికార్డులు' },
   { id: 'officer-records', label: 'Saved Records & Storage', icon: Archive, desc: 'Your saved records and cloud storage', descTe: 'మీ సేవ్ చేసిన రికార్డులు & క్లౌడ్ నిల్వ' },
   { id: 'user-management', label: 'User Management', icon: Users, adminOnly: true, desc: 'Manage registered officer accounts', descTe: 'నమోదిత అధికారి ఖాతాలను నిర్వహించండి' },
+  { id: 'feedback-admin', label: 'Feedback Admin', icon: MessageSquareWarning, adminOnly: true, desc: 'Manage and respond to user feedback', descTe: 'వినియోగదారు ఫీడ్‌బ్యాక్‌ను నిర్వహించండి & ప్రతిస్పందించండి' },
   { id: 'settings', label: 'Settings', icon: Settings, desc: 'Account, language and app settings', descTe: 'ఖాతా, భాష & యాప్ సెట్టింగులు' },
 ];
 
 // Admin-only modules hidden even from the full-access officer
 // (agofficetiryani@gmail.com) — management consoles stay admin-only.
-const ELEVATED_OFFICER_HIDDEN = new Set(['dealer-management', 'user-management', 'farm-mechanization']);
+const ELEVATED_OFFICER_HIDDEN = new Set(['dealer-management', 'user-management', 'farm-mechanization', 'feedback-admin']);
 
 // Modules moved off the admin dashboard — visible to the elevated officer only.
 const ADMIN_HIDDEN = new Set(['stock-analytics', 'analytics', 'dealers']);
@@ -101,7 +103,7 @@ export function moduleSections(items: ModuleMenuItem[], t: (key: string, telugu:
     },
     {
       title: t('Knowledge & Portals', 'జ్ఞాన భాండాగారం & పోర్టల్స్'),
-      ids: ['gos-circulars', 'government-portals', 'knowledge'],
+      ids: ['gos-circulars', 'government-portals', 'knowledge', 'feedback'],
     },
     {
       title: t('Records & Archives', 'రికార్డులు & ఆర్కైవ్'),
@@ -109,7 +111,7 @@ export function moduleSections(items: ModuleMenuItem[], t: (key: string, telugu:
     },
     {
       title: t('Administration', 'నిర్వహణ'),
-      ids: ['user-management', 'dealer-management', 'settings'],
+      ids: ['user-management', 'dealer-management', 'feedback-admin', 'settings'],
     },
   ];
 
@@ -187,6 +189,8 @@ export function translateMenu(label: string) {
     Settings: 'సెట్టింగులు',
     'User Management': 'వినియోగదారు నిర్వహణ',
     'All Modules': 'అన్ని మాడ్యూల్‌లు',
+    'Feedback & Suggestions': 'ఫీడ్‌బ్యాక్ & సూచనలు',
+    'Feedback Admin': 'ఫీడ్‌బ్యాక్ నిర్వహణ',
   };
   return labels[label] ?? label;
 }

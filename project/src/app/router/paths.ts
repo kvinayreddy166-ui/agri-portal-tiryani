@@ -154,6 +154,8 @@ export const PAGE_PATHS: Record<string, string> = {
   disclaimer: '/disclaimer',
   'privacy-policy': '/privacy-policy',
   'terms-conditions': '/terms-conditions',
+  feedback: '/feedback',
+  'feedback-admin': '/admin/feedback',
 };
 
 export function pageToPath(page: string) {
@@ -241,6 +243,8 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
   ) return 'inspection-enforcement';
   if (page === 'officer-contacts-admin') return 'officer-contacts';
   if (page === 'user-management') return 'settings';
+  if (page === 'feedback') return 'dashboard';
+  if (page === 'feedback-admin') return 'feedback';
   if (page.startsWith('knowledge-')) return 'knowledge';
   if (page === 'knowledge') return 'dashboard';
   if (page === 'officer-toolkit') return 'dashboard';
@@ -311,6 +315,8 @@ export const VALID_PAGES = new Set([
   'knowledge-search',
   'knowledge-viewer',
   'all-modules',
+  'feedback',
+  'feedback-admin',
 ]);
 
 const OFFICER_TOOLKIT_PAGE_PREFIX = 'officer-toolkit/';
@@ -371,6 +377,8 @@ export function resolvePageFromLocation(location: { pathname: string; search: st
       page = 'officer-contacts-admin';
     } else if (page === 'admin/user-management') {
       page = 'user-management';
+    } else if (page === 'admin/feedback') {
+      page = 'feedback-admin';
     } else if (page.startsWith('knowledge/')) {
       page = `knowledge-${page.slice('knowledge/'.length)}`;
     }

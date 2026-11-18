@@ -65,6 +65,32 @@ export async function uploadPortalFile(file: File, folder: string, maxRetries = 
   throw new Error('Upload failed after maximum retries');
 }
 
+const PUBLIC_UPLOADS_MARKER = '/storage/v1/object/public/uploads/';
+
+/** Extract the storage object path from a public uploads-bucket URL. */
+export function storagePathFromPublicUrl(fileUrl: string | null | undefined): string | null {
+  if (!fileUrl) return null;
+  const idx = fileUrl.indexOf(PUBLIC_UPLOADS_MARKER);
+  if (idx < 0) return null;
+  const path = decodeURIComponent(fileUrl.slice(idx + PUBLIC_UPLOADS_MARKER.length).split('?')[0] || '');
+  return path || null;
+}
+
+/**
+ * Permanently delete a file from the public `uploads` bucket.
+ * Best-effort: returns false instead of throwing so record deletion can proceed.
+ */
+export async function deletePortalFile(fileUrl: string | null | undefined): Promise<boolean> {
+  const path = storagePathFromPublicUrl(fileUrl);
+  if (!path) return false;
+  const { error } = await supabase.storage.from('uploads').remove([path]);
+  if (error) {
+    console.warn('Failed to delete storage object:', path, error.message);
+    return false;
+  }
+  return true;
+}
+
 export async function uploadPortalFiles(files: File[], folder: string) {
   const results = [];
   for (const file of files) {

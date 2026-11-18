@@ -11,6 +11,7 @@ import { useBackButtonOverlay } from '../shared/hooks/useBackButtonOverlay';
 import { OfficerProfileAutofill } from '../features/auth/components/OfficerProfileAutofill';
 import { MODULE_MENU_ITEMS, getVisibleModuleItems, moduleSections, translateMenu } from '../shared/data/modules';
 import { MobileBottomNav } from '../shared/components/navigation/MobileBottomNav';
+import { NotificationBell } from '../shared/components/ui/NotificationBell';
 import { recordRecentModule } from '../shared/lib/modulePrefs';
 
 interface LayoutProps {
@@ -163,6 +164,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
 
           <div className="relative flex shrink-0 items-center gap-2">
             <div className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 p-1 backdrop-blur-sm">
+              <NotificationBell />
               <button
                 type="button"
                 onClick={toggleTheme}
@@ -507,6 +509,8 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     analytics: { title: t('Reports', 'నివేదికలు'), breadcrumbs: [dashboard] },
     settings: { title: t('Settings', 'సెట్టింగులు'), breadcrumbs: [dashboard] },
     'all-modules': { title: t('All Modules', 'అన్ని మాడ్యూల్‌లు'), breadcrumbs: [dashboard] },
+    feedback: { title: t('Feedback & Suggestions', 'ఫీడ్‌బ్యాక్ & సూచనలు'), breadcrumbs: [dashboard] },
+    'feedback-admin': { title: t('Feedback Admin', 'ఫీడ్‌బ్యాక్ నిర్వహణ'), breadcrumbs: [dashboard, { label: t('Feedback & Suggestions', 'ఫీడ్‌బ్యాక్ & సూచనలు'), page: 'feedback' }] },
   };
 
   return meta[page] || { title: t('Dashboard', 'డ్యాష్‌బోర్డ్'), breadcrumbs: [{ label: t('Dashboard', 'డ్యాష్‌బోర్డ్') }] };
