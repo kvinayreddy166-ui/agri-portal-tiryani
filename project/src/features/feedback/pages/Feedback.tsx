@@ -20,6 +20,7 @@ import {
   Paperclip,
   Rocket,
   Send,
+  Trash2,
   Wrench,
   X,
 } from 'lucide-react';
@@ -42,6 +43,7 @@ import {
   type FeedbackTicket,
 } from '../types';
 import {
+  deleteMyFeedback,
   getMyFeedbackDetail,
   listFeatureRequests,
   listMyFeedback,
@@ -109,6 +111,7 @@ export function Feedback() {
   const [loadingMine, setLoadingMine] = useState(false);
   const [detail, setDetail] = useState<FeedbackDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const detailOverlay = useBackButtonOverlay('feedback-detail', () => setDetail(null));
 
   const [category, setCategory] = useState<FeedbackCategory>('general_query');
@@ -212,6 +215,29 @@ export function Feedback() {
   const closeDetail = () => {
     detailOverlay.closeOverlay();
     setDetail(null);
+  };
+
+  const handleDelete = async (ticketId: string) => {
+    if (!window.confirm('Delete this feedback permanently? This cannot be undone.')) return;
+    setDeleting(true);
+    try {
+      await deleteMyFeedback(ticketId);
+      toastRef.current.showSuccess('Deleted', 'Your feedback was deleted.');
+      setTickets((prev) => prev.filter((t) => t.id !== ticketId));
+      setBoard((prev) =>
+        prev
+          ? {
+              tickets: prev.tickets.filter((t) => t.id !== ticketId),
+              votedIds: new Set([...prev.votedIds].filter((id) => id !== ticketId)),
+            }
+          : prev
+      );
+      closeDetail();
+    } catch (err) {
+      toastRef.current.showError('Delete failed', err instanceof Error ? err.message : 'Could not delete feedback.');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -759,6 +785,18 @@ export function Feedback() {
                       </ol>
                     </div>
                   )}
+
+                  <div className="border-t border-slate-200 pt-4 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => void handleDelete(detail.ticket.id)}
+                      disabled={deleting}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-black text-red-600 transition hover:bg-red-100 active:scale-[0.98] disabled:opacity-60 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70"
+                    >
+                      {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                      {deleting ? 'Deleting…' : 'Delete this feedback'}
+                    </button>
+                  </div>
                 </div>
               </>
             )}

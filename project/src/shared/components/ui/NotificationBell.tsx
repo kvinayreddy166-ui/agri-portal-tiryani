@@ -4,6 +4,7 @@ import { Bell, BellRing, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useBackButtonOverlay } from '../../hooks/useBackButtonOverlay';
+import { useIdleAutoClose } from '../../hooks/useIdleAutoClose';
 import {
   clearAllNotifications,
   getUnreadNotificationCount,
@@ -44,6 +45,14 @@ export function NotificationBell() {
   const overlay = useBackButtonOverlay('notification-bell', () => setOpen(false));
   const pollRef = useRef<number | null>(null);
 
+  const closeDropdown = useCallback(() => {
+    overlay.closeOverlay();
+    setOpen(false);
+  }, [overlay.closeOverlay]);
+
+  // Auto-close the dropdown after 5s of inactivity inside it.
+  const resetIdleTimer = useIdleAutoClose(open, closeDropdown);
+
   const refresh = useCallback(async () => {
     const [list, count] = await Promise.all([listNotifications(30), getUnreadNotificationCount()]);
     setNotifications(list);
@@ -65,7 +74,7 @@ export function NotificationBell() {
 
   const toggle = () => {
     if (open) {
-      overlay.closeOverlay();
+      closeDropdown();
       return;
     }
     overlay.pushOverlay();
@@ -79,8 +88,7 @@ export function NotificationBell() {
       setUnread((c) => Math.max(0, c - 1));
       void markNotificationRead(n.id);
     }
-    overlay.closeOverlay();
-    setOpen(false);
+    closeDropdown();
     if (n.link) navigate(n.link);
   };
 
@@ -134,10 +142,12 @@ export function NotificationBell() {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={overlay.closeOverlay} aria-hidden />
+          <div className="fixed inset-0 z-40" onClick={closeDropdown} aria-hidden />
           <div
             className="animate-pop-in absolute right-0 top-full z-50 mt-2 w-72 origin-top-right overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-950/15 dark:border-slate-800 dark:bg-slate-900 dark:text-white sm:w-80"
             role="menu"
+            onPointerMove={resetIdleTimer}
+            onPointerDown={resetIdleTimer}
           >
             <div className="flex items-center justify-between border-b border-slate-100 px-3.5 py-2.5 dark:border-slate-800">
               <p className="font-[var(--font-stylish)] text-[13px] font-black tracking-tight">{t('Notifications', 'నోటిఫికేషన్లు')}</p>

@@ -5,7 +5,6 @@ import { useAuth } from '../../../shared/context/AuthContext';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
-import { downloadCsv } from '../../../shared/utils/csvExport';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { normalizeDistrictName } from '../../../shared/data/telanganaDistrictMandalData';
 import { usePersistentState } from '../../../shared/hooks/usePersistentState';
@@ -300,25 +299,136 @@ export function UserManagement() {
     setTimeout(() => setActionSuccessMessage(null), 6000);
   };
 
-  const handleExportCsv = () => {
-    downloadCsv(
-      `officer-accounts-${new Date().toISOString().slice(0, 10)}.csv`,
-      ['Name', 'Designation', 'Qualification', 'HRMS ID', 'District', 'Mandal', 'Division', 'Email', 'Phone', 'Role', 'Status', 'Registered On'],
-      adminOfficers.map((o) => [
-        o.full_name,
-        o.designation,
-        o.qualification || '',
-        o.hrms_id || '',
-        o.district,
-        o.mandal,
-        o.division || '',
-        o.email,
-        o.phone,
-        o.role,
-        o.status || 'active',
-        o.created_at ? new Date(o.created_at).toLocaleString() : '',
-      ])
-    );
+  const handleExportExcel = async () => {
+    try {
+      const ExcelJSModule = await import('exceljs');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ExcelJS = (ExcelJSModule as any).default || ExcelJSModule;
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'AGRONIX — Agriculture Information Management System';
+      workbook.created = new Date();
+
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const sheet = workbook.addWorksheet('Officer Accounts', {
+        views: [{ state: 'frozen', ySplit: 4 }],
+      });
+
+      const headers = [
+        'Name',
+        'Designation',
+        'Qualification',
+        'HRMS ID',
+        'District',
+        'Mandal',
+        'Division',
+        'Email',
+        'Phone',
+        'Role',
+        'Status',
+        'Registered On',
+      ];
+      const lastCol = String.fromCharCode(64 + headers.length);
+
+      sheet.mergeCells(`A1:${lastCol}1`);
+      const titleCell = sheet.getCell('A1');
+      titleCell.value = 'AGRONIX — OFFICER ACCOUNTS REGISTER';
+      titleCell.font = { name: 'Arial', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF15803D' } };
+      sheet.getRow(1).height = 28;
+
+      sheet.mergeCells(`A2:${lastCol}2`);
+      const metaCell = sheet.getCell('A2');
+      metaCell.value = `Exported: ${dateStr}   |   Total officers: ${adminOfficers.length}`;
+      metaCell.font = { name: 'Arial', size: 9, italic: true, color: { argb: 'FF475569' } };
+      metaCell.alignment = { horizontal: 'left', vertical: 'middle' };
+      sheet.getRow(2).height = 16;
+      sheet.getRow(3).height = 8;
+
+      const headerRow = sheet.getRow(4);
+      headers.forEach((h, i) => {
+        const cell = headerRow.getCell(i + 1);
+        cell.value = h;
+        cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF065F46' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          bottom: { style: 'medium', color: { argb: 'FF059669' } },
+          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          right: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        };
+      });
+      headerRow.height = 24;
+
+      adminOfficers.forEach((o, idx) => {
+        const row = sheet.addRow([
+          o.full_name,
+          o.designation,
+          o.qualification || '',
+          o.hrms_id || '',
+          o.district,
+          o.mandal,
+          o.division || '',
+          o.email,
+          o.phone,
+          o.role,
+          o.status || 'active',
+          o.created_at ? new Date(o.created_at).toLocaleString('en-IN') : '',
+        ]);
+        row.height = 22;
+        const isEven = idx % 2 === 1;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        row.eachCell((cell: any, colNum: number) => {
+          cell.font = { name: 'Arial', size: 9 };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          };
+          if (isEven) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+          }
+          if (colNum === 12 || colNum === 11) {
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          } else {
+            cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+          }
+        });
+      });
+
+      sheet.columns = [
+        { width: 24 }, // Name
+        { width: 18 }, // Designation
+        { width: 16 }, // Qualification
+        { width: 14 }, // HRMS ID
+        { width: 20 }, // District
+        { width: 18 }, // Mandal
+        { width: 16 }, // Division
+        { width: 28 }, // Email
+        { width: 14 }, // Phone
+        { width: 12 }, // Role
+        { width: 12 }, // Status
+        { width: 20 }, // Registered On
+      ];
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `officer-accounts-${dateStr}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      toast.showSuccess('Export ready', `${adminOfficers.length} officer account(s) exported to Excel.`);
+    } catch {
+      toast.showError('Export failed', 'Could not export officer accounts.');
+    }
   };
 
   const handleToggleSuspend = async (officer: OfficerRow) => {
@@ -382,12 +492,12 @@ export function UserManagement() {
             </button>
             <button
               type="button"
-              onClick={handleExportCsv}
+              onClick={handleExportExcel}
               disabled={adminOfficers.length === 0}
               className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/60"
             >
               <Download className="w-3.5 h-3.5" />
-              Export CSV
+              Export Excel
             </button>
             <button
               type="button"
@@ -464,6 +574,10 @@ export function UserManagement() {
               Clear filters
             </button>
           )}
+          <span className="ml-auto shrink-0 text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400">
+            {filteredOfficers.length} {filteredOfficers.length === 1 ? 'officer' : 'officers'}
+            {filteredOfficers.length !== adminOfficers.length ? ` of ${adminOfficers.length}` : ''}
+          </span>
         </div>
 
         {selectedIds.size > 0 && (
@@ -523,24 +637,24 @@ export function UserManagement() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-slate-700 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
-                  <th className="py-3 px-4 w-10">
+                <tr className="border-b border-gray-200 dark:border-slate-700 text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+                  <th className="py-2 px-3 w-10">
                     <input
                       type="checkbox"
                       checked={allSelected}
                       onChange={toggleSelectAll}
-                      className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      className="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                       aria-label="Select all officers"
                     />
                   </th>
-                  <th className="py-3 px-4">Officer Name</th>
-                  <th className="py-3 px-4">Designation</th>
-                  <th className="py-3 px-4">District / Mandal</th>
-                  <th className="py-3 px-4">Contact</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-2 px-3">Officer Name</th>
+                  <th className="py-2 px-3">Designation</th>
+                  <th className="py-2 px-3">District / Mandal</th>
+                  <th className="py-2 px-3">Contact</th>
+                  <th className="py-2 px-3">Status</th>
+                  <th className="py-2 px-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
@@ -548,37 +662,37 @@ export function UserManagement() {
                   const isSelf = officer.id === user?.id;
                   return (
                     <tr key={officer.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                      <td className="py-3 px-4">
+                      <td className="py-2 px-3">
                         <input
                           type="checkbox"
                           checked={selectedIds.has(officer.id)}
                           onChange={() => toggleSelect(officer.id)}
-                          className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                          className="h-3.5 w-3.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                           aria-label={`Select ${officer.full_name}`}
                         />
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-2 px-3">
                         <div className="font-medium text-gray-900 dark:text-white">{officer.full_name}</div>
                         {officer.qualification && (
                           <div className="text-xs text-gray-500 dark:text-slate-400">{officer.qualification}</div>
                         )}
                       </td>
-                      <td className="py-3 px-4">
-                        <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                      <td className="py-2 px-3">
+                        <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
                           {officer.designation}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-xs text-gray-600 dark:text-slate-300">
+                      <td className="py-2 px-3 text-xs text-gray-600 dark:text-slate-300">
                         <div>{officer.district}</div>
                         <div className="text-gray-400 dark:text-slate-500">{officer.mandal}</div>
                       </td>
-                      <td className="py-3 px-4 text-xs text-gray-600 dark:text-slate-300">
+                      <td className="py-2 px-3 text-xs text-gray-600 dark:text-slate-300">
                         <div>{officer.email}</div>
                         <div className="text-gray-400 dark:text-slate-500">{officer.phone}</div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-2 px-3">
                         <span
-                          className={`inline-block px-2 py-0.5 rounded text-xs font-medium uppercase ${
+                          className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium uppercase ${
                             officer.status === 'suspended'
                               ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
                               : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
@@ -587,13 +701,13 @@ export function UserManagement() {
                           {officer.status || 'Active'}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-2 px-3 text-right">
                         {!isSelf && (
                           <button
                             type="button"
                             onClick={() => handleToggleSuspend(officer)}
                             disabled={suspendingId === officer.id}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border disabled:opacity-50 mr-2 ${
+                            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium transition-colors border disabled:opacity-50 mr-2 ${
                               officer.status === 'suspended'
                                 ? 'text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/40'
                                 : 'text-amber-700 hover:text-amber-800 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/40 border-amber-200 dark:border-amber-900/40'
@@ -618,7 +732,7 @@ export function UserManagement() {
                             setOfficerToDelete(officer);
                             setAdminDeleteConfirmText('');
                           }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 dark:text-red-400 transition-colors border border-red-200 dark:border-red-900/40"
+                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 dark:text-red-400 transition-colors border border-red-200 dark:border-red-900/40"
                           title={isSelf ? 'Delete your own account' : `Delete ${officer.full_name}`}
                         >
                           <Trash2 className="w-3.5 h-3.5" />

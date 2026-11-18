@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Plus, Edit2, Trash2, Users, Search, Save, X, KeyRound, Upload, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, Search, Save, X, KeyRound, Upload, Download, ChevronDown, ChevronLeft, ChevronRight, FileSpreadsheet } from 'lucide-react';
 import { supabase, ADMIN_USER_ID } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
@@ -10,7 +10,6 @@ import { cachedSupabaseRows } from '../../../shared/lib/offlineCache';
 import { fetchAllRows } from '../../../shared/lib/pagedFetch';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
-import { downloadCsv } from '../../../shared/utils/csvExport';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import {
   TELANGANA_DISTRICTS,
@@ -18,6 +17,7 @@ import {
   normalizeDistrictName,
 } from '../../../shared/data/telanganaDistrictMandalData';
 import { usePersistentState } from '../../../shared/hooks/usePersistentState';
+import { useIdleAutoClose } from '../../../shared/hooks/useIdleAutoClose';
 
 type DealerCategory = 'fertilizer' | 'seed' | 'pesticide';
 
@@ -105,11 +105,33 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
   const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState('');
+  const [dataMenuOpen, setDataMenuOpen] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const dataMenuRef = useRef<HTMLDivElement>(null);
+  const resetDataMenuIdle = useIdleAutoClose(dataMenuOpen, () => setDataMenuOpen(false));
 
   useEffect(() => {
     const id = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 350);
     return () => clearTimeout(id);
   }, [searchTerm]);
+
+  useEffect(() => {
+    if (!dataMenuOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (dataMenuRef.current && !dataMenuRef.current.contains(e.target as Node)) {
+        setDataMenuOpen(false);
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDataMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [dataMenuOpen]);
 
   // Applies every active filter to a dealers query. `withLocation` is false
   // for the legacy-column fallback where district/mandal don't exist.
@@ -473,7 +495,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
     }
   };
 
-  const handleExportCsv = async () => {
+  const handleExportExcel = async () => {
     const tabLabel = TABS.find((tab) => tab.id === activeTab)?.label ?? activeTab;
     setLoading(true);
     try {
@@ -485,10 +507,70 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       });
       if (res.error) throw res.error;
       const rows = res.data;
-      downloadCsv(
-        `dealers-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`,
-        ['Dealer Name', 'IFMS ID', 'Phone', 'Portal Email', 'License Number', 'Issue Date', 'Expiry Date', 'Location', 'District', 'Mandal', 'Category', 'Created By', 'Created On'],
-        rows.map((d) => [
+
+      const ExcelJSModule = await import('exceljs');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ExcelJS = (ExcelJSModule as any).default || ExcelJSModule;
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'AGRONIX — Agriculture Information Management System';
+      workbook.created = new Date();
+
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const sheet = workbook.addWorksheet(`${tabLabel} Dealers`, {
+        views: [{ state: 'frozen', ySplit: 4 }],
+      });
+
+      const headers = [
+        'Dealer Name',
+        'IFMS ID',
+        'Phone',
+        'Portal Email',
+        'License Number',
+        'Issue Date',
+        'Expiry Date',
+        'Location',
+        'District',
+        'Mandal',
+        'Category',
+        'Created By',
+        'Created On',
+      ];
+      const lastCol = String.fromCharCode(64 + headers.length);
+
+      sheet.mergeCells(`A1:${lastCol}1`);
+      const titleCell = sheet.getCell('A1');
+      titleCell.value = `AGRONIX — ${tabLabel.toUpperCase()} DEALER DIRECTORY`;
+      titleCell.font = { name: 'Arial', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF15803D' } };
+      sheet.getRow(1).height = 28;
+
+      sheet.mergeCells(`A2:${lastCol}2`);
+      const metaCell = sheet.getCell('A2');
+      metaCell.value = `Exported: ${dateStr}   |   Total dealers: ${rows.length}`;
+      metaCell.font = { name: 'Arial', size: 9, italic: true, color: { argb: 'FF475569' } };
+      metaCell.alignment = { horizontal: 'left', vertical: 'middle' };
+      sheet.getRow(2).height = 16;
+      sheet.getRow(3).height = 8;
+
+      const headerRow = sheet.getRow(4);
+      headers.forEach((h, i) => {
+        const cell = headerRow.getCell(i + 1);
+        cell.value = h;
+        cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF065F46' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          bottom: { style: 'medium', color: { argb: 'FF059669' } },
+          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          right: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        };
+      });
+      headerRow.height = 24;
+
+      rows.forEach((d, idx) => {
+        const row = sheet.addRow([
           d.dealer_name,
           d.ifms_id || '',
           d.phone_number || '',
@@ -501,8 +583,61 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
           d.mandal || '',
           tabLabel,
           d.created_by_name || '',
-          d.created_at ? new Date(d.created_at).toLocaleString() : '',
-        ])
+          d.created_at ? new Date(d.created_at).toLocaleString('en-IN') : '',
+        ]);
+        row.height = 22;
+        const isEven = idx % 2 === 1;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        row.eachCell((cell: any, colNum: number) => {
+          cell.font = { name: 'Arial', size: 9 };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          };
+          if (isEven) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+          }
+          if (colNum === 6 || colNum === 7 || colNum === 13) {
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          } else {
+            cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+          }
+        });
+      });
+
+      sheet.columns = [
+        { width: 28 }, // Dealer Name
+        { width: 14 }, // IFMS ID
+        { width: 14 }, // Phone
+        { width: 26 }, // Portal Email
+        { width: 18 }, // License Number
+        { width: 12 }, // Issue Date
+        { width: 12 }, // Expiry Date
+        { width: 26 }, // Location
+        { width: 22 }, // District
+        { width: 18 }, // Mandal
+        { width: 12 }, // Category
+        { width: 20 }, // Created By
+        { width: 20 }, // Created On
+      ];
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `dealers-${activeTab}-${dateStr}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      toast.showSuccess(
+        'Export ready',
+        `${rows.length} ${tabLabel.toLowerCase()} dealer(s) exported to Excel.`
       );
     } catch (error) {
       toast.showError('Export failed', (error as { message?: string })?.message || 'Could not export dealers');
@@ -565,11 +700,11 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
         <div className="h-8 w-56 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
         <div className="h-10 w-full max-w-md animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
         <div className="portal-card overflow-hidden">
-          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/60">
+          <div className="border-b border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-800/60">
             <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
           </div>
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 border-b border-slate-100 px-4 py-3.5 dark:border-slate-800">
+            <div key={i} className="flex items-center gap-4 border-b border-slate-100 px-3 py-2.5 dark:border-slate-800">
               <div className="h-9 w-9 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
               <div className="h-4 flex-1 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
               <div className="hidden h-4 w-28 animate-pulse rounded bg-slate-200 dark:bg-slate-700 sm:block" />
@@ -588,36 +723,68 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
         description={t('Fertilizer, seed, and pesticide dealers', 'ఎరువులు, విత్తనాలు, పురుగుమందుల డీలర్లు')}
         actions={canManageDealers ? (
           <div className="flex flex-wrap items-center gap-2">
-            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-within:ring-2 focus-within:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/60">
-              <Upload className="h-4 w-4" />
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                className="hidden"
-                onChange={handleExcelImport}
-                disabled={importing}
-              />
-              {importing ? t('Importing...', 'దిగుమతి...') : t('Import Excel', 'Excel దిగుమతి')}
-            </label>
-            <a
-              href={`/templates/dealer-import-template-${activeTab}.xlsx`}
-              download
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/60"
-            >
-              <Download className="h-4 w-4" />
-              {t('Template', 'టెంప్లేట్')}
-            </a>
-            {isAdminUser && (
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+              onChange={handleExcelImport}
+              disabled={importing}
+            />
+            <div className="relative" ref={dataMenuRef}>
               <button
                 type="button"
-                onClick={handleExportCsv}
-                disabled={totalCount === 0}
+                onClick={() => setDataMenuOpen((v) => !v)}
+                disabled={importing}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/60"
               >
                 <Download className="h-4 w-4" />
-                {t('Export CSV', 'CSV ఎగుమతి')}
+                {importing ? t('Importing...', 'దిగుమతి...') : t('Import / Export', 'దిగుమతి / ఎగుమతి')}
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${dataMenuOpen ? 'rotate-180' : ''}`} />
               </button>
-            )}
+              {dataMenuOpen && (
+                <div
+                  className="absolute left-0 right-auto z-40 mt-2 w-56 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl sm:left-auto sm:right-0 dark:border-slate-700 dark:bg-slate-900"
+                  onPointerMove={resetDataMenuIdle}
+                  onPointerDown={resetDataMenuIdle}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDataMenuOpen(false);
+                      importInputRef.current?.click();
+                    }}
+                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    <Upload className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    {t('Import Excel', 'Excel దిగుమతి')}
+                  </button>
+                  <a
+                    href={`/templates/dealer-import-template-${activeTab}.xlsx`}
+                    download
+                    onClick={() => setDataMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    {t('Template', 'టెంప్లేట్')}
+                  </a>
+                  {isAdminUser && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDataMenuOpen(false);
+                        void handleExportExcel();
+                      }}
+                      disabled={totalCount === 0}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-emerald-50 disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      {t('Export Excel', 'Excel ఎగుమతి')}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
             {isAdminUser && (
               <button
                 type="button"
@@ -938,11 +1105,11 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
 
       <div className="portal-card overflow-hidden">
         <div className="table-scroll">
-          <table className="w-full min-w-[1020px] border-collapse text-sm">
+          <table className="w-full min-w-[1020px] border-collapse text-xs">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left dark:border-slate-700 dark:bg-slate-800/60">
                 {canManageDealers && (
-                  <th className="w-10 px-4 py-3">
+                  <th className="w-10 px-3 py-2">
                     <input
                       type="checkbox"
                       checked={paginatedDealers.length > 0 && paginatedDealers.every((d) => selectedDealerIds.has(d.id))}
@@ -954,53 +1121,50 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
                           return next;
                         });
                       }}
-                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                       aria-label={t('Select all dealers on this page', 'ఈ పేజీలోని అన్ని డీలర్లను ఎంచుకోండి')}
                     />
                   </th>
                 )}
-                <th className="w-12 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  #
-                </th>
-                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {t('Dealer Name', 'పేరు')}
                 </th>
                 {showIfms && (
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     IFMS ID
                   </th>
                 )}
-                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {t('Phone', 'ఫోన్')}
                 </th>
-                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {t('License', 'లైసెన్స్')}
                 </th>
                 {activeTab === 'pesticide' && (
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <th className="w-[104px] whitespace-nowrap px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     {t('Issue Date', 'జారీ తేదీ')}
                   </th>
                 )}
                 {activeTab !== 'pesticide' && (
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <th className="w-[104px] whitespace-nowrap px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     {validityLabel}
                   </th>
                 )}
-                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {t('Address', 'చిరునామా')}
                 </th>
-                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {t('Mandal / District', 'మండలం / జిల్లా')}
                 </th>
                 {canEditDealers && (
-                  <th className="w-24 px-4 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <th className="w-24 px-3 py-2 text-right text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     {t('Actions', 'చర్యలు')}
                   </th>
                 )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {paginatedDealers.map((dealer, index) => (
+              {paginatedDealers.map((dealer) => (
                 <tr
                   key={dealer.id}
                   className={`transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40 ${
@@ -1008,19 +1172,16 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
                   }`}
                 >
                   {canManageDealers && (
-                    <td className="px-4 py-3 align-middle">
+                    <td className="px-3 py-2 align-middle">
                       <input
                         type="checkbox"
                         checked={selectedDealerIds.has(dealer.id)}
                         onChange={() => toggleDealerSelect(dealer.id)}
-                        className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                        className="h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                         aria-label={t('Select dealer', 'డీలర్‌ను ఎంచుకోండి')}
                       />
                     </td>
                   )}
-                  <td className="px-4 py-3 text-xs font-semibold tabular-nums text-slate-400 dark:text-slate-500">
-                    {currentPage * DEALERS_PAGE_SIZE + index + 1}
-                  </td>
                   {editingId === dealer.id ? (
                     <EditRow
                       dealer={dealer}
@@ -1376,12 +1537,12 @@ function DisplayRow({
   const validityDate = dealer.expiry_date ? new Date(dealer.expiry_date) : null;
   const isExpiringSoon =
     validityDate && validityDate > new Date() && validityDate.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000;
-  const cellCls = 'px-4 py-3 align-middle';
+  const cellCls = 'px-3 py-2 align-middle';
   return (
     <>
       <td className={cellCls}>
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-[10px] font-bold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
             {initials || '?'}
           </span>
           <div className="min-w-0">
@@ -1394,7 +1555,7 @@ function DisplayRow({
                 dealer.created_by_name ||
                 (isAdminCreated ? 'Admin' : null);
               return addedBy ? (
-                <div className="truncate text-[11px] text-slate-400 dark:text-slate-500">
+                <div className="truncate text-[10px] text-slate-400 dark:text-slate-500">
                   {t('Added by', 'కలిపినవారు')}: {addedBy}
                 </div>
               ) : null;
@@ -1406,15 +1567,15 @@ function DisplayRow({
       <td className={`${cellCls} font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400`}>{dealer.phone_number}</td>
       <td className={`${cellCls} font-mono text-xs text-slate-600 dark:text-slate-400`}>{dealer.license_number}</td>
       {isPermanent && (
-        <td className={`${cellCls} text-xs tabular-nums text-slate-600 dark:text-slate-400`}>
+        <td className={`${cellCls} whitespace-nowrap text-xs tabular-nums text-slate-600 dark:text-slate-400`}>
           {dealer.issue_date ? formatDealerDate(dealer.issue_date) || '—' : '—'}
         </td>
       )}
       {!isPermanent && (
-        <td className={cellCls}>
+        <td className={`${cellCls} whitespace-nowrap`}>
           {validityDate ? (
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+              className={`inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                 validityDate > new Date()
                   ? isExpiringSoon
                     ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
@@ -1442,7 +1603,7 @@ function DisplayRow({
               type="button"
               onClick={onEdit}
               title={t('Edit dealer', 'డీలర్ సవరించండి')}
-              className="rounded-lg p-1.5 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400"
+              className="rounded-lg p-1 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400"
             >
               <Edit2 className="h-4 w-4" />
             </button>
@@ -1452,7 +1613,7 @@ function DisplayRow({
                 onClick={onDelete}
                 aria-label={t('Delete dealer', 'డీలర్ తొలగించండి')}
                 title={t('Delete dealer', 'డీలర్ తొలగించండి')}
-                className="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                className="rounded-lg p-1 text-slate-400 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 dark:hover:bg-red-900/30 dark:hover:text-red-400"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -1486,71 +1647,71 @@ function EditRow({
   const { t } = useLanguage();
   return (
     <>
-      <td className="px-4 py-3 align-middle">
+      <td className="px-3 py-2 align-middle">
         <input
           type="text"
           value={dealer.dealer_name}
           onChange={(e) => updateLocalDealer(dealer.id, 'dealer_name', e.target.value)}
-          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
+          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
         />
       </td>
       {showIfms && (
-        <td className="px-4 py-3 align-middle">
+        <td className="px-3 py-2 align-middle">
           <input
             type="text"
             value={dealer.ifms_id ?? ''}
             onChange={(e) => updateLocalDealer(dealer.id, 'ifms_id', e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
+            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
           />
         </td>
       )}
-      <td className="px-4 py-3 align-middle">
+      <td className="px-3 py-2 align-middle">
         <input
           type="tel"
           inputMode="numeric"
           maxLength={10}
           value={dealer.phone_number}
           onChange={(e) => updateLocalDealer(dealer.id, 'phone_number', e.target.value.replace(/\D/g, '').slice(0, 10))}
-          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
+          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
         />
       </td>
-      <td className="px-4 py-3 align-middle">
+      <td className="px-3 py-2 align-middle">
         <input
           type="text"
           value={dealer.license_number}
           onChange={(e) => updateLocalDealer(dealer.id, 'license_number', e.target.value)}
-          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
+          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
         />
       </td>
       {activeTab === 'pesticide' && (
-        <td className="px-4 py-3 align-middle">
+        <td className="px-3 py-2 align-middle">
           <input
             type="date"
             value={dealer.issue_date}
             onChange={(e) => updateLocalDealer(dealer.id, 'issue_date', e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
+            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
           />
         </td>
       )}
       {activeTab !== 'pesticide' && (
-        <td className="px-4 py-3 align-middle">
+        <td className="px-3 py-2 align-middle">
           <input
             type="date"
             value={dealer.expiry_date}
             onChange={(e) => updateLocalDealer(dealer.id, 'expiry_date', e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
+            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
           />
         </td>
       )}
-      <td className="px-4 py-3 align-middle">
+      <td className="px-3 py-2 align-middle">
         <input
           type="text"
           value={dealer.location}
           onChange={(e) => updateLocalDealer(dealer.id, 'location', e.target.value)}
-          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
+          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
         />
       </td>
-      <td className="px-4 py-3 align-middle">
+      <td className="px-3 py-2 align-middle">
         <div className="grid grid-cols-2 gap-1.5">
           <select
             value={normalizeDistrictName(dealer.district)}
@@ -1580,7 +1741,7 @@ function EditRow({
         </div>
       </td>
       {canManage && (
-        <td className="px-4 py-3 align-middle">
+        <td className="px-3 py-2 align-middle">
           <div className="flex gap-1">
             <button
               type="button"

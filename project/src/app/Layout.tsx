@@ -8,6 +8,7 @@ import { useAuth } from '../shared/context/AuthContext';
 import { useLanguage } from '../shared/context/LanguageContext';
 import { useTheme } from '../shared/context/ThemeContext';
 import { useBackButtonOverlay } from '../shared/hooks/useBackButtonOverlay';
+import { useIdleAutoClose } from '../shared/hooks/useIdleAutoClose';
 import { OfficerProfileAutofill } from '../features/auth/components/OfficerProfileAutofill';
 import { MODULE_MENU_ITEMS, getVisibleModuleItems, moduleSections, translateMenu } from '../shared/data/modules';
 import { MobileBottomNav } from '../shared/components/navigation/MobileBottomNav';
@@ -26,6 +27,10 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
   const [profileOpen, setProfileOpen] = useState(false);
   const sidebarOverlay = useBackButtonOverlay('app-sidebar', () => setSidebarOpen(false));
   const profileOverlay = useBackButtonOverlay('profile-menu', () => setProfileOpen(false));
+  const resetProfileIdle = useIdleAutoClose(profileOpen, () => {
+    profileOverlay.closeOverlay();
+    setProfileOpen(false);
+  });
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const signOutOverlay = useBackButtonOverlay('app-signout', () => setShowSignOutConfirm(false));
 
@@ -195,6 +200,8 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                 <div
                   className="animate-pop-in absolute right-0 top-full z-50 mt-2 w-60 origin-top-right overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-950/15 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
                   role="menu"
+                  onPointerMove={resetProfileIdle}
+                  onPointerDown={resetProfileIdle}
                 >
                   <div className="flex items-center gap-2.5 border-b border-slate-100 px-3.5 py-3 dark:border-slate-800">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gold-400 to-gold-600 text-sm font-black text-white ring-2 ring-gold-100 dark:ring-slate-700">

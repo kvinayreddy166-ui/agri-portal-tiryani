@@ -52,7 +52,7 @@ import {
   adminListTicketOptions,
   adminSetDuplicate,
   adminUpdateTicket,
-  exportFeedbackCsv,
+  exportFeedbackExcel,
   type AssigneeOption,
   type FeedbackStats,
 } from '../services/feedbackService';
@@ -283,10 +283,10 @@ export function FeedbackAdmin() {
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     try {
-      exportFeedbackCsv(tickets);
-      toast.showSuccess('Export ready', `${tickets.length} ticket(s) exported to CSV.`);
+      await exportFeedbackExcel(tickets);
+      toast.showSuccess('Export ready', `${tickets.length} ticket(s) exported to Excel.`);
     } catch {
       toast.showError('Export failed', 'Could not export feedback.');
     }
@@ -318,7 +318,7 @@ export function FeedbackAdmin() {
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <Download className="h-4 w-4" />
-            Export CSV
+            Export Excel
           </button>
         }
       />

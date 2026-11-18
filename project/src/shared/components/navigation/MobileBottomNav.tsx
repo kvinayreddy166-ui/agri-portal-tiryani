@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Check, ChevronRight, Home, Scale, TestTubes, Store, LayoutGrid, Gavel, ClipboardCheck } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useIdleAutoClose } from '../../hooks/useIdleAutoClose';
 
 interface MobileBottomNavProps {
   currentPage: string;
@@ -55,6 +56,7 @@ export function MobileBottomNav({ currentPage, onNavigate, isAdminUser = false }
   const { t } = useLanguage();
   const active = activeTabFor(currentPage);
   const [enforcementOpen, setEnforcementOpen] = useState(false);
+  const resetEnforcementIdle = useIdleAutoClose(enforcementOpen, () => setEnforcementOpen(false));
 
   useEffect(() => {
     if (!enforcementOpen) return;
@@ -142,6 +144,8 @@ export function MobileBottomNav({ currentPage, onNavigate, isAdminUser = false }
                     role="menu"
                     aria-label={t('Enforcement views', 'అమలు వీక్షణలు')}
                     className="animate-pop-in absolute bottom-[calc(100%+12px)] right-0 z-50 w-56 origin-bottom-right overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-2xl shadow-emerald-950/20 backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/95"
+                    onPointerMove={resetEnforcementIdle}
+                    onPointerDown={resetEnforcementIdle}
                   >
                     {/* Sheet grip — signals a transient sheet, not a permanent panel */}
                     <div className="flex justify-center pb-1 pt-2.5" aria-hidden>

@@ -1,6 +1,5 @@
 import { supabase } from '../../../shared/lib/supabase';
 import { APP_VERSION } from '../../../shared/lib/appVersion';
-import { downloadCsv } from '../../../shared/utils/csvExport';
 import {
   FEEDBACK_ATTACHMENT_BUCKET,
   FEEDBACK_MAX_FILE_SIZE,
@@ -127,6 +126,28 @@ export async function getMyFeedbackDetail(feedbackId: string): Promise<FeedbackD
     activity: (activityRes.data ?? []) as FeedbackActivity[],
     attachmentUrl,
   };
+}
+
+/** Deletes one of the signed-in user's own tickets (RLS-scoped) plus its attachment. */
+export async function deleteMyFeedback(feedbackId: string) {
+  const { data: authData } = await supabase.auth.getUser();
+  const user = authData.user;
+  if (!user) throw new Error('You must be signed in.');
+
+  const { data: ticket } = await db()('feedback')
+    .select('id, attachment_path')
+    .eq('id', feedbackId)
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (!ticket) throw new Error('Feedback not found.');
+
+  const attachmentPath = (ticket as { attachment_path: string | null }).attachment_path;
+  if (attachmentPath) {
+    await supabase.storage.from(FEEDBACK_ATTACHMENT_BUCKET).remove([attachmentPath]);
+  }
+
+  const { error } = await db()('feedback').delete().eq('id', feedbackId).eq('user_id', user.id);
+  if (error) throw new Error(error.message || 'Failed to delete feedback.');
 }
 
 /* ------------------------------------------------------------------ */
@@ -433,7 +454,19 @@ const STATUS_LABELS: Record<string, string> = {
   implemented: 'Added to AGRONIX',
 };
 
-export function exportFeedbackCsv(tickets: FeedbackTicket[]) {
+export async function exportFeedbackExcel(tickets: FeedbackTicket[]) {
+  const ExcelJSModule = await import('exceljs');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ExcelJS = (ExcelJSModule as any).default || ExcelJSModule;
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = 'AGRONIX — Agriculture Information Management System';
+  workbook.created = new Date();
+
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const sheet = workbook.addWorksheet('Feedback Register', {
+    views: [{ state: 'frozen', ySplit: 4 }],
+  });
+
   const headers = [
     'Ticket',
     'Date',
@@ -441,6 +474,7 @@ export function exportFeedbackCsv(tickets: FeedbackTicket[]) {
     'Designation',
     'District',
     'Mandal',
+    'Phone',
     'Email',
     'Category',
     'Subject',
@@ -448,23 +482,115 @@ export function exportFeedbackCsv(tickets: FeedbackTicket[]) {
     'Priority',
     'Status',
     'Assigned To',
+    'Votes',
     'Description',
   ];
-  const rows = tickets.map((t) => [
-    t.ticket_number ?? '',
-    t.created_at ? new Date(t.created_at).toLocaleString('en-IN') : '',
-    t.submitter_name ?? '',
-    t.submitter_designation ?? '',
-    t.submitter_district ?? '',
-    t.submitter_mandal ?? '',
-    t.submitter_email ?? '',
-    CATEGORY_LABELS[t.category] ?? t.category,
-    t.subject,
-    t.module ?? '',
-    t.priority,
-    STATUS_LABELS[t.status] ?? t.status,
-    t.assigned_label ?? '',
-    t.description,
-  ]);
-  downloadCsv(`agronix-feedback-${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
+  const lastCol = String.fromCharCode(64 + headers.length);
+
+  // Title banner
+  sheet.mergeCells(`A1:${lastCol}1`);
+  const titleCell = sheet.getCell('A1');
+  titleCell.value = 'AGRONIX — FEEDBACK MANAGEMENT REGISTER';
+  titleCell.font = { name: 'Arial', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+  titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF15803D' } };
+  sheet.getRow(1).height = 28;
+
+  // Meta row
+  sheet.mergeCells(`A2:${lastCol}2`);
+  const metaCell = sheet.getCell('A2');
+  metaCell.value = `Exported: ${dateStr}   |   Total tickets: ${tickets.length}`;
+  metaCell.font = { name: 'Arial', size: 9, italic: true, color: { argb: 'FF475569' } };
+  metaCell.alignment = { horizontal: 'left', vertical: 'middle' };
+  sheet.getRow(2).height = 16;
+
+  const headerRow = sheet.getRow(4);
+  headers.forEach((h, i) => {
+    const cell = headerRow.getCell(i + 1);
+    cell.value = h;
+    cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF065F46' } };
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECFDF5' } };
+    cell.border = {
+      top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      bottom: { style: 'medium', color: { argb: 'FF059669' } },
+      left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+      right: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+    };
+  });
+  headerRow.height = 24;
+  sheet.getRow(3).height = 8;
+
+  tickets.forEach((t, idx) => {
+    const row = sheet.addRow([
+      t.ticket_number ?? '',
+      t.created_at ? new Date(t.created_at).toLocaleString('en-IN') : '',
+      t.submitter_name ?? '',
+      t.submitter_designation ?? '',
+      t.submitter_district ?? '',
+      t.submitter_mandal ?? '',
+      t.submitter_phone ?? '',
+      t.submitter_email ?? '',
+      CATEGORY_LABELS[t.category] ?? t.category,
+      t.subject,
+      t.module ?? '',
+      t.priority,
+      STATUS_LABELS[t.status] ?? t.status,
+      t.assigned_label ?? '',
+      t.vote_count ?? 0,
+      t.description,
+    ]);
+    row.height = 30;
+    const isEven = idx % 2 === 1;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    row.eachCell((cell: any, colNum: number) => {
+      cell.font = { name: 'Arial', size: 9 };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+        right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+      };
+      if (isEven) {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+      }
+      if (colNum <= 2 || colNum === 15) {
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+      } else {
+        cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+      }
+    });
+  });
+
+  sheet.columns = [
+    { width: 12 }, // Ticket
+    { width: 18 }, // Date
+    { width: 20 }, // Submitter
+    { width: 18 }, // Designation
+    { width: 14 }, // District
+    { width: 14 }, // Mandal
+    { width: 14 }, // Phone
+    { width: 22 }, // Email
+    { width: 16 }, // Category
+    { width: 28 }, // Subject
+    { width: 14 }, // Module
+    { width: 10 }, // Priority
+    { width: 14 }, // Status
+    { width: 18 }, // Assigned To
+    { width: 8 },  // Votes
+    { width: 50 }, // Description
+  ];
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `agronix-feedback-${dateStr}.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }

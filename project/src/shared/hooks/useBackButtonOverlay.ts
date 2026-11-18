@@ -31,11 +31,7 @@ export function useBackButtonOverlay(overlayKey: string, onBackClose: () => void
     if (ownsHistoryRef.current && getHistoryState().tiryaniOverlay === overlayKey) {
       window.history.back();
       ownsHistoryRef.current = false;
-      setTimeout(() => {
-        if (getHistoryState().tiryaniOverlay === overlayKey) {
-          onBackCloseRef.current();
-        }
-      }, 100);
+      onBackCloseRef.current();
       return;
     }
     ownsHistoryRef.current = false;
