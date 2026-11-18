@@ -182,7 +182,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                 aria-expanded={profileOpen}
                 aria-haspopup="menu"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-gold-300 to-gold-500 text-[11px] font-black text-emerald-950 ring-2 ring-white/25">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-gold-400 to-gold-600 text-[11px] font-black text-white ring-2 ring-white/25">
                   {user?.email?.charAt(0).toUpperCase()}
                 </span>
                 {profileOpen && <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-gold-400" aria-hidden />}
@@ -197,7 +197,7 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                   role="menu"
                 >
                   <div className="flex items-center gap-2.5 border-b border-slate-100 px-3.5 py-3 dark:border-slate-800">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gold-300 to-gold-500 text-sm font-black text-emerald-950 ring-2 ring-emerald-100 dark:ring-slate-700">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gold-400 to-gold-600 text-sm font-black text-white ring-2 ring-gold-100 dark:ring-slate-700">
                       {user?.email?.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">

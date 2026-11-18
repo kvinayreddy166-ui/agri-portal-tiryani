@@ -330,6 +330,11 @@ export async function markAllNotificationsRead() {
     .is('read_at', null);
 }
 
+/** Deletes every notification owned by the given user (RLS-scoped). */
+export async function clearAllNotifications(userId: string) {
+  await db()('notifications').delete().eq('user_id', userId);
+}
+
 export interface NotificationRecipient {
   id: string;
   name: string;

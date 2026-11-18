@@ -12,6 +12,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { supabase } from '../../lib/supabase';
 import { getMandalsForDistrict } from '../../data/telanganaDistrictMandalData';
 import { useBackButtonOverlay } from '../../hooks/useBackButtonOverlay';
+import { isAppInstalled, waitForInstallPrompt, promptAppInstall } from '../../lib/installPrompt';
 
 const ADMIN_EMAIL = 'k.vinayreddy166@gmail.com';
 
@@ -61,11 +62,6 @@ const DISTRICT_TO_MANDAL_KEY: Record<string, string> = {
   'Rangareddy': 'Ranga Reddy',
 };
 
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
-};
-
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:focus:ring-emerald-500/20';
 
@@ -75,11 +71,8 @@ export function FloatingActions() {
   const [grievanceOpen, setGrievanceOpen] = useState(false);
   const [grievanceStatus, setGrievanceStatus] = useState<string | null>(null);
   const [grievanceSubmitting, setGrievanceSubmitting] = useState(false);
-  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installMessage, setInstallMessage] = useState<string | null>(null);
-  const [appInstalled, setAppInstalled] = useState(
-    () => typeof window !== 'undefined' && (window.matchMedia?.('(display-mode: standalone)')?.matches || Boolean((window.navigator as Navigator & { standalone?: boolean })?.standalone))
-  );
+  const [appInstalled, setAppInstalled] = useState(() => isAppInstalled());
   const showInstallButton = !appInstalled;
 
   const [grievance, setGrievance] = useState({
@@ -110,24 +103,12 @@ export function FloatingActions() {
   }, []);
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      setInstallPrompt(event as BeforeInstallPromptEvent);
-      setInstallMessage(null);
-    };
-
     const handleAppInstalled = () => {
       setAppInstalled(true);
-      setInstallPrompt(null);
       setInstallMessage(t('App installed successfully.', 'యాప్ విజయవంతంగా ఇన్‌స్టాల్ అయింది.'));
     };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
+    return () => window.removeEventListener('appinstalled', handleAppInstalled);
   }, [t]);
 
   const handleGrievanceSubmit = async (e: React.FormEvent) => {
@@ -182,21 +163,21 @@ export function FloatingActions() {
       return;
     }
 
-    if (installPrompt) {
-      try {
-        await installPrompt.prompt();
-        const choice = await installPrompt.userChoice;
-        setInstallPrompt(null);
-        setInstallMessage(
-          choice.outcome === 'accepted'
-            ? t('Installing app...', 'యాప్ ఇన్‌స్టాల్ అవుతోంది...')
-            : t('Install cancelled. Tap Install App again when the browser prompt is available.', 'ఇన్‌స్టాల్ రద్దు చేయబడింది. బ్రౌజర్ ప్రాంప్ట్ అందుబాటులో ఉన్నప్పుడు మళ్లీ Install App నొక్కండి.')
-        );
-      } catch {
-        setInstallMessage(t('Use your browser menu and choose Install app.', 'బ్రౌజర్ మెనూలో Install app ఎంచుకోండి.'));
-      }
+    const outcome = await promptAppInstall();
+    if (outcome === 'accepted') {
+      setInstallMessage(t('Installing app...', 'యాప్ ఇన్‌స్టాల్ అవుతోంది...'));
       return;
     }
+    if (outcome === 'dismissed') return;
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (isIos) {
+      setInstallMessage(t('On iPhone/iPad: tap Share, then Add to Home Screen.', 'iPhone/iPadలో Share నొక్కి, Add to Home Screen ఎంచుకోండి.'));
+      return;
+    }
+
+    // No deferred prompt yet — the browser may still be waiting for the
+    // service worker to finish installing/activating before firing
+    // beforeinstallprompt. Wait for the event (up to ~8s), then prompt once.
     if ('serviceWorker' in navigator) {
       try {
         await navigator.serviceWorker.ready;
@@ -205,13 +186,14 @@ export function FloatingActions() {
       }
     }
 
-    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    if (!isIos) {
-      setInstallMessage(t('Use your browser menu and choose Install app. If it is not visible, refresh once and tap Install App again.', 'బ్రౌజర్ మెనూలో Install app ఎంచుకోండి. కనిపించకపోతే ఒకసారి రిఫ్రెష్ చేసి మళ్లీ Install App నొక్కండి.'));
+    await waitForInstallPrompt(8000);
+    const retry = await promptAppInstall();
+    if (retry === 'accepted') {
+      setInstallMessage(t('Installing app...', 'యాప్ ఇన్‌స్టాల్ అవుతోంది...'));
       return;
     }
-
-    setInstallMessage(t('On iPhone/iPad: tap Share, then Add to Home Screen.', 'iPhone/iPadలో Share నొక్కి, Add to Home Screen ఎంచుకోండి.'));
+    if (retry === 'dismissed') return;
+    setInstallMessage(t('The install prompt is not available yet. Make sure you are online, then refresh the page and tap Install again. You can also use the browser menu (⋮ → Install app).', 'ఇన్‌స్టాల్ ప్రాంప్ట్ ఇంకా అందుబాటులో లేదు. దయచేసి ఆన్‌లైన్‌లో ఉండండి, తర్వాత పేజీని రిఫ్రెష్ చేసి Install నొక్కండి. లేదా బ్రౌజర్ మెనూ (⋮ → Install app) ఉపయోగించండి.'));
   };
 
   return (

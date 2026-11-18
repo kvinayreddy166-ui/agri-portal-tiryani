@@ -690,6 +690,20 @@ export function SeedForms({
           </div>
           <p className="text-[10px] font-black uppercase tracking-widest text-orange-700 dark:text-orange-300">SAVED DRAFTS</p>
         </div>
+        {savedDrafts.length === 0 ? (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">No saved drafts yet.</p>
+            <button
+              type="button"
+              onClick={saveDraft}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-1.5 text-[11px] font-black text-white shadow-sm transition hover:bg-emerald-800"
+              title="Save draft"
+            >
+              <Save className="h-3.5 w-3.5" />
+              <span>Save Draft</span>
+            </button>
+          </div>
+        ) : (
         <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <select
             value={selectedDraftName}
@@ -708,14 +722,26 @@ export function SeedForms({
               </option>
             ))}
           </select>
-          <button
-            type="button"
-            onClick={deleteDraft}
-            className="rounded-lg border border-red-200 dark:border-red-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-xs font-black text-red-600 dark:text-red-300 hover:bg-red-50 hover:border-red-300 transition backdrop-blur-sm"
-          >
-            Delete
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={saveDraft}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800"
+              title="Save draft"
+            >
+              <Save className="h-3.5 w-3.5" />
+              <span>Save Draft</span>
+            </button>
+            <button
+              type="button"
+              onClick={deleteDraft}
+              className="rounded-lg border border-red-200 dark:border-red-800/50 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-xs font-black text-red-600 dark:text-red-300 hover:bg-red-50 hover:border-red-300 transition backdrop-blur-sm"
+            >
+              Delete
+            </button>
+          </div>
         </div>
+        )}
       </div>
 
       {message && (
@@ -808,17 +834,6 @@ export function SeedForms({
           <div className="grid gap-2 sm:grid-cols-2">
             <Select label="Cost of sample demanded" value={form.costDemanded} onChange={(value: any) => setField('costDemanded', value)} options={['Yes', 'No'].map(toOption)} />
             <Select label="Cost paid" value={form.costPaid} onChange={(value: any) => setField('costPaid', value)} options={['Paid', 'Not Paid', 'Not Applicable'].map(toOption)} />
-          </div>
-          <div className="flex justify-end border-t border-red-700/20 pt-2">
-            <button
-              type="button"
-              onClick={saveDraft}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-1.5 text-[11px] font-black text-white shadow-sm transition hover:bg-emerald-800"
-              title="Save draft"
-            >
-              <Save className="h-3.5 w-3.5" />
-              <span>Save Draft</span>
-            </button>
           </div>
         </Card>
         </div>

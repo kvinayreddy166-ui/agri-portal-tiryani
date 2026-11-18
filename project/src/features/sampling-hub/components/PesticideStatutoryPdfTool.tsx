@@ -951,6 +951,20 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               </div>
               <p className="text-[10px] font-black uppercase tracking-widest text-red-700 dark:text-red-300">SAVED DRAFTS</p>
             </div>
+            {savedDrafts.length === 0 ? (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">No saved drafts yet.</p>
+                <button
+                  type="button"
+                  onClick={saveDraft}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-1.5 text-[11px] font-black text-white shadow-sm transition hover:bg-emerald-800"
+                  title="Save draft"
+                >
+                  <Save className="h-3.5 w-3.5" />
+                  <span>Save Draft</span>
+                </button>
+              </div>
+            ) : (
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
               <select
                 value={selectedDraftName}
@@ -965,8 +979,20 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                 <option value="">Load saved draft...</option>
                 {savedDrafts.map((draft) => <option key={draft.name} value={draft.name} className={selectedDraftName.trim().toLowerCase() === draft.name.trim().toLowerCase() ? 'bg-red-50 text-red-700 font-bold dark:bg-red-900/50 dark:text-red-200' : ''}>{draft.name}</option>)}
               </select>
-              <button type="button" onClick={deleteDraft} className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition backdrop-blur-sm dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/50 dark:hover:border-red-700">Delete</button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={saveDraft}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-emerald-800"
+                  title="Save draft"
+                >
+                  <Save className="h-3.5 w-3.5" />
+                  <span>Save Draft</span>
+                </button>
+                <button type="button" onClick={deleteDraft} className="rounded-lg border border-red-200 bg-white/90 px-3 py-2 text-xs font-black text-red-600 hover:bg-red-50 hover:border-red-300 transition backdrop-blur-sm dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/50 dark:hover:border-red-700">Delete</button>
+              </div>
             </div>
+            )}
           </div>
 
           {previewError && <div className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300">{previewError}</div>}
@@ -1174,19 +1200,6 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                         />
                       );
                     })}
-                    {section.title === 'DEALER DETAILS' && (
-                      <div className="flex justify-end border-t border-amber-200/70 pt-2 dark:border-amber-800/50">
-                        <button
-                          type="button"
-                          onClick={saveDraft}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700 bg-emerald-700 px-3 py-1.5 text-[11px] font-black text-white shadow-sm transition hover:bg-emerald-800"
-                          title="Save draft"
-                        >
-                          <Save className="h-3.5 w-3.5" />
-                          <span>Save Draft</span>
-                        </button>
-                      </div>
-                    )}
                   </FieldSection>
                 </div>
               );

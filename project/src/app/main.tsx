@@ -5,6 +5,7 @@ import { ErrorBoundary } from '../shared/components/ErrorBoundary';
 import { initServiceWorkerLifecycle, installPwaRecovery } from '../shared/lib/pwaRecovery';
 import { installGlobalErrorHandlers } from '../shared/lib/errorDrain';
 import { recordSiteHit } from '../shared/lib/siteHits';
+import '../shared/lib/installPrompt';
 import './index.css';
 
 declare global {

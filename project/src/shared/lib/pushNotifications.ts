@@ -59,17 +59,18 @@ async function removeSubscriptionRow(endpoint: string): Promise<void> {
   await db()('push_subscriptions').delete().eq('endpoint', endpoint);
 }
 
-/**
- * Ensures the current browser has an active push subscription for the user.
- * Safe to call on every login/session restore — it is idempotent and cheap
- * (reuses the existing subscription when present).
- */
-export async function syncPushSubscription(userId: string): Promise<void> {
-  if (getPushPermissionState() !== 'granted' || !VAPID_PUBLIC_KEY) return;
+// Concurrent sync calls (StrictMode double-mount, multiple NotificationBell
+// instances) must share one in-flight subscribe — parallel pushManager.subscribe()
+// calls each mint a NEW endpoint, which is how duplicate push_subscriptions rows
+// pile up and users get the same alert once per stale endpoint.
+let syncInFlight: Promise<boolean> | null = null;
+
+async function syncPushSubscriptionInner(userId: string): Promise<boolean> {
+  if (getPushPermissionState() !== 'granted' || !VAPID_PUBLIC_KEY) return false;
 
   try {
     const registration = await getPushRegistration();
-    if (!registration) return;
+    if (!registration) return false;
 
     let subscription = await registration.pushManager.getSubscription();
     if (!subscription) {
@@ -79,15 +80,31 @@ export async function syncPushSubscription(userId: string): Promise<void> {
       });
     }
 
-    await saveSubscription(userId, subscription);
+    return await saveSubscription(userId, subscription);
   } catch {
     // Push is best-effort — never break the app for it.
+    return false;
   }
 }
 
 /**
+ * Ensures the current browser has an active push subscription for the user.
+ * Safe to call on every login/session restore — it is idempotent and cheap
+ * (reuses the existing subscription when present). Returns true when this
+ * device holds a subscription row in push_subscriptions.
+ */
+export function syncPushSubscription(userId: string): Promise<boolean> {
+  if (!syncInFlight) {
+    syncInFlight = syncPushSubscriptionInner(userId).finally(() => {
+      syncInFlight = null;
+    });
+  }
+  return syncInFlight;
+}
+
+/**
  * Requests notification permission and subscribes to Web Push.
- * Returns true when the device is now subscribed.
+ * Returns true only when the device is actually subscribed AND saved.
  */
 export async function enablePushNotifications(userId: string): Promise<boolean> {
   if (getPushPermissionState() === 'unsupported' || !VAPID_PUBLIC_KEY) return false;
@@ -96,8 +113,7 @@ export async function enablePushNotifications(userId: string): Promise<boolean> 
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') return false;
 
-    await syncPushSubscription(userId);
-    return true;
+    return await syncPushSubscription(userId);
   } catch {
     return false;
   }

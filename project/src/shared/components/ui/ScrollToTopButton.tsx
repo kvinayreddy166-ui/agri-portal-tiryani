@@ -41,18 +41,18 @@ export function ScrollToTopButton() {
       onClick={scrollToTop}
       aria-label="Back to top"
       title="Back to top"
-      className={`fixed bottom-20 left-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-slate-700 via-slate-900 to-black text-white shadow-xl shadow-slate-950/40 ring-1 ring-white/15 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-950/50 active:scale-95 ${
+      className={`fixed bottom-20 left-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-800 text-white shadow-xl shadow-emerald-900/30 ring-1 ring-emerald-500/50 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:from-emerald-500 hover:via-emerald-600 hover:to-emerald-700 active:scale-95 ${
         visible ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
       }`}
     >
       <svg viewBox="0 0 40 40" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden="true">
-        <circle cx="20" cy="20" r={RADIUS} fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="2.5" />
+        <circle cx="20" cy="20" r={RADIUS} fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2.5" />
         <circle
           cx="20"
           cy="20"
           r={RADIUS}
           fill="none"
-          stroke="#fbbf24"
+          stroke="#ffffff"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeDasharray={CIRCUMFERENCE}

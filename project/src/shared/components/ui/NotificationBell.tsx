@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, BellRing, Check, CheckCheck } from 'lucide-react';
+import { Bell, BellRing, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useBackButtonOverlay } from '../../hooks/useBackButtonOverlay';
 import {
+  clearAllNotifications,
   getUnreadNotificationCount,
   listNotifications,
   markAllNotificationsRead,
@@ -90,6 +91,13 @@ export function NotificationBell() {
     await markAllNotificationsRead();
   };
 
+  const handleClearAll = async () => {
+    if (!user) return;
+    setNotifications([]);
+    setUnread(0);
+    await clearAllNotifications(user.id);
+  };
+
   const handlePushToggle = async () => {
     if (!user) return;
     if (pushOn) {
@@ -133,16 +141,28 @@ export function NotificationBell() {
           >
             <div className="flex items-center justify-between border-b border-slate-100 px-3.5 py-2.5 dark:border-slate-800">
               <p className="font-[var(--font-stylish)] text-[13px] font-black tracking-tight">{t('Notifications', 'నోటిఫికేషన్లు')}</p>
-              {unread > 0 && (
-                <button
-                  type="button"
-                  onClick={() => void handleMarkAll()}
-                  className="flex items-center gap-1 text-[10px] font-black text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300"
-                >
-                  <CheckCheck className="h-3 w-3" />
-                  {t('Mark all read', 'Mark all read')}
-                </button>
-              )}
+              <div className="flex items-center gap-2">
+                {unread > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => void handleMarkAll()}
+                    className="flex items-center gap-1 text-[10px] font-black text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300"
+                  >
+                    <CheckCheck className="h-3 w-3" />
+                    {t('Mark all read', 'Mark all read')}
+                  </button>
+                )}
+                {notifications.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => void handleClearAll()}
+                    className="flex items-center gap-1 text-[10px] font-black text-red-600 transition hover:text-red-700 dark:text-red-400"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    {t('Clear all', 'Clear all')}
+                  </button>
+                )}
+              </div>
             </div>
             {pushSupported && (
               <button
