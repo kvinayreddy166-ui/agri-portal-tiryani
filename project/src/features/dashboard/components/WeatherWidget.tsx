@@ -95,6 +95,7 @@ export function WeatherWidget() {
   // Guard against stale/invalid location state (e.g. preserved across HMR)
   const safeLocation: UserLocation =
     Number.isFinite(location?.lat) && Number.isFinite(location?.lon) ? location : getDefaultUserLocation();
+  const locationUnavailable = safeLocation.source === 'default';
 
   const loadWeather = useCallback(async (isManualRefresh = false, locOverride?: UserLocation) => {
     if (isManualRefresh) setRefreshing(true);
@@ -211,17 +212,21 @@ export function WeatherWidget() {
             </div>
             <div>
               <h3 className="text-base font-black tracking-tight sm:text-lg">
-                {t('Live Weather', 'లైవ్ వాతావరణం')} — {safeLocation.name}
+                {t('Live Weather', 'లైవ్ వాతావరణం')} — {locationUnavailable ? t('Location not available', 'స్థానం అందుబాటులో లేదు') : safeLocation.name}
               </h3>
               <p className="text-xs text-emerald-200/80">
-                {safeLocation.lat.toFixed(2)}° N, {safeLocation.lon.toFixed(2)}° E
-                {safeLocation.source === 'gps' ? ` · ${t('My Location', 'నా స్థానం')}` : ` · ${safeLocation.district || safeLocation.state || 'Tiryani'}`}
+                {locationUnavailable
+                  ? safeLocation.error === 'denied'
+                    ? t('Location access denied', 'స్థానం అనుమతి చెప్పలేదు')
+                    : t('Location unavailable', 'స్థానం అందుబాటులో లేదు')
+                  : `${safeLocation.lat.toFixed(2)}° N, ${safeLocation.lon.toFixed(2)}° E` +
+                    (safeLocation.source === 'gps' ? ` · ${t('My Location', 'నా స్థానం')}` : ` · ${safeLocation.district || safeLocation.state}`)}
               </p>
               {safeLocation.source === 'default' && (
                 <p className="mt-1 text-[11px] font-semibold text-amber-200/90">
                   {safeLocation.error === 'denied'
                     ? t('Location access denied — allow it in browser settings, then tap the pin', 'Location access denied — tap the pin icon')
-                    : t('Showing default Tiryani — tap the pin to detect your location', 'Showing Tiryani default — tap pin for GPS')}
+                    : t('Location unavailable — tap the pin to detect your location', 'స్థానం అందుబాటులో లేదు')}
                 </p>
               )}
             </div>
@@ -260,9 +265,9 @@ export function WeatherWidget() {
               disabled={locating}
               title={t('Use my current location', 'నా ప్రస్తుత స్థానాన్ని ఉపయోగించండి')}
               aria-label={t('Detect location', 'స్థానాన్ని గుర్తించండి')}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-50"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-400 text-emerald-950 shadow-sm ring-1 ring-amber-200/60 transition hover:bg-amber-300 active:scale-95 active:bg-amber-500 disabled:opacity-50"
             >
-              <MapPin className={`h-4 w-4 ${locating ? 'animate-pulse text-gold-300' : ''}`} />
+              <MapPin className={`h-4 w-4 ${locating ? 'animate-pulse text-emerald-950' : ''}`} />
             </button>
           </div>
         </div>
@@ -294,7 +299,7 @@ export function WeatherWidget() {
 
           <div className="text-right text-xs text-emerald-100/80">
             <p className="font-semibold text-white">
-              {weather.locationName}
+              {locationUnavailable ? t('Location not available', 'స్థానం అందుబాటులో లేదు') : weather.locationName}
             </p>
             <p className="mt-0.5">
               {t('Updated', 'అప్‌డేట్')}: {weather.lastUpdated}

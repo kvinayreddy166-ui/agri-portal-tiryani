@@ -400,6 +400,49 @@ export function getEnforcementTrackerHref(categoryFilter: string): string | null
   return null;
 }
 
+const RECORD_ADDRESS_KEY_RE =
+  /^(dealer_?address|firm_?address|party_?address|premises_?address|office_?address|address_?lines|address)$/i;
+const RECORD_ADDRESS_PREFERRED_KEYS = [
+  'dealerAddress',
+  'dealer_address',
+  'firmAddress',
+  'firm_address',
+  'premisesAddress',
+  'address',
+];
+
+function stringifyAddressValue(val: unknown): string {
+  if (Array.isArray(val)) return val.map((v) => String(v ?? '').trim()).filter(Boolean).join(', ');
+  return String(val ?? '').trim();
+}
+
+/** Finds the dealer/firm address inside a record's details (incl. nested form/data/payload). */
+function findRecordAddress(details: Record<string, unknown> | null | undefined): string {
+  if (!details || typeof details !== 'object') return '';
+  const objects: Record<string, unknown>[] = [details];
+  for (const key of ['form', 'data', 'payload']) {
+    const nested = details[key];
+    if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+      objects.push(nested as Record<string, unknown>);
+    }
+  }
+  for (const preferred of RECORD_ADDRESS_PREFERRED_KEYS) {
+    for (const obj of objects) {
+      const text = stringifyAddressValue(obj[preferred]);
+      if (text) return text;
+    }
+  }
+  for (const obj of objects) {
+    for (const [key, val] of Object.entries(obj)) {
+      if (RECORD_ADDRESS_KEY_RE.test(key)) {
+        const text = stringifyAddressValue(val);
+        if (text) return text;
+      }
+    }
+  }
+  return '';
+}
+
 export function OfficerRecordsHub() {
   const { user, officerProfile, isAdminUser } = useAuth();
   const { t } = useLanguage();
@@ -2048,6 +2091,16 @@ export function OfficerRecordsHub() {
                   <span className="block font-semibold text-slate-400">{t('Dealer / Firm Name', 'డీలర్ / సంస్థ పేరు')}</span>
                   <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{selectedRecord.entityName || 'N/A'}</span>
                 </div>
+                {(() => {
+                  const addr = findRecordAddress(selectedRecord.details as Record<string, unknown>);
+                  if (!addr) return null;
+                  return (
+                    <div className="sm:col-span-2">
+                      <span className="block font-semibold text-slate-400">{t('Dealer Address', 'డీలర్ చిరునామా')}</span>
+                      <span className="whitespace-pre-line font-semibold text-slate-800 dark:text-slate-200">{addr}</span>
+                    </div>
+                  );
+                })()}
                 <div>
                   <span className="block font-semibold text-slate-400">{t('Record Date', 'తేదీ')}</span>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedRecord.recordDate || 'N/A'}</span>
@@ -2156,7 +2209,7 @@ export function OfficerRecordsHub() {
                 ]);
                 const flattenKeys = new Set(['form', 'data', 'payload']);
 
-                const flatEntries: [string, unknown][] = [];
+                const flatEntriesAll: [string, unknown][] = [];
                 const pushEntry = (key: string, val: unknown) => {
                   if (excludedKeys.has(key) || val === '' || val === null || val === undefined) return;
                   if (typeof val === 'object') {
@@ -2166,7 +2219,7 @@ export function OfficerRecordsHub() {
                     if (!Array.isArray(val)) return;
                     if (val.some((v) => v !== null && typeof v === 'object')) return;
                   }
-                  flatEntries.push([key, val]);
+                  flatEntriesAll.push([key, val]);
                 };
                 for (const [key, val] of Object.entries(d)) {
                   if (flattenKeys.has(key) && val && typeof val === 'object' && !Array.isArray(val)) {
@@ -2176,6 +2229,9 @@ export function OfficerRecordsHub() {
                   }
                 }
 
+                // Address fields are shown in the core info card above — keep
+                // them out of the grouped sections so no separate card appears.
+                const flatEntries = flatEntriesAll.filter(([key]) => !RECORD_ADDRESS_KEY_RE.test(key));
                 if (flatEntries.length === 0) return null;
 
                 const GROUP_DEFS: { title: string; te: string; pattern: RegExp }[] = [
