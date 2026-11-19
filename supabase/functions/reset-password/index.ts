@@ -47,6 +47,7 @@ Deno.serve(async (req: Request) => {
       .select('*')
       .eq('email', email)
       .eq('purpose', 'reset_password')
+      .eq('consumed', false)
       .order('created_at', { ascending: false })
       .limit(1);
 
@@ -69,26 +70,53 @@ Deno.serve(async (req: Request) => {
       return errorResponse('Invalid verification code. Please enter the correct 6-digit code received in your email.', 400);
     }
 
-    // 2. Consume OTP code
-    await supabase
-      .from('officer_email_otps')
-      .update({ consumed: true })
-      .eq('id', otpRecord.id);
+    // 2. Find the officer account. officer_profiles.id is the auth user id,
+    // so a direct lookup avoids paging through all auth users.
+    let targetUserId: string | null = null;
 
-    // 3. Find user account in auth.users by email using admin client
-    const { data: userList, error: listErr } = await supabase.auth.admin.listUsers();
-    if (listErr) {
-      console.error('Failed to list users:', listErr);
-      return errorResponse('Failed to look up officer account: ' + listErr.message, 500);
+    const { data: profile, error: profileErr } = await supabase
+      .from('officer_profiles')
+      .select('id, email')
+      .ilike('email', email)
+      .limit(1)
+      .maybeSingle();
+
+    if (profileErr) {
+      console.error('Failed to look up officer profile:', profileErr);
+      return errorResponse('Failed to look up officer account: ' + profileErr.message, 500);
     }
 
-    const targetUser = userList.users.find((u) => u.email?.toLowerCase() === email);
-    if (!targetUser) {
+    if (profile?.id) {
+      targetUserId = profile.id;
+    } else {
+      // Fallback: search auth users page by page (listUsers is paginated)
+      let page = 1;
+      const perPage = 200;
+      let found = false;
+      while (!found) {
+        const { data: userList, error: listErr } = await supabase.auth.admin.listUsers({ page, perPage });
+        if (listErr) {
+          console.error('Failed to list users:', listErr);
+          return errorResponse('Failed to look up officer account: ' + listErr.message, 500);
+        }
+        const targetUser = userList.users.find((u) => u.email?.toLowerCase() === email);
+        if (targetUser) {
+          targetUserId = targetUser.id;
+          found = true;
+        } else if (userList.users.length < perPage) {
+          break;
+        } else {
+          page += 1;
+        }
+      }
+    }
+
+    if (!targetUserId) {
       return errorResponse('No registered officer account found with this email address. Please sign up first.', 404);
     }
 
-    // 4. Update the user password in Supabase Auth
-    const { error: updateErr } = await supabase.auth.admin.updateUserById(targetUser.id, {
+    // 3. Update the user password in Supabase Auth
+    const { error: updateErr } = await supabase.auth.admin.updateUserById(targetUserId, {
       password: newPassword,
     });
 
@@ -96,6 +124,12 @@ Deno.serve(async (req: Request) => {
       console.error('Failed to update password:', updateErr);
       return errorResponse('Failed to update password: ' + updateErr.message, 500);
     }
+
+    // 4. Consume OTP code only after successful password update
+    await supabase
+      .from('officer_email_otps')
+      .update({ consumed: true })
+      .eq('id', otpRecord.id);
 
     return json({
       success: true,

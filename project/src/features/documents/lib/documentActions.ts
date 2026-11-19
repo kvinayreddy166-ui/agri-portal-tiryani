@@ -34,12 +34,7 @@ export function isMobileDevice(): boolean {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
-/**
- * Downloads a Blob with a preserved filename. Uses a programmatic
- * `<a download>` click — reliable on all platforms, not popup-blocked.
- * The object URL stays alive for 60s so slow mobile browsers can fetch it.
- */
-export function downloadBlobFile(blob: Blob, filename: string): void {
+function anchorDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -49,6 +44,42 @@ export function downloadBlobFile(blob: Blob, filename: string): void {
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
+}
+
+/**
+ * Downloads a Blob with a preserved filename.
+ *
+ * On mobile browsers and installed-PWA mode the `<a download>` blob click is
+ * frequently ignored (iOS Safari, Android WebView/PWA), so we prefer the Web
+ * Share API with a File — it opens the native share/save sheet where the user
+ * can save to Files/Drive/Downloads. Desktop keeps the direct download.
+ */
+export function downloadBlobFile(blob: Blob, filename: string): void {
+  const mobile = isMobileDevice() || isStandalonePwa();
+  const nav = navigator as Navigator & {
+    canShare?: (data: ShareData) => boolean;
+    share?: (data: ShareData) => Promise<void>;
+  };
+
+  if (mobile && typeof nav.canShare === 'function' && typeof nav.share === 'function') {
+    try {
+      const file = new File([blob], filename, { type: blob.type || 'application/octet-stream' });
+      if (nav.canShare({ files: [file] })) {
+        nav.share({ files: [file], title: filename }).catch((error: unknown) => {
+          // AbortError = user dismissed the share sheet; anything else means
+          // share is unusable here, so fall back to the anchor download.
+          if ((error as DOMException | undefined)?.name !== 'AbortError') {
+            anchorDownload(blob, filename);
+          }
+        });
+        return;
+      }
+    } catch {
+      // Fall through to the anchor download.
+    }
+  }
+
+  anchorDownload(blob, filename);
 }
 
 export type BlobPreviewResult = 'opened' | 'downloaded' | 'failed';

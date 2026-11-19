@@ -4,6 +4,7 @@ import {
   Archive,
   AlertTriangle,
   CheckCircle2,
+  Check,
   ChevronDown,
   ChevronRight,
   ClipboardList,
@@ -452,7 +453,7 @@ export function OfficerRecordsHub() {
   const [activeTab, setActiveTab] = useState<'documents' | 'records'>('documents');
 
   // Display Mode: 'list' (default as requested) vs 'grid'
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
   // R2 Document Archive State
   const [documents, setDocuments] = useState<OfficerDocumentArchiveRecord[]>([]);
@@ -488,6 +489,7 @@ export function OfficerRecordsHub() {
   const [commodityFilter, setCommodityFilter] = useState<'all' | StatutoryCommodity>('all');
   const [districtFilter, setDistrictFilter] = useState<string>('all');
   const [mandalFilter, setMandalFilter] = useState<string>('all');
+  const [syncFilter, setSyncFilter] = useState<'all' | 'cloud' | 'pending'>('all');
 
   // Modals
   const [selectedRecord, setSelectedRecord] = useState<UnifiedOfficerRecord | null>(null);
@@ -842,6 +844,8 @@ export function OfficerRecordsHub() {
   // Filtered Documents
   const filteredDocuments = useMemo(() => {
     return documents.filter((doc) => {
+      if (syncFilter === 'cloud' && doc.upload_status !== 'saved_to_cloud') return false;
+      if (syncFilter === 'pending' && doc.upload_status === 'saved_to_cloud') return false;
       if (categoryFilter !== 'all' && getDocumentSavedCategory(doc) !== categoryFilter) return false;
 
       // Commodity filter (sample documents only)
@@ -895,7 +899,7 @@ export function OfficerRecordsHub() {
 
       return true;
     });
-  }, [documents, categoryFilter, commodityFilter, districtFilter, mandalFilter, isAdminUser, officerProfile, yearFilter, monthFilter, dateFilter, searchQuery, parseItemDate]);
+  }, [documents, syncFilter, categoryFilter, commodityFilter, districtFilter, mandalFilter, isAdminUser, officerProfile, yearFilter, monthFilter, dateFilter, searchQuery, parseItemDate]);
 
   // Filtered Form Records
   const filteredRecords = useMemo(() => {
@@ -1026,9 +1030,14 @@ export function OfficerRecordsHub() {
     switch (status) {
       case 'saved_to_cloud':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-            <CheckCircle2 className="h-3 w-3" />
-            <span>Saved to Cloud</span>
+          <span
+            title={t('Saved to Cloud', 'క్లౌడ్ లో భద్రపరిచినవి')}
+            className="inline-flex items-center rounded-full bg-emerald-50 px-1.5 py-0.5 border border-emerald-200 dark:border-emerald-800 dark:bg-emerald-950/40"
+          >
+            <span className="relative inline-flex">
+              <Cloud className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-300" />
+              <Check className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full bg-emerald-600 text-white dark:bg-emerald-400" strokeWidth={3.5} />
+            </span>
           </span>
         );
       case 'uploading':
@@ -1138,8 +1147,7 @@ export function OfficerRecordsHub() {
                   <FileText className="h-4 w-4" />
                 </span>
               </div>
-              <div className="mt-2 text-2xl font-black tracking-tight text-slate-950 dark:text-white">{storageStats.totalDocuments}</div>
-              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">{t('Archived officer files', 'భద్రపరిచిన రికార్డులు')}</p>
+              <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">{t('Archived officer files', 'భద్రపరిచిన రికార్డులు')}</p>
             </div>
 
             <div className="relative overflow-hidden rounded-xl border border-emerald-200/80 bg-emerald-50/30 p-3.5 shadow-2xs dark:border-emerald-900/60 dark:bg-emerald-950/20">
@@ -1150,8 +1158,7 @@ export function OfficerRecordsHub() {
                   <Cloud className="h-4 w-4" />
                 </span>
               </div>
-              <div className="mt-2 text-2xl font-black tracking-tight text-emerald-700 dark:text-emerald-300">{storageStats.successfullyUploaded}</div>
-              <p className="mt-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400">{t('Synced to cloud storage', 'క్లౌడ్ నిల్వకు సమించబడింది')}</p>
+              <p className="mt-2 text-[11px] text-emerald-700/80 dark:text-emerald-400">{t('Synced to cloud storage', 'క్లౌడ్ నిల్వకు సమించబడింది')}</p>
             </div>
 
             <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
@@ -1162,21 +1169,9 @@ export function OfficerRecordsHub() {
                   <Archive className="h-4 w-4" />
                 </span>
               </div>
-              <div className="mt-2 text-2xl font-black tracking-tight text-slate-950 dark:text-white">
-                {formatBytes(storageStats.totalStoredBytes || storageStats.totalStorageBytes)}
-              </div>
-              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
                 {t('Compressed cloud footprint', 'కంప్రెస్డ్ నిల్వ')}
               </p>
-              {storageStats.storageSavedBytes > 0 && (
-                <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
-                  <CheckCircle2 className="h-3 w-3" />
-                  {t(
-                    `${formatBytes(storageStats.storageSavedBytes)} saved (${storageStats.compressionPercentage}%)`,
-                    `${formatBytes(storageStats.storageSavedBytes)} ఆదా (${storageStats.compressionPercentage}%)`
-                  )}
-                </p>
-              )}
             </div>
           </div>
 
@@ -1188,7 +1183,6 @@ export function OfficerRecordsHub() {
                 : 'border-slate-200/80 bg-slate-50/60 text-slate-600 dark:border-slate-800 dark:bg-slate-800/40'
             }`}>
               <div className="text-xs font-semibold">{t('Pending Uploads', 'పెండింగ్ అప్‌లోడ్లు')}</div>
-              <div className="mt-1 text-base font-black">{storageStats.pendingUploads}</div>
             </div>
 
             <div className={`rounded-xl border p-2.5 text-center ${
@@ -1197,7 +1191,6 @@ export function OfficerRecordsHub() {
                 : 'border-slate-200/80 bg-slate-50/60 text-slate-600 dark:border-slate-800 dark:bg-slate-800/40'
             }`}>
               <div className="text-xs font-semibold">{t('Failed Uploads', 'విఫలమైన అప్‌లోడ్లు')}</div>
-              <div className="mt-1 text-base font-black">{storageStats.failedUploads}</div>
             </div>
           </div>
         </div>
@@ -1220,19 +1213,13 @@ export function OfficerRecordsHub() {
             }`}
           >
             {tab.label}
-            <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${
-              activeTab === tab.key
-                ? 'bg-white/20 text-white'
-                : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-            }`}>
-              {tab.key === 'documents' ? filteredDocuments.length : filteredRecords.length}
-            </span>
           </button>
         ))}
       </div>
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center gap-3">
         <div className="relative w-full md:w-1/2 lg:w-2/5">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
           <input
@@ -1243,9 +1230,112 @@ export function OfficerRecordsHub() {
             className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:focus:ring-emerald-900/40"
           />
         </div>
+        </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Sync status pills — documents only; records auto-sync to cloud */}
+          {activeTab === 'documents' && (
+          <div className="inline-flex rounded-full bg-slate-100 p-1 dark:bg-slate-800">
+            {(['all', 'cloud', 'pending'] as const).map((key) => {
+              const active = syncFilter === key;
+              const label = key === 'all' ? t('All', 'అన్నీ') : key === 'cloud' ? t('Cloud Saved', 'క్లౌడ్ లో భద్రపరిచినవి') : t('Pending', 'పెండింగ్');
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setSyncFilter(key)}
+                  className={`rounded-full px-3 py-1.5 text-[11px] font-black transition ${active ? 'bg-white text-emerald-700 shadow-sm dark:bg-slate-900 dark:text-emerald-300' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          )}
+
           {/* Admin-only district/mandal filters */}
+
+
+          {/* Admin-only filter reset */}
+          {isAdminUser && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setDistrictFilter('all');
+                setMandalFilter('all');
+                setSyncFilter('all');
+                setCategoryFilter('all');
+                setCommodityFilter('all');
+                setYearFilter('all');
+                setMonthFilter('all');
+                setDateFilter('all');
+              }}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-xs transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+              title={t('Reset all filters', 'అన్ని ఫిల్టర్లను రీసెట్ చేయండి')}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>{t('Reset', 'రీసెట్')}</span>
+            </button>
+          )}
+
+
+          {/* Export Dropdown Button (Tucks Excel & PDF inside) — records tab only */}
+          {activeTab === 'records' && (
+          <div className="relative" ref={exportMenuRef}>
+            <button
+              type="button"
+              onClick={() => setIsExportMenuOpen((prev) => !prev)}
+              disabled={exportingType !== null || visibleItems.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              title={t('Export Register & Reports', 'రిజిస్టర్ & నివేదికలను ఎగుమతి చేయండి')}
+              aria-haspopup="true"
+              aria-expanded={isExportMenuOpen}
+            >
+              {exportingType !== null ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600 dark:text-emerald-400" />
+              ) : (
+                <Download className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              )}
+              <span>{t('Export', 'ఎగుమతి')}</span>
+              <ChevronDown
+                className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${
+                  isExportMenuOpen ? 'rotate-180 text-emerald-600' : ''
+                }`}
+              />
+            </button>
+
+            {isExportMenuOpen && (
+              <div className="absolute right-0 mt-1.5 w-32 rounded-xl border border-slate-200 bg-white py-1 shadow-lg z-30 dark:border-slate-700 dark:bg-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    void handleExport('excel');
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 transition"
+                >
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>EXCEL</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    void handleExport('pdf');
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-800 dark:text-slate-200 dark:hover:bg-rose-950/40 dark:hover:text-rose-300 transition border-t border-slate-100 dark:border-slate-700/60"
+                >
+                  <Printer className="h-4 w-4 text-rose-600 shrink-0" />
+                  <span>PDF</span>
+                </button>
+
+              </div>
+            )}
+          </div>
+          )}
+
           {isAdminUser && (
             <>
               <select
@@ -1362,120 +1452,40 @@ export function OfficerRecordsHub() {
             <option value="30days">{t('Last 30 Days', 'గత 30 రోజులు')}</option>
           </select>
 
-          {/* Result count badge */}
-          <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700">
-            {(activeTab === 'documents' ? filteredDocuments.length : filteredRecords.length)} {t('items', 'అంశాలు')}
-            {(activeTab === 'documents' ? filteredDocuments.length : filteredRecords.length) !== (activeTab === 'documents' ? documents.length : records.length) &&
-              ` / ${activeTab === 'documents' ? documents.length : records.length}`}
-          </span>
 
-          {/* Admin-only filter reset */}
-          {isAdminUser && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setDistrictFilter('all');
-                setMandalFilter('all');
-                setCategoryFilter('all');
-                setCommodityFilter('all');
-                setYearFilter('all');
-                setMonthFilter('all');
-                setDateFilter('all');
-              }}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-xs transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-              title={t('Reset all filters', 'అన్ని ఫిల్టర్లను రీసెట్ చేయండి')}
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span>{t('Reset', 'రీసెట్')}</span>
-            </button>
-          )}
 
-          {/* Export Dropdown Button (Tucks Excel & PDF inside) — records tab only */}
-          {activeTab === 'records' && (
-          <div className="relative" ref={exportMenuRef}>
-            <button
-              type="button"
-              onClick={() => setIsExportMenuOpen((prev) => !prev)}
-              disabled={exportingType !== null || visibleItems.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-              title={t('Export Register & Reports', 'రిజిస్టర్ & నివేదికలను ఎగుమతి చేయండి')}
-              aria-haspopup="true"
-              aria-expanded={isExportMenuOpen}
-            >
-              {exportingType !== null ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600 dark:text-emerald-400" />
-              ) : (
-                <Download className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-              )}
-              <span>{t('Export', 'ఎగుమతి')}</span>
-              <ChevronDown
-                className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${
-                  isExportMenuOpen ? 'rotate-180 text-emerald-600' : ''
-                }`}
-              />
-            </button>
-
-            {isExportMenuOpen && (
-              <div className="absolute right-0 mt-1.5 w-32 rounded-xl border border-slate-200 bg-white py-1 shadow-lg z-30 dark:border-slate-700 dark:bg-slate-800">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsExportMenuOpen(false);
-                    void handleExport('excel');
-                  }}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 transition"
-                >
-                  <FileSpreadsheet className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>EXCEL</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsExportMenuOpen(false);
-                    void handleExport('pdf');
-                  }}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-800 dark:text-slate-200 dark:hover:bg-rose-950/40 dark:hover:text-rose-300 transition border-t border-slate-100 dark:border-slate-700/60"
-                >
-                  <Printer className="h-4 w-4 text-rose-600 shrink-0" />
-                  <span>PDF</span>
-                </button>
-
-              </div>
-            )}
-          </div>
-          )}
-
-          {/* View Mode Toggle: List (default) vs Card Grid */}
-          <div className="flex items-center rounded-xl border border-slate-200 bg-slate-100 p-0.5 dark:border-slate-700 dark:bg-slate-800">
+          {/* View Mode Toggle — grid default, pinned to the right of the filter row */}
+          <div className="ml-auto inline-flex items-center gap-0.5 rounded-full border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-800">
             <button
               type="button"
               onClick={() => setViewMode('list')}
-              className={`rounded-lg p-2 transition ${
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-black transition ${
                 viewMode === 'list'
-                  ? 'bg-white text-emerald-700 shadow-xs dark:bg-slate-700 dark:text-emerald-400'
+                  ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
               }`}
               title={t('List View', 'జాబితా దృశ్యం')}
               aria-label={t('List View', 'జాబితా దృశ్యం')}
             >
-              <List className="h-4 w-4" />
+              <List className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t('List', 'జాబితా')}</span>
             </button>
             <button
               type="button"
               onClick={() => setViewMode('grid')}
-              className={`rounded-lg p-2 transition ${
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-black transition ${
                 viewMode === 'grid'
-                  ? 'bg-white text-emerald-700 shadow-xs dark:bg-slate-700 dark:text-emerald-400'
+                  ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
               }`}
               title={t('Card Grid View', 'కార్డ్ గ్రిడ్ దృశ్యం')}
               aria-label={t('Card Grid View', 'కార్డ్ గ్రిడ్ దృశ్యం')}
             >
-              <LayoutGrid className="h-4 w-4" />
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t('Grid', 'గ్రిడ్')}</span>
             </button>
           </div>
+
         </div>
       </div>
 
@@ -1512,21 +1522,18 @@ export function OfficerRecordsHub() {
                       ? [
                           pendingSyncCount > 0
                             ? t(
-                                `${pendingSyncCount} record(s) saved locally — not yet backed up to cloud`,
-                                `${pendingSyncCount} రికార్డులు స్థానికంగా ఉన్నాయి — ఇంకా క్లౌడ్‌కు బ్యాకప్ కాలేదు`
+                                `record(s) saved locally — not yet backed up to cloud`,
+                                `రికార్డులు స్థానికంగా ఉన్నాయి — ఇంకా క్లౌడ్‌కు బ్యాకప్ కాలేదు`
                               )
                             : '',
                           pendingDocs > 0
                             ? t(
-                                `${pendingDocs} document(s) pending cloud upload — upload manually from Documents tab`,
-                                `${pendingDocs} పత్రాలు క్లౌడ్ అప్‌లోడ్ కోసం పెండింగ్ — పత్రాల ట్యాబ్ నుండి మాన్యువల్‌గా అప్‌లోడ్ చేయండి`
+                                `document(s) pending cloud upload — upload manually from Documents tab`,
+                                `పత్రాలు క్లౌడ్ అప్‌లోడ్ కోసం పెండింగ్ — పత్రాల ట్యాబ్ నుండి మాన్యువల్‌గా అప్‌లోడ్ చేయండి`
                               )
                             : '',
                         ].filter(Boolean).join(' · ')
                       : t('All records and documents are backed up to cloud', 'అన్ని రికార్డులు & పత్రాలు క్లౌడ్‌కు బ్యాకప్ అయ్యాయి')}
-                  </span>
-                  <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-                    ({cloudRecordCount}/{records.length} {t('records', 'రికార్డులు')} · {storageStats.successfullyUploaded}/{documents.length} {t('docs', 'పత్రాలు')} {t('in cloud', 'క్లౌడ్‌లో')})
                   </span>
                 </div>
                 {pendingSyncCount > 0 && (
@@ -1566,7 +1573,7 @@ export function OfficerRecordsHub() {
             </p>
           </div>
         ) : viewMode === 'list' ? (
-          // Merged List View (Default)
+          // Merged List View
           <div className="space-y-2.5">
             {visibleItems.map((item) => {
               if (item.kind === 'record') {
@@ -1610,10 +1617,12 @@ export function OfficerRecordsHub() {
                         {record.synced ? (
                           <span
                             title={t('Backed up to cloud', 'క్లౌడ్‌కు బ్యాకప్ చేయబడింది')}
-                            className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                            className="inline-flex items-center rounded-full bg-emerald-50 px-1.5 py-0.5 border border-emerald-200 dark:border-emerald-800 dark:bg-emerald-950/40"
                           >
-                            <CheckCircle2 className="h-3 w-3" />
-                            <span>Cloud</span>
+                            <span className="relative inline-flex">
+                              <Cloud className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-300" />
+                              <Check className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full bg-emerald-600 text-white dark:bg-emerald-400" strokeWidth={3.5} />
+                            </span>
                           </span>
                         ) : (
                           <span
@@ -1820,10 +1829,12 @@ export function OfficerRecordsHub() {
                       {record.synced ? (
                         <span
                           title={t('Backed up to cloud', 'క్లౌడ్‌కు బ్యాకప్ చేయబడింది')}
-                          className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                          className="inline-flex items-center rounded-full bg-emerald-50 px-1.5 py-0.5 border border-emerald-200 dark:border-emerald-800 dark:bg-emerald-950/40"
                         >
-                          <CheckCircle2 className="h-3 w-3" />
-                          <span>Cloud</span>
+                          <span className="relative inline-flex">
+                            <Cloud className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-300" />
+                            <Check className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full bg-emerald-600 text-white dark:bg-emerald-400" strokeWidth={3.5} />
+                          </span>
                         </span>
                       ) : (
                         <span
@@ -2080,9 +2091,14 @@ export function OfficerRecordsHub() {
                 </span>
 
                 {selectedRecord.synced ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    <span>{t('Cloud Synced', 'క్లౌడ్ సమకాలీకరించబడింది')}</span>
+                  <span
+                    title={t('Cloud Synced', 'క్లౌడ్ సమకాలీకరించబడింది')}
+                    className="inline-flex items-center rounded-full bg-emerald-50 px-1.5 py-0.5 border border-emerald-200 dark:border-emerald-800 dark:bg-emerald-950/40"
+                  >
+                    <span className="relative inline-flex">
+                      <Cloud className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
+                      <Check className="absolute -bottom-1 -right-1 h-2.5 w-2.5 rounded-full bg-emerald-600 text-white dark:bg-emerald-400" strokeWidth={3.5} />
+                    </span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
