@@ -345,7 +345,7 @@ export function TourDiary() {
   const [lastSavedState, setLastSavedState] = useState<string>('');
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
   const [recoveryDraft, setRecoveryDraft] = useState<TourDiaryDraft | null>(null);
-  const [autosaveTimeout, setAutosaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
   const [remarksDialogOpen, setRemarksDialogOpen] = useState<string | null>(null);
   const [dateRemarks, setDateRemarks] = useState<Record<string, string>>({});
@@ -769,16 +769,20 @@ export function TourDiary() {
 
   // Trigger autosave when hasUnsavedChanges becomes true
   useEffect(() => {
-    if (hasUnsavedChanges) {
-      if (autosaveTimeout) {
-        clearTimeout(autosaveTimeout);
-      }
-      const timeout = setTimeout(() => {
-        autosaveDraft();
-      }, 2000); // 2 second debounce
-      setAutosaveTimeout(timeout);
+    if (!hasUnsavedChanges) return;
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
     }
-  }, [hasUnsavedChanges, autosaveTimeout, autosaveDraft]);
+    autosaveTimeoutRef.current = setTimeout(() => {
+      autosaveDraft();
+    }, 2000); // 2 second debounce
+    return () => {
+      if (autosaveTimeoutRef.current) {
+        clearTimeout(autosaveTimeoutRef.current);
+        autosaveTimeoutRef.current = null;
+      }
+    };
+  }, [hasUnsavedChanges, autosaveDraft]);
 
   // Auto-save recovery state with debouncing
   useEffect(() => {
