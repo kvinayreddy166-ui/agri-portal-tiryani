@@ -186,7 +186,7 @@ export function InspectionEnforcementHub() {
       items: [
         { label: 'Seed Inspection', teLabel: 'విత్తన డీలర్ తనిఖీ', desc: 'Seeds Act, 1966 & Seeds Rules', teDesc: 'విత్తన చట్టం ప్రకారం డీలర్ తనిఖీ', icon: Sprout, tone: 'emerald', onClick: () => navigate('/officer-toolkit/seed-dealer-inspection') },
         { label: 'Fertilizer Inspection', teLabel: 'ఎరువుల డీలర్ తనిఖీ', desc: 'FCO 1985 & Clause 28/35', teDesc: 'ఎఫ్.సి.ఒ 1985 ప్రకారం తనిఖీ', icon: FlaskConical, tone: 'sky', onClick: () => navigate('/officer-toolkit/fertilizer-dealer-inspection') },
-        { label: 'Pesticide Inspection', teLabel: 'పురుగుమందుల డీలర్ తనిఖీ', desc: 'Insecticides Act, 1968 & Rules', teDesc: 'పురుగుమందు చట్టం ప్రకారం తనిఖీ', icon: Bug, tone: 'rose', onClick: () => navigate('/officer-toolkit/insecticide-dealer-inspection') },
+        { label: 'Pesticide Inspection', teLabel: 'పురుగుమందుల డీలర్ తనిఖీ', desc: 'Insecticides Act, 1968 & Rules', teDesc: 'పురుగుమందు చట్టం ప్రకారం తనిఖీ', icon: Bug, tone: 'amber', onClick: () => navigate('/officer-toolkit/insecticide-dealer-inspection') },
       ],
     },
     {

@@ -708,14 +708,8 @@ export function SeedDealerInspection() {
       {showDrafts && (
         <Modal title="Saved drafts" onClose={() => setShowDrafts(false)}>
           <div className="mb-3 flex flex-wrap gap-2">
-            <button type="button" onClick={exportDrafts} disabled={!drafts.length} className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-black text-white hover:bg-emerald-700 disabled:opacity-50">
-              <FileDown className="h-4 w-4" />
-              Export drafts
-            </button>
-            <button type="button" onClick={() => importInputRef.current?.click()} className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-black text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50">
-              <FileUp className="h-4 w-4" />
-              Import drafts
-            </button>
+            <ActionButton onClick={exportDrafts} icon={FileDown} tone="emerald" disabled={!drafts.length} size="sm">Export drafts</ActionButton>
+            <ActionButton onClick={() => importInputRef.current?.click()} icon={FileUp} tone="white" size="sm">Import drafts</ActionButton>
             <input ref={importInputRef} type="file" accept="application/json" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importDrafts(file); e.target.value = ''; }} />
           </div>
           {drafts.length === 0 ? (
@@ -729,8 +723,8 @@ export function SeedDealerInspection() {
                     <p className="text-xs text-slate-500 dark:text-slate-400">Saved {new Date(draft.savedAt).toLocaleString()}</p>
                   </div>
                   <div className="flex shrink-0 gap-2">
-                    <button type="button" onClick={() => loadDraft(draft)} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-black text-white hover:bg-emerald-700">Edit</button>
-                    <button type="button" onClick={() => deleteDraft(draft.id)} className="rounded-lg border border-red-200 dark:border-red-800/50 bg-white dark:bg-slate-900 px-2 py-1.5 text-red-600 dark:text-red-300 hover:bg-red-50" aria-label="Delete draft"><Trash2 className="h-4 w-4" /></button>
+                    <ActionButton onClick={() => loadDraft(draft)} tone="emerald" size="sm">Edit</ActionButton>
+                    <ActionButton onClick={() => deleteDraft(draft.id)} icon={Trash2} tone="danger" size="sm" aria-label="Delete draft" className="px-2" />
                   </div>
                 </li>
               ))}

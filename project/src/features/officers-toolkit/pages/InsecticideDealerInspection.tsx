@@ -426,8 +426,8 @@ export function InsecticideDealerInspection() {
   }), [form]);
 
   return (
-    <InspectionTheme tone="rose">
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-red-50 to-pink-50 dark:from-slate-950 dark:via-rose-950 dark:to-red-950">
+    <InspectionTheme tone="amber">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-slate-950 dark:via-amber-950 dark:to-orange-950">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       {confirmDialog}
       <ConfirmDialog
@@ -454,7 +454,7 @@ export function InsecticideDealerInspection() {
         ) : (
           <ToolkitPageHeader
             icon={ClipboardCheck}
-            tone="rose"
+            tone="amber"
             eyebrow="Insecticide inspection"
             title="Pesticide dealer inspection form"
             fallbackPath="/officer-toolkit/inspection-enforcement"
@@ -470,7 +470,7 @@ export function InsecticideDealerInspection() {
         {error && <div className="mb-4 rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-sm font-bold text-red-700 dark:text-red-300">{error}</div>}
 
         <div className="mb-3 flex flex-wrap gap-2">
-          <ActionButton onClick={saveDraft} icon={Save} tone="rose">Save Draft</ActionButton>
+          <ActionButton onClick={saveDraft} icon={Save} tone="amber">Save Draft</ActionButton>
           <ActionButton onClick={() => setShowDrafts(true)} icon={FolderOpen} tone="white">Drafts{drafts.length ? ` (${drafts.length})` : ''}</ActionButton>
           <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">Reset</ActionButton>
         </div>
@@ -501,7 +501,7 @@ export function InsecticideDealerInspection() {
                     setSameStorageAsSale(e.target.checked);
                     if (e.target.checked) set('storagePointDoorNo', form.sellingPointDoorNo);
                   }}
-                  className="h-4 w-4 shrink-0 cursor-pointer accent-rose-600"
+                  className="h-4 w-4 shrink-0 cursor-pointer accent-amber-600"
                 />
                 Same as sale point address
               </label>
@@ -650,8 +650,8 @@ export function InsecticideDealerInspection() {
           </Section>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-rose-200/60 bg-white/90 p-3 shadow-md dark:border-rose-800/50 dark:bg-slate-900/80">
-          <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-rose-800 dark:text-rose-300">Inspection summary</p>
+        <div className="mt-5 rounded-2xl border border-amber-200/60 bg-white/90 p-3 shadow-md dark:border-amber-800/50 dark:bg-slate-900/80">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-amber-800 dark:text-amber-300">Inspection summary</p>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
             <SummaryChip label="Total items" value={summary.total} />
             <SummaryChip label="Completed" value={summary.completed} />
@@ -663,9 +663,9 @@ export function InsecticideDealerInspection() {
             <SummaryChip label="Seized" value={summary.seized} />
             <SummaryChip label="Samples" value={summary.samples} />
           </div>
-          <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-rose-100 pt-3 dark:border-rose-900/40">
+          <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-amber-100 pt-3 dark:border-amber-900/40">
             <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
-            <ExportMenu tone="rose" onPdf={generatePdf} onExcel={generateExcel} onPrint={printPreview} />
+            <ExportMenu tone="amber" onPdf={generatePdf} onExcel={generateExcel} onPrint={printPreview} />
           </div>
         </div>
       </div>
@@ -673,14 +673,8 @@ export function InsecticideDealerInspection() {
       {showDrafts && (
         <Modal title="Saved drafts" onClose={() => setShowDrafts(false)}>
           <div className="mb-3 flex flex-wrap gap-2">
-            <button type="button" onClick={exportDrafts} disabled={!drafts.length} className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-black text-white hover:bg-rose-700 disabled:opacity-50">
-              <FileDown className="h-4 w-4" />
-              Export drafts
-            </button>
-            <button type="button" onClick={() => importInputRef.current?.click()} className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 dark:border-rose-800/50 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-black text-rose-700 dark:text-rose-300 hover:bg-rose-50">
-              <FileUp className="h-4 w-4" />
-              Import drafts
-            </button>
+            <ActionButton onClick={exportDrafts} icon={FileDown} tone="amber" disabled={!drafts.length} size="sm">Export drafts</ActionButton>
+            <ActionButton onClick={() => importInputRef.current?.click()} icon={FileUp} tone="white" size="sm">Import drafts</ActionButton>
             <input ref={importInputRef} type="file" accept="application/json" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importDrafts(file); e.target.value = ''; }} />
           </div>
           {drafts.length === 0 ? (
@@ -694,8 +688,8 @@ export function InsecticideDealerInspection() {
                     <p className="text-xs text-slate-500 dark:text-slate-400">Saved {new Date(draft.savedAt).toLocaleString()}</p>
                   </div>
                   <div className="flex shrink-0 gap-2">
-                    <button type="button" onClick={() => loadDraft(draft)} className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-black text-white hover:bg-rose-700">Edit</button>
-                    <button type="button" onClick={() => deleteDraft(draft.id)} className="rounded-lg border border-red-200 dark:border-red-800/50 bg-white dark:bg-slate-900 px-2 py-1.5 text-red-600 dark:text-red-300 hover:bg-red-50" aria-label="Delete draft"><Trash2 className="h-4 w-4" /></button>
+                    <ActionButton onClick={() => loadDraft(draft)} tone="amber" size="sm">Edit</ActionButton>
+                    <ActionButton onClick={() => deleteDraft(draft.id)} icon={Trash2} tone="danger" size="sm" aria-label="Delete draft" className="px-2" />
                   </div>
                 </li>
               ))}
@@ -707,7 +701,7 @@ export function InsecticideDealerInspection() {
       {showPreview && (
         <Modal title="Inspection preview" onClose={() => setShowPreview(false)} wide footer={
           <div className="flex items-center gap-2">
-            <ExportMenu tone="rose" onPdf={generatePdf} onExcel={generateExcel} onPrint={printPreview} />
+            <ExportMenu tone="amber" onPdf={generatePdf} onExcel={generateExcel} onPrint={printPreview} />
           </div>
         }>
           <div ref={previewRef}>
@@ -882,7 +876,7 @@ function Preview({ form }: { form: InspectionForm }) {
       <div className="overflow-x-auto">
         <table className="w-full table-fixed border-collapse border border-slate-400 text-xs">
           <thead>
-            <tr className="bg-rose-50 dark:bg-rose-950/40">
+            <tr className="bg-amber-50 dark:bg-amber-950/40">
               <th className="w-12 border border-slate-400 px-2 py-1 text-left font-bold">No.</th>
               <th className="w-[42%] border border-slate-400 px-2 py-1 text-left font-bold">Particulars</th>
               <th className="border border-slate-400 px-2 py-1 text-left font-bold">Observation / Remarks</th>

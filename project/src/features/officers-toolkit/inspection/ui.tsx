@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, FileDown, FileSpreadsheet, FileText, Plus, Printer, Trash2 } from 'lucide-react';
+import { ChevronDown, FileDown, FileSpreadsheet, FileText, Plus, Printer, Trash2, type LucideIcon } from 'lucide-react';
 import type { Column, Status, StatusField } from './types';
+import { ActionButton as SharedActionButton } from '../../../shared/components/ui/DesignSystem';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { FIELD_ERROR_CLASSES, FieldErrorMessage } from '../../../shared/components/ui/fieldError';
 
-export type InspectionTone = 'emerald' | 'sky' | 'rose';
+export type InspectionTone = 'emerald' | 'sky' | 'amber';
 
 interface ToneStyles {
   inputFocus: string;
@@ -51,19 +52,19 @@ const toneStyles: Record<InspectionTone, ToneStyles> = {
     checkActive: 'border-sky-200 bg-sky-50/60 dark:border-sky-900/50 dark:bg-sky-950/20',
     checkAccent: 'text-sky-600 accent-sky-600',
   },
-  rose: {
-    inputFocus: 'focus:border-rose-400 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-rose-100 dark:focus:ring-rose-900/40',
-    sectionBorder: 'border-rose-200/60 dark:border-rose-800/50',
-    sectionDivider: 'border-rose-100 dark:border-rose-900',
-    badgeGradient: 'from-rose-500 to-rose-600',
-    chevron: 'text-rose-700',
-    chip: 'border-rose-100 bg-rose-50/60 dark:border-rose-900/50 dark:bg-rose-950/20',
-    chipValue: 'text-rose-700 dark:text-rose-300',
-    addButton: 'bg-rose-600 hover:bg-rose-700',
-    modalBorder: 'border-rose-200/50 dark:border-rose-800/50',
-    actionWhite: 'border-[#FDA4AF] text-[#9F1239] dark:border-rose-700 dark:text-rose-300',
-    checkActive: 'border-rose-200 bg-rose-50/60 dark:border-rose-900/50 dark:bg-rose-950/20',
-    checkAccent: 'text-rose-600 accent-rose-600',
+  amber: {
+    inputFocus: 'focus:border-amber-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-amber-100 dark:focus:ring-amber-900/40',
+    sectionBorder: 'border-amber-200/60 dark:border-amber-800/50',
+    sectionDivider: 'border-amber-100 dark:border-amber-900',
+    badgeGradient: 'from-amber-500 to-amber-600',
+    chevron: 'text-amber-700',
+    chip: 'border-amber-100 bg-amber-50/60 dark:border-amber-900/50 dark:bg-amber-950/20',
+    chipValue: 'text-amber-700 dark:text-amber-300',
+    addButton: 'bg-amber-600 hover:bg-amber-700',
+    modalBorder: 'border-amber-200/50 dark:border-amber-800/50',
+    actionWhite: 'border-[#FCD34D] text-[#92400E] dark:border-amber-700 dark:text-amber-300',
+    checkActive: 'border-amber-200 bg-amber-50/60 dark:border-amber-900/50 dark:bg-amber-950/20',
+    checkAccent: 'text-amber-600 accent-amber-600',
   },
 };
 
@@ -91,44 +92,58 @@ export function useInputClass(): string {
 
 export const labelClass = 'mb-0.5 block text-[11px] font-black tracking-wide text-slate-600 dark:text-slate-300';
 
+const actionAccentClass: Record<string, string> = {
+  sky: 'action-button-accent-sky',
+  amber: 'action-button-accent-amber',
+  purple: 'action-button-accent-purple',
+};
+
+/**
+ * Inspection action button — delegates geometry/hierarchy to the shared
+ * ActionButton while preserving the per-category accent color.
+ */
 export function ActionButton({
   children,
   onClick,
   icon: Icon,
   tone,
+  disabled,
+  size,
+  className = '',
+  ...rest
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   onClick: () => void;
-  icon: React.ElementType;
-  tone: InspectionTone | 'purple' | 'white';
-}) {
+  icon?: LucideIcon;
+  tone: InspectionTone | 'purple' | 'white' | 'danger';
+  disabled?: boolean;
+  size?: 'sm' | 'md';
+  className?: string;
+} & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onClick' | 'children'>) {
   const styles = useToneStyles();
-  const solid: Record<InspectionTone, string> = {
-    emerald: 'bg-emerald-600 text-white hover:bg-emerald-700',
-    sky: 'bg-sky-600 text-white hover:bg-sky-700',
-    rose: 'bg-rose-600 text-white hover:bg-rose-700',
-  };
-  const toneClass =
-    tone === 'purple'
-      ? 'bg-purple-600 text-white hover:bg-purple-700'
-      : tone === 'white'
-        ? `border bg-white/80 hover:bg-white dark:border-slate-700 dark:bg-slate-800/80 dark:hover:bg-slate-700 ${styles.actionWhite}`
-        : solid[tone];
+  if (tone === 'danger') {
+    return (
+      <SharedActionButton tone="danger" size={size} onClick={onClick} icon={Icon} disabled={disabled} className={className} {...rest}>
+        {children}
+      </SharedActionButton>
+    );
+  }
+  if (tone === 'white') {
+    return (
+      <SharedActionButton tone="secondary" size={size} onClick={onClick} icon={Icon} disabled={disabled} className={`${styles.actionWhite} ${className}`} {...rest}>
+        {children}
+      </SharedActionButton>
+    );
+  }
   return (
-    <button type="button" onClick={onClick} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black shadow-sm transition sm:text-sm ${toneClass}`}>
-      <Icon className="h-4 w-4" aria-hidden="true" />
+    <SharedActionButton tone="primary" size={size} onClick={onClick} icon={Icon} disabled={disabled} className={`${actionAccentClass[tone] ?? ''} ${className}`} {...rest}>
       {children}
-    </button>
+    </SharedActionButton>
   );
 }
 
 export function ExportMenu({ tone, onPdf, onExcel, onPrint }: { tone: InspectionTone; onPdf: () => void; onExcel: () => void; onPrint?: () => void }) {
   const [open, setOpen] = useState(false);
-  const solid: Record<InspectionTone, string> = {
-    emerald: 'bg-emerald-600 text-white hover:bg-emerald-700',
-    sky: 'bg-sky-600 text-white hover:bg-sky-700',
-    rose: 'bg-rose-600 text-white hover:bg-rose-700',
-  };
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState<{ top: number; right: number } | null>(null);
   const MENU_HEIGHT = onPrint ? 136 : 96;
@@ -159,7 +174,7 @@ export function ExportMenu({ tone, onPdf, onExcel, onPrint }: { tone: Inspection
         onClick={toggle}
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black shadow-sm transition sm:text-sm ${solid[tone]}`}
+        className={`action-button action-button-primary modern-action-button${actionAccentClass[tone] ? ` ${actionAccentClass[tone]}` : ''}`}
       >
         <FileDown className="h-4 w-4" aria-hidden="true" />
         Export

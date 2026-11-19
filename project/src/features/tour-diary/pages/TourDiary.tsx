@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { supabase } from '../../../shared/lib/supabase';
-import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, X, ClipboardList, Download, Printer, Play } from 'lucide-react';
+import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, Eye, NotebookPen, MoreVertical, X, ClipboardList, Download, Printer, Play, Save } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
+import { ActionButton } from '../../../shared/components/ui/DesignSystem';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
 import { statutoryDesignationForProfile, normalizeTelanganaDistrict } from '../../auth/lib/officerInspectorDefaults';
 import { OFFICER_DESIGNATION_OPTIONS } from '../../auth/lib/officerProfileForm';
@@ -25,6 +26,7 @@ import type {
 import {
   MONTHS,
   RECOVERY_STORAGE_KEY,
+  TOUR_DIARY_BACK_EVENT,
   DRAFT_VERSION,
   TOUR_DIARY_COLUMN_COUNT,
   JOURNEY_MODES,
@@ -737,16 +739,18 @@ export function TourDiary() {
         Object.keys(dateStatusOverrides).length > 0 ||
         Object.keys(dateRemarks).length > 0;
       const draftId = `${officerId}_${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-      if (!hasEntries) {
-        // Nothing worth keeping - remove any stale empty draft instead of
-        // overwriting it with empty content.
+      // Preserve the explicit-save flag: once the user taps "Save Draft" the
+      // record stays in My Diaries even while autosave keeps it updated.
+      const existing = await getDraftFromIndexedDB(draftId);
+      const explicitlySaved = existing?.explicitly_saved === true;
+      if (!hasEntries && !explicitlySaved) {
+        // Nothing worth keeping - remove any stale empty session draft instead
+        // of overwriting it with empty content. Explicitly saved drafts are
+        // never deleted by autosave.
         await deleteDraftFromIndexedDB(draftId);
         setLastSaved(new Date());
         return;
       }
-      // Preserve the explicit-save flag: once the user taps "Save Draft" the
-      // record stays in My Diaries even while autosave keeps it updated.
-      const existing = await getDraftFromIndexedDB(draftId);
       await saveDraftToIndexedDB(
         officerId,
         effectiveOfficerName,
@@ -759,7 +763,7 @@ export function TourDiary() {
         journeys,
         dateStatusOverrides,
         dateRemarks,
-        existing?.explicitly_saved === true
+        explicitlySaved
       );
       setLastSaved(new Date());
     } catch (error) {
@@ -825,6 +829,20 @@ export function TourDiary() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
+
+  // The app-level Back button (Layout breadcrumb) asks the diary to return to
+  // its landing view first. Only when already on the landing view does the
+  // default navigation proceed, so Back inside an open diary/draft never
+  // leaves the module or touches the in-progress session.
+  useEffect(() => {
+    const handleAppBack = (event: Event) => {
+      if (showLandingPage) return;
+      event.preventDefault();
+      setShowLandingPage(true);
+    };
+    window.addEventListener(TOUR_DIARY_BACK_EVENT, handleAppBack);
+    return () => window.removeEventListener(TOUR_DIARY_BACK_EVENT, handleAppBack);
+  }, [showLandingPage]);
 
   // Load officer profile (officer_profiles table) whenever it changes, and
   // prefill empty Officer Details fields from it.
@@ -944,6 +962,12 @@ export function TourDiary() {
         dateRemarks,
         true
       );
+
+      // The work is now persisted as an explicit draft - clear the in-progress
+      // recovery record so it is not offered again as "unsaved" on next launch.
+      safeStorage.removeItem(RECOVERY_STORAGE_KEY);
+      setRecoveryDraft(null);
+      setShowRecoveryPrompt(false);
 
       setLastSaved(new Date());
       setLastSavedState(JSON.stringify({
@@ -1927,9 +1951,34 @@ export function TourDiary() {
 
   // Recovery state functions
   const discardRecoveryState = () => {
+    const draft = recoveryDraft;
     safeStorage.removeItem(RECOVERY_STORAGE_KEY);
     setRecoveryDraft(null);
     setShowRecoveryPrompt(false);
+    if (!draft) return;
+
+    // Also remove the matching in-progress session draft so discarded work
+    // does not reappear through auto-resume or the Resume Draft card.
+    // Explicitly saved drafts are never touched.
+    void (async () => {
+      try {
+        const periodDrafts = await getAllDraftsFromIndexedDB();
+        const nameKey = normalizeOfficerName(draft.officerName || '');
+        await Promise.all(
+          periodDrafts
+            .filter((d) => {
+              if (d.explicitly_saved === true) return false;
+              if (d.year !== draft.year || d.month !== draft.month) return false;
+              if (user?.id && (d.officer_id === user.id || d.id.startsWith(`${user.id}_`))) return true;
+              return normalizeOfficerName(d.officer_name || '') === nameKey;
+            })
+            .map((d) => deleteDraftFromIndexedDB(d.id))
+        );
+        await loadAllDrafts();
+      } catch (error) {
+        console.error('Error discarding in-progress session draft:', error);
+      }
+    })();
   };
 
   const restoreRecoveryState = () => {
@@ -2068,7 +2117,7 @@ export function TourDiary() {
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="truncate text-sm font-bold text-slate-900 dark:text-white">
-                  {t('My Diaries', 'నా డైరీలు')}
+                  {t('My Tours', 'నా టూర్లు')}
                 </h3>
                 <p className="truncate text-xs font-medium text-slate-500 dark:text-slate-400">
                   {t('Drafts', 'డ్రాఫ్ట్‌లు')}
@@ -2542,51 +2591,32 @@ export function TourDiary() {
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button
+              <ActionButton
+                tone="primary"
                 onClick={saveDraftToLocal}
-                disabled={isSavingDraft}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm"
+                loading={isSavingDraft}
+                icon={Save}
               >
-                {isSavingDraft ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4" />
-                    Save Draft
-                  </>
-                )}
-              </button>
-              <button
+                {isSavingDraft ? 'Saving...' : 'Save Draft'}
+              </ActionButton>
+              <ActionButton
+                tone="secondary"
                 onClick={openEditablePreview}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-purple-700 sm:text-sm"
+                icon={Eye}
               >
-                <Eye className="h-4 w-4" />
                 Preview
-              </button>
+              </ActionButton>
               <div className="relative" data-menu-root>
-                <button
+                <ActionButton
+                  tone="primary"
                   onClick={() => setExportMenuOpen(prev => !prev)}
-                  disabled={isGeneratingPDF}
+                  loading={isGeneratingPDF}
+                  icon={Download}
                   aria-haspopup="menu"
                   aria-expanded={exportMenuOpen}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm"
                 >
-                  {isGeneratingPDF ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="h-4 w-4" />
-                      Export
-                      <ChevronDown className="h-4 w-4" aria-hidden="true" />
-                    </>
-                  )}
-                </button>
+                  {isGeneratingPDF ? 'Generating...' : <>Export<ChevronDown className="h-4 w-4" aria-hidden="true" /></>}
+                </ActionButton>
                 {exportMenuOpen && (
                   <div role="menu" className="absolute right-0 top-full z-50 mt-1 w-44 rounded-lg border border-emerald-200 bg-white shadow-lg dark:border-emerald-800 dark:bg-slate-800">
                     <div className="py-1">

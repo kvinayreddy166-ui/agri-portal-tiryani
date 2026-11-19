@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, Download, Edit3, FileText, FileType, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Download, Edit3, Eye, FileText, FileType, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ActionButton } from '../../../shared/components/ui/DesignSystem';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { currentFinancialYear, financialYearForDate } from '../../../shared/utils/financialYear';
 import { useAuth } from '../../../shared/context/AuthContext';
@@ -555,10 +556,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               ))}
             </div>
             ) : <span />}
-            <button type="button" onClick={resetNotice} className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 shadow-sm transition hover:bg-red-50 dark:border-red-800/50 dark:bg-slate-900 dark:text-red-300 sm:text-sm">
-              <RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />
-              Reset
-            </button>
+            <ActionButton tone="secondary" onClick={resetNotice}><RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />Reset</ActionButton>
           </div>
 
           <div className={`rounded-lg border ${sectionBorderColor} bg-white dark:bg-slate-900 p-3 shadow-sm`}>
@@ -766,14 +764,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               <span className="mb-1 flex items-center justify-between gap-3 text-xs font-black text-slate-600 dark:text-slate-300">
                 <span>{config.observationLabel}</span>
                 {!showProductDetails && (
-                  <button
-                    type="button"
-                    onClick={() => setShowProductDetails(true)}
-                    className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-black text-white ${config.theme.button}`}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    Add Product
-                  </button>
+                  <ActionButton tone="primary" size="sm" onClick={() => setShowProductDetails(true)} icon={Plus}>Add Product</ActionButton>
                 )}
               </span>
               <textarea
@@ -789,17 +780,17 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               <div className={`rounded-lg border ${sectionBorderColor} bg-white dark:bg-slate-900 p-3 shadow-sm`}>
                 <div className={`mb-3 pb-2 border-b ${sectionDividerColor} flex items-center justify-between gap-3`}>
                   <h3 className={`text-sm font-black uppercase tracking-wide ${sectionHeaderColor}`}>Product Details</h3>
-                  <button
-                    type="button"
+                  <ActionButton
+                    tone="tertiary"
+                    size="sm"
                     onClick={() => {
                       setShowProductDetails(false);
                       updateForm({ productName: '', batchLotNumber: '', quantityInvolved: '', productRemarks: '', invoiceDetails: '' });
                     }}
-                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 px-2.5 py-1.5 text-xs font-black text-slate-600 dark:text-slate-300 hover:bg-slate-50"
+                    icon={X}
                   >
-                    <X className="h-3.5 w-3.5" />
                     Remove
-                  </button>
+                  </ActionButton>
                 </div>
                 <div className="grid gap-3 md:grid-cols-4">
                   <TextInput label="Product Name" value={form.productName} onChange={(value) => updateForm({ productName: value })} />
@@ -812,24 +803,10 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={previewNotice} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black text-white shadow-sm transition sm:text-sm ${config.theme.button}`}>
-              <FileText className="h-4 w-4" aria-hidden="true" />
-              Preview
-            </button>
-            <button type="button" onClick={saveNotice} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-slate-900 sm:text-sm">
-              <Save className="h-4 w-4" aria-hidden="true" />
-              Save Draft
-            </button>
+            <ActionButton tone="secondary" onClick={previewNotice} icon={Eye}>Preview</ActionButton>
+            <ActionButton tone="primary" onClick={saveNotice} icon={Save}>Save Draft</ActionButton>
             <div className="relative">
-              <button
-                type="button"
-                onClick={() => setExportOpen((open) => !open)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 sm:text-sm"
-              >
-                <Download className="h-4 w-4" aria-hidden="true" />
-                Export
-                <ChevronDown className={`h-4 w-4 transition-transform ${exportOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
-              </button>
+              <ActionButton tone="primary" onClick={() => setExportOpen((open) => !open)} icon={Download} aria-haspopup="menu" aria-expanded={exportOpen}>Export<ChevronDown className={`h-4 w-4 transition-transform ${exportOpen ? 'rotate-180' : ''}`} aria-hidden="true" /></ActionButton>
               {exportOpen && (
                 <>
                   <button
@@ -873,15 +850,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
         <section ref={previewRef} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h3 className="text-base font-black text-slate-900 dark:text-white">Notice Preview</h3>
-            <button
-              type="button"
-              onClick={() => setShowNoticePreview(false)}
-              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-black text-slate-700 dark:text-slate-200 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
-              aria-label="Close notice preview"
-            >
-              <X className="h-4 w-4" />
-              Close Preview
-            </button>
+            <ActionButton tone="secondary" size="sm" onClick={() => setShowNoticePreview(false)} icon={X} aria-label="Close notice preview">Close Preview</ActionButton>
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"
@@ -926,13 +895,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
                   <td className="px-3 py-2">{notice.status}</td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex items-center gap-1">
-                      <button type="button" onClick={() => editSavedNotice(notice)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-black text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50">
-                        <Edit3 className="h-3.5 w-3.5" />
-                        Edit
-                      </button>
-                      <button type="button" onClick={() => deleteSavedNotice(notice)} aria-label="Delete saved notice" className="inline-flex items-center justify-center rounded-md p-1.5 text-red-600 dark:text-red-300 hover:bg-red-50">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <ActionButton tone="tertiary" size="sm" onClick={() => editSavedNotice(notice)} icon={Edit3}>Edit</ActionButton>
+                      <ActionButton tone="danger" size="sm" onClick={() => deleteSavedNotice(notice)} icon={Trash2} aria-label="Delete saved notice" className="px-2" />
                     </div>
                   </td>
                 </tr>

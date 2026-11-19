@@ -1,6 +1,8 @@
 import React, { ButtonHTMLAttributes, ReactNode } from 'react';
+import { Loader2, type LucideIcon } from 'lucide-react';
 
 type Tone = 'primary' | 'secondary' | 'danger' | 'warning';
+type ActionTone = Tone | 'tertiary';
 type IconTone = Tone | 'excel' | 'sky' | 'slate';
 
 export function AppCard({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -106,23 +108,50 @@ export function EmptyState({ title, description }: { title: string; description?
   );
 }
 
+/**
+ * Shared action button for document workflows (Preview, Save Draft, Export,
+ * Print, Download, destructive actions). Variants map to the AGRONIX button
+ * hierarchy: primary = main actions, secondary = supporting actions,
+ * tertiary = subtle/low-frequency, danger/warning = destructive or caution.
+ */
 export function ActionButton({
   tone = 'primary',
+  size = 'md',
+  icon: Icon,
+  loading = false,
   className = '',
   children,
+  disabled,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
-  tone?: Tone;
+  tone?: ActionTone;
+  size?: 'sm' | 'md';
+  icon?: LucideIcon;
+  loading?: boolean;
 }) {
   const toneClass = {
     primary: 'action-button-primary modern-action-button',
     secondary: 'action-button-secondary modern-action-button',
+    tertiary: 'action-button-tertiary modern-action-button',
     danger: 'action-button-danger modern-action-button',
     warning: 'action-button-warning modern-action-button',
   }[tone];
 
+  const iconClass = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
+
   return (
-    <button type="button" className={`action-button ${toneClass} ${className}`} {...props}>
+    <button
+      type="button"
+      className={`action-button${size === 'sm' ? ' action-button-sm' : ''} ${toneClass} ${className}`}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      {...props}
+    >
+      {loading ? (
+        <Loader2 className={`${iconClass} animate-spin`} aria-hidden="true" />
+      ) : Icon ? (
+        <Icon className={iconClass} aria-hidden="true" />
+      ) : null}
       {children}
     </button>
   );

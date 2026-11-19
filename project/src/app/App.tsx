@@ -4,6 +4,7 @@ import { LanguageProvider } from '../shared/context/LanguageContext';
 import { ThemeProvider, useTheme } from '../shared/context/ThemeContext';
 import { GlobalMobileDatePickerProvider } from '../shared/components/ui/DateInput';
 import { confirmDiscardIfDirty } from '../features/officers-toolkit/inspection/useDirtyGuard';
+import { TOUR_DIARY_BACK_EVENT } from '../features/tour-diary/lib/tourDiaryData';
 import { BrowserRouter, Navigate, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { SEO, OrganizationSchema } from '../shared/components/seo/SEO';
@@ -119,6 +120,15 @@ function AppContent() {
   }, [currentPage]);
 
   const handleBack = useCallback(() => {
+    // Tour Diary keeps its landing view (Continue Draft / New Tour Diary /
+    // My Diaries) inside the page component. When a diary or saved draft is
+    // open, Back must return to that landing view instead of leaving the
+    // module - the page prevents default after switching back.
+    if (currentPage === 'tour-diary') {
+      const backEvent = new CustomEvent(TOUR_DIARY_BACK_EVENT, { cancelable: true });
+      window.dispatchEvent(backEvent);
+      if (backEvent.defaultPrevented) return;
+    }
     if (!confirmDiscardIfDirty()) return;
     const state = window.history.state as { idx?: number; from?: string } | null;
     // Prefer the actual previous in-app page recorded during navigation so

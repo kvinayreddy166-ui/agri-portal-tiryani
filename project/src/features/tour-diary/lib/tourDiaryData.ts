@@ -7,6 +7,7 @@ export const MONTHS = [
 
 export const RECOVERY_STORAGE_KEY = 'tourDiaryRecovery';
 export const DRAFT_VERSION = 1;
+export const TOUR_DIARY_BACK_EVENT = 'tiryani:tour-diary-back';
 export const TOUR_DIARY_COLUMN_COUNT = 10;
 
 export const JOURNEY_MODES = [

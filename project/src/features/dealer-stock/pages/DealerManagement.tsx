@@ -51,6 +51,19 @@ const DEALER_COLUMNS =
 const DEALER_COLUMNS_LEGACY =
   'id, dealer_name, ifms_id, phone_number, portal_email, license_number, issue_date, expiry_date, location, dealer_category, created_by, created_by_name, created_at, updated_at';
 
+// Import/Export menu layout contract (kept as exports so tests can assert it):
+// - Below lg the panel renders in-flow at full width, so opening the menu
+//   pushes the tabs/filter/search rows down instead of overlaying the search
+//   input, and it can never be clipped by the viewport edge.
+// - At lg+ it is an absolutely positioned dropdown anchored to the right of
+//   the trigger button, matching the previous desktop behaviour.
+export const DEALER_DATA_MENU_PANEL_CLASS =
+  'relative z-10 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl lg:absolute lg:right-0 lg:top-full lg:z-40 lg:w-56 dark:border-slate-700 dark:bg-slate-900';
+
+export function dealerDataMenuWrapperClass(open: boolean): string {
+  return `relative${open ? ' w-full lg:w-auto' : ''}`;
+}
+
 async function fetchDealerRows(category?: DealerCategory) {
   const fetchAll = (columns: string) =>
     fetchAllRows<Dealer>({
@@ -760,7 +773,10 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
               onChange={handleExcelImport}
               disabled={importing}
             />
-            <div className="relative" ref={dataMenuRef}>
+            {/* Below lg the menu renders in-flow as a full-width panel so it
+                pushes the filter row down instead of overlaying the search
+                input; at lg+ it stays an absolute dropdown under the button. */}
+            <div className={dealerDataMenuWrapperClass(dataMenuOpen)} ref={dataMenuRef}>
               <button
                 type="button"
                 onClick={() => setDataMenuOpen((v) => !v)}
@@ -773,7 +789,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
               </button>
               {dataMenuOpen && (
                 <div
-                  className="absolute left-0 right-auto z-40 mt-2 w-56 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl sm:left-auto sm:right-0 dark:border-slate-700 dark:bg-slate-900"
+                  className={DEALER_DATA_MENU_PANEL_CLASS}
                   onPointerMove={resetDataMenuIdle}
                   onPointerDown={resetDataMenuIdle}
                 >
