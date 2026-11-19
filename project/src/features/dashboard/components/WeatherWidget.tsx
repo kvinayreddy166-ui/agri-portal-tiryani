@@ -225,8 +225,8 @@ export function WeatherWidget() {
               {safeLocation.source === 'default' && (
                 <p className="mt-1 text-[11px] font-semibold text-amber-200/90">
                   {safeLocation.error === 'denied'
-                    ? t('Location access denied — allow it in browser settings, then tap the pin', 'Location access denied — tap the pin icon')
-                    : t('Location unavailable — tap the pin to detect your location', 'స్థానం అందుబాటులో లేదు')}
+                    ? t('Location access denied — allow it in browser settings, then tap the pin', 'స్థాన అనుమతి నిరాకరించబడింది — బ్రౌజర్ సెట్టింగ్స్‌లో అనుమతించి, పిన్ గుర్తును నొక్కండి')
+                    : t('Location unavailable — tap the pin to detect your location', 'స్థానం అందుబాటులో లేదు — మీ స్థానాన్ని గుర్తించడానికి పిన్ గుర్తును నొక్కండి')}
                 </p>
               )}
             </div>
@@ -363,7 +363,7 @@ export function WeatherWidget() {
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{t('Wind Speed', 'గాలి వేగం')}</p>
             <p className="text-xl font-black text-slate-900 dark:text-white">{weather.windSpeed} km/h</p>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              {weather.windDirection ? `${weather.windDirection} (${weather.windDeg ?? 0}°)` : 'Calm'}
+              {weather.windDirection ? `${weather.windDirection} (${weather.windDeg ?? 0}°)` : t('Calm', 'ప్రశాంతం')}
             </p>
           </div>
         </div>

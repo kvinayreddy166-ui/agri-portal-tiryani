@@ -5,6 +5,7 @@ import { Phone, Search, User, Building2, Filter, MessageCircle, Loader2, Users }
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { AEO_DISTRICTS } from '../data/aeoDistricts';
 import { supabase } from '../../../shared/lib/supabase';
 
@@ -79,6 +80,7 @@ function getDropdownCacheKey(officerType: OfficerType, district: string, divisio
 
 export function OfficerContacts() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
   const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const [mounted, setMounted] = useState(false);
@@ -420,9 +422,9 @@ export function OfficerContacts() {
   const renderContactCard = useCallback((contact: OfficerContact) => {
     const TabIcon = TABS.find(tab => tab.id === activeTab)?.icon || User;
     const fallbackName = activeTab === 'ADA'
-      ? 'Assistant Director of Agriculture'
+      ? t('Assistant Director of Agriculture', 'వ్యవసాయ సహాయ సంచాలకులు')
       : activeTab === 'DAO'
-        ? 'District Agriculture Officer'
+        ? t('District Agriculture Officer', 'జిల్లా వ్యవసాయ అధికారి')
         : null;
     const location = [contact.district, contact.division, contact.mandal, contact.cluster]
       .filter(Boolean)
@@ -485,7 +487,7 @@ export function OfficerContacts() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
-            placeholder="Search contacts..."
+            placeholder={t('Search contacts...', 'పరిచయాలను వెతకండి...')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-lg border border-emerald-200/60 bg-white py-2 pl-9 pr-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
@@ -506,7 +508,7 @@ export function OfficerContacts() {
               }}
               className="w-full rounded-lg border border-emerald-200/60 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
             >
-              <option value="">District</option>
+              <option value="">{t('District', 'జిల్లా')}</option>
               {dropdownOptions.districts.map(district => (
                 <option key={district} value={district}>{district}</option>
               ))}
@@ -526,7 +528,7 @@ export function OfficerContacts() {
                 disabled={!selectedDistrict}
                 className="w-full rounded-lg border border-emerald-200/60 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
-                <option value="">Division</option>
+                <option value="">{t('Division', 'డివిజన్')}</option>
                 {dropdownOptions.divisions.map(division => (
                   <option key={division} value={division}>{division}</option>
                 ))}
@@ -546,7 +548,7 @@ export function OfficerContacts() {
                 disabled={showDivision ? !selectedDivision : !selectedDistrict}
                 className="w-full rounded-lg border border-emerald-200/60 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
-                <option value="">Mandal</option>
+                <option value="">{t('Mandal', 'మండలం')}</option>
                 {dropdownOptions.mandals.map(mandal => (
                   <option key={mandal} value={mandal}>{mandal}</option>
                 ))}
@@ -563,7 +565,7 @@ export function OfficerContacts() {
                 disabled={!selectedMandal}
                 className="w-full rounded-lg border border-emerald-200/60 bg-white px-3 py-2 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:opacity-50 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:text-white dark:focus:ring-emerald-900/30"
               >
-                <option value="">Cluster</option>
+                <option value="">{t('Cluster', 'క్లస్టర్')}</option>
                 {dropdownOptions.clusters.map(cluster => (
                   <option key={cluster} value={cluster}>{cluster}</option>
                 ))}
@@ -579,7 +581,7 @@ export function OfficerContacts() {
             className="flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
           >
             <Filter className="h-4 w-4" />
-            <span>Reset Filters</span>
+            <span>{t('Reset Filters', 'ఫిల్టర్లు రీసెట్ చేయండి')}</span>
           </button>
         )}
       </div>
@@ -601,8 +603,8 @@ export function OfficerContacts() {
           {showCompactHeader ? (
             <ModulePageHeader
               className="mb-4"
-              title="Officer Contacts"
-              subtitle="Telangana Agriculture Department"
+              title={t('Officer Contacts', 'అధికారుల పరిచయాలు')}
+              subtitle={t('Telangana Agriculture Department', 'తెలంగాణ వ్యవసాయ శాఖ')}
               icon={Phone}
               onBack={!user ? () => navigate('/officer-toolkit') : undefined}
             />
@@ -610,9 +612,9 @@ export function OfficerContacts() {
             <ToolkitPageHeader
               icon={Users}
               tone="emerald"
-              eyebrow="Officer Directory"
-              title="Officer Contacts"
-              subtitle="Telangana Agriculture Department"
+              eyebrow={t('Officer Directory', 'అధికారుల డైరెక్టరీ')}
+              title={t('Officer Contacts', 'అధికారుల పరిచయాలు')}
+              subtitle={t('Telangana Agriculture Department', 'తెలంగాణ వ్యవసాయ శాఖ')}
               fallbackPath="/dashboard"
               onBack={() => navigate('/officer-toolkit')}
               className="mb-0"
@@ -652,7 +654,7 @@ export function OfficerContacts() {
         {/* Results Count */}
         <div className={`mb-4 transition duration-700 delay-300 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-8'}`}>
           <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
-            {loading ? 'Loading...' : `Showing ${totalCount} ${activeTab} contact${totalCount !== 1 ? 's' : ''} across ${dropdownOptions.districts.length} district${dropdownOptions.districts.length !== 1 ? 's' : ''}`}
+            {loading ? t('Loading...', 'లోడ్ అవుతోంది...') : `${t('Showing', 'చూపుతున్నది')} ${totalCount} ${activeTab} ${t('contacts across', 'పరిచయాలు,')} ${dropdownOptions.districts.length} ${t('districts', 'జిల్లాల్లో')}`}
           </p>
         </div>
 
@@ -684,10 +686,10 @@ export function OfficerContacts() {
                 <Search className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
               </div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                No contacts found
+                {t('No contacts found', 'పరిచయాలు కనుగొనబడలేదు')}
               </h3>
               <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">
-                Try changing your filters or search.
+                {t('Try changing your filters or search.', 'వేరే ఫిల్టర్లు లేదా వెతుకు పదాలు ప్రయత్నించండి.')}
               </p>
             </div>
           ) : (
@@ -703,10 +705,10 @@ export function OfficerContacts() {
                     {loadingMore ? (
                       <>
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        <span>Loading more...</span>
+                        <span>{t('Loading more...', 'మరిన్ని లోడ్ అవుతున్నాయి...')}</span>
                       </>
                     ) : (
-                      <span>Load More</span>
+                      <span>{t('Load More', 'మరిన్ని చూపించు')}</span>
                     )}
                   </button>
                 </div>

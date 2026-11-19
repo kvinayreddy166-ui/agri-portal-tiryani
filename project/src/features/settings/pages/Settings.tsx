@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { safeStorage, clearUserStorage } from '../../../shared/lib/safeStorage';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
@@ -26,6 +27,7 @@ import {
 
 export function Settings() {
   const toast = useToast();
+  const { t } = useLanguage();
   const { isAdminUser, isOfficerUser, user, officerProfile, signOut, refreshOfficerProfile } = useAuth();
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -228,8 +230,8 @@ export function Settings() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
-        <p className="text-gray-600 dark:text-slate-300">Configure portal settings and preferences</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('Settings', 'సెట్టింగులు')}</h1>
+        <p className="text-gray-600 dark:text-slate-300">{t('Configure portal settings and preferences', 'పోర్టల్ సెట్టింగులు మరియు ప్రాధాన్యతలను కాన్ఫిగర్ చేయండి')}</p>
       </div>
 
       {/* Success Notification */}
@@ -246,7 +248,7 @@ export function Settings() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <User className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Profile</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('Profile', 'ప్రొఫైల్')}</h2>
             </div>
             {!editingProfile && (
               <button
@@ -255,7 +257,7 @@ export function Settings() {
                 className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
               >
                 <Pencil className="w-3.5 h-3.5" />
-                Edit Profile
+                {t('Edit Profile', 'ప్రొఫైల్ సవరించండి')}
               </button>
             )}
           </div>
@@ -271,7 +273,7 @@ export function Settings() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Full Name *</label>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">{t('Full Name *', 'పూర్తి పేరు *')}</label>
                   <input
                     type="text"
                     required
@@ -281,7 +283,7 @@ export function Settings() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Designation *</label>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">{t('Designation *', 'హోదా *')}</label>
                   <select
                     value={profileForm.designation}
                     onChange={(e) => setProfileForm({ ...profileForm, designation: e.target.value })}
@@ -293,20 +295,20 @@ export function Settings() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Qualification</label>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">{t('Qualification', 'అర్హత')}</label>
                   <select
                     value={profileForm.qualification}
                     onChange={(e) => setProfileForm({ ...profileForm, qualification: e.target.value })}
                     className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 outline-none"
                   >
-                    <option value="">Select qualification</option>
+                    <option value="">{t('Select qualification', 'అర్హత ఎంచుకోండి')}</option>
                     {qualificationOptions.map((q) => (
                       <option key={q.value} value={q.value}>{q.label}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">HRMS ID</label>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">{t('HRMS ID', 'HRMS ఐడీ')}</label>
                   <input
                     type="text"
                     value={profileForm.hrmsId}
@@ -315,7 +317,7 @@ export function Settings() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">District</label>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">{t('District', 'జిల్లా')}</label>
                   <input
                     type="text"
                     value={profileForm.district}
@@ -325,7 +327,7 @@ export function Settings() {
                 </div>
                 {editShowsDivision && (
                   <div>
-                    <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Division</label>
+                    <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">{t('Division', 'డివిజన్')}</label>
                     <input
                       type="text"
                       value={profileForm.division}
@@ -336,7 +338,7 @@ export function Settings() {
                 )}
                 {editShowsMandal && (
                   <div>
-                    <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Mandal / Jurisdiction</label>
+                    <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">{t('Mandal / Jurisdiction', 'మండలం / అధికార పరిధి')}</label>
                     <input
                       type="text"
                       value={profileForm.mandal}
@@ -346,7 +348,7 @@ export function Settings() {
                   </div>
                 )}
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Mobile Number *</label>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">{t('Mobile Number *', 'మొబైల్ నంబర్ *')}</label>
                   <input
                     type="tel"
                     inputMode="numeric"
@@ -359,7 +361,7 @@ export function Settings() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">Email</label>
+                  <label className="mb-1 block text-xs font-bold text-gray-700 dark:text-slate-300">{t('Email', 'ఈమెయిల్')}</label>
                   <input
                     type="email"
                     value={officerProfile.email}
@@ -376,7 +378,7 @@ export function Settings() {
                   className="flex items-center gap-2 bg-emerald-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-emerald-800 transition-colors disabled:opacity-50"
                 >
                   {savingProfile ? <Spinner size="xs" className="text-white" label="Loading" /> : <CheckCircle2 className="w-4 h-4" />}
-                  {savingProfile ? 'Saving...' : 'Save Changes'}
+                  {savingProfile ? t('Saving...', 'సేవ్ అవుతోంది...') : t('Save Changes', 'మార్పులు సేవ్ చేయండి')}
                 </button>
                 <button
                   type="button"
@@ -385,7 +387,7 @@ export function Settings() {
                   className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
                 >
                   <X className="w-4 h-4" />
-                  Cancel
+                  {t('Cancel', 'రద్దు చేయండి')}
                 </button>
               </div>
             </form>
@@ -394,14 +396,14 @@ export function Settings() {
             <div className="flex items-start gap-3">
               <User className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Full Name</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{t('Full Name', 'పూర్తి పేరు')}</p>
                 <p className="font-medium text-gray-900 dark:text-white">{officerProfile.full_name}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Briefcase className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Designation</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{t('Designation', 'హోదా')}</p>
                 <p className="font-medium text-gray-900 dark:text-white">{officerProfile.designation}</p>
               </div>
             </div>
@@ -409,7 +411,7 @@ export function Settings() {
               <div className="flex items-start gap-3">
                 <GraduationCap className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">Qualification</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{t('Qualification', 'అర్హత')}</p>
                   <p className="font-medium text-gray-900 dark:text-white">{officerProfile.qualification}</p>
                 </div>
               </div>
@@ -418,7 +420,7 @@ export function Settings() {
               <div className="flex items-start gap-3">
                 <Database className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">HRMS ID</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{t('HRMS ID', 'HRMS ఐడీ')}</p>
                   <p className="font-medium text-gray-900 dark:text-white">{officerProfile.hrms_id}</p>
                 </div>
               </div>
@@ -426,14 +428,14 @@ export function Settings() {
             <div className="flex items-start gap-3">
               <MapPin className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">District</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{t('District', 'జిల్లా')}</p>
                 <p className="font-medium text-gray-900 dark:text-white">{officerProfile.district}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <MapPin className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Mandal</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{t('Mandal', 'మండలం')}</p>
                 <p className="font-medium text-gray-900 dark:text-white">{officerProfile.mandal}</p>
               </div>
             </div>
@@ -441,7 +443,7 @@ export function Settings() {
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">Division</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{t('Division', 'డివిజన్')}</p>
                   <p className="font-medium text-gray-900 dark:text-white">{officerProfile.division}</p>
                 </div>
               </div>
@@ -449,14 +451,14 @@ export function Settings() {
             <div className="flex items-start gap-3">
               <Phone className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Phone</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{t('Phone', 'ఫోన్')}</p>
                 <p className="font-medium text-gray-900 dark:text-white">{officerProfile.phone}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Mail className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
               <div>
-                <p className="text-xs text-gray-500 dark:text-slate-400">Email</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{t('Email', 'ఈమెయిల్')}</p>
                 <p className="font-medium text-gray-900 dark:text-white">{officerProfile.email}</p>
               </div>
             </div>
@@ -469,7 +471,7 @@ export function Settings() {
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
         <div className="flex items-center gap-2 mb-6">
           <User className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Account</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('Account', 'ఖాతా')}</h2>
         </div>
         <div className="flex items-center gap-4 mb-6">
           <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center">
@@ -480,10 +482,10 @@ export function Settings() {
           <div>
             <p className="font-medium text-gray-900 dark:text-white">{user?.email}</p>
             <p className="text-sm text-gray-500 dark:text-slate-400">
-              Role: {isAdminUser ? 'Administrator' : 'Agriculture Officer'}
+              {t('Role', 'పాత్ర')}: {isAdminUser ? t('Administrator', 'నిర్వాహకుడు') : t('Agriculture Officer', 'వ్యవసాయ అధికారి')}
             </p>
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
-              Permissions: {isAdminUser ? 'Full administrative access (read, write, delete)' : 'Officer access (records, inspections, statutory actions)'}
+              {t('Permissions', 'అనుమతులు')}: {isAdminUser ? t('Full administrative access (read, write, delete)', 'పూర్తి నిర్వాహక ప్రవేశం (చదవడం, వ్రాయడం, తొలగించడం)') : t('Officer access (records, inspections, statutory actions)', 'అధికారి ప్రవేశం (రికార్డులు, తనిఖీలు, చట్టబద్ధ చర్యలు)')}
             </p>
           </div>
         </div>
@@ -492,10 +494,13 @@ export function Settings() {
         <div className="border-t border-gray-200 dark:border-slate-700 pt-6">
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="w-5 h-5 text-red-500" />
-            <h3 className="text-base font-semibold text-red-600 dark:text-red-400">Delete Account</h3>
+            <h3 className="text-base font-semibold text-red-600 dark:text-red-400">{t('Delete Account', 'ఖాతా తొలగించండి')}</h3>
           </div>
           <p className="text-sm text-gray-600 dark:text-slate-300 mb-4">
-            Permanently delete your account and all associated data including inspections, statutory orders, and sampling memos. This action cannot be undone.
+            {t(
+              'Permanently delete your account and all associated data including inspections, statutory orders, and sampling memos. This action cannot be undone.',
+              'తనిఖీలు, చట్టబద్ధ ఉత్తర్వులు మరియు సాంప్లింగ్ మెమోలతో సహా మీ ఖాతా మరియు అన్ని సంబంధిత డేటాను శాశ్వతంగా తొలగించండి. ఈ చర్యను రద్దు చేయలేరు.'
+            )}
           </p>
           <div className="flex items-center gap-3">
             <button
@@ -507,7 +512,7 @@ export function Settings() {
               className="flex items-center gap-2 bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold shadow-sm shadow-red-500/20"
             >
               <AlertTriangle className="w-4 h-4" />
-              Delete Account
+              {t('Delete Account', 'ఖాతా తొలగించండి')}
             </button>
           </div>
         </div>
@@ -519,20 +524,25 @@ export function Settings() {
           <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-red-200 dark:border-red-900/40">
             <div className="mb-4 flex items-center gap-2">
               <AlertTriangle className="w-6 h-6 text-red-500" />
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete Account</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('Delete Account', 'ఖాతా తొలగించండి')}</h3>
             </div>
             <p className="text-sm text-gray-600 dark:text-slate-300 mb-2">
-              This will permanently delete your officer account and all associated data. This action cannot be undone.
+              {t(
+                'This will permanently delete your officer account and all associated data. This action cannot be undone.',
+                'ఇది మీ అధికారి ఖాతా మరియు అన్ని సంబంధిత డేటాను శాశ్వతంగా తొలగిస్తుంది. ఈ చర్యను రద్దు చేయలేరు.'
+              )}
             </p>
             <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
-              Please enter your email <span className="font-semibold text-gray-800 dark:text-slate-200">{user?.email}</span> to confirm:
+              {t('Please enter your email', 'దయచేసి మీ ఈమెయిల్ నమోదు చేయండి')}{' '}
+              <span className="font-semibold text-gray-800 dark:text-slate-200">{user?.email}</span>{' '}
+              {t('to confirm:', 'ధృవీకరించడానికి:')}
             </p>
             <div className="mb-4">
               <input
                 type="email"
                 value={deleteConfirmEmail}
                 onChange={(e) => setDeleteConfirmEmail(e.target.value)}
-                placeholder="Enter your email address"
+                placeholder={t('Enter your email address', 'మీ ఈమెయిల్ చిరునామా నమోదు చేయండి')}
                 autoFocus
                 className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
               />
@@ -547,7 +557,7 @@ export function Settings() {
                 disabled={deleting}
                 className="px-5 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
               >
-                Cancel
+                {t('Cancel', 'రద్దు చేయండి')}
               </button>
               <button
                 type="button"
@@ -558,10 +568,10 @@ export function Settings() {
                 {deleting ? (
                   <>
                     <Spinner size="xs" className="text-white" label="Loading" />
-                    Deleting...
+                    {t('Deleting...', 'తొలగిస్తోంది...')}
                   </>
                 ) : (
-                  'Delete Permanently'
+                  t('Delete Permanently', 'శాశ్వతంగా తొలగించండి')
                 )}
               </button>
             </div>
@@ -573,23 +583,23 @@ export function Settings() {
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 p-6">
         <div className="flex items-center gap-2 mb-6">
           <Database className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">System Information</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('System Information', 'సిస్టమ్ సమాచారం')}</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-4">
-            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Database</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">{t('Database', 'డేటాబేస్')}</p>
             <p className="font-medium text-gray-900 dark:text-white mt-1">PostgreSQL 17</p>
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Supabase Managed</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{t('Supabase Managed', 'సుపాబేస్ నిర్వహణ')}</p>
           </div>
           <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-4">
-            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Authentication</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">{t('Authentication', 'ధృవీకరణ')}</p>
             <p className="font-medium text-gray-900 dark:text-white mt-1">Supabase Auth</p>
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">JWT + RLS</p>
           </div>
           <div className="bg-gray-50 dark:bg-slate-800/60 rounded-lg p-4">
-            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Storage</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">{t('Storage', 'నిల్వ')}</p>
             <p className="font-medium text-gray-900 dark:text-white mt-1">Supabase Storage</p>
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Encrypted Buckets</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{t('Encrypted Buckets', 'ఎన్‌క్రిప్టెడ్ బకెట్లు')}</p>
           </div>
         </div>
       </div>

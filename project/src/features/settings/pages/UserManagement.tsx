@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Users, RefreshCw, Trash2, ShieldAlert, CheckCircle2, PauseCircle, PlayCircle, Download, Search, Bell, Send, X } from 'lucide-react';
 import { supabase } from '../../../shared/lib/supabase';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
@@ -29,6 +30,7 @@ interface OfficerRow {
 
 export function UserManagement() {
   const { isAdminUser, user } = useAuth();
+  const { t } = useLanguage();
   const toast = useToast();
   const { askConfirm, confirmDialog } = useConfirmDialog();
   const [adminOfficers, setAdminOfficers] = useState<OfficerRow[]>([]);
@@ -465,7 +467,7 @@ export function UserManagement() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="User Management" description="Manage registered officer accounts" />
+      <PageHeader title={t('User Management', 'వినియోగదారు నిర్వహణ')} description={t('Manage registered officer accounts', 'నమోదిత అధికారి ఖాతాలను నిర్వహించండి')} />
 
       {actionSuccessMessage && (
         <div className="flex items-center gap-2 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-sm">
@@ -478,7 +480,7 @@ export function UserManagement() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Officer Accounts</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('Officer Accounts', 'అధికారుల ఖాతాలు')}</h2>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -488,7 +490,7 @@ export function UserManagement() {
               className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-100 disabled:opacity-50 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950/60"
             >
               <Bell className="w-3.5 h-3.5" />
-              Notify Officers
+              {t('Notify Officers', 'అధికారులకు తెలియజేయండి')}
             </button>
             <button
               type="button"
@@ -497,7 +499,7 @@ export function UserManagement() {
               className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/60"
             >
               <Download className="w-3.5 h-3.5" />
-              Export Excel
+              {t('Export Excel', 'ఎక్సెల్ ఎగుమతి')}
             </button>
             <button
               type="button"
@@ -506,13 +508,13 @@ export function UserManagement() {
               className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loadingOfficers ? 'animate-spin' : ''}`} />
-              Refresh
+              {t('Refresh', 'రీఫ్రెష్')}
             </button>
           </div>
         </div>
 
         <p className="text-sm text-gray-600 dark:text-slate-300 mb-4">
-          As portal administrator, you can view and remove registered officer accounts upon administrative review or officer request.
+          {t('As portal administrator, you can view and remove registered officer accounts upon administrative review or officer request.', 'పోర్టల్ నిర్వాహకుడిగా, మీరు పరిపాలనా సమీక్ష లేదా అధికారి అభ్యర్థన మేరకు నమోదిత అధికారి ఖాతాలను వీక్షించవచ్చు మరియు తొలగించవచ్చు.')}
         </p>
 
         <div className="relative mb-4">
@@ -521,7 +523,7 @@ export function UserManagement() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, email, designation, district, mandal, phone or HRMS ID..."
+            placeholder={t('Search by name, email, designation, district, mandal, phone or HRMS ID...', 'పేరు, ఈమెయిల్, హోదా, జిల్లా, మండలం, ఫోన్ లేదా HRMS ఐడీ ద్వారా వెతకండి...')}
             className="w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-8 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           />
           {searchQuery && (
@@ -537,7 +539,7 @@ export function UserManagement() {
             onChange={(e) => { setDistrictFilter(e.target.value); setMandalFilter('all'); }}
             className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           >
-            <option value="all">All Districts</option>
+            <option value="all">{t('All Districts', 'అన్ని జిల్లాలు')}</option>
             {districtOptions.map((d) => <option key={d} value={d}>{d}</option>)}
           </select>
           <select
@@ -545,7 +547,7 @@ export function UserManagement() {
             onChange={(e) => setMandalFilter(e.target.value)}
             className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           >
-            <option value="all">All Mandals</option>
+            <option value="all">{t('All Mandals', 'అన్ని మండలాలు')}</option>
             {mandalOptions.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
           <select
@@ -553,7 +555,7 @@ export function UserManagement() {
             onChange={(e) => setDesignationFilter(e.target.value)}
             className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           >
-            <option value="all">All Designations</option>
+            <option value="all">{t('All Designations', 'అన్ని హోదాలు')}</option>
             {designationOptions.map((d) => <option key={d} value={d}>{d}</option>)}
           </select>
           <select
@@ -561,9 +563,9 @@ export function UserManagement() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           >
-            <option value="all">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="suspended">Suspended</option>
+            <option value="all">{t('All Statuses', 'అన్ని స్థితులు')}</option>
+            <option value="active">{t('Active', 'యాక్టివ్')}</option>
+            <option value="suspended">{t('Suspended', 'సస్పెండ్ చేయబడింది')}</option>
           </select>
           {(districtFilter !== 'all' || mandalFilter !== 'all' || designationFilter !== 'all' || statusFilter !== 'all') && (
             <button
@@ -571,19 +573,19 @@ export function UserManagement() {
               onClick={() => { setDistrictFilter('all'); setMandalFilter('all'); setDesignationFilter('all'); setStatusFilter('all'); }}
               className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
             >
-              Clear filters
+              {t('Clear filters', 'ఫిల్టర్లు క్లియర్ చేయండి')}
             </button>
           )}
           <span className="ml-auto shrink-0 text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400">
-            {filteredOfficers.length} {filteredOfficers.length === 1 ? 'officer' : 'officers'}
-            {filteredOfficers.length !== adminOfficers.length ? ` of ${adminOfficers.length}` : ''}
+            {filteredOfficers.length} {filteredOfficers.length === 1 ? t('officer', 'అధికారి') : t('officers', 'అధికారులు')}
+            {filteredOfficers.length !== adminOfficers.length ? ` ${t('of', 'మొత్తం')} ${adminOfficers.length}` : ''}
           </span>
         </div>
 
         {selectedIds.size > 0 && (
           <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/30 px-4 py-2.5">
             <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-200">
-              {selectedIds.size} selected
+              {selectedIds.size} {t('selected', 'ఎంపిక చేయబడింది')}
             </span>
             <button
               type="button"
@@ -591,7 +593,7 @@ export function UserManagement() {
               disabled={bulkActing}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-950/50 border border-amber-200 dark:border-amber-900/40 disabled:opacity-50"
             >
-              Suspend
+              {t('Suspend', 'సస్పెండ్ చేయండి')}
             </button>
             <button
               type="button"
@@ -599,7 +601,7 @@ export function UserManagement() {
               disabled={bulkActing}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 hover:bg-emerald-100 dark:text-emerald-400 dark:hover:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900/40 disabled:opacity-50"
             >
-              Reactivate
+              {t('Reactivate', 'పునరుద్ధరించండి')}
             </button>
             <button
               type="button"
@@ -607,7 +609,7 @@ export function UserManagement() {
               disabled={bulkActing}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-950/50 border border-red-200 dark:border-red-900/40 disabled:opacity-50"
             >
-              {bulkActing ? 'Working...' : 'Delete'}
+              {bulkActing ? t('Working...', 'పనిచేస్తోంది...') : t('Delete', 'తొలగించండి')}
             </button>
             <button
               type="button"
@@ -615,7 +617,7 @@ export function UserManagement() {
               disabled={bulkActing}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 disabled:opacity-50"
             >
-              Clear
+              {t('Clear', 'క్లియర్')}
             </button>
           </div>
         )}
@@ -623,17 +625,17 @@ export function UserManagement() {
         {loadingOfficers ? (
           <div className="py-8 text-center text-gray-500 dark:text-slate-400 text-sm">
             <Spinner size="md" className="text-emerald-600 dark:text-emerald-400 mx-auto mb-2" label="Loading" />
-            Loading officer accounts...
+            {t('Loading officer accounts...', 'అధికారుల ఖాతాలు లోడ్ అవుతున్నాయి...')}
           </div>
         ) : adminOfficers.length === 0 ? (
           <div className="py-6 text-center text-gray-500 dark:text-slate-400 text-sm bg-gray-50 dark:bg-slate-800/40 rounded-lg">
-            No registered officer accounts found.
+            {t('No registered officer accounts found.', 'నమోదైన అధికారి ఖాతాలు కనుగొనబడలేదు.')}
           </div>
         ) : filteredOfficers.length === 0 ? (
           <div className="py-6 text-center text-gray-500 dark:text-slate-400 text-sm bg-gray-50 dark:bg-slate-800/40 rounded-lg">
             {searchQuery
-              ? `No officers match "${searchQuery}".`
-              : 'No officers match the current filters.'}
+              ? `${t('No officers match', 'సరిపోలే అధికారులు లేరు')} "${searchQuery}".`
+              : t('No officers match the current filters.', 'ప్రస్తుత ఫిల్టర్లకు సరిపోలే అధికారులు లేరు.')}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -649,12 +651,12 @@ export function UserManagement() {
                       aria-label="Select all officers"
                     />
                   </th>
-                  <th className="py-2 px-3">Officer Name</th>
-                  <th className="py-2 px-3">Designation</th>
-                  <th className="py-2 px-3">District / Mandal</th>
-                  <th className="py-2 px-3">Contact</th>
-                  <th className="py-2 px-3">Status</th>
-                  <th className="py-2 px-3 text-right">Actions</th>
+                  <th className="py-2 px-3">{t('Officer Name', 'అధికారి పేరు')}</th>
+                  <th className="py-2 px-3">{t('Designation', 'హోదా')}</th>
+                  <th className="py-2 px-3">{t('District / Mandal', 'జిల్లా / మండలం')}</th>
+                  <th className="py-2 px-3">{t('Contact', 'సంప్రదింపు')}</th>
+                  <th className="py-2 px-3">{t('Status', 'స్థితి')}</th>
+                  <th className="py-2 px-3 text-right">{t('Actions', 'చర్యలు')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
@@ -712,7 +714,7 @@ export function UserManagement() {
                                 ? 'text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/40'
                                 : 'text-amber-700 hover:text-amber-800 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/40 border-amber-200 dark:border-amber-900/40'
                             }`}
-                            title={officer.status === 'suspended' ? 'Reactivate account' : 'Suspend account'}
+                            title={officer.status === 'suspended' ? t('Reactivate account', 'ఖాతాను పునరుద్ధరించండి') : t('Suspend account', 'ఖాతాను సస్పెండ్ చేయండి')}
                           >
                             {officer.status === 'suspended' ? (
                               <PlayCircle className="w-3.5 h-3.5" />
@@ -722,8 +724,8 @@ export function UserManagement() {
                             {suspendingId === officer.id
                               ? '...'
                               : officer.status === 'suspended'
-                                ? 'Reactivate'
-                                : 'Suspend'}
+                                ? t('Reactivate', 'పునరుద్ధరించండి')
+                                : t('Suspend', 'సస్పెండ్ చేయండి')}
                           </button>
                         )}
                         <button
@@ -733,10 +735,10 @@ export function UserManagement() {
                             setAdminDeleteConfirmText('');
                           }}
                           className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 dark:text-red-400 transition-colors border border-red-200 dark:border-red-900/40"
-                          title={isSelf ? 'Delete your own account' : `Delete ${officer.full_name}`}
+                          title={isSelf ? t('Delete your own account', 'మీ స్వంత ఖాతాను తొలగించండి') : `${t('Delete', 'తొలగించండి')} ${officer.full_name}`}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                          Delete
+                          {t('Delete', 'తొలగించండి')}
                         </button>
                       </td>
                     </tr>
@@ -754,23 +756,23 @@ export function UserManagement() {
           <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-red-200 dark:border-red-900/40">
             <div className="mb-4 flex items-center gap-2">
               <ShieldAlert className="w-6 h-6 text-red-500" />
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete Officer Account</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('Delete Officer Account', 'అధికారి ఖాతాను తొలగించండి')}</h3>
             </div>
             <p className="text-sm text-gray-600 dark:text-slate-300 mb-3">
-              You are deleting the officer account for <strong className="text-gray-900 dark:text-white">{officerToDelete.full_name}</strong> (<code>{officerToDelete.email}</code>).
+              {t('You are deleting the officer account for', 'మీరు ఈ క్రింది అధికారి ఖాతాను తొలగిస్తున్నారు:')} <strong className="text-gray-900 dark:text-white">{officerToDelete.full_name}</strong> (<code>{officerToDelete.email}</code>).
             </p>
             <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-3 rounded-lg mb-4">
-              This will permanently delete this officer&apos;s inspections, statutory orders, sampling memos, and auth account. This action cannot be reversed.
+              {t('This will permanently delete this officer\'s inspections, statutory orders, sampling memos, and auth account. This action cannot be reversed.', 'ఇది ఈ అధికారి తనిఖీలు, చట్టబద్ధ ఉత్తర్వులు, సాంప్లింగ్ మెమోలు మరియు లాగిన్ ఖాతాను శాశ్వతంగా తొలగిస్తుంది. ఈ చర్యను రద్దు చేయలేరు.')}
             </p>
             <div className="mb-4">
               <label className="block text-xs font-medium text-gray-700 dark:text-slate-200 mb-1.5">
-                Type <span className="font-semibold text-red-600 dark:text-red-400">DELETE</span> or the officer&apos;s email to confirm:
+                {t('Type', 'టైప్ చేయండి')} <span className="font-semibold text-red-600 dark:text-red-400">DELETE</span> {t('or the officer\'s email to confirm:', 'లేదా ధృవీకరించడానికి అధికారి ఈమెయిల్:')}
               </label>
               <input
                 type="text"
                 value={adminDeleteConfirmText}
                 onChange={(e) => setAdminDeleteConfirmText(e.target.value)}
-                placeholder="Type DELETE to confirm"
+                placeholder={t('Type DELETE to confirm', 'ధృవీకరించడానికి DELETE అని టైప్ చేయండి')}
                 autoFocus
                 className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
               />
@@ -785,7 +787,7 @@ export function UserManagement() {
                 disabled={adminDeleting}
                 className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
               >
-                Cancel
+                {t('Cancel', 'రద్దు చేయండి')}
               </button>
               <button
                 type="button"
@@ -800,12 +802,12 @@ export function UserManagement() {
                 {adminDeleting ? (
                   <>
                     <Spinner size="xs" className="text-white" label="Loading" />
-                    Deleting...
+                    {t('Deleting...', 'తొలగిస్తోంది...')}
                   </>
                 ) : (
                   <>
                     <Trash2 className="w-4 h-4" />
-                    Delete Officer Permanently
+                    {t('Delete Officer Permanently', 'అధికారిని శాశ్వతంగా తొలగించండి')}
                   </>
                 )}
               </button>
@@ -820,23 +822,23 @@ export function UserManagement() {
           <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-red-200 dark:border-red-900/40">
             <div className="mb-4 flex items-center gap-2">
               <ShieldAlert className="w-6 h-6 text-red-500" />
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete Officer Accounts</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('Delete Officer Accounts', 'అధికారి ఖాతాలను తొలగించండి')}</h3>
             </div>
             <p className="text-sm text-gray-600 dark:text-slate-300 mb-3">
-              You are deleting <strong className="text-gray-900 dark:text-white">{selectedOfficers.filter((o) => o.id !== user?.id).length} officer account(s)</strong>.
+              {t('You are deleting', 'మీరు తొలగిస్తున్నారు:')} <strong className="text-gray-900 dark:text-white">{selectedOfficers.filter((o) => o.id !== user?.id).length} {t('officer account(s)', 'అధికారి ఖాతా(లు)')}</strong>.
             </p>
             <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-3 rounded-lg mb-4">
-              This will permanently delete these officers&apos; inspections, statutory orders, sampling memos, and auth accounts. This action cannot be reversed.
+              {t('This will permanently delete these officers\' inspections, statutory orders, sampling memos, and auth accounts. This action cannot be reversed.', 'ఇది ఈ అధికారుల తనిఖీలు, చట్టబద్ధ ఉత్తర్వులు, సాంప్లింగ్ మెమోలు మరియు లాగిన్ ఖాతాలను శాశ్వతంగా తొలగిస్తుంది. ఈ చర్యను రద్దు చేయలేరు.')}
             </p>
             <div className="mb-4">
               <label className="block text-xs font-medium text-gray-700 dark:text-slate-200 mb-1.5">
-                Type <span className="font-semibold text-red-600 dark:text-red-400">DELETE</span> to confirm:
+                {t('Type', 'టైప్ చేయండి')} <span className="font-semibold text-red-600 dark:text-red-400">DELETE</span> {t('to confirm:', 'ధృవీకరించడానికి:')}
               </label>
               <input
                 type="text"
                 value={bulkDeleteConfirmText}
                 onChange={(e) => setBulkDeleteConfirmText(e.target.value)}
-                placeholder="Type DELETE to confirm"
+                placeholder={t('Type DELETE to confirm', 'ధృవీకరించడానికి DELETE అని టైప్ చేయండి')}
                 autoFocus
                 className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-red-500"
               />
@@ -848,7 +850,7 @@ export function UserManagement() {
                 disabled={bulkActing}
                 className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
               >
-                Cancel
+                {t('Cancel', 'రద్దు చేయండి')}
               </button>
               <button
                 type="button"
@@ -859,12 +861,12 @@ export function UserManagement() {
                 {bulkActing ? (
                   <>
                     <Spinner size="xs" className="text-white" label="Loading" />
-                    Deleting...
+                    {t('Deleting...', 'తొలగిస్తోంది...')}
                   </>
                 ) : (
                   <>
                     <Trash2 className="w-4 h-4" />
-                    Delete Permanently
+                    {t('Delete Permanently', 'శాశ్వతంగా తొలగించండి')}
                   </>
                 )}
               </button>
@@ -882,15 +884,15 @@ export function UserManagement() {
                   <Bell className="h-5 w-5" />
                 </span>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Send Notification</h3>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">Officers see this in the notification bell</p>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('Send Notification', 'నోటిఫికేషన్ పంపండి')}</h3>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{t('Officers see this in the notification bell', 'అధికారులు దీనిని నోటిఫికేషన్ బెల్‌లో చూస్తారు')}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setNotifyOpen(false)}
                 className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                aria-label="Close"
+                aria-label={t('Close', 'మూసివేయండి')}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -899,14 +901,14 @@ export function UserManagement() {
             <div className="space-y-4">
               <div>
                 <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                  Recipients
+                  {t('Recipients', 'గ్రహీతలు')}
                 </label>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {(
                     [
-                      { id: 'all', label: `All officers (${adminOfficers.length})` },
-                      { id: 'filtered', label: `Filtered (${filteredOfficers.length})` },
-                      { id: 'selected', label: `Selected (${selectedOfficers.length})` },
+                      { id: 'all', label: `${t('All officers', 'అందరు అధికారులు')} (${adminOfficers.length})` },
+                      { id: 'filtered', label: `${t('Filtered', 'ఫిల్టర్ చేసినవారు')} (${filteredOfficers.length})` },
+                      { id: 'selected', label: `${t('Selected', 'ఎంపిక చేసినవారు')} (${selectedOfficers.length})` },
                     ] as const
                   ).map((opt) => (
                     <button
@@ -928,35 +930,35 @@ export function UserManagement() {
 
               <div>
                 <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                  Title <span className="text-red-500">*</span>
+                  {t('Title', 'శీర్షిక')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={notifyTitle}
                   onChange={(e) => setNotifyTitle(e.target.value)}
                   maxLength={120}
-                  placeholder="e.g. New Circular: Fertilizer Stock Verification"
+                  placeholder={t('e.g. New Circular: Fertilizer Stock Verification', 'ఉదా. కొత్త సర్క్యులర్: ఎరువుల స్టాక్ ధృవీకరణ')}
                   className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-500/20"
                 />
               </div>
 
               <div>
                 <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                  Message <span className="font-normal normal-case text-gray-400">(optional)</span>
+                  {t('Message', 'సందేశం')} <span className="font-normal normal-case text-gray-400">({t('optional', 'ఐచ్చికం')})</span>
                 </label>
                 <textarea
                   value={notifyMessage}
                   onChange={(e) => setNotifyMessage(e.target.value)}
                   rows={3}
                   maxLength={500}
-                  placeholder="Short details shown under the title…"
+                  placeholder={t('Short details shown under the title…', 'శీర్షిక క్రింద చూపబడే సంక్షిప్త వివరాలు…')}
                   className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-500/20"
                 />
               </div>
 
               <div>
                 <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                  Link <span className="font-normal normal-case text-gray-400">(optional — where tapping opens)</span>
+                  {t('Link', 'లింక్')} <span className="font-normal normal-case text-gray-400">({t('optional — where tapping opens', 'ఐచ్చికం — ట్యాప్ చేసినప్పుడు తెరిచే పేజీ')})</span>
                 </label>
                 <input
                   type="text"
@@ -969,7 +971,7 @@ export function UserManagement() {
               </div>
 
               <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
-                Will send to <span className="font-black text-emerald-700 dark:text-emerald-300">{notifyRecipients.length}</span> officer(s).
+                {t('Will send to', 'పంపబడుతుంది:')} <span className="font-black text-emerald-700 dark:text-emerald-300">{notifyRecipients.length}</span> {t('officer(s)', 'అధికారి(లు)')}.
               </p>
             </div>
 
@@ -980,7 +982,7 @@ export function UserManagement() {
                 disabled={notifySending}
                 className="px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:text-gray-900 disabled:opacity-50 dark:text-slate-300 dark:hover:text-white"
               >
-                Cancel
+                {t('Cancel', 'రద్దు చేయండి')}
               </button>
               <button
                 type="button"
@@ -989,7 +991,7 @@ export function UserManagement() {
                 className="flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-black text-white shadow-md transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {notifySending ? <Spinner size="xs" className="text-white" label="Loading" /> : <Send className="h-4 w-4" />}
-                {notifySending ? 'Sending…' : `Send to ${notifyRecipients.length}`}
+                {notifySending ? t('Sending…', 'పంపుతోంది…') : `${t('Send to', 'పంపండి')} ${notifyRecipients.length}`}
               </button>
             </div>
           </div>

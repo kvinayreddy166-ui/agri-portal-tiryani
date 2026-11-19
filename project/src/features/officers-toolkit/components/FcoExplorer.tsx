@@ -16,6 +16,7 @@ import { fcoClauseCards, type FcoClause, type FcoClauseCard } from '../data/fcoC
 import { fertilizerForms, type FertilizerFormEntry } from '../../sampling-hub/data/fertilizerForms';
 import { fertilizerSchedules } from '../../sampling-hub/data/fertilizerSchedules';
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 export type FcoExplorerSection = 'clauses' | 'forms' | 'schedules' | 'duties';
 
@@ -27,29 +28,11 @@ type TaskShortcut = {
   cardId?: string;
 };
 
-const TASK_SHORTCUTS: TaskShortcut[] = [
-  { id: 'find-clause', label: 'Find a Clause', icon: Search, action: 'clauses' },
-  { id: 'inspector-powers', label: 'Inspector Powers', icon: ShieldCheck, action: 'card', cardId: 'card-enforcement' },
-  { id: 'draw-sample', label: 'Draw a Sample', icon: FlaskConical, action: 'card', cardId: 'card-sample-analysis' },
-  { id: 'dealer-check', label: 'Check Dealer Requirements', icon: Store, action: 'card', cardId: 'card-dealer-registration' },
-  { id: 'find-form', label: 'Find a Form', icon: FileText, action: 'forms' },
-  { id: 'product-req', label: 'Check Product Requirements', icon: PackageCheck, action: 'card', cardId: 'card-restrictions' },
-  { id: 'enforcement', label: 'Enforcement Procedure', icon: ClipboardList, action: 'duties' },
-  { id: 'browse', label: 'Browse Full Order', icon: BookOpen, action: 'clauses' },
-];
-
 const SUGGESTED_SEARCHES = ['stop sale', 'dealer registration', 'drawal of sample', 'Form O', 'non-standard fertiliser', 'price display', 'inspector powers', 'seizure'];
 const RECENT_KEY = 'fco-explorer-recent-searches';
 const RESULT_LIMIT = 6;
 
 type ResultKind = 'clauses' | 'definitions' | 'forms' | 'schedules';
-const RESULT_FILTERS: Array<{ id: 'all' | ResultKind; label: string }> = [
-  { id: 'all', label: 'All' },
-  { id: 'clauses', label: 'Clauses' },
-  { id: 'definitions', label: 'Definitions' },
-  { id: 'forms', label: 'Forms' },
-  { id: 'schedules', label: 'Schedules' },
-];
 
 function clauseSearchText(clause: FcoClause) {
   return [clause.clauseNo, clause.clauseLabel, clause.title, clause.category, clause.summary, clause.legalText, clause.plainEnglish, clause.keywords.join(' ')]
@@ -76,10 +59,30 @@ export function FcoExplorer({
   onOpenSection: (section: FcoExplorerSection, presetSearch?: string) => void;
   onViewForm: (form: FertilizerFormEntry) => void;
 }) {
+  const { t } = useLanguage();
   const [term, setTerm] = useState('');
   const [kind, setKind] = useState<'all' | ResultKind>('all');
   const [recent, setRecent] = useState<string[]>(() => readRecentSearches());
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const taskShortcuts: TaskShortcut[] = useMemo(() => [
+    { id: 'find-clause', label: t('Find a Clause', 'క్లాజును వెతకండి'), icon: Search, action: 'clauses' },
+    { id: 'inspector-powers', label: t('Inspector Powers', 'ఇన్‌స్పెక్టర్ అధికారాలు'), icon: ShieldCheck, action: 'card', cardId: 'card-enforcement' },
+    { id: 'draw-sample', label: t('Draw a Sample', 'నమూనా సేకరణ'), icon: FlaskConical, action: 'card', cardId: 'card-sample-analysis' },
+    { id: 'dealer-check', label: t('Check Dealer Requirements', 'డీలర్ నిబంధనలు'), icon: Store, action: 'card', cardId: 'card-dealer-registration' },
+    { id: 'find-form', label: t('Find a Form', 'ఫారమ్‌ను వెతకండి'), icon: FileText, action: 'forms' },
+    { id: 'product-req', label: t('Check Product Requirements', 'ఉత్పత్తి నిబంధనలు'), icon: PackageCheck, action: 'card', cardId: 'card-restrictions' },
+    { id: 'enforcement', label: t('Enforcement Procedure', 'అమలు ప్రక్రియ'), icon: ClipboardList, action: 'duties' },
+    { id: 'browse', label: t('Browse Full Order', 'పూర్తి ఉత్తర్వును చూడండి'), icon: BookOpen, action: 'clauses' },
+  ], [t]);
+
+  const resultFilters = useMemo(() => [
+    { id: 'all' as const, label: t('All', 'అన్నీ') },
+    { id: 'clauses' as const, label: t('Clauses', 'క్లాజులు') },
+    { id: 'definitions' as const, label: t('Definitions', 'నిర్వచనాలు') },
+    { id: 'forms' as const, label: t('Forms', 'ఫారాలు') },
+    { id: 'schedules' as const, label: t('Schedules', 'షెడ్యూళ్లు') },
+  ], [t]);
 
   const query = term.trim().toLowerCase();
 
@@ -148,10 +151,10 @@ export function FcoExplorer({
           <div>
             <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
               <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-              <span>FCO Quick Search &amp; Navigator</span>
+              <span>{t('FCO Quick Search & Navigator', 'FCO త్వరిత శోధన & నావిగేటర్')}</span>
             </h2>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Instantly find statutory clauses, specifications, official forms, and inspection duties.
+              {t('Instantly find statutory clauses, specifications, official forms, and inspection duties.', 'చట్టబద్ధమైన క్లాజులు, ప్రమాణాలు, అధికారిక ఫారాలు మరియు తనిఖీ విధులను తక్షణమే కనుగొనండి.')}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -160,21 +163,21 @@ export function FcoExplorer({
               onClick={() => onOpenSection('clauses')}
               className="rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-700 ring-1 ring-indigo-200 transition hover:bg-indigo-100 dark:bg-indigo-950/50 dark:text-indigo-300 dark:ring-indigo-800"
             >
-              39 Clauses
+              {t('39 Clauses', '39 క్లాజులు')}
             </button>
             <button
               type="button"
               onClick={() => onOpenSection('forms')}
               className="rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-black text-violet-700 ring-1 ring-violet-200 transition hover:bg-violet-100 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-800"
             >
-              28 Forms
+              {t('28 Forms', '28 ఫారాలు')}
             </button>
             <button
               type="button"
               onClick={() => onOpenSection('schedules')}
               className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-black text-blue-700 ring-1 ring-blue-200 transition hover:bg-blue-100 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-800"
             >
-              VIII Schedules
+              {t('VIII Schedules', 'VIII షెడ్యూళ్లు')}
             </button>
           </div>
         </div>
@@ -187,17 +190,17 @@ export function FcoExplorer({
               value={term}
               onChange={(event) => setTerm(event.target.value)}
               onKeyDown={(event) => { if (event.key === 'Enter' && term.trim()) saveRecent(term.trim()); }}
-              placeholder="Search clauses, sections, keywords..."
+              placeholder={t('Search clauses, sections, keywords...', 'క్లాజులు, సెక్షన్లు, కీలకపదాలను వెతకండి...')}
               className="w-full min-w-0 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100"
             />
             {term && (
-              <button type="button" onClick={() => setTerm('')} aria-label="Clear search" className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">
+              <button type="button" onClick={() => setTerm('')} aria-label={t('Clear search', 'శోధనను క్లియర్ చేయండి')} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">
                 <X className="h-4 w-4" />
               </button>
             )}
-            <button type="button" onClick={() => term.trim() && saveRecent(term.trim())} aria-label="Search" className="shrink-0 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-xs font-black text-white transition hover:bg-indigo-700 sm:px-3">
+            <button type="button" onClick={() => term.trim() && saveRecent(term.trim())} aria-label={t('Search', 'శోధించండి')} className="shrink-0 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-xs font-black text-white transition hover:bg-indigo-700 sm:px-3">
               <Search className="h-4 w-4 sm:hidden" />
-              <span className="hidden sm:inline">Search</span>
+              <span className="hidden sm:inline">{t('Search', 'వెతకండి')}</span>
             </button>
           </div>
 
@@ -206,7 +209,7 @@ export function FcoExplorer({
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {recent.length > 0 && (
                 <>
-                  <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">Recent:</span>
+                  <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">{t('Recent:', 'ఇటీవలివి:')}</span>
                   {recent.map((item) => (
                     <button key={item} type="button" onClick={() => pickSearchTerm(item)} className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-600 transition hover:border-indigo-300 hover:text-indigo-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
                       {item}
@@ -215,7 +218,7 @@ export function FcoExplorer({
                   <span className="mx-1 h-3 w-px bg-slate-200 dark:bg-slate-700" />
                 </>
               )}
-              <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">Try:</span>
+              <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">{t('Try:', 'ఉదాహరణ:')}</span>
               {SUGGESTED_SEARCHES.slice(0, 5).map((item) => (
                 <button key={item} type="button" onClick={() => pickSearchTerm(item)} className="rounded-full border border-indigo-100 bg-indigo-50/60 px-2.5 py-1 text-[10px] font-bold text-indigo-700 transition hover:border-indigo-300 dark:border-indigo-900/50 dark:bg-indigo-950/30 dark:text-indigo-300">
                   {item}
@@ -228,7 +231,7 @@ export function FcoExplorer({
           {showResults && (
             <div className="absolute inset-x-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
               <div className="flex flex-wrap gap-1 border-b border-slate-100 p-2 dark:border-slate-800">
-                {RESULT_FILTERS.map((filter) => (
+                {resultFilters.map((filter) => (
                   <button
                     key={filter.id}
                     type="button"
@@ -245,11 +248,11 @@ export function FcoExplorer({
               </div>
               <div className="max-h-[60vh] overflow-y-auto p-2">
                 {(kind === 'all' || kind === 'definitions') && definitionResults.length > 0 && (
-                  <ResultGroup title="Definitions">
+                  <ResultGroup title={t('Definitions', 'నిర్వచనాలు')}>
                     {definitionResults.slice(0, RESULT_LIMIT).map(({ card, clause }) => (
                       <ResultRow
                         key={clause.id}
-                        chip="Definition"
+                        chip={t('Definition', 'నిర్వచనం')}
                         title={`${clause.clauseLabel ?? 'Clause'} ${clause.clauseNo} — ${clause.title}`}
                         context={clause.plainEnglish || clause.summary}
                         onOpen={() => { saveRecent(term.trim()); onOpenCard(card.id); }}
@@ -258,7 +261,7 @@ export function FcoExplorer({
                   </ResultGroup>
                 )}
                 {(kind === 'all' || kind === 'clauses') && clauseOnlyResults.length > 0 && (
-                  <ResultGroup title="Clauses">
+                  <ResultGroup title={t('Clauses', 'క్లాజులు')}>
                     {clauseOnlyResults.slice(0, RESULT_LIMIT).map(({ card, clause }) => (
                       <ResultRow
                         key={clause.id}
@@ -271,7 +274,7 @@ export function FcoExplorer({
                   </ResultGroup>
                 )}
                 {(kind === 'all' || kind === 'forms') && formResults.length > 0 && (
-                  <ResultGroup title="Forms">
+                  <ResultGroup title={t('Forms', 'ఫారాలు')}>
                     {formResults.slice(0, RESULT_LIMIT).map((form) => (
                       <ResultRow
                         key={form.id}
@@ -284,11 +287,11 @@ export function FcoExplorer({
                   </ResultGroup>
                 )}
                 {(kind === 'all' || kind === 'schedules') && scheduleResults.length > 0 && (
-                  <ResultGroup title="Schedules">
+                  <ResultGroup title={t('Schedules', 'షెడ్యూళ్లు')}>
                     {scheduleResults.slice(0, RESULT_LIMIT).map((schedule) => (
                       <ResultRow
                         key={schedule.id}
-                        chip="Schedule"
+                        chip={t('Schedule', 'షెడ్యూల్')}
                         title={`${schedule.scheduleNo} — ${schedule.title}`}
                         context={schedule.subtitle}
                         onOpen={() => { saveRecent(term.trim()); onOpenSection('schedules', schedule.title); }}
@@ -297,7 +300,9 @@ export function FcoExplorer({
                   </ResultGroup>
                 )}
                 {clauseResults.length === 0 && formResults.length === 0 && scheduleResults.length === 0 && (
-                  <p className="p-4 text-center text-xs font-semibold text-slate-500">No matches — try a clause number, keyword or form name.</p>
+                  <p className="p-4 text-center text-xs font-semibold text-slate-500">
+                    {t('No matches — try a clause number, keyword or form name.', 'సరిపోలినవి ఏవీ లేవు — క్లాజు నంబర్, కీలకపదం లేదా ఫారమ్ పేరుతో వెతకండి.')}
+                  </p>
                 )}
               </div>
             </div>
@@ -307,11 +312,11 @@ export function FcoExplorer({
         {/* Hero actions */}
         <div className="mt-3 flex flex-wrap gap-1.5">
           {[
-            { label: 'Search FCO', icon: Search, run: focusSearch, primary: true },
-            { label: 'Clauses', icon: BookOpen, run: () => onOpenSection('clauses') },
-            { label: 'Forms', icon: FileText, run: () => onOpenSection('forms') },
-            { label: 'Schedules', icon: ClipboardList, run: () => onOpenSection('schedules') },
-            { label: 'Powers & Duties', icon: ShieldCheck, run: () => onOpenSection('duties') },
+            { label: t('Search FCO', 'FCO శోధన'), icon: Search, run: focusSearch, primary: true },
+            { label: t('Clauses', 'క్లాజులు'), icon: BookOpen, run: () => onOpenSection('clauses') },
+            { label: t('Forms', 'ఫారాలు'), icon: FileText, run: () => onOpenSection('forms') },
+            { label: t('Schedules', 'షెడ్యూళ్లు'), icon: ClipboardList, run: () => onOpenSection('schedules') },
+            { label: t('Powers & Duties', 'అధికారాలు & విధులు'), icon: ShieldCheck, run: () => onOpenSection('duties') },
           ].map((action) => (
             <button
               key={action.label}
@@ -332,9 +337,9 @@ export function FcoExplorer({
 
       {/* What do you want to do? */}
       <div>
-        <h3 className="text-sm font-black text-slate-900 dark:text-white">What do you want to do?</h3>
+        <h3 className="text-sm font-black text-slate-900 dark:text-white">{t('What do you want to do?', 'మీరు ఏమి చేయాలనుకుంటున్నారు?')}</h3>
         <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {TASK_SHORTCUTS.map((task) => (
+          {taskShortcuts.map((task) => (
             <button
               key={task.id}
               type="button"
@@ -350,7 +355,6 @@ export function FcoExplorer({
           ))}
         </div>
       </div>
-
     </section>
   );
 }
@@ -364,7 +368,7 @@ function ResultGroup({ title, children }: { title: string; children: React.React
   );
 }
 
-function ResultRow({ chip, title, context, onOpen }: { chip: string; title: string; context?: string; onOpen: () => void }) {
+function ResultRow({ chip, title, context, openLabel, onOpen }: { chip: string; title: string; context?: string; openLabel?: string; onOpen: () => void }) {
   return (
     <button
       type="button"
@@ -376,7 +380,7 @@ function ResultRow({ chip, title, context, onOpen }: { chip: string; title: stri
         <span className="block text-xs font-bold text-slate-800 sm:truncate dark:text-slate-100">{title}</span>
         {context && <span className="block text-[10px] font-medium text-slate-500 sm:truncate dark:text-slate-400">{context}</span>}
       </span>
-      <span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-indigo-600 opacity-0 transition group-hover:opacity-100 dark:text-indigo-300">Open</span>
+      <span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-indigo-600 opacity-0 transition group-hover:opacity-100 dark:text-indigo-300">{openLabel || 'Open'}</span>
     </button>
   );
 }

@@ -14,6 +14,7 @@ import { deletePortalFile } from '../../../shared/lib/uploadFile';
 import { FileActionButtons } from '../../../shared/components/ui/FileActionButtons';
 import { FileTypeIcon } from '../../../shared/components/ui/FileTypeIcon';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { FarmMechanizationDocument } from '../../../shared/types/database';
 import { PageSkeleton } from '../../../shared/components/ui/PageSkeleton';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
@@ -21,15 +22,16 @@ import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog
 
 const financialYears = ['2025-2026', '2026-2027', '2027-2028', '2028-2029', '2029-2030'];
 
-const documentTypes = [
-  { id: 'applications_received', label: 'Applications Received' },
-  { id: 'proceedings_generated', label: 'Proceedings Generated' },
-] as const;
-
 export function FarmMechanization() {
   const { isAdminUser, user } = useAuth();
+  const { t } = useLanguage();
   const toast = useToast();
   const { askConfirm, confirmDialog } = useConfirmDialog();
+
+  const documentTypes = [
+    { id: 'applications_received' as const, label: t('Applications Received', 'అప్లికేషన్లు స్వీకరించబడినవి') },
+    { id: 'proceedings_generated' as const, label: t('Proceedings Generated', 'ప్రక్రియలు జరిగాయి') },
+  ];
   const [financialYear, setFinancialYear] = useState(financialYears[0]);
   const [documents, setDocuments] = useState<FarmMechanizationDocument[]>([]);
   const [loading, setLoading] = useState(true);
@@ -156,10 +158,10 @@ export function FarmMechanization() {
         <div>
           <h1 className="flex items-center gap-2 text-xl font-black text-slate-950 dark:text-white sm:text-2xl">
             <Tractor className="h-6 w-6 text-emerald-600" />
-            Farm Mechanization
+            {t('Farm Mechanization', 'వ్యవసాయ యాంత్రీకరణ')}
           </h1>
           <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
-            Maintain applications received and proceedings generated for each financial year.
+            {t('Maintain applications received and proceedings generated for each financial year.', 'ప్రతి ఆర్థిక సంవత్సరానికి స్వీకరించిన అప్లికేషన్లు మరియు జరిగిన ప్రక్రియలను నిర్వహించండి.')}
           </p>
         </div>
       </div>
@@ -180,15 +182,15 @@ export function FarmMechanization() {
       </div>
 
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-        <SummaryCard label="Applications Received" count={counts.applications} />
-        <SummaryCard label="Proceedings Generated" count={counts.proceedings} />
+        <SummaryCard label={t('Applications Received', 'అప్లికేషన్లు స్వీకరించబడినవి')} count={counts.applications} />
+        <SummaryCard label={t('Proceedings Generated', 'ప్రక్రియలు జరిగాయి')} count={counts.proceedings} />
       </div>
 
       <section className="rounded-lg border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-lg font-black text-gray-950 dark:text-white">Documents</h2>
-            <p className="text-xs text-gray-500 dark:text-slate-400">Farm mechanization records for {financialYear}</p>
+            <h2 className="text-lg font-black text-gray-950 dark:text-white">{t('Documents', 'పత్రాలు')}</h2>
+            <p className="text-xs text-gray-500 dark:text-slate-400">{t('Farm mechanization records for', 'వ్యవసాయ యాంత్రీకరణ రికార్డులు')} {financialYear}</p>
           </div>
           {isAdminUser && (
             <button
@@ -196,7 +198,7 @@ export function FarmMechanization() {
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-900/10 transition hover:bg-emerald-800"
             >
               <Plus className="h-4 w-4" />
-              Upload Document
+              {t('Upload Document', 'పత్రం అప్‌లోడ్ చేయండి')}
             </button>
           )}
         </div>
@@ -244,7 +246,7 @@ export function FarmMechanization() {
         ) : (
           <div className="rounded-xl border border-dashed border-gray-200 dark:border-slate-700 p-8 text-center">
             <FileText className="mx-auto mb-3 h-10 w-10 text-gray-300" />
-            <p className="font-semibold text-gray-600 dark:text-slate-300">No farm mechanization documents uploaded for this year yet.</p>
+            <p className="font-semibold text-gray-600 dark:text-slate-300">{t('No farm mechanization documents uploaded for this year yet.', 'ఈ సంవత్సరానికి ఇంకా వ్యవసాయ యాంత్రీకరణ పత్రాలు అప్‌లోడ్ చేయబడలేదు.')}</p>
           </div>
         )}
       </section>
@@ -254,7 +256,7 @@ export function FarmMechanization() {
           <div className="w-full max-w-xl rounded-xl bg-white dark:bg-slate-900 p-4 shadow-2xl">
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-black text-gray-950 dark:text-white">Upload Farm Mechanization Document</h2>
+                <h2 className="text-xl font-black text-gray-950 dark:text-white">{t('Upload Farm Mechanization Document', 'వ్యవసాయ యాంత్రీకరణ పత్రం అప్‌లోడ్ చేయండి')}</h2>
                 <p className="text-xs text-gray-500 dark:text-slate-400">{financialYear}</p>
               </div>
               <button onClick={() => setShowUpload(false)} className="rounded-lg p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100">
@@ -264,7 +266,7 @@ export function FarmMechanization() {
 
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">Document Type</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('Document Type', 'పత్రం రకం')}</label>
                 <select
                   value={documentType}
                   onChange={(e) => setDocumentType(e.target.value as FarmMechanizationDocument['document_type'])}
@@ -276,23 +278,23 @@ export function FarmMechanization() {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">Title</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('Title', 'శీర్షిక')}</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => { setFieldErrors((prev) => ({ ...prev, title: undefined })); setTitle(e.target.value); }}
                   className={`w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-4 ${fieldErrors.title ? 'border-red-400 focus:border-red-500 focus:ring-red-100 dark:border-red-500/70' : 'border-gray-300 dark:border-slate-600 focus:border-emerald-500 focus:ring-emerald-100'}`}
-                  placeholder="Enter document title"
+                  placeholder={t('Enter document title', 'పత్రం శీర్షిక నమోదు చేయండి')}
                   aria-invalid={Boolean(fieldErrors.title)}
                 />
                 {fieldErrors.title && <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400" role="alert">{fieldErrors.title}</p>}
               </div>
               <div>
-                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">File</label>
+                <label className="mb-1 block text-sm font-bold text-gray-700 dark:text-slate-200">{t('File', 'ఫైల్')}</label>
                 <label className={`flex cursor-pointer items-center gap-2 rounded-lg border border-dashed px-3 py-2 ${fieldErrors.file ? 'border-red-400 bg-red-50 hover:border-red-500 dark:border-red-500/70 dark:bg-red-950/20' : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-800/60 hover:border-emerald-400 hover:bg-emerald-50'}`}>
                   <FileUp className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
                   <span className="truncate text-sm font-semibold text-gray-700 dark:text-slate-200">
-                    {file ? file.name : 'Upload application or proceeding file'}
+                    {file ? file.name : t('Upload application or proceeding file', 'అప్లికేషన్ లేదా ప్రక్రియ ఫైల్ అప్‌లోడ్ చేయండి')}
                   </span>
                   <input
                     type="file"
@@ -310,14 +312,14 @@ export function FarmMechanization() {
                 onClick={() => { setShowUpload(false); setFieldErrors({}); }}
                 className="flex-1 rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-50"
               >
-                Cancel
+                {t('Cancel', 'రద్దు చేయండి')}
               </button>
               <button
                 onClick={saveDocument}
                 disabled={saving}
                 className="flex-1 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60"
               >
-                {saving ? 'Uploading...' : 'Upload'}
+                {saving ? t('Uploading...', 'అప్‌లోడ్ అవుతోంది...') : t('Upload', 'అప్‌లోడ్')}
               </button>
             </div>
           </div>

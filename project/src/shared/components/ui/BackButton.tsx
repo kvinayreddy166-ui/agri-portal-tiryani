@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronLeft } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 type BackButtonTone = 'light' | 'solid';
 
@@ -24,13 +25,16 @@ const toneClass: Record<BackButtonTone, string> = {
  * Compact glass back-button tile — chevron nudges left on hover.
  * Sits at the header's leading edge with a proper touch target.
  */
-export function BackButton({ onClick, tone = 'light', colors, className = '', label = 'Go back' }: BackButtonProps) {
+export function BackButton({ onClick, tone = 'light', colors, className = '', label }: BackButtonProps) {
+  const { t } = useLanguage();
+  const resolvedLabel = label || t('Go back', 'వెనుకకు వెళ్లండి');
+
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={label}
-      title={label}
+      aria-label={resolvedLabel}
+      title={resolvedLabel}
       className={[
         'group -ml-1.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border backdrop-blur-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-1 active:scale-90',
         colors

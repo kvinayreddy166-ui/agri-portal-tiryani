@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Search as SearchIcon, Loader2, FileText, BookOpen, ChevronRight } from 'lucide-react';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
 import { fetchCategories, searchKnowledge } from '../services/knowledgeService';
@@ -9,6 +10,7 @@ import type { KnowledgeCategory, RetrievedChunk, SearchFilters } from '../types/
 
 export function KnowledgeSearch() {
   const { isAdminUser } = useAuth();
+  const { t } = useLanguage();
   const go = useKnowledgeNav();
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<'keyword' | 'semantic' | 'hybrid'>('hybrid');
@@ -40,7 +42,7 @@ export function KnowledgeSearch() {
 
   return (
     <div>
-      <PageHeader eyebrow="Knowledge Base" title="Search Documents" description="Find exact text with keyword search or meaning-based semantic search." />
+      <PageHeader eyebrow={t('Knowledge Base', 'నాలెడ్జ్ బేస్')} title={t('Search Documents', 'పత్రాలలో వెతకండి')} description={t('Find exact text with keyword search or meaning-based semantic search.', 'కీవర్డ్ లేదా అర్థ ఆధారిత శోధనతో ఖచ్చితమైన సమాచారాన్ని కనుగొనండి.')} />
       <KnowledgeNav isAdmin={isAdminUser} />
 
       <div className="portal-card modern-card mb-3 p-3">
@@ -49,23 +51,23 @@ export function KnowledgeSearch() {
             <SearchIcon className="absolute left-2 top-3 h-4 w-4 text-slate-400" />
             <input
               className="w-full rounded-xl border border-slate-300 py-2.5 pl-8 pr-3 text-sm font-semibold dark:border-slate-700 dark:bg-slate-900"
-              placeholder="e.g. Form D, Section 7, FCO 1985, seed licence..."
+              placeholder={t('e.g. Form D, Section 7, FCO 1985, seed licence...', 'ఉదా. ఫారం D, సెక్షన్ 7, FCO 1985, విత్తన లైసెన్స్...')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') run(); }}
             />
           </div>
           <select value={mode} onChange={(e) => setMode(e.target.value as typeof mode)} className="rounded-xl border border-slate-300 px-2 py-2.5 text-sm font-bold dark:border-slate-700 dark:bg-slate-900">
-            <option value="hybrid">Hybrid</option>
-            <option value="keyword">Keyword</option>
-            <option value="semantic">Semantic</option>
+            <option value="hybrid">{t('Hybrid', 'హైబ్రిడ్')}</option>
+            <option value="keyword">{t('Keyword', 'కీవర్డ్')}</option>
+            <option value="semantic">{t('Semantic', 'సెమాంటిక్')}</option>
           </select>
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="rounded-xl border border-slate-300 px-2 py-2.5 text-sm font-bold dark:border-slate-700 dark:bg-slate-900">
-            <option value="">All categories</option>
+            <option value="">{t('All categories', 'అన్ని వర్గాలు')}</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <button onClick={() => run()} disabled={loading} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SearchIcon className="h-4 w-4" />} Search
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SearchIcon className="h-4 w-4" />} {t('Search', 'వెతకండి')}
           </button>
         </div>
       </div>
@@ -75,7 +77,7 @@ export function KnowledgeSearch() {
       ) : searched && results.length === 0 ? (
         <div className="portal-card modern-card p-10 text-center">
           <BookOpen className="mx-auto h-10 w-10 text-slate-400" />
-          <p className="mt-2 text-sm font-bold text-slate-500">No relevant documents were found. Try different keywords or another search mode.</p>
+          <p className="mt-2 text-sm font-bold text-slate-500">{t('No relevant documents were found. Try different keywords or another search mode.', 'సంబంధిత పత్రాలు ఏవీ కనుగొనబడలేదు. వేరే పదాలతో లేదా ఇతర శోధన విధానంతో ప్రయత్నించండి.')}</p>
         </div>
       ) : !searched ? null : (
         <div className="space-y-2">
@@ -93,7 +95,7 @@ export function KnowledgeSearch() {
                 </div>
                 <p className="mt-0.5 text-[11px] font-semibold leading-4 text-slate-500 dark:text-slate-400 sm:text-xs">
                   {r.documentType}
-                  {r.pageNumber && ` · Page ${r.pageNumber}${r.pageEndNumber && r.pageEndNumber !== r.pageNumber ? `-${r.pageEndNumber}` : ''}`}
+                  {r.pageNumber && ` · ${t('Page', 'పేజీ')} ${r.pageNumber}${r.pageEndNumber && r.pageEndNumber !== r.pageNumber ? `-${r.pageEndNumber}` : ''}`}
                   {r.sectionHeading && ` · ${r.sectionHeading}`}
                   {r.referenceNumber && ` · ${r.referenceNumber}`}
                 </p>

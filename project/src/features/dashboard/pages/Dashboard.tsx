@@ -543,7 +543,7 @@ export const Dashboard = React.memo(function Dashboard() {
               <div className="mb-4 flex items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
                 <h2 className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
                   <Users className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
-                  {t('Registered Officers by District', 'జిల్లా వారీగా నమోదు చేసినmektedir')}
+                  {t('Registered Officers by District', 'జిల్లా వారీగా నమోదైన అధికారులు')}
                 </h2>
                 <span className="rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300">
                   {t('Total', 'మొత్తం')}: {districtUserCounts.reduce((sum, d) => sum + d.count, 0)}
@@ -670,7 +670,7 @@ export const Dashboard = React.memo(function Dashboard() {
             <p className="mt-0.5 text-[11px] text-gray-500 dark:text-slate-400">
               {t(
                 'Fertilizer availability from dealer daily closing balance in MT',
-                'Fertilizer availability from dealer daily closing balance in MT'
+                'డీలర్ రోజువారీ క్లోజింగ్ బ్యాలెన్స్ నుండి ఎరువుల లభ్యత (MT లో)'
               )}
             </p>
           </div>

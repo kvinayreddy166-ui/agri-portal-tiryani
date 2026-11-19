@@ -445,20 +445,21 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
   const inspectionsHub = { label: t('Inspection & Enforcement', 'తనిఖీ & అమలు'), page: 'inspection-enforcement' };
 
   if (page.startsWith('knowledge-')) {
-    const knowledgeTitles: Record<string, string> = {
-      'knowledge-library': 'Document Library',
-      'knowledge-upload': 'Upload Document',
-      'knowledge-categories': 'Categories',
-      'knowledge-queue': 'Processing Queue',
-      'knowledge-analytics': 'Query Analytics',
-      'knowledge-settings': 'Settings',
-      'knowledge-assistant': 'Knowledge Assistant',
-      'knowledge-search': 'Search Documents',
-      'knowledge-viewer': 'Document Viewer',
+    const knowledgeTitles: Record<string, { en: string; te: string }> = {
+      'knowledge-library': { en: 'Document Library', te: 'పత్రాల లైబ్రరీ' },
+      'knowledge-upload': { en: 'Upload Document', te: 'పత్రం అప్‌లోడ్' },
+      'knowledge-categories': { en: 'Categories', te: 'వర్గాలు' },
+      'knowledge-queue': { en: 'Processing Queue', te: 'ప్రాసెసింగ్ క్యూ' },
+      'knowledge-analytics': { en: 'Query Analytics', te: 'ప్రశ్నల విశ్లేషణ' },
+      'knowledge-settings': { en: 'Settings', te: 'సెట్టింగ్‌లు' },
+      'knowledge-assistant': { en: 'Knowledge Assistant', te: 'నాలెడ్జ్ అసిస్టెంట్' },
+      'knowledge-search': { en: 'Search Documents', te: 'పత్రాలలో వెతకండి' },
+      'knowledge-viewer': { en: 'Document Viewer', te: 'పత్రం వీక్షకం' },
     };
+    const currentMeta = knowledgeTitles[page] ?? { en: 'Knowledge Base', te: 'నాలెడ్జ్ బేస్' };
     return {
-      title: t(knowledgeTitles[page] ?? 'Knowledge Base', 'జ్ఞాన భాండాగారం'),
-      breadcrumbs: [dashboard, { label: t('Knowledge Base', 'జ్ఞాన భాండాగారం'), page: 'knowledge' }],
+      title: t(currentMeta.en, currentMeta.te),
+      breadcrumbs: [dashboard, { label: t('Knowledge Base', 'నాలెడ్జ్ బేస్'), page: 'knowledge' }],
     };
   }
 
@@ -472,13 +473,15 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'field-tools': { title: t('Field Tools Hub', 'క్షేత్ర పరికరాల హబ్'), breadcrumbs: [dashboard] },
     'government-portals': { title: t('Government Portals', 'ప్రభుత్వ పోర్టల్స్'), breadcrumbs: [dashboard] },
     'officer-records': { title: t('Saved Records & Storage', 'సేవ్ చేసిన రికార్డులు & స్టోరేజ్'), breadcrumbs: [dashboard] },
-    knowledge: { title: t('Knowledge Base', 'జ్ఞాన భాండాగారం'), breadcrumbs: [dashboard] },
+    knowledge: { title: t('Knowledge Base', 'నాలెడ్జ్ బేస్'), breadcrumbs: [dashboard] },
     forms: { title: t('Smart Sampling', 'స్మార్ట్ సాంప్లింగ్'), breadcrumbs: [dashboard] },
     'forms-library': { title: t('Forms & Library', 'ఫారాలు & లైబ్రరీ'), breadcrumbs: [dashboard] },
     'acreage-calculator': { title: t('Area Calculator', 'ఎకరాల కాలిక్యులేటర్'), breadcrumbs: [dashboard, farmCalculators] },
     agrochemicals: { title: t('Agrochemicals Database', 'వ్యవసాయ రసాయనాల భాండాగారం'), breadcrumbs: [dashboard] },
     'farm-calculators': { title: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), breadcrumbs: [dashboard] },
     'crop-doctor': { title: t('Crop Doctor', 'పంట డాక్టర్'), breadcrumbs: [dashboard] },
+    'crop-admin': { title: t('Crop Intelligence Admin', 'పంట సమాచార నిర్వహణ'), breadcrumbs: [dashboard] },
+    'user-management': { title: t('User Management', 'వినియోగదారుల నిర్వహణ'), breadcrumbs: [dashboard] },
     'fertilizer-calculator': { title: t('Fertilizer Calculator', 'ఎరువుల కాలిక్యులేటర్'), breadcrumbs: [dashboard, farmCalculators] },
     'pesticide-calculator': { title: t('Pesticide Calculator', 'పురుగుమందుల కాలిక్యులేటర్'), breadcrumbs: [dashboard, farmCalculators] },
     'plant-population-calculator': { title: t('Plant Population Calculator', 'మొక్కల జనాభా కాలిక్యులేటర్'), breadcrumbs: [dashboard, farmCalculators] },

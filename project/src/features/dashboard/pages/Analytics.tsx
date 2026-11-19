@@ -4,6 +4,7 @@ import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { savePdfDocument } from '../../documents/lib/documentActions';
 import { addTableSheet, createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { fetchAllRows } from '../../../shared/lib/pagedFetch';
 import { StockCategory, CATEGORY_UNITS, currentReportDate, financialYearForDate, shiftReportDate } from '../../dealer-stock/lib/stockInventory';
@@ -114,6 +115,7 @@ const titleCase = (value = '') =>
 
 export function Analytics() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const toast = useToast();
   const [dealers, setDealers] = useState<DealerRow[]>([]);
   const [stockRows, setStockRows] = useState<StockRow[]>([]);
@@ -272,15 +274,15 @@ export function Analytics() {
       <section className="rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Reports</p>
-            <h1 className="text-xl font-black text-slate-950 dark:text-white">Reports</h1>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Official report preview, Excel, PDF, and live charts from existing app data.</p>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Reports', 'నివేదికలు')}</p>
+            <h1 className="text-xl font-black text-slate-950 dark:text-white">{t('Reports', 'నివేదికలు')}</h1>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Official report preview, Excel, PDF, and live charts from existing app data.', 'అధికారిక నివేదికల ప్రివ్యూ, ఎక్సెల్, పిడిఎఫ్ మరియు లైవ్ చార్ట్‌లు.')}</p>
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={() => setFiltersOpen((value) => !value)} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50" aria-label="Filters">
+            <button type="button" onClick={() => setFiltersOpen((value) => !value)} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50" aria-label={t('Filters', 'ఫిల్టర్లు')}>
               <Filter className="h-4 w-4" />
             </button>
-            <button type="button" onClick={loadData} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50" aria-label="Refresh">
+            <button type="button" onClick={loadData} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50" aria-label={t('Refresh', 'రిఫ్రెష్')}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
@@ -288,31 +290,31 @@ export function Analytics() {
         {filtersOpen && (
           <div className="mt-3 space-y-3">
             <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/40 p-3">
-              <p className="text-[10px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Selected Report</p>
+              <p className="text-[10px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Selected Report', 'ఎంచుకున్న నివేదిక')}</p>
               <p className="mt-1 text-sm font-black text-slate-950 dark:text-white">{currentReport.title}</p>
               <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-300">{currentReport.description}</p>
             </div>
             <div className="grid gap-2 md:grid-cols-3 xl:grid-cols-6">
-              <FilterField label="From Date"><input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" /></FilterField>
-              <FilterField label="To Date"><input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" /></FilterField>
-              <FilterField label="Dealer">
+              <FilterField label={t('From Date', 'ప్రారంభ తేదీ')}><input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" /></FilterField>
+              <FilterField label={t('To Date', 'ముగింపు తేదీ')}><input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold" /></FilterField>
+              <FilterField label={t('Dealer', 'డీలర్')}>
                 <select value={dealerId} onChange={(event) => setDealerId(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold">
-                  <option value="all">All dealers</option>
+                  <option value="all">{t('All dealers', 'అన్ని డీలర్లు')}</option>
                   {dealers.map((dealer) => <option key={dealer.id} value={dealer.id}>{titleCase(dealer.dealer_name)}</option>)}
                 </select>
               </FilterField>
-              <FilterField label="Category">
+              <FilterField label={t('Category', 'వర్గం')}>
                 <select value={category} onChange={(event) => setCategory(event.target.value as typeof category)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold">
-                  {CATEGORY_OPTIONS.map((item) => <option key={item} value={item}>{item === 'all' ? 'All' : titleCase(item)}</option>)}
+                  {CATEGORY_OPTIONS.map((item) => <option key={item} value={item}>{item === 'all' ? t('All', 'అన్నీ') : titleCase(item)}</option>)}
                 </select>
               </FilterField>
-              <FilterField label="Product/Fertilizer Type">
+              <FilterField label={t('Product/Fertilizer Type', 'ఉత్పత్తి/ఎరువుల రకం')}>
                 <select value={product} onChange={(event) => setProduct(event.target.value)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold">
-                  <option value="all">All products</option>
+                  <option value="all">{t('All products', 'అన్ని ఉత్పత్తులు')}</option>
                   {productOptions.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               </FilterField>
-              <FilterField label="Report Type">
+              <FilterField label={t('Report Type', 'నివేదిక రకం')}>
                 <select value={reportType} onChange={(event) => setReportType(event.target.value as ReportKey)} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold">
                   {REPORTS.map((report) => <option key={report.key} value={report.key}>{report.title}</option>)}
                 </select>
@@ -323,22 +325,22 @@ export function Analytics() {
       </section>
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Metric title="Dealers" value={filteredDealers.length} />
-        <Metric title="Stock Rows" value={filteredStock.length} />
-        <Metric title="Receipts" value={filteredReceipts.length} />
-        <Metric title="Quality Samples" value={filteredQuality.length} />
+        <Metric title={t('Dealers', 'డీలర్లు')} value={filteredDealers.length} />
+        <Metric title={t('Stock Rows', 'స్టాక్ వరుసలు')} value={filteredStock.length} />
+        <Metric title={t('Receipts', 'రసీదులు')} value={filteredReceipts.length} />
+        <Metric title={t('Quality Samples', 'నాణ్యతా నమూనాలు')} value={filteredQuality.length} />
       </section>
 
       <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 p-3">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Preview</p>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Preview', 'ప్రివ్యూ')}</p>
             <h2 className="text-base font-black text-slate-950 dark:text-white">{currentReport.title}</h2>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Date range: {fromDate || 'All'} to {toDate || 'All'} | Generated: {new Date().toLocaleString('en-IN')}</p>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Date range:', 'తేదీ శ్రేణి:')} {fromDate || t('All', 'అన్నీ')} {t('to', 'నుండి')} {toDate || t('All', 'వరకు')} | {t('Generated:', 'రూపొందించబడింది:')} {new Date().toLocaleString('en-IN')}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-black text-slate-700 dark:text-slate-200">
-              <Eye className="h-4 w-4" /> Preview
+              <Eye className="h-4 w-4" /> {t('Preview', 'ప్రివ్యూ')}
             </button>
             <div className="relative">
               <button
@@ -346,7 +348,7 @@ export function Analytics() {
                 onClick={() => setExportOpen((open) => !open)}
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-black text-white transition hover:bg-emerald-800"
               >
-                <Download className="h-4 w-4" /> Export
+                <Download className="h-4 w-4" /> {t('Export', 'ఎగుమతి')}
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`} />
               </button>
               {exportOpen && (
@@ -381,7 +383,7 @@ export function Analytics() {
             </table>
           </div>
         ) : (
-          <div className="p-8 text-center text-sm font-bold text-slate-500 dark:text-slate-400">No data available for selected filters</div>
+          <div className="p-8 text-center text-sm font-bold text-slate-500 dark:text-slate-400">{t('No data available for selected filters', 'ఎంచుకున్న ఫిల్టర్లకు డేటా అందుబాటులో లేదు')}</div>
         )}
         <div className="border-t border-slate-100 dark:border-slate-800 px-3 py-2 text-xs font-bold text-slate-500 dark:text-slate-400">MAO/Admin Footer: AGRONIX | Generated by {user?.email || 'MAO/Admin'}</div>
       </section>

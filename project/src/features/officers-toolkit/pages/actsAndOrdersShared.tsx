@@ -127,6 +127,15 @@ export const fcoTabs: Array<{ id: FcoTabId; label: string; icon: typeof Clock }>
   { id: 'officerAction', label: 'Officer Action', icon: ClipboardList },
   { id: 'formsTimelines', label: 'Forms & Timelines', icon: Clock },
 ];
+
+export function getLocalizedFcoTabs(t: (en: string, te: string) => string): Array<{ id: FcoTabId; label: string; icon: typeof Clock }> {
+  return [
+    { id: 'plainEnglish', label: t('Simple', 'సులభ వివరణ'), icon: BookOpen },
+    { id: 'fullText', label: t('Full Text', 'పూర్తి చట్ట పాఠం'), icon: FileText },
+    { id: 'officerAction', label: t('Officer Action', 'అధికారి చర్య'), icon: ClipboardList },
+    { id: 'formsTimelines', label: t('Forms & Timelines', 'ఫారాలు & కాలపరిమితులు'), icon: Clock },
+  ];
+}
 export const legalAreaCards: Array<{
   id: MainLegalArea;
   title: string;
@@ -196,6 +205,71 @@ export const legalAreaCards: Array<{
     hover: 'hover:border-amber-400 hover:bg-orange-50/60 dark:hover:bg-amber-950/30',
   },
 ];
+
+export function getLocalizedLegalAreaCards(t: (en: string, te: string) => string): typeof legalAreaCards {
+  return [
+    {
+      ...legalAreaCards[0],
+      title: t(legalAreaCards[0].title, 'ఎరువుల నియంత్రణ ఉత్తర్వు (FCO)'),
+      description: t(
+        legalAreaCards[0].description,
+        'ECA 1955 కింద డీలర్ నమోదు, నాణ్యతా ప్రమాణాలు, తనిఖీ అధికారాలు, నమూనా సేకరణ, జప్తి మరియు జరిమానాల చట్టబద్ధమైన నిబంధనలు.'
+      ),
+      statute: t(
+        legalAreaCards[0].statute,
+        'ఎరువుల (అకర్బన, కర్బన లేదా మిశ్రమ) (నియంత్రణ) ఉత్తర్వు, 1985 & నిత్యావసర వస్తువుల చట్టం, 1955'
+      ),
+      statuteShort: t(legalAreaCards[0].statuteShort, 'FCO 1985 & ECA'),
+      tags: [
+        t('38 Clauses', '38 క్లాజులు'),
+        t('28 Forms', '28 ఫారాలు'),
+        t('Schedules I–VIII', 'షెడ్యూల్స్ I–VIII'),
+        t('Seizure & Stop Sale', 'జప్తి & విక్రయాల నిలిపివేత'),
+      ],
+      stats: t(legalAreaCards[0].stats, '38 క్లాజులు • 28 ఫారాలు • VIII షెడ్యూళ్లు'),
+    },
+    {
+      ...legalAreaCards[1],
+      title: t(legalAreaCards[1].title, 'విత్తన చట్టం & నిబంధనలు'),
+      description: t(
+        legalAreaCards[1].description,
+        'విత్తన చట్టం, నియమాలు మరియు విత్తన (నియంత్రణ) ఉత్తర్వుల కింద లేబులింగ్, ధృవీకరణ, ఇన్‌స్పెక్టర్ విధులు మరియు శిక్షల చట్టబద్ధమైన నిబంధనలు.'
+      ),
+      statute: t(
+        legalAreaCards[1].statute,
+        'విత్తన చట్టం, 1966, విత్తన నియమాలు, 1968 & విత్తన (నియంత్రణ) ఉత్తర్వు, 1983'
+      ),
+      statuteShort: t(legalAreaCards[1].statuteShort, 'విత్తన చట్టం 1966 & నియమాలు'),
+      tags: [
+        t('Stop Sale & Seizure', 'విక్రయాల నిలిపివేత & జప్తి'),
+        t('Sampling Protocols', 'నమూనా సేకరణ పద్ధతులు'),
+        t('Inspector Duties', 'ఇన్‌స్పెక్టర్ విధులు'),
+        t('Penalties', 'శిక్షలు'),
+      ],
+      stats: t(legalAreaCards[1].stats, '25 సెక్షన్లు • తనిఖీ పద్ధతులు'),
+    },
+    {
+      ...legalAreaCards[2],
+      title: t(legalAreaCards[2].title, 'పురుగుమందుల చట్టం & నియమాలు'),
+      description: t(
+        legalAreaCards[2].description,
+        'పురుగుమందుల తయారీ, లైసెన్సింగ్, పంపిణీ, ప్యాకేజింగ్, లేబులింగ్, అమలు మరియు కోర్టు విచారణల సమగ్ర నియంత్రణ వ్యవస్థ.'
+      ),
+      statute: t(
+        legalAreaCards[2].statute,
+        'పురుగుమందుల చట్టం, 1968 & పురుగుమందుల నియమాలు, 1971'
+      ),
+      statuteShort: t(legalAreaCards[2].statuteShort, 'పురుగుమందుల చట్టం 1968'),
+      tags: [
+        t('Sections 1–38', 'సెక్షన్లు 1–38'),
+        t('Rules 1–46', 'నియమాలు 1–46'),
+        t('Forms I to XVIII', 'ఫారాలు I నుండి XVIII'),
+        t('Analyst & Enforcement', 'విశ్లేషకుడు & అమలు'),
+      ],
+      stats: t(legalAreaCards[2].stats, '38 సెక్షన్లు • 46 నియమాలు • 18 ఫారాలు'),
+    },
+  ];
+}
 
 export const legalTopicCards: Record<MainLegalArea, Array<{
   title: string;

@@ -317,7 +317,10 @@ function LanguageScope({ children }: { children: React.ReactNode }) {
   const { user, dealerId } = useAuth();
   const location = useLocation();
   const userKey = dealerId || user?.id || user?.email || 'public';
-  const sectionKey = languageSectionFromPath(location.pathname);
+  // Signed-in users (admin, officer, dealer) share a single language across
+  // every module. Signed-out pages (login, landing/homepage) keep their
+  // per-route scopes so their existing behaviour is untouched.
+  const sectionKey = user ? 'app' : languageSectionFromPath(location.pathname);
 
   return (
     <LanguageProvider userKey={userKey} sectionKey={sectionKey}>

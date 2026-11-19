@@ -14,6 +14,7 @@ import {
 import { validateImageUploadFile } from '../../../shared/lib/fileTypes';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 const NORMALIZED_TABLES = [
   ['crop_varieties', 'Varieties'],
@@ -101,6 +102,7 @@ const FIELD_CONFIGS: Record<string, string[][]> = {
 };
 
 export function CropAdminDashboard() {
+  const { t } = useLanguage();
   const { askConfirm, confirmDialog } = useConfirmDialog();
   const [selectedCrop, setSelectedCrop] = useState('paddy');
   const [otherCropName, setOtherCropName] = useState('');
@@ -118,11 +120,39 @@ export function CropAdminDashboard() {
   const { crop, loading, reload } = useCropData(slug, { faqLimit: 500 });
   const usingJsonCards = selectedCrop === 'other' || crop?.__source === 'crop_intelligence' || String(crop?.id || '').startsWith('local-');
   const jsonCardsMessage = crop?.__source === 'crop_intelligence'
-    ? 'Using editable crop_intelligence cards for text, pest/disease details and images.'
+    ? t('Using editable crop_intelligence cards for text, pest/disease details and images.', 'టెక్స్ట్, తెగులు/వ్యాధి వివరాలు మరియు చిత్రాల కోసం సవరించదగిన crop_intelligence కార్డులను ఉపయోగిస్తున్నారు.')
     : selectedCrop === 'other'
-      ? 'Enter the crop name, then add cards. Saving will create editable crop_intelligence cards in Supabase.'
-      : 'This crop is loaded from local fallback data. Saving will create editable crop_intelligence cards in Supabase.';
+      ? t('Enter the crop name, then add cards. Saving will create editable crop_intelligence cards in Supabase.', 'పంట పేరు నమోదు చేసి, కార్డులను జోడించండి. భద్రపరిస్తే Supabase లో సవరించదగిన కార్డులు సృష్టించబడతాయి.')
+      : t('This crop is loaded from local fallback data. Saving will create editable crop_intelligence cards in Supabase.', 'ఈ పంట స్థానిక డేటా నుండి లోడ్ చేయబడింది. భద్రపరిస్తే Supabase లో సవరించదగిన కార్డులు సృష్టించబడతాయి.');
   const tableOptions = usingJsonCards ? INTELLIGENCE_TABLES : NORMALIZED_TABLES;
+
+  const getTableDisplayName = (id: string, defaultLabel: string) => {
+    switch (id) {
+      case 'crop_varieties': return t('Varieties', 'రకాలు');
+      case 'crop_pests': return t('Pests', 'పురుగులు');
+      case 'crop_diseases': return t('Diseases', 'తెగుళ్లు');
+      case 'crop_weeds': return t('Weeds', 'కలుపు మొక్కలు');
+      case 'crop_fertilizers': return t('Fertilizers', 'ఎరువులు');
+      case 'crop_faqs': return t('FAQs', 'ప్రశ్నలు & సమాధానాలు');
+      case 'crop_advisories': return t('Advisories', 'సలహాలు');
+      case 'ci_varieties': return t('Variety Cards', 'రకాల కార్డులు');
+      case 'ci_practices': return t('Practice Cards', 'సాగు పద్ధతుల కార్డులు');
+      case 'ci_risks': return t('Pest & Disease Cards', 'పురుగులు & తెగుళ్ల కార్డులు');
+      default: return defaultLabel;
+    }
+  };
+
+  const getCropDisplayName = (itemSlug: string, defaultLabel: string) => {
+    switch (itemSlug) {
+      case 'paddy': return t('Paddy', 'వరి');
+      case 'cotton': return t('Cotton', 'పత్తి');
+      case 'maize': return t('Maize', 'మొక్కజొన్న');
+      case 'redgram': return t('Redgram', 'కంది');
+      case 'greengram': return t('Greengram', 'పెసర');
+      case 'other': return t('Other Crops', 'ఇతర పంటలు');
+      default: return defaultLabel;
+    }
+  };
 
   useEffect(() => {
     if (!tableOptions.some(([id]) => id === table)) {
@@ -271,8 +301,8 @@ export function CropAdminDashboard() {
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-2xl font-black text-slate-950 dark:text-white">Crop Intelligence Admin</h1>
-            <p className="mt-1 text-sm font-semibold text-slate-500">Add, edit, delete, upload images, bulk import JSON and export Excel.</p>
+            <h1 className="text-2xl font-black text-slate-950 dark:text-white">{t('Crop Intelligence Admin', 'పంట సమాచార నిర్వహణ')}</h1>
+            <p className="mt-1 text-sm font-semibold text-slate-500">{t('Add, edit, delete, upload images, bulk import JSON and export Excel.', 'జోడించండి, సవరించండి, తొలగించండి, చిత్రాలను అప్‌లోడ్ చేయండి మరియు ఎక్సెల్‌ను ఎగుమతి చేయండి.')}</p>
             {usingJsonCards && (
               <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">
                 {jsonCardsMessage}
@@ -290,7 +320,7 @@ export function CropAdminDashboard() {
               className="min-h-11 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
             >
               {CROP_OPTIONS.map((item) => (
-                <option key={item.slug} value={item.slug}>{item.label}</option>
+                <option key={item.slug} value={item.slug}>{getCropDisplayName(item.slug, item.label)}</option>
               ))}
             </select>
             {selectedCrop === 'other' && (
@@ -301,14 +331,14 @@ export function CropAdminDashboard() {
                   setStatusMessage('');
                   setUploadError('');
                 }}
-                placeholder="Enter crop name"
+                placeholder={t('Enter crop name', 'పంట పేరును నమోదు చేయండి')}
                 className="min-h-11 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
               />
             )}
-            <IconButton label="Refresh" tone="secondary" onClick={reload} disabled={!canEditSelectedCrop}>
+            <IconButton label={t('Refresh', 'రిఫ్రెష్')} tone="secondary" onClick={reload} disabled={!canEditSelectedCrop}>
               <RefreshCw className="h-4 w-4" />
             </IconButton>
-            <IconButton label="Export Excel" tone="excel" disabled={!crop} onClick={() => crop && exportCropWorkbook(crop)}>
+            <IconButton label={t('Export Excel', 'ఎక్సెల్ ఎగుమతి')} tone="excel" disabled={!crop} onClick={() => crop && exportCropWorkbook(crop)}>
               <FileSpreadsheet className="h-4 w-4" />
             </IconButton>
           </div>
@@ -329,7 +359,7 @@ export function CropAdminDashboard() {
         <aside className="space-y-2">
           {tableOptions.map(([id, label]) => (
             <button key={id} onClick={() => setTable(id)} className={`w-full rounded-lg border px-3 py-2 text-left text-sm font-black ${table === id ? 'border-emerald-600 bg-emerald-700 text-white' : 'border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200'}`}>
-              {label}
+              {getTableDisplayName(id, label)}
             </button>
           ))}
         </aside>
@@ -338,27 +368,27 @@ export function CropAdminDashboard() {
           <div className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:flex-row">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search and filter records" className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t('Search and filter records', 'రికార్డులను వెతకండి మరియు ఫిల్టర్ చేయండి')} className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
             </div>
             <button onClick={startAdd} disabled={!canEditSelectedCrop || (!crop && selectedCrop !== 'other')} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white disabled:opacity-50">
               <Plus className="h-4 w-4" />
-              Add Record
+              {t('Add Record', 'రికార్డును జోడించండి')}
             </button>
           </div>
 
           <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
             {loading ? (
-              <div className="p-6 text-sm font-semibold text-slate-500">Loading records...</div>
+              <div className="p-6 text-sm font-semibold text-slate-500">{t('Loading records...', 'రికార్డులు లోడ్ అవుతున్నాయి...')}</div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {rows.map((row: any, index: any) => (
                   <article key={row.id || row._index || `${table}-${index}`} className="grid gap-3 p-3 lg:grid-cols-[1fr_auto]">
                     <RecordSummaryCard row={row} table={table} />
                     <div className="flex gap-2 lg:flex-col">
-                      <button onClick={() => openEditor({ ...row, _table: table })} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white">Edit</button>
+                      <button onClick={() => openEditor({ ...row, _table: table })} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white">{t('Edit', 'సవరించు')}</button>
                       <button onClick={() => remove(row)} className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-black text-white">
                         <Trash2 className="h-4 w-4" />
-                        Delete
+                        {t('Delete', 'తొలగించు')}
                       </button>
                     </div>
                   </article>
@@ -373,10 +403,10 @@ export function CropAdminDashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
           <div className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-xl bg-white shadow-2xl dark:bg-slate-900">
             <div className="flex flex-col gap-3 border-b border-slate-200 p-4 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-xl font-black text-slate-950 dark:text-white">Edit {table}</h2>
+              <h2 className="text-xl font-black text-slate-950 dark:text-white">{t('Edit', 'సవరించండి')} {getTableDisplayName(table, table)}</h2>
               <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white">
                 <ImagePlus className="h-4 w-4" />
-                {uploading ? 'Uploading...' : 'Upload / Change Image'}
+                {uploading ? t('Uploading...', 'అప్‌లోడ్ అవుతోంది...') : t('Upload / Change Image', 'చిత్రాన్ని అప్‌లోడ్ / మార్చండి')}
                 <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" capture="environment" className="hidden" onChange={(event) => uploadImage(event.target.files?.[0])} />
               </label>
             </div>
@@ -394,11 +424,11 @@ export function CropAdminDashboard() {
                   <img src={editing.image_url} alt="Selected crop record" loading="lazy" decoding="async" className="h-28 w-44 rounded-lg object-cover" />
                 ) : (
                   <div className="flex h-28 w-full items-center justify-center rounded-lg border-2 border-dashed border-slate-300 text-sm font-bold text-slate-500 sm:w-44">
-                    Drop image here
+                    {t('Drop image here', 'చిత్రాన్ని ఇక్కడ వేయండి')}
                   </div>
                 )}
                 <div className="flex-1">
-                  <p className="text-sm font-black text-slate-950 dark:text-white">Image preview</p>
+                  <p className="text-sm font-black text-slate-950 dark:text-white">{t('Image preview', 'చిత్ర ప్రివ్యూ')}</p>
                   <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-300">
                     JPG, PNG, WebP, and GIF up to 10 MB. Use the upload button on mobile to open camera or gallery.
                   </p>
@@ -406,14 +436,14 @@ export function CropAdminDashboard() {
                 {editing.image_url && (
                   <button onClick={removeImage} type="button" className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-black text-red-700 hover:bg-red-50">
                     <X className="h-4 w-4" />
-                    Remove Image
+                    {t('Remove Image', 'చిత్రాన్ని తీసివేయండి')}
                   </button>
                 )}
               </div>
             </div>
             {FIELD_CONFIGS[table] && editing && (
               <div className="flex-1 overflow-y-auto border-b border-slate-200 p-4 dark:border-slate-700">
-                <p className="mb-3 text-sm font-black text-slate-950 dark:text-white">Card text editor</p>
+                <p className="mb-3 text-sm font-black text-slate-950 dark:text-white">{t('Card text editor', 'కార్డు టెక్స్ట్ ఎడిటర్')}</p>
                 <div className="grid gap-3 md:grid-cols-2">
                   {FIELD_CONFIGS[table].map(([key, label, type]: any) => (
                     <label key={key} className={type === 'textarea' ? 'md:col-span-2' : ''}>
@@ -443,8 +473,8 @@ export function CropAdminDashboard() {
               </div>
             )}
             <div className="flex gap-2 border-t border-slate-200 p-4 dark:border-slate-700">
-              <button onClick={() => setEditing(null)} className="min-h-11 flex-1 rounded-lg border border-slate-200 px-3 py-2 font-black dark:border-slate-700 dark:text-white">Cancel</button>
-              <button onClick={save} disabled={busy || !canEditSelectedCrop} className="min-h-11 flex-1 rounded-lg bg-emerald-700 px-3 py-2 font-black text-white disabled:opacity-50">{busy ? 'Saving...' : 'Save'}</button>
+              <button onClick={() => setEditing(null)} className="min-h-11 flex-1 rounded-lg border border-slate-200 px-3 py-2 font-black dark:border-slate-700 dark:text-white">{t('Cancel', 'రద్దు చేయండి')}</button>
+              <button onClick={save} disabled={busy || !canEditSelectedCrop} className="min-h-11 flex-1 rounded-lg bg-emerald-700 px-3 py-2 font-black text-white disabled:opacity-50">{busy ? t('Saving...', 'భద్రపరుస్తోంది...') : t('Save', 'భద్రపరచండి')}</button>
             </div>
           </div>
         </div>

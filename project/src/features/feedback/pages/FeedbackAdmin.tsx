@@ -21,6 +21,7 @@ import {
   Search,
   Send,
   ShieldCheck,
+  Trash2,
   Unlink,
   Sparkles,
   Wrench,
@@ -29,7 +30,9 @@ import {
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { useBackButtonOverlay } from '../../../shared/hooks/useBackButtonOverlay';
 import {
   FEEDBACK_CATEGORIES,
@@ -45,6 +48,7 @@ import {
 } from '../types';
 import {
   adminAddResponse,
+  adminDeleteFeedback,
   adminGetFeedbackDetail,
   adminGetStats,
   adminListAssignees,
@@ -115,10 +119,12 @@ function StatCard({ icon: Icon, label, value, tone, style }: { icon: React.Compo
 
 export function FeedbackAdmin() {
   const { isAdminUser, user, officerProfile } = useAuth();
+  const { t } = useLanguage();
   const { toasts, removeToast, showSuccess, showError } = useToast();
   const toast = { showSuccess, showError };
   const toastRef = useRef(toast);
   toastRef.current = toast;
+  const { askConfirm, confirmDialog } = useConfirmDialog();
 
   const [tickets, setTickets] = useState<FeedbackTicket[]>([]);
   const [stats, setStats] = useState<FeedbackStats | null>(null);
@@ -130,6 +136,7 @@ export function FeedbackAdmin() {
   const [saving, setSaving] = useState(false);
   const [responseText, setResponseText] = useState('');
   const [sendingResponse, setSendingResponse] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -283,6 +290,27 @@ export function FeedbackAdmin() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!detail) return;
+    const ok = await askConfirm({
+      title: 'Delete feedback?',
+      message: `Ticket ${detail.ticket.ticket_number ?? ''} and all its responses will be permanently deleted. This cannot be undone.`,
+      confirmLabel: 'Delete',
+    });
+    if (!ok) return;
+    setDeleting(true);
+    try {
+      await adminDeleteFeedback(detail.ticket.id);
+      toast.showSuccess('Feedback deleted', `${detail.ticket.ticket_number} was permanently removed.`);
+      closeDetail();
+      await loadAll();
+    } catch (err) {
+      toast.showError('Delete failed', err instanceof Error ? err.message : 'Could not delete feedback.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleExport = async () => {
     try {
       await exportFeedbackExcel(tickets);
@@ -296,9 +324,9 @@ export function FeedbackAdmin() {
     return (
       <div className="portal-card flex flex-col items-center gap-3 p-10 text-center">
         <Lock className="h-10 w-10 text-slate-300 dark:text-slate-600" />
-        <p className="text-base font-black text-slate-800 dark:text-white">Administrators only</p>
+        <p className="text-base font-black text-slate-800 dark:text-white">{t('Administrators only', 'నిర్వాహకులకు మాత్రమే')}</p>
         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-          The feedback management console is restricted to portal administrators.
+          {t('The feedback management console is restricted to portal administrators.', 'ఫీడ్‌బ్యాక్ నిర్వహణ కన్సోల్ పోర్టల్ నిర్వాహకులకు మాత్రమే పరిమితం.')}
         </p>
       </div>
     );
@@ -307,9 +335,9 @@ export function FeedbackAdmin() {
   return (
     <div className="space-y-5">
       <PageHeader
-        eyebrow="Administration"
-        title="Feedback Management"
-        description="Review, prioritise and respond to feedback submitted by officers and users."
+        eyebrow={t('Administration', 'నిర్వహణ')}
+        title={t('Feedback Management', 'ఫీడ్‌బ్యాక్ నిర్వహణ')}
+        description={t('Review, prioritise and respond to feedback submitted by officers and users.', 'అధికారులు మరియు వినియోగదారులు సమర్పించిన ఫీడ్‌బ్యాక్‌ను సమీక్షించండి, ప్రాధాన్యత ఇవ్వండి మరియు ప్రతిస్పందించండి.')}
         actions={
           <button
             type="button"
@@ -318,19 +346,19 @@ export function FeedbackAdmin() {
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <Download className="h-4 w-4" />
-            Export Excel
+            {t('Export Excel', 'ఎక్సెల్ ఎగుమతి')}
           </button>
         }
       />
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <StatCard icon={Inbox} label="Total Feedback" value={stats?.total ?? 0} tone="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" style={{ animationDelay: '0ms' }} />
-        <StatCard icon={Sparkles} label="New" value={stats?.submitted ?? 0} tone="bg-sky-100 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300" style={{ animationDelay: '60ms' }} />
-        <StatCard icon={AlertTriangle} label="Pending Review" value={stats?.underReview ?? 0} tone="bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300" style={{ animationDelay: '120ms' }} />
-        <StatCard icon={ListChecks} label="In Progress" value={stats?.inProgress ?? 0} tone="bg-indigo-100 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-300" style={{ animationDelay: '180ms' }} />
-        <StatCard icon={Lightbulb} label="Feature Requests" value={stats?.featureRequests ?? 0} tone="bg-violet-100 text-violet-600 dark:bg-violet-950/60 dark:text-violet-300" style={{ animationDelay: '240ms' }} />
-        <StatCard icon={CheckCircle2} label="Resolved" value={stats?.resolved ?? 0} tone="bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300" style={{ animationDelay: '300ms' }} />
+        <StatCard icon={Inbox} label={t('Total Feedback', 'మొత్తం ఫీడ్‌బ్యాక్')} value={stats?.total ?? 0} tone="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" style={{ animationDelay: '0ms' }} />
+        <StatCard icon={Sparkles} label={t('New', 'కొత్తవి')} value={stats?.submitted ?? 0} tone="bg-sky-100 text-sky-600 dark:bg-sky-950/60 dark:text-sky-300" style={{ animationDelay: '60ms' }} />
+        <StatCard icon={AlertTriangle} label={t('Pending Review', 'సమీక్ష పెండింగ్')} value={stats?.underReview ?? 0} tone="bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-300" style={{ animationDelay: '120ms' }} />
+        <StatCard icon={ListChecks} label={t('In Progress', 'పురోగతిలో ఉంది')} value={stats?.inProgress ?? 0} tone="bg-indigo-100 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-300" style={{ animationDelay: '180ms' }} />
+        <StatCard icon={Lightbulb} label={t('Feature Requests', 'ఫీచర్ అభ్యర్థనలు')} value={stats?.featureRequests ?? 0} tone="bg-violet-100 text-violet-600 dark:bg-violet-950/60 dark:text-violet-300" style={{ animationDelay: '240ms' }} />
+        <StatCard icon={CheckCircle2} label={t('Resolved', 'పరిష్కరించబడింది')} value={stats?.resolved ?? 0} tone="bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300" style={{ animationDelay: '300ms' }} />
       </div>
 
       {/* Filters */}
@@ -341,23 +369,23 @@ export function FeedbackAdmin() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className={`${inputCls} pl-10`}
-            placeholder="Search ticket ID, subject or officer…"
+            placeholder={t('Search ticket ID, subject or officer…', 'టికెట్ ఐడీ, విషయం లేదా అధికారి పేరు వెతకండి…')}
           />
         </div>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={inputCls}>
-          <option value="all">All statuses</option>
+          <option value="all">{t('All statuses', 'అన్ని స్థితులు')}</option>
           {FEEDBACK_STATUSES.map((s) => (
-            <option key={s.id} value={s.id}>{s.label}</option>
+            <option key={s.id} value={s.id}>{t(s.label, s.label)}</option>
           ))}
         </select>
         <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className={inputCls}>
-          <option value="all">All categories</option>
+          <option value="all">{t('All categories', 'అన్ని వర్గాలు')}</option>
           {FEEDBACK_CATEGORIES.map((c) => (
-            <option key={c.id} value={c.id}>{c.label}</option>
+            <option key={c.id} value={c.id}>{t(c.label, c.label)}</option>
           ))}
         </select>
         <select value={moduleFilter} onChange={(e) => setModuleFilter(e.target.value)} className={inputCls}>
-          <option value="all">All modules</option>
+          <option value="all">{t('All modules', 'అన్ని మాడ్యూల్‌లు')}</option>
           {moduleOptions.map((m) => (
             <option key={m} value={m}>{m}</option>
           ))}
@@ -368,22 +396,22 @@ export function FeedbackAdmin() {
       {loading ? (
         <div className="portal-card flex items-center justify-center gap-3 p-12">
           <Spinner size="lg" className="text-emerald-700" />
-          <span className="text-sm font-bold text-slate-500">Loading feedback…</span>
+          <span className="text-sm font-bold text-slate-500">{t('Loading feedback…', 'ఫీడ్‌బ్యాక్ లోడ్ అవుతోంది…')}</span>
         </div>
       ) : tickets.length === 0 ? (
         <div className="portal-card flex flex-col items-center gap-3 p-12 text-center">
           <FileText className="h-10 w-10 text-slate-300 dark:text-slate-600" />
-          <p className="text-sm font-bold text-slate-500 dark:text-slate-400">No feedback matches the current filters.</p>
+          <p className="text-sm font-bold text-slate-500 dark:text-slate-400">{t('No feedback matches the current filters.', 'ప్రస్తుత ఫిల్టర్లకు సరిపోలే ఫీడ్‌బ్యాక్ లేదు.')}</p>
         </div>
       ) : (
         <div className="portal-card overflow-hidden">
           <div className="hidden grid-cols-[110px_1fr_140px_120px_120px_150px] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400 lg:grid">
-            <span>Ticket</span>
-            <span>Subject / Submitter</span>
-            <span>Category</span>
-            <span>Priority</span>
-            <span>Status</span>
-            <span>Date</span>
+            <span>{t('Ticket', 'టికెట్')}</span>
+            <span>{t('Subject / Submitter', 'విషయం / సమర్పించినవారు')}</span>
+            <span>{t('Category', 'వర్గం')}</span>
+            <span>{t('Priority', 'ప్రాధాన్యత')}</span>
+            <span>{t('Status', 'స్థితి')}</span>
+            <span>{t('Date', 'తేదీ')}</span>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {tickets.map((ticket) => {
@@ -481,12 +509,12 @@ export function FeedbackAdmin() {
                   {/* Submitter info */}
                   <div className="grid grid-cols-2 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-700 dark:bg-slate-800/60 sm:grid-cols-3">
                     {[
-                      ['Name', detail.ticket.submitter_name],
-                      ['Designation', detail.ticket.submitter_designation],
-                      ['District', detail.ticket.submitter_district],
-                      ['Mandal', detail.ticket.submitter_mandal],
-                      ['Phone', detail.ticket.submitter_phone],
-                      ['Email', detail.ticket.submitter_email],
+                      [t('Name', 'పేరు'), detail.ticket.submitter_name],
+                      [t('Designation', 'హోదా'), detail.ticket.submitter_designation],
+                      [t('District', 'జిల్లా'), detail.ticket.submitter_district],
+                      [t('Mandal', 'మండలం'), detail.ticket.submitter_mandal],
+                      [t('Phone', 'ఫోన్'), detail.ticket.submitter_phone],
+                      [t('Email', 'ఈమెయిల్'), detail.ticket.submitter_email],
                     ].map(([label, value]) => (
                       <div key={label}>
                         <p className="text-[10px] font-black uppercase tracking-wide text-slate-400">{label}</p>
@@ -496,20 +524,20 @@ export function FeedbackAdmin() {
                   </div>
 
                   <div>
-                    <p className="mb-1.5 text-[11px] font-black uppercase tracking-wide text-slate-400">Description</p>
+                    <p className="mb-1.5 text-[11px] font-black uppercase tracking-wide text-slate-400">{t('Description', 'వివరణ')}</p>
                     <p className="whitespace-pre-wrap rounded-xl bg-slate-50 p-4 text-sm font-semibold leading-relaxed text-slate-700 dark:bg-slate-800/60 dark:text-slate-200">
                       {detail.ticket.description}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      <span>Submitted {formatDate(detail.ticket.created_at)}</span>
-                      {detail.ticket.module && <span>Module: {detail.ticket.module}</span>}
-                      {detail.ticket.app_version && <span>App v{detail.ticket.app_version}</span>}
+                      <span>{t('Submitted', 'సమర్పించబడింది')} {formatDate(detail.ticket.created_at)}</span>
+                      {detail.ticket.module && <span>{t('Module:', 'మాడ్యూల్:')} {detail.ticket.module}</span>}
+                      {detail.ticket.app_version && <span>{t('App v', 'యాప్ వెర్షన్')} {detail.ticket.app_version}</span>}
                     </div>
                   </div>
 
                   {detail.attachmentUrl && (
                     <div>
-                      <p className="mb-1.5 text-[11px] font-black uppercase tracking-wide text-slate-400">Attachment</p>
+                      <p className="mb-1.5 text-[11px] font-black uppercase tracking-wide text-slate-400">{t('Attachment', 'జతపరిచిన పత్రం')}</p>
                       <a
                         href={detail.attachmentUrl}
                         target="_blank"
@@ -517,7 +545,7 @@ export function FeedbackAdmin() {
                         className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950/70"
                       >
                         <Paperclip className="h-4 w-4" />
-                        Open attachment
+                        {t('Open attachment', 'పత్రాన్ని తెరవండి')}
                       </a>
                     </div>
                   )}
@@ -525,7 +553,7 @@ export function FeedbackAdmin() {
                   {/* Admin controls */}
                   <div className="grid gap-3 rounded-2xl border border-slate-200 p-4 dark:border-slate-700 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
-                      <label className="mb-1 block text-[10px] font-black uppercase tracking-wide text-slate-400">Status</label>
+                      <label className="mb-1 block text-[10px] font-black uppercase tracking-wide text-slate-400">{t('Status', 'స్థితి')}</label>
                       <select
                         value={detail.ticket.status}
                         disabled={saving}
@@ -533,12 +561,21 @@ export function FeedbackAdmin() {
                         className={inputCls}
                       >
                         {FEEDBACK_STATUSES.map((s) => (
-                          <option key={s.id} value={s.id}>{s.label}</option>
+                          <option key={s.id} value={s.id}>
+                            {s.id === 'submitted' && t('Submitted', 'సమర్పించబడింది')}
+                            {s.id === 'under_review' && t('Under Review', 'పరిశీలనలో ఉంది')}
+                            {s.id === 'in_progress' && t('In Progress', 'పురోగతిలో ఉంది')}
+                            {s.id === 'planned' && t('Planned', 'ప్రణాళిక చేయబడింది')}
+                            {s.id === 'resolved' && t('Resolved', 'పరిష్కరించబడింది')}
+                            {s.id === 'rejected' && t('Rejected', 'తిరస్కరించబడింది')}
+                            {s.id === 'closed' && t('Closed', 'మూసివేయబడింది')}
+                            {s.id === 'implemented' && t('Added to AGRONIX', 'AGRONIX కి జోడించబడింది')}
+                          </option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="mb-1 block text-[10px] font-black uppercase tracking-wide text-slate-400">Priority</label>
+                      <label className="mb-1 block text-[10px] font-black uppercase tracking-wide text-slate-400">{t('Priority', 'ప్రాధాన్యత')}</label>
                       <select
                         value={detail.ticket.priority}
                         disabled={saving}
@@ -546,19 +583,24 @@ export function FeedbackAdmin() {
                         className={inputCls}
                       >
                         {FEEDBACK_PRIORITIES.map((p) => (
-                          <option key={p.id} value={p.id}>{p.label}</option>
+                          <option key={p.id} value={p.id}>
+                            {p.id === 'low' && t('Low', 'తక్కువ')}
+                            {p.id === 'normal' && t('Normal', 'సాధారణ')}
+                            {p.id === 'high' && t('High', 'ఎక్కువ')}
+                            {p.id === 'urgent' && t('Urgent', 'అత్యవసరం')}
+                          </option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="mb-1 block text-[10px] font-black uppercase tracking-wide text-slate-400">Assign to</label>
+                      <label className="mb-1 block text-[10px] font-black uppercase tracking-wide text-slate-400">{t('Assign to', 'బాధ్యత అప్పగించండి')}</label>
                       <select
                         value={detail.ticket.assigned_to ?? ''}
                         disabled={saving}
                         onChange={(e) => void handleAssign(e.target.value)}
                         className={inputCls}
                       >
-                        <option value="">Unassigned</option>
+                        <option value="">{t('Unassigned', 'అప్పగించలేదు')}</option>
                         {assignees.map((a) => (
                           <option key={a.id} value={a.id}>{a.label}</option>
                         ))}
@@ -567,7 +609,7 @@ export function FeedbackAdmin() {
                     <div>
                       <label className="mb-1 flex items-center gap-1 text-[10px] font-black uppercase tracking-wide text-slate-400">
                         {detail.ticket.duplicate_of ? <Unlink className="h-3 w-3" /> : <Link2 className="h-3 w-3" />}
-                        Duplicate of
+                        {t('Duplicate of', 'నకలు')}
                       </label>
                       <select
                         value={detail.ticket.duplicate_of ?? ''}
@@ -575,7 +617,7 @@ export function FeedbackAdmin() {
                         onChange={(e) => void handleDuplicateChange(e.target.value)}
                         className={inputCls}
                       >
-                        <option value="">Not a duplicate</option>
+                        <option value="">{t('Not a duplicate', 'నకలు కాదు')}</option>
                         {ticketOptions
                           .filter((o) => o.id !== detail.ticket.id)
                           .map((o) => (
@@ -586,10 +628,10 @@ export function FeedbackAdmin() {
                       </select>
                       {detail.ticket.duplicate_of && (
                         <p className="mt-1 text-[10px] font-bold text-violet-600 dark:text-violet-300">
-                          Linked:{' '}
+                          {t('Linked:', 'లింక్ చేయబడింది:')}{' '}
                           {(() => {
                             const canon = ticketOptions.find((o) => o.id === detail.ticket.duplicate_of);
-                            return canon ? `${canon.ticket_number ?? '—'} · ${canon.subject}` : 'another ticket';
+                            return canon ? `${canon.ticket_number ?? '—'} · ${canon.subject}` : t('another ticket', 'మరొక టికెట్');
                           })()}
                         </p>
                       )}
@@ -603,16 +645,27 @@ export function FeedbackAdmin() {
                           className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 px-4 py-2.5 text-sm font-black text-emerald-950 shadow-md transition hover:from-gold-300 hover:to-amber-400 disabled:opacity-60"
                         >
                           <Sparkles className="h-4 w-4" />
-                          Mark as Added to AGRONIX
+                          {t('Mark as Added to AGRONIX', 'AGRONIX కి జోడించినట్లు గుర్తించండి')}
                         </button>
                       </div>
                     )}
+                    <div className="flex items-end">
+                      <button
+                        type="button"
+                        disabled={saving || deleting}
+                        onClick={() => void handleDelete()}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-black text-red-600 shadow-sm transition hover:bg-red-50 disabled:opacity-60 dark:border-red-800/60 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-950/40"
+                      >
+                        {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                        {t('Delete ticket', 'టికెట్‌ను తొలగించండి')}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Responses */}
                   <div>
                     <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-400">
-                      Responses {detail.responses.length > 0 && `(${detail.responses.length})`}
+                      {t('Responses', 'సమాధానాలు')} {detail.responses.length > 0 && `(${detail.responses.length})`}
                     </p>
                     {detail.responses.length > 0 && (
                       <div className="mb-3 space-y-2">
@@ -621,7 +674,7 @@ export function FeedbackAdmin() {
                             <div className="flex items-center justify-between gap-2">
                               <p className="flex items-center gap-1.5 text-xs font-black text-emerald-800 dark:text-emerald-200">
                                 <ShieldCheck className="h-3.5 w-3.5" />
-                                {r.responder_name || 'Administrator'}
+                                {r.responder_name || t('Administrator', 'నిర్వాహకుడు')}
                               </p>
                               <p className="text-[11px] font-semibold text-slate-400">{formatDate(r.created_at)}</p>
                             </div>
@@ -636,7 +689,7 @@ export function FeedbackAdmin() {
                         onChange={(e) => setResponseText(e.target.value)}
                         rows={2}
                         className={`${inputCls} flex-1 resize-none`}
-                        placeholder="Write an official response to the user…"
+                        placeholder={t('Write an official response to the user…', 'వినియోగదారునికి అధికారిక సమాధానం రాయండి…')}
                         maxLength={3000}
                       />
                       <button
@@ -644,7 +697,7 @@ export function FeedbackAdmin() {
                         onClick={() => void handleSendResponse()}
                         disabled={sendingResponse || !responseText.trim()}
                         className="flex h-auto w-12 shrink-0 items-center justify-center self-stretch rounded-xl bg-emerald-700 text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label="Send response"
+                        aria-label={t('Send response', 'సమాధానం పంపండి')}
                       >
                         {sendingResponse ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
                       </button>
@@ -654,17 +707,17 @@ export function FeedbackAdmin() {
                   {/* Activity timeline */}
                   {detail.activity.length > 0 && (
                     <div>
-                      <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-400">Activity</p>
+                      <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-400">{t('Activity', 'కార్యాచరణ')}</p>
                       <ol className="space-y-2 border-l-2 border-slate-200 pl-4 dark:border-slate-700">
                         {detail.activity.map((a) => (
                           <li key={a.id} className="relative">
                             <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-4 ring-white dark:ring-slate-900" />
                             <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                              {a.action === 'submitted' && 'Feedback submitted'}
-                              {a.action === 'status_changed' && 'Status updated'}
-                              {a.action === 'assigned' && 'Assignment updated'}
-                              {a.action === 'response_added' && 'Response added'}
-                              {a.action === 'resolved' && 'Marked resolved'}
+                              {a.action === 'submitted' && t('Feedback submitted', 'అభిప్రాయం సమర్పించబడింది')}
+                              {a.action === 'status_changed' && t('Status updated', 'స్థితి నవీకరించబడింది')}
+                              {a.action === 'assigned' && t('Assignment updated', 'బాధ్యత నవీకరించబడింది')}
+                              {a.action === 'response_added' && t('Response added', 'సమాధానం జోడించబడింది')}
+                              {a.action === 'resolved' && t('Marked resolved', 'పరిష్కరించినట్లు గుర్తించబడింది')}
                               {!['submitted', 'status_changed', 'assigned', 'response_added', 'resolved'].includes(a.action) && a.action}
                             </p>
                             {a.details && <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{a.details}</p>}
@@ -682,6 +735,7 @@ export function FeedbackAdmin() {
       )}
 
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      {confirmDialog}
     </div>
   );
 }

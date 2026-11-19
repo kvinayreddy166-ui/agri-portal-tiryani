@@ -159,7 +159,7 @@ export function NotificationBell() {
                     className="flex items-center gap-1 text-[10px] font-black text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300"
                   >
                     <CheckCheck className="h-3 w-3" />
-                    {t('Mark all read', 'Mark all read')}
+                    {t('Mark all read', 'అన్నీ చదివినట్లు గుర్తించండి')}
                   </button>
                 )}
                 {notifications.length > 0 && (
@@ -169,7 +169,7 @@ export function NotificationBell() {
                     className="flex items-center gap-1 text-[10px] font-black text-red-600 transition hover:text-red-700 dark:text-red-400"
                   >
                     <Trash2 className="h-3 w-3" />
-                    {t('Clear all', 'Clear all')}
+                    {t('Clear all', 'అన్నీ తొలగించండి')}
                   </button>
                 )}
               </div>
@@ -187,12 +187,12 @@ export function NotificationBell() {
                 {pushOn ? (
                   <span className="flex items-center gap-1 text-[10px] font-black text-emerald-700 dark:text-emerald-300">
                     <Check className="h-3 w-3" />
-                    {t('On', 'On')}
+                    {t('On', 'ఆన్')}
                   </span>
                 ) : pushDenied ? (
-                  <span className="text-[10px] font-bold text-slate-400">{t('Blocked', 'Blocked')}</span>
+                  <span className="text-[10px] font-bold text-slate-400">{t('Blocked', 'నిరోధించబడింది')}</span>
                 ) : (
-                  <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300">{t('Enable', 'Enable')}</span>
+                  <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300">{t('Enable', 'ఆన్ చేయండి')}</span>
                 )}
               </button>
             )}

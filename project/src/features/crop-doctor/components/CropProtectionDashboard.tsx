@@ -3,7 +3,8 @@ import { AlertTriangle, Camera, RefreshCw, Search, Sparkles, Sprout, Stethoscope
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
-import type { CropProtectionCategory, CropProtectionCrop, CropProtectionItem, LanguageCode } from '../services/cropProtectionService';
+import { useLanguage } from '../../../shared/context/LanguageContext';
+import type { CropProtectionCategory, CropProtectionCrop, CropProtectionItem } from '../services/cropProtectionService';
 import { buildGeneralIpmItem, pickLang } from '../services/cropProtectionService';
 import { label } from '../../../shared/services/translationService';
 import { ProtectionItemCard } from './ProtectionItemCard';
@@ -35,7 +36,7 @@ export function CropProtectionDashboard({
   const navigate = useNavigate();
   const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
   const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
-  const [language, setLanguage] = useState<LanguageCode>('en');
+  const { language, toggleLanguage } = useLanguage();
   const [selectedCropKey, setSelectedCropKey] = useState(crops[0]?.crop_key || 'cotton');
   const [category, setCategory] = useState<CropProtectionCategory>('pest');
   const [search, setSearch] = useState('');
@@ -139,7 +140,7 @@ export function CropProtectionDashboard({
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2 self-end sm:self-start pt-1">
-            <LanguageToggle language={language} onClick={() => setLanguage((value) => (value === 'en' ? 'te' : 'en'))} tone="solid" />
+            <LanguageToggle language={language} onClick={toggleLanguage} tone="solid" />
           </div>
         </div>
       </section>

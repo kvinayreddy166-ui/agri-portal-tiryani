@@ -145,6 +145,8 @@ export function translateMenu(label: string) {
     'Field Operations & Duties': 'ఫీల్డ్ విధులు & కార్యకలాపాలు',
     'Knowledge & Portals': 'జ్ఞాన భాండాగారం & పోర్టల్స్',
     'Records & Archives': 'రికార్డులు & ఆర్కైవ్',
+    Administration: 'నిర్వహణ',
+    More: 'మరిన్ని',
     Dashboard: 'డ్యాష్‌బోర్డ్',
     'Command Center': 'కమాండ్ సెంటర్',
     'Stock Analytics': 'స్టాక్ విశ్లేషణలు',

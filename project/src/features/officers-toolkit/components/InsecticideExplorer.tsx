@@ -17,6 +17,7 @@ import {
 import { insecticideActCards, insecticideRuleCards, insecticideForms, type InsecticideFormEntry } from '../data/insecticideActData';
 import { type FcoClause, type FcoClauseCard } from '../data/fcoClauses';
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 export type InsecticideExplorerSection = 'sections' | 'rules' | 'forms' | 'duties';
 
@@ -29,29 +30,11 @@ type TaskShortcut = {
   cardSection?: 'sections' | 'rules';
 };
 
-const TASK_SHORTCUTS: TaskShortcut[] = [
-  { id: 'find-section', label: 'Find a Section', icon: Search, action: 'sections' },
-  { id: 'inspector-powers', label: 'Inspector Powers', icon: ShieldCheck, action: 'card', cardId: 'ia-card-analysts-inspectors', cardSection: 'sections' },
-  { id: 'draw-sample', label: 'Draw a Sample', icon: FlaskConical, action: 'card', cardId: 'ia-card-powers-procedure', cardSection: 'sections' },
-  { id: 'licence-check', label: 'Check Licence Requirements', icon: Store, action: 'card', cardId: 'ir-card-ch4', cardSection: 'rules' },
-  { id: 'find-form', label: 'Find a Form', icon: FileText, action: 'forms' },
-  { id: 'stop-sale', label: 'Stop Sale / Seizure', icon: ShieldAlert, action: 'card', cardId: 'ir-card-ch6', cardSection: 'rules' },
-  { id: 'labelling', label: 'Packing & Labelling', icon: PackageCheck, action: 'card', cardId: 'ir-card-ch5', cardSection: 'rules' },
-  { id: 'enforcement', label: 'Enforcement Procedure', icon: ClipboardList, action: 'duties' },
-];
-
 const SUGGESTED_SEARCHES = ['stop sale', 'licence', 'Form V(A)', 'misbranded', 'seizure', 'sample drawal', 'inspector powers', 'expired stock'];
 const RECENT_KEY = 'ia-explorer-recent-searches';
 const RESULT_LIMIT = 6;
 
 type ResultKind = 'sections' | 'rules' | 'definitions' | 'forms';
-const RESULT_FILTERS: Array<{ id: 'all' | ResultKind; label: string }> = [
-  { id: 'all', label: 'All' },
-  { id: 'sections', label: 'Sections' },
-  { id: 'rules', label: 'Rules' },
-  { id: 'definitions', label: 'Definitions' },
-  { id: 'forms', label: 'Forms' },
-];
 
 function clauseSearchText(clause: FcoClause) {
   return [clause.clauseNo, clause.clauseLabel, clause.title, clause.category, clause.summary, clause.legalText, clause.plainEnglish, clause.keywords.join(' ')]
@@ -78,10 +61,30 @@ export function InsecticideExplorer({
   onOpenSection: (section: InsecticideExplorerSection) => void;
   onViewForm: (form: InsecticideFormEntry) => void;
 }) {
+  const { t } = useLanguage();
   const [term, setTerm] = useState('');
   const [kind, setKind] = useState<'all' | ResultKind>('all');
   const [recent, setRecent] = useState<string[]>(() => readRecentSearches());
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const taskShortcuts: TaskShortcut[] = useMemo(() => [
+    { id: 'find-section', label: t('Find a Section', 'సెక్షన్‌ను వెతకండి'), icon: Search, action: 'sections' },
+    { id: 'inspector-powers', label: t('Inspector Powers', 'ఇన్‌స్పెక్టర్ అధికారాలు'), icon: ShieldCheck, action: 'card', cardId: 'ia-card-analysts-inspectors', cardSection: 'sections' },
+    { id: 'draw-sample', label: t('Draw a Sample', 'నమూనా సేకరణ'), icon: FlaskConical, action: 'card', cardId: 'ia-card-powers-procedure', cardSection: 'sections' },
+    { id: 'licence-check', label: t('Check Licence Requirements', 'లైసెన్స్ నిబంధనలు'), icon: Store, action: 'card', cardId: 'ir-card-ch4', cardSection: 'rules' },
+    { id: 'find-form', label: t('Find a Form', 'ఫారమ్‌ను వెతకండి'), icon: FileText, action: 'forms' },
+    { id: 'stop-sale', label: t('Stop Sale / Seizure', 'విక్రయాల నిలిపివేత / జప్తి'), icon: ShieldAlert, action: 'card', cardId: 'ir-card-ch6', cardSection: 'rules' },
+    { id: 'labelling', label: t('Packing & Labelling', 'ప్యాకింగ్ & లేబులింగ్'), icon: PackageCheck, action: 'card', cardId: 'ir-card-ch5', cardSection: 'rules' },
+    { id: 'enforcement', label: t('Enforcement Procedure', 'అమలు ప్రక్రియ'), icon: ClipboardList, action: 'duties' },
+  ], [t]);
+
+  const resultFilters = useMemo(() => [
+    { id: 'all' as const, label: t('All', 'అన్నీ') },
+    { id: 'sections' as const, label: t('Sections', 'సెక్షన్లు') },
+    { id: 'rules' as const, label: t('Rules', 'నియమాలు') },
+    { id: 'definitions' as const, label: t('Definitions', 'నిర్వచనాలు') },
+    { id: 'forms' as const, label: t('Forms', 'ఫారాలు') },
+  ], [t]);
 
   const query = term.trim().toLowerCase();
 
@@ -155,10 +158,10 @@ export function InsecticideExplorer({
           <div>
             <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
               <Sparkles className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-              <span>Insecticide Act &amp; Rules Quick Search</span>
+              <span>{t('Insecticide Act & Rules Quick Search', 'పురుగుమందుల చట్టం & నియమాల త్వరిత శోధన')}</span>
             </h2>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Instantly find statutory sections, rules, regulatory forms, and enforcement duties.
+              {t('Instantly find statutory sections, rules, regulatory forms, and enforcement duties.', 'చట్టబద్ధమైన సెక్షన్లు, నియమాలు, నియంత్రణ ఫారాలు మరియు అమలు విధులను తక్షణమే కనుగొనండి.')}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -167,21 +170,21 @@ export function InsecticideExplorer({
               onClick={() => onOpenSection('sections')}
               className="rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-black text-orange-700 ring-1 ring-orange-200 transition hover:bg-orange-100 dark:bg-orange-950/50 dark:text-orange-300 dark:ring-orange-800"
             >
-              38 Sections
+              {t('38 Sections', '38 సెక్షన్లు')}
             </button>
             <button
               type="button"
               onClick={() => onOpenSection('rules')}
               className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-black text-amber-700 ring-1 ring-amber-200 transition hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800"
             >
-              46 Rules
+              {t('46 Rules', '46 నియమాలు')}
             </button>
             <button
               type="button"
               onClick={() => onOpenSection('forms')}
               className="rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-black text-orange-700 ring-1 ring-orange-200 transition hover:bg-orange-100 dark:bg-orange-950/50 dark:text-orange-300 dark:ring-orange-800"
             >
-              {insecticideForms.length} Forms
+              {t(`${insecticideForms.length} Forms`, `${insecticideForms.length} ఫారాలు`)}
             </button>
           </div>
         </div>
@@ -194,17 +197,17 @@ export function InsecticideExplorer({
               value={term}
               onChange={(event) => setTerm(event.target.value)}
               onKeyDown={(event) => { if (event.key === 'Enter' && term.trim()) saveRecent(term.trim()); }}
-              placeholder="Search sections, rules, keywords..."
+              placeholder={t('Search sections, rules, keywords...', 'సెక్షన్లు, నియమాలు, కీలకపదాలను వెతకండి...')}
               className="w-full min-w-0 bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 dark:text-slate-100"
             />
             {term && (
-              <button type="button" onClick={() => setTerm('')} aria-label="Clear search" className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">
+              <button type="button" onClick={() => setTerm('')} aria-label={t('Clear search', 'శోధనను క్లియర్ చేయండి')} className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800">
                 <X className="h-4 w-4" />
               </button>
             )}
-            <button type="button" onClick={() => term.trim() && saveRecent(term.trim())} aria-label="Search" className="shrink-0 rounded-lg bg-orange-600 px-2.5 py-1.5 text-xs font-black text-white transition hover:bg-orange-700 sm:px-3">
+            <button type="button" onClick={() => term.trim() && saveRecent(term.trim())} aria-label={t('Search', 'శోధించండి')} className="shrink-0 rounded-lg bg-orange-600 px-2.5 py-1.5 text-xs font-black text-white transition hover:bg-orange-700 sm:px-3">
               <Search className="h-4 w-4 sm:hidden" />
-              <span className="hidden sm:inline">Search</span>
+              <span className="hidden sm:inline">{t('Search', 'వెతకండి')}</span>
             </button>
           </div>
 
@@ -213,7 +216,7 @@ export function InsecticideExplorer({
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {recent.length > 0 && (
                 <>
-                  <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">Recent:</span>
+                  <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">{t('Recent:', 'ఇటీవలివి:')}</span>
                   {recent.map((item) => (
                     <button key={item} type="button" onClick={() => pickSearchTerm(item)} className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-600 transition hover:border-orange-300 hover:text-orange-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
                       {item}
@@ -222,7 +225,7 @@ export function InsecticideExplorer({
                   <span className="mx-1 h-3 w-px bg-slate-200 dark:bg-slate-700" />
                 </>
               )}
-              <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">Try:</span>
+              <span className="text-[10px] font-black uppercase tracking-wide text-slate-400">{t('Try:', 'ఉదాహరణ:')}</span>
               {SUGGESTED_SEARCHES.slice(0, 5).map((item) => (
                 <button key={item} type="button" onClick={() => pickSearchTerm(item)} className="rounded-full border border-orange-100 bg-orange-50/60 px-2.5 py-1 text-[10px] font-bold text-orange-700 transition hover:border-orange-300 dark:border-orange-900/50 dark:bg-orange-950/30 dark:text-orange-300">
                   {item}
@@ -235,7 +238,7 @@ export function InsecticideExplorer({
           {showResults && (
             <div className="absolute inset-x-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
               <div className="flex flex-wrap gap-1 border-b border-slate-100 p-2 dark:border-slate-800">
-                {RESULT_FILTERS.map((filter) => (
+                {resultFilters.map((filter) => (
                   <button
                     key={filter.id}
                     type="button"
@@ -252,59 +255,65 @@ export function InsecticideExplorer({
               </div>
               <div className="max-h-[60vh] overflow-y-auto p-2">
                 {(kind === 'all' || kind === 'definitions') && definitionResults.length > 0 && (
-                  <ResultGroup title="Definitions">
+                  <ResultGroup title={t('Definitions', 'నిర్వచనాలు')}>
                     {definitionResults.slice(0, RESULT_LIMIT).map(({ card, clause }) => (
                       <ResultRow
                         key={clause.id}
-                        chip="Definition"
+                        chip={t('Definition', 'నిర్వచనం')}
                         title={`${clause.clauseLabel ?? 'Section'} ${clause.clauseNo} — ${clause.title}`}
                         context={clause.plainEnglish || clause.summary}
+                        openLabel={t('Open', 'ఓపెన్')}
                         onOpen={() => { saveRecent(term.trim()); onOpenCard(card.id, 'sections'); }}
                       />
                     ))}
                   </ResultGroup>
                 )}
                 {(kind === 'all' || kind === 'sections') && sectionOnlyResults.length > 0 && (
-                  <ResultGroup title="Act Sections">
+                  <ResultGroup title={t('Act Sections', 'చట్ట సెక్షన్లు')}>
                     {sectionOnlyResults.slice(0, RESULT_LIMIT).map(({ card, clause }) => (
                       <ResultRow
                         key={clause.id}
                         chip={card.cardTitle}
                         title={`${clause.clauseLabel ?? 'Section'} ${clause.clauseNo} — ${clause.title}`}
                         context={clause.plainEnglish || clause.summary}
+                        openLabel={t('Open', 'ఓపెన్')}
                         onOpen={() => { saveRecent(term.trim()); onOpenCard(card.id, 'sections'); }}
                       />
                     ))}
                   </ResultGroup>
                 )}
                 {(kind === 'all' || kind === 'rules') && ruleResults.length > 0 && (
-                  <ResultGroup title="Rules">
+                  <ResultGroup title={t('Rules', 'నియమాలు')}>
                     {ruleResults.slice(0, RESULT_LIMIT).map(({ card, clause }) => (
                       <ResultRow
                         key={clause.id}
                         chip={card.cardTitle}
                         title={`${clause.clauseLabel ?? 'Rule'} ${clause.clauseNo} — ${clause.title}`}
                         context={clause.plainEnglish || clause.summary}
+                        openLabel={t('Open', 'ఓపెన్')}
                         onOpen={() => { saveRecent(term.trim()); onOpenCard(card.id, 'rules'); }}
                       />
                     ))}
                   </ResultGroup>
                 )}
                 {(kind === 'all' || kind === 'forms') && formResults.length > 0 && (
-                  <ResultGroup title="Forms">
+                  <ResultGroup title={t('Forms', 'ఫారాలు')}>
                     {formResults.slice(0, RESULT_LIMIT).map((form, index) => (
                       <ResultRow
                         key={`${form.formNo}-${index}`}
                         chip={form.rule}
                         title={`${form.formNo} — ${form.title}`}
                         context={form.purpose}
+                        openLabel={t('Open', 'ఓపెన్')}
                         onOpen={() => { saveRecent(term.trim()); onViewForm(form); }}
                       />
                     ))}
                   </ResultGroup>
                 )}
                 {sectionResults.length === 0 && ruleResults.length === 0 && formResults.length === 0 && (
-                  <p className="p-4 text-center text-xs font-semibold text-slate-500">No matches — try a section number, rule, keyword or form name.</p>
+                  <p className="p-4 text-center text-xs font-semibold text-slate-500">
+                    {t('No matches — try a section number, rule, keyword or form name.', 'సరిపోలినవి ఏవీ లేవు — సెక్షన్ నంబర్, నియమం, కీలకపదం లేదా ఫారమ్ పేరుతో వెతకండి.')}
+                  </p>
                 )}
               </div>
             </div>
@@ -314,11 +323,11 @@ export function InsecticideExplorer({
         {/* Hero actions */}
         <div className="mt-3 flex flex-wrap gap-1.5">
           {[
-            { label: 'Search Act', icon: Search, run: focusSearch, primary: true },
-            { label: 'Sections', icon: BookOpen, run: () => onOpenSection('sections') },
-            { label: 'Rules', icon: SprayCan, run: () => onOpenSection('rules') },
-            { label: 'Forms', icon: FileText, run: () => onOpenSection('forms') },
-            { label: 'Powers & Duties', icon: ShieldCheck, run: () => onOpenSection('duties') },
+            { label: t('Search Act', 'చట్ట శోధన'), icon: Search, run: focusSearch, primary: true },
+            { label: t('Sections', 'సెక్షన్లు'), icon: BookOpen, run: () => onOpenSection('sections') },
+            { label: t('Rules', 'నియమాలు'), icon: SprayCan, run: () => onOpenSection('rules') },
+            { label: t('Forms', 'ఫారాలు'), icon: FileText, run: () => onOpenSection('forms') },
+            { label: t('Powers & Duties', 'అధికారాలు & విధులు'), icon: ShieldCheck, run: () => onOpenSection('duties') },
           ].map((action) => (
             <button
               key={action.label}
@@ -339,9 +348,9 @@ export function InsecticideExplorer({
 
       {/* What do you want to do? */}
       <div>
-        <h3 className="text-sm font-black text-slate-900 dark:text-white">What do you want to do?</h3>
+        <h3 className="text-sm font-black text-slate-900 dark:text-white">{t('What do you want to do?', 'మీరు ఏమి చేయాలనుకుంటున్నారు?')}</h3>
         <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {TASK_SHORTCUTS.map((task) => (
+          {taskShortcuts.map((task) => (
             <button
               key={task.id}
               type="button"
@@ -370,7 +379,7 @@ function ResultGroup({ title, children }: { title: string; children: React.React
   );
 }
 
-function ResultRow({ chip, title, context, onOpen }: { chip: string; title: string; context?: string; onOpen: () => void }) {
+function ResultRow({ chip, title, context, openLabel, onOpen }: { chip: string; title: string; context?: string; openLabel?: string; onOpen: () => void }) {
   return (
     <button
       type="button"
@@ -382,7 +391,7 @@ function ResultRow({ chip, title, context, onOpen }: { chip: string; title: stri
         <span className="block text-xs font-bold text-slate-800 sm:truncate dark:text-slate-100">{title}</span>
         {context && <span className="block text-[10px] font-medium text-slate-500 sm:truncate dark:text-slate-400">{context}</span>}
       </span>
-      <span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-orange-600 opacity-0 transition group-hover:opacity-100 dark:text-orange-300">Open</span>
+      <span className="shrink-0 text-[10px] font-black uppercase tracking-wide text-orange-600 opacity-0 transition group-hover:opacity-100 dark:text-orange-300">{openLabel || 'Open'}</span>
     </button>
   );
 }

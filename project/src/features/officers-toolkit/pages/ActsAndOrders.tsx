@@ -45,6 +45,7 @@ import { FcoImplementationModal } from '../../../shared/components/ui/FcoImpleme
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
 import {
   BOOKMARK_KEY,
@@ -53,7 +54,8 @@ import {
   fcoAccentThemes,
   fcoClauseLocationByNo,
   fcoIconMap,
-  fcoTabs,
+  getLocalizedFcoTabs,
+  getLocalizedLegalAreaCards,
   filterFcoCardForQuery,
   type InsecticideSection,
   legalAreaCards,
@@ -68,6 +70,8 @@ export function ActsAndOrders() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const { t } = useLanguage();
+  const localizedLegalAreas = useMemo(() => getLocalizedLegalAreaCards(t), [t]);
   const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const [view, setView] = useState<ReckonerView>('powers');
   const [selectedLegalArea, setSelectedLegalArea] = useState<MainLegalArea | null>(null);
@@ -97,10 +101,10 @@ export function ActsAndOrders() {
   useEffect(() => {
     setSelectedLegalArea(areaFromPath);
     if (areaFromPath) {
-      const card = legalAreaCards.find((item) => item.id === areaFromPath);
+      const card = localizedLegalAreas.find((item) => item.id === areaFromPath);
       if (card) setCategory(card.category);
     }
-  }, [areaFromPath]);
+  }, [areaFromPath, localizedLegalAreas]);
 
   useEffect(() => {
     safeStorage.setItem(BOOKMARK_KEY, JSON.stringify(bookmarks));
@@ -148,7 +152,7 @@ export function ActsAndOrders() {
   };
 
   const openLegalArea = (area: MainLegalArea) => {
-    const areaCard = legalAreaCards.find((item) => item.id === area);
+    const areaCard = localizedLegalAreas.find((item) => item.id === area);
     if (area === 'fertilizer' && !fcoStructureShownRef.current) {
       fcoStructureShownRef.current = true;
       setShowFcoStructureModal(true);
@@ -204,14 +208,14 @@ export function ActsAndOrders() {
     navigate('/officer-toolkit');
   };
 
-  const activeAreaCard = selectedLegalArea ? legalAreaCards.find((item) => item.id === selectedLegalArea) : null;
+  const activeAreaCard = selectedLegalArea ? localizedLegalAreas.find((item) => item.id === selectedLegalArea) : null;
 
   const currentMeta = useMemo(() => {
     if (!selectedLegalArea) {
       return {
         eyebrow: undefined,
-        title: 'Acts & Orders',
-        subtitle: 'Agriculture laws, rules, and official procedures for Fertilizer, Seed, and Insecticide.',
+        title: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు'),
+        subtitle: t('Agriculture laws, rules, and official procedures for Fertilizer, Seed, and Insecticide.', 'ఎరువులు, విత్తనాలు మరియు పురుగుమందుల చట్టాలు, నియమాలు మరియు అధికారిక ప్రక్రియలు.'),
         icon: Scale,
       };
     }
@@ -219,40 +223,40 @@ export function ActsAndOrders() {
     if (selectedLegalArea === 'fertilizer') {
       if (fertilizerSection === 'clauses') {
         return {
-          eyebrow: 'FCO 1985 • Statutory Clauses',
-          title: 'FCO 1985 Clauses & Provisions',
-          subtitle: 'Browse and search the 39 clauses of the Fertilizer (Control) Order, 1985.',
+          eyebrow: t('FCO 1985 • Statutory Clauses', 'FCO 1985 • చట్టబద్ధమైన క్లాజులు'),
+          title: t('FCO 1985 Clauses & Provisions', 'FCO 1985 క్లాజులు & నిబంధనలు'),
+          subtitle: t('Browse and search the 39 clauses of the Fertilizer (Control) Order, 1985.', 'ఎరువుల (నియంత్రణ) ఉత్తర్వు, 1985 లోని 39 క్లాజులను పరిశీలించండి మరియు శోధించండి.'),
           icon: BookOpen,
         };
       }
       if (fertilizerSection === 'forms') {
         return {
-          eyebrow: 'FCO 1985 • Statutory Forms',
-          title: 'FCO 1985 Statutory Forms',
-          subtitle: 'Official application, memorandum, inspection, stop-sale, and certificate forms.',
+          eyebrow: t('FCO 1985 • Statutory Forms', 'FCO 1985 • చట్టబద్ధమైన ఫారాలు'),
+          title: t('FCO 1985 Statutory Forms', 'FCO 1985 చట్టబద్ధమైన ఫారాలు'),
+          subtitle: t('Official application, memorandum, inspection, stop-sale, and certificate forms.', 'అధికారిక దరఖాస్తు, మెమోరాండం, తనిఖీ, విక్రయాల నిలిపివేత మరియు ధృవీకరణ పత్రాల ఫారాలు.'),
           icon: FileText,
         };
       }
       if (fertilizerSection === 'schedules') {
         return {
-          eyebrow: 'FCO 1985 • Specifications & Schedules',
-          title: 'FCO 1985 Schedules & Specifications',
-          subtitle: 'Specifications of fertilizers, tolerance limits, and official sampling methods.',
+          eyebrow: t('FCO 1985 • Specifications & Schedules', 'FCO 1985 • ప్రమాణాలు & షెడ్యూళ్లు'),
+          title: t('FCO 1985 Schedules & Specifications', 'FCO 1985 షెడ్యూళ్లు & ప్రమాణాలు'),
+          subtitle: t('Specifications of fertilizers, tolerance limits, and official sampling methods.', 'ఎరువుల రసాయన ప్రమాణాలు, టాలరెన్స్ పరిమితులు మరియు అధికారిక నమూనా సేకరణ పద్ధతులు.'),
           icon: ClipboardList,
         };
       }
       if (fertilizerSection === 'duties') {
         return {
-          eyebrow: 'FCO 1985 • Enforcement & Powers',
-          title: 'FCO Inspector Powers & Enforcement',
-          subtitle: 'Mind maps, legal timelines, stop-sale powers, and penal provisions under ECA 1955.',
+          eyebrow: t('FCO 1985 • Enforcement & Powers', 'FCO 1985 • అమలు & అధికారాలు'),
+          title: t('FCO Inspector Powers & Enforcement', 'FCO ఇన్‌స్పెక్టర్ అధికారాలు & అమలు'),
+          subtitle: t('Mind maps, legal timelines, stop-sale powers, and penal provisions under ECA 1955.', 'మైండ్ మ్యాప్‌లు, చట్టపరమైన కాలపరిమితులు, స్టాప్-సేల్ అధికారాలు మరియు ECA 1955 శిక్షా నిబంధనలు.'),
           icon: Network,
         };
       }
       return {
-        eyebrow: 'Acts & Orders • FCO 1985',
-        title: 'Fertilizer Control Order',
-        subtitle: activeAreaCard?.description || 'Clauses, schedules, forms, sampling procedures, dealer requirements, and non-standard prosecution paths under FCO 1985 and ECA 1955.',
+        eyebrow: t('Acts & Orders • FCO 1985', 'చట్టాలు & ఉత్తర్వులు • FCO 1985'),
+        title: t('Fertilizer Control Order', 'ఎరువుల నియంత్రణ ఉత్తర్వు (FCO)'),
+        subtitle: activeAreaCard?.description || t('Clauses, schedules, forms, sampling procedures, dealer requirements, and non-standard prosecution paths under FCO 1985 and ECA 1955.', 'FCO 1985 మరియు ECA 1955 కింద క్లాజులు, షెడ్యూళ్లు, ఫారాలు, నమూనా సేకరణ పద్ధతులు మరియు డీలర్ నిబంధనలు.'),
         icon: activeAreaCard?.icon || PackageCheck,
       };
     }
@@ -260,51 +264,51 @@ export function ActsAndOrders() {
     if (selectedLegalArea === 'insecticide') {
       if (insecticideSection === 'sections') {
         return {
-          eyebrow: 'Insecticides Act, 1968 • Act Sections',
-          title: 'Insecticides Act Sections',
-          subtitle: 'Browse all 38 statutory sections, offences, penalties, and inspector powers.',
+          eyebrow: t('Insecticides Act, 1968 • Act Sections', 'పురుగుమందుల చట్టం, 1968 • చట్ట సెక్షన్లు'),
+          title: t('Insecticides Act Sections', 'పురుగుమందుల చట్టం సెక్షన్లు'),
+          subtitle: t('Browse all 38 statutory sections, offences, penalties, and inspector powers.', 'అన్ని 38 చట్టబద్ధమైన సెక్షన్లు, నేరాలు, జరిమానాలు మరియు ఇన్‌స్పెక్టర్ అధికారాలను చూడండి.'),
           icon: BookOpen,
         };
       }
       if (insecticideSection === 'rules') {
         return {
-          eyebrow: 'Insecticides Rules, 1971',
-          title: 'Insecticides Rules & Schedules',
-          subtitle: '46 statutory rules, labelling mandates, safety guidelines, and schedule standards.',
+          eyebrow: t('Insecticides Rules, 1971', 'పురుగుమందుల నియమాలు, 1971'),
+          title: t('Insecticides Rules & Schedules', 'పురుగుమందుల నియమాలు & షెడ్యూళ్లు'),
+          subtitle: t('46 statutory rules, labelling mandates, safety guidelines, and schedule standards.', '46 చట్టబద్ధమైన నియమాలు, లేబులింగ్ నిబంధనలు, భద్రతా మార్గదర్శకాలు మరియు షెడ్యూల్ ప్రమాణాలు.'),
           icon: SprayCan,
         };
       }
       if (insecticideSection === 'forms') {
         return {
-          eyebrow: 'Insecticides Act • Statutory Forms',
-          title: 'Insecticide Regulatory Forms',
-          subtitle: 'Statutory forms for licensing, inspection, sampling, and analyst reports.',
+          eyebrow: t('Insecticides Act • Statutory Forms', 'పురుగుమందుల చట్టం • చట్టబద్ధమైన ఫారాలు'),
+          title: t('Insecticide Regulatory Forms', 'పురుగుమందుల నియంత్రణ ఫారాలు'),
+          subtitle: t('Statutory forms for licensing, inspection, sampling, and analyst reports.', 'లైసెన్సింగ్, తనిఖీ, నమూనా సేకరణ మరియు విశ్లేషకుల నివేదికల చట్టబద్ధమైన ఫారాలు.'),
           icon: FileText,
         };
       }
       if (insecticideSection === 'duties') {
         return {
-          eyebrow: 'Insecticides Act • Enforcement & Powers',
-          title: 'Insecticide Inspector Powers & Duties',
-          subtitle: 'Statutory deadlines, seizure workflows, stop sale, and penal provisions.',
+          eyebrow: t('Insecticides Act • Enforcement & Powers', 'పురుగుమందుల చట్టం • అమలు & అధికారాలు'),
+          title: t('Insecticide Inspector Powers & Duties', 'పురుగుమందుల ఇన్‌స్పెక్టర్ అధికారాలు & విధులు'),
+          subtitle: t('Statutory deadlines, seizure workflows, stop sale, and penal provisions.', 'చట్టబద్ధమైన కాలపరిమితులు, జప్తి విధానాలు, విక్రయాల నిలిపివేత మరియు శిక్షా నిబంధనలు.'),
           icon: Network,
         };
       }
       return {
-        eyebrow: 'Acts & Orders • Insecticides',
-        title: 'Insecticides Act, 1968 & Rules, 1971',
-        subtitle: activeAreaCard?.description || 'Statutory sections, insecticidal rules, forms, quality standards, and enforcement powers under the Insecticides Act, 1968.',
+        eyebrow: t('Acts & Orders • Insecticides', 'చట్టాలు & ఉత్తర్వులు • పురుగుమందులు'),
+        title: t('Insecticides Act, 1968 & Rules, 1971', 'పురుగుమందుల చట్టం, 1968 & నియమాలు, 1971'),
+        subtitle: activeAreaCard?.description || t('Statutory sections, insecticidal rules, forms, quality standards, and enforcement powers under the Insecticides Act, 1968.', 'పురుగుమందుల చట్టం, 1968 కింద చట్టబద్ధమైన సెక్షన్లు, నియమాలు, ఫారాలు, నాణ్యతా ప్రమాణాలు మరియు అమలు అధికారాలు.'),
         icon: activeAreaCard?.icon || SprayCan,
       };
     }
 
     return {
-      eyebrow: 'Acts & Orders • Seeds',
-      title: activeAreaCard?.title || 'Seeds Act & Control Orders',
-      subtitle: activeAreaCard?.description || 'Seeds Act 1966, Seeds Rules 1968, and Seeds (Control) Order 1983.',
+      eyebrow: t('Acts & Orders • Seeds', 'చట్టాలు & ఉత్తర్వులు • విత్తనాలు'),
+      title: activeAreaCard?.title || t('Seeds Act & Control Orders', 'విత్తన చట్టం & నియంత్రణ ఉత్తర్వులు'),
+      subtitle: activeAreaCard?.description || t('Seeds Act 1966, Seeds Rules 1968, and Seeds (Control) Order 1983.', 'విత్తన చట్టం 1966, విత్తన నియమాలు 1968 మరియు విత్తన (నియంత్రణ) ఉత్తర్వు 1983.'),
       icon: activeAreaCard?.icon || Sprout,
     };
-  }, [selectedLegalArea, fertilizerSection, insecticideSection, activeAreaCard]);
+  }, [selectedLegalArea, fertilizerSection, insecticideSection, activeAreaCard, t]);
 
   const CurrentIcon = currentMeta.icon;
 
@@ -362,7 +366,7 @@ export function ActsAndOrders() {
         )
       )}
       {!selectedLegalArea && (
-        <LegalAreaOpeningScreen onOpen={openLegalArea} />
+        <LegalAreaOpeningScreen cards={localizedLegalAreas} onOpen={openLegalArea} />
       )}
 
       {selectedLegalArea === 'fertilizer' && !fertilizerSection && (
@@ -551,7 +555,8 @@ function insecticideFormSearchText(form: InsecticideFormEntry) {
 }
 
 function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'amber' }: { search: string; onSearchChange: (value: string) => void; onViewForm: (form: InsecticideFormEntry) => void; accent?: FcoAccent }) {
-  const t = fcoAccentThemes[accent];
+  const { t } = useLanguage();
+  const acc = fcoAccentThemes[accent];
   const term = search.trim().toLowerCase();
   const visibleForms = insecticideForms.filter((form) => !term || insecticideFormSearchText(form).includes(term));
 
@@ -562,14 +567,17 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
           <div>
             <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
               <FileText className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-              <span>Insecticide Regulatory Forms</span>
+              <span>{t('Insecticide Regulatory Forms', 'పురుగుమందుల నియంత్రణ ఫారాలు')}</span>
             </h2>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Statutory forms under Insecticides Rules (First Schedule) for licensing, inspection, sampling, and reports.
+              {t(
+                'Statutory forms under Insecticides Rules (First Schedule) for licensing, inspection, sampling, and reports.',
+                'లైసెన్సింగ్, తనిఖీ, నమూనా సేకరణ మరియు నివేదికల కోసం పురుగుమందుల నియమాల కింద చట్టబద్ధమైన ఫారాలు.'
+              )}
             </p>
           </div>
           <span className="self-start sm:self-auto rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-black text-orange-800 ring-1 ring-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:ring-orange-800">
-            {visibleForms.length} Forms
+            {t(`${visibleForms.length} Forms`, `${visibleForms.length} ఫారాలు`)}
           </span>
         </div>
         <div className="relative">
@@ -577,22 +585,22 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search form, clause or register..."
-            className={`w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
+            placeholder={t('Search form, clause or register...', 'ఫారమ్, క్లాజు లేదా రిజిస్టర్‌ను వెతకండి...')}
+            className={`w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none ${acc.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
           />
         </div>
       </div>
       <div className="grid gap-2 md:grid-cols-2">
         {visibleForms.map((form, index) => (
-          <div key={`${form.formNo}-${index}`} className={`flex flex-col rounded-lg border ${t.border} bg-gradient-to-br ${t.tintTile} p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 ${t.hoverBorder} hover:shadow-md`}>
+          <div key={`${form.formNo}-${index}`} className={`flex flex-col rounded-lg border ${acc.border} bg-gradient-to-br ${acc.tintTile} p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 ${acc.hoverBorder} hover:shadow-md`}>
             <div className="flex flex-1 items-start gap-2.5">
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.iconTile}`}>
+              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${acc.iconTile}`}>
                 <FileText className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <p className={`text-[10px] font-black uppercase tracking-wide ${t.labelText}`}>{form.formNo}</p>
-                  <span className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ring-1`}>{insecticideFormUserLabels[form.usedBy]}</span>
+                  <p className={`text-[10px] font-black uppercase tracking-wide ${acc.labelText}`}>{form.formNo}</p>
+                  <span className={`rounded-full ${acc.chipAlt} px-2 py-0.5 text-[9px] font-black uppercase tracking-wide ring-1`}>{insecticideFormUserLabels[form.usedBy]}</span>
                 </div>
                 <h3 className="mt-0.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{form.title}</h3>
                 <p className="mt-0.5 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.purpose}</p>
@@ -602,7 +610,7 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
               </div>
             </div>
             <div className="mt-2.5 flex items-center justify-end gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-900/50">
-              <button type="button" onClick={() => onViewForm(form)} aria-label="View" title="View" className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-orange-500 via-amber-500 to-amber-600 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
+              <button type="button" onClick={() => onViewForm(form)} aria-label={t('View', 'చూడండి')} title={t('View', 'చూడండి')} className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-orange-500 via-amber-500 to-amber-600 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
                 <Eye className="h-3.5 w-3.5" />
               </button>
               <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-slate-200 bg-gradient-to-br from-white to-slate-50 px-2.5 py-1 text-[10px] font-black text-slate-800 transition hover:to-slate-100 dark:border-slate-800/50 dark:from-slate-900 dark:to-slate-900 dark:text-slate-200 dark:hover:to-orange-950/30">
@@ -612,7 +620,7 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
           </div>
         ))}
         {visibleForms.length === 0 && (
-          <p className={`rounded-lg border border-dashed ${t.border} p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2`}>No forms found</p>
+          <p className={`rounded-lg border border-dashed ${acc.border} p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2`}>{t('No forms found', 'ఫారాలు ఏవీ కనుగొనబడలేదు')}</p>
         )}
       </div>
     </section>
@@ -654,7 +662,8 @@ function FertilizerClausesPanel({
   onSelectCard: (cardId: string) => void;
   onToggleBookmark: (id: string) => void;
 }) {
-  const t = fcoAccentThemes[accent];
+  const { t } = useLanguage();
+  const acc = fcoAccentThemes[accent];
   if (activeCard) {
     return (
       <FcoCardDetailPage
@@ -685,10 +694,10 @@ function FertilizerClausesPanel({
           <div>
             <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
               <BookOpen className={`h-4 w-4 ${accent === 'amber' ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
-              <span>{badgeLabel} Directory</span>
+              <span>{badgeLabel === 'Clauses' ? t('Clauses Directory', 'క్లాజుల డైరెక్టరీ') : badgeLabel === 'Sections' ? t('Sections Directory', 'సెక్షన్ల డైరెక్టరీ') : t('Rules Directory', 'నియమాల డైరెక్టరీ')}</span>
             </h2>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Search by clause number, keyword, schedule reference, or officer powers.
+              {t('Search by clause number, keyword, schedule reference, or officer powers.', 'క్లాజు నంబర్, కీలకపదం, షెడ్యూల్ లేదా అధికారాల ద్వారా శోధించండి.')}
             </p>
           </div>
           <span className={`self-start sm:self-auto rounded-full px-2.5 py-1 text-[11px] font-black ${
@@ -696,7 +705,7 @@ function FertilizerClausesPanel({
               ? 'bg-amber-50 text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800'
               : 'bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800'
           }`}>
-            {cards.length} Cards Available
+            {t(`${cards.length} Cards Available`, `${cards.length} కార్డులు అందుబాటులో ఉన్నాయి`)}
           </span>
         </div>
         <div className="relative">
@@ -705,7 +714,7 @@ function FertilizerClausesPanel({
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder={searchPlaceholder}
-            className={`w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
+            className={`w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none ${acc.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
           />
         </div>
       </div>
@@ -719,7 +728,7 @@ function FertilizerClausesPanel({
           onSelect={onSelectCard}
         />
       ) : (
-        <p className={`rounded-lg border border-dashed ${t.border} p-8 text-center text-sm font-semibold text-slate-500`}>No clauses found</p>
+        <p className={`rounded-lg border border-dashed ${acc.border} p-8 text-center text-sm font-semibold text-slate-500`}>{t('No clauses found', 'క్లాజులు ఏవీ కనుగొనబడలేదు')}</p>
       )}
     </section>
   );
@@ -730,6 +739,7 @@ function scheduleSearchText(schedule: FertilizerScheduleEntry) {
 }
 
 function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; onSearchChange: (value: string) => void }) {
+  const { t } = useLanguage();
   const term = search.trim().toLowerCase();
   const visibleSchedules = fertilizerSchedules.filter((schedule) => !term || scheduleSearchText(schedule).includes(term));
 
@@ -740,14 +750,14 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
           <div>
             <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
               <ClipboardList className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-              <span>Fertilizer Specifications &amp; Schedules</span>
+              <span>{t('Fertilizer Specifications & Schedules', 'ఎరువుల ప్రమాణాలు & షెడ్యూళ్లు')}</span>
             </h2>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Chemical specifications, tolerance limits, and official sampling methods under FCO 1985.
+              {t('Chemical specifications, tolerance limits, and official sampling methods under FCO 1985.', 'FCO 1985 కింద రసాయన ప్రమాణాలు, టాలరెన్స్ పరిమితులు మరియు అధికారిక నమూనా సేకరణ పద్ధతులు.')}
             </p>
           </div>
           <span className="self-start sm:self-auto rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800">
-            {visibleSchedules.length} Schedules
+            {t(`${visibleSchedules.length} Schedules`, `${visibleSchedules.length} షెడ్యూళ్లు`)}
           </span>
         </div>
         <div className="relative">
@@ -755,7 +765,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search schedule or tolerance..."
+            placeholder={t('Search schedule or tolerance...', 'షెడ్యూల్ లేదా టాలరెన్స్‌ను వెతకండి...')}
             className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           />
         </div>
@@ -785,7 +795,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
           </details>
         ))}
         {visibleSchedules.length === 0 && (
-          <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 dark:border-slate-800/50">No schedules found</p>
+          <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 md:col-span-2 dark:border-slate-800/50">{t('No schedules found', 'షెడ్యూళ్లు ఏవీ కనుగొనబడలేదు')}</p>
         )}
       </div>
     </section>
@@ -871,7 +881,8 @@ async function exportOffencesPdf(entries: FcoOffenceEntry[], meta: { filename: s
   });
 }
 
-function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => void }) {
+function LegalAreaOpeningScreen({ cards, onOpen }: { cards: typeof legalAreaCards; onOpen: (area: MainLegalArea) => void }) {
+  const { t } = useLanguage();
   return (
     <div className="space-y-4">
       {/* Category Overview Banner */}
@@ -880,22 +891,22 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
           <div>
             <h2 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-emerald-600" />
-              <span>Statutory Acts, Rules & Orders</span>
+              <span>{t('Statutory Acts, Rules & Orders', 'చట్టాలు, నియమాలు & ఉత్తర్వులు')}</span>
             </h2>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Select an agricultural domain to access legal clauses, statutory forms, inspection powers, stop-sale procedures, and penal provisions.
+              {t('Select an agricultural domain to access legal clauses, statutory forms, inspection powers, stop-sale procedures, and penal provisions.', 'చట్టపరమైన క్లాజులు, చట్టబద్ధమైన ఫారాలు, తనిఖీ అధికారాలు, స్టాప్-సేల్ విధానాలు మరియు శిక్షా నిబంధనలను పరిశీలించడానికి వ్యవసాయ విభాగాన్ని ఎంచుకోండి.')}
             </p>
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300 self-start sm:self-auto">
             <Scale className="h-3.5 w-3.5" />
-            <span>3 Regulatory Domains</span>
+            <span>{t('3 Regulatory Domains', '3 నియంత్రణ రంగాలు')}</span>
           </span>
         </div>
       </section>
 
       {/* 3 Domain Cards Grid */}
       <div className="grid gap-4 md:grid-cols-3">
-        {legalAreaCards.map((card) => {
+        {cards.map((card) => {
           const Icon = card.icon;
           return (
             <div
@@ -944,7 +955,7 @@ function LegalAreaOpeningScreen({ onOpen }: { onOpen: (area: MainLegalArea) => v
                   {card.stats}
                 </span>
                 <span className={`inline-flex items-center gap-1 text-xs font-black ${card.accent} group-hover:translate-x-0.5 transition-transform`}>
-                  <span>Explore</span>
+                  <span>{t('Explore', 'పరిశీలించండి')}</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </span>
               </div>
@@ -1058,9 +1069,11 @@ function FcoCardDetailPage({
   onTabChange: (tab: FcoTabId) => void;
 }) {
   const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
+  const { t } = useLanguage();
+  const localizedTabs = useMemo(() => getLocalizedFcoTabs(t), [t]);
   const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const Icon = fcoIconMap[card.icon as keyof typeof fcoIconMap] || Scale;
-  const t = fcoAccentThemes[accent];
+  const acc = fcoAccentThemes[accent];
 
   return (
     <section className="space-y-3">
@@ -1088,7 +1101,7 @@ function FcoCardDetailPage({
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
-              <BackButton onClick={onBack} tone="solid" label="Back to cards" className="mt-1 shrink-0" />
+              <BackButton onClick={onBack} tone="solid" label={t('Back to cards', 'కార్డులకు తిరిగి వెళ్లండి')} className="mt-1 shrink-0" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-3">
                   <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
@@ -1118,7 +1131,7 @@ function FcoCardDetailPage({
 
 
       <div className={`flex gap-1 overflow-x-auto bg-white px-2 py-2 dark:bg-slate-950 ${bare ? 'rounded-xl border border-slate-200 dark:border-slate-800' : 'border-b border-slate-100 dark:border-slate-800'}`}>
-        {fcoTabs.map((tab) => {
+        {localizedTabs.map((tab) => {
           const TabIcon = tab.icon;
           const selected = activeTab === tab.id;
           return (
@@ -1128,8 +1141,8 @@ function FcoCardDetailPage({
               onClick={() => onTabChange(tab.id)}
               className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-black transition ${
                 selected
-                  ? `bg-gradient-to-br ${t.gradient} text-white shadow-md ${t.shadow}`
-                  : `border ${t.tabOff}`
+                  ? `bg-gradient-to-br ${acc.gradient} text-white shadow-md ${acc.shadow}`
+                  : `border ${acc.tabOff}`
               }`}
             >
               <TabIcon className="h-3.5 w-3.5" />
@@ -1185,12 +1198,14 @@ function fcoRealSubClauses(clause: FcoClause) {
 }
 
 function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onToggleBookmark, onOpenRelated }: { clause: FcoClause; activeTab: FcoTabId; bookmarked: boolean; accent?: FcoAccent; onToggleBookmark: () => void; onOpenRelated: (target: { clauseId: string; cardId: string }) => void }) {
+  const { language } = useLanguage();
+  const isTe = language === 'te';
   const t = fcoAccentThemes[accent];
   const subClauses = fcoRealSubClauses(clause);
   const copyClause = () => navigator.clipboard?.writeText(fcoClauseToText(clause));
   const shareClause = async () => {
     const text = fcoClauseToText(clause);
-    if (navigator.share) await navigator.share({ title: `${clause.clauseLabel ?? 'FCO Clause'} ${clause.clauseNo}`, text });
+    if (navigator.share) await navigator.share({ title: `${clause.clauseLabel ?? (isTe ? 'FCO క్లాజ్' : 'FCO Clause')} ${clause.clauseNo}`, text });
     else await navigator.clipboard?.writeText(text);
   };
 
@@ -1198,18 +1213,18 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onT
     <details id={`fco-clause-${clause.id}`} className={`group overflow-hidden rounded-lg border ${t.border} bg-white shadow-sm transition duration-300 ${t.hoverBorder} hover:shadow-md dark:bg-slate-900`} open>
       <summary className={`flex cursor-pointer list-none flex-col gap-2 border-b ${t.borderSoft} bg-gradient-to-br ${t.tint} p-2.5 sm:flex-row sm:items-start sm:justify-between`}>
         <div>
-          <p className={`text-[10px] font-black uppercase tracking-wide ${t.labelText}`}>{clause.clauseLabel ?? 'Clause'} {clause.clauseNo} - {clause.category}</p>
+          <p className={`text-[10px] font-black uppercase tracking-wide ${t.labelText}`}>{clause.clauseLabel ?? (isTe ? 'క్లాజ్' : 'Clause')} {clause.clauseNo} - {clause.category}</p>
           <h3 className="mt-0.5 text-sm font-black text-slate-950 dark:text-white">{clause.title}</h3>
           <p className="mt-0.5 text-xs font-bold text-slate-600 dark:text-slate-300">{clause.summary}</p>
         </div>
         <div className="flex gap-1.5">
-          <button type="button" onClick={(event) => { event.preventDefault(); onToggleBookmark(); }} className={`rounded-md border ${t.border} bg-white/80 p-1.5 ${t.altText} transition hover:opacity-80 dark:bg-slate-900`} aria-label="Bookmark clause">
+          <button type="button" onClick={(event) => { event.preventDefault(); onToggleBookmark(); }} className={`rounded-md border ${t.border} bg-white/80 p-1.5 ${t.altText} transition hover:opacity-80 dark:bg-slate-900`} aria-label={isTe ? 'క్లాజును బుక్‌మార్క్ చేయండి' : 'Bookmark clause'}>
             {bookmarked ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
           </button>
-          <button type="button" onClick={(event) => { event.preventDefault(); copyClause(); }} className={`rounded-md border ${t.border} bg-white/80 p-1.5 ${t.boldText} transition hover:opacity-80 dark:bg-slate-900`} aria-label="Copy clause">
+          <button type="button" onClick={(event) => { event.preventDefault(); copyClause(); }} className={`rounded-md border ${t.border} bg-white/80 p-1.5 ${t.boldText} transition hover:opacity-80 dark:bg-slate-900`} aria-label={isTe ? 'క్లాజును కాపీ చేయండి' : 'Copy clause'}>
             <Copy className="h-3.5 w-3.5" />
           </button>
-          <button type="button" onClick={(event) => { event.preventDefault(); void shareClause(); }} className={`rounded-md border ${t.border} bg-white/80 p-1.5 ${t.boldText} transition hover:opacity-80 dark:bg-slate-900`} aria-label="Share clause">
+          <button type="button" onClick={(event) => { event.preventDefault(); void shareClause(); }} className={`rounded-md border ${t.border} bg-white/80 p-1.5 ${t.boldText} transition hover:opacity-80 dark:bg-slate-900`} aria-label={isTe ? 'క్లాజును షేర్ చేయండి' : 'Share clause'}>
             <Share2 className="h-3.5 w-3.5" />
           </button>
         </div>
@@ -1217,10 +1232,10 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onT
       <div className="space-y-2.5 p-2.5">
         {(subClauses.length > 0 || clause.provisos.length > 0 || clause.forms.length > 0 || clause.timelines.length > 0) && (
           <div className="flex flex-wrap gap-1.5">
-            {subClauses.length > 0 && <FcoGlanceChip icon={ListOrdered} label={`${subClauses.length} sub-clause${subClauses.length === 1 ? '' : 's'}`} accent={accent} />}
-            {clause.provisos.length > 0 && <FcoGlanceChip icon={AlertTriangle} label={`${clause.provisos.length} proviso${clause.provisos.length === 1 ? '' : 's'}`} tone="amber" accent={accent} />}
-            {clause.forms.length > 0 && <FcoGlanceChip icon={FileText} label={`${clause.forms.length} form${clause.forms.length === 1 ? '' : 's'}`} tone="blue" accent={accent} />}
-            {clause.timelines.length > 0 && <FcoGlanceChip icon={Clock} label={`${clause.timelines.length} timeline${clause.timelines.length === 1 ? '' : 's'}`} tone="emerald" accent={accent} />}
+            {subClauses.length > 0 && <FcoGlanceChip icon={ListOrdered} label={`${subClauses.length} ${isTe ? 'సబ్-క్లాజులు' : subClauses.length === 1 ? 'sub-clause' : 'sub-clauses'}`} accent={accent} />}
+            {clause.provisos.length > 0 && <FcoGlanceChip icon={AlertTriangle} label={`${clause.provisos.length} ${isTe ? 'మినహాయింపులు' : clause.provisos.length === 1 ? 'proviso' : 'provisos'}`} tone="amber" accent={accent} />}
+            {clause.forms.length > 0 && <FcoGlanceChip icon={FileText} label={`${clause.forms.length} ${isTe ? 'ఫారాలు' : clause.forms.length === 1 ? 'form' : 'forms'}`} tone="blue" accent={accent} />}
+            {clause.timelines.length > 0 && <FcoGlanceChip icon={Clock} label={`${clause.timelines.length} ${isTe ? 'కాలపరిమితులు' : clause.timelines.length === 1 ? 'timeline' : 'timelines'}`} tone="emerald" accent={accent} />}
           </div>
         )}
         <FcoClauseTabContent clause={clause} activeTab={activeTab} accent={accent} />
@@ -1248,10 +1263,10 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onT
                 </summary>
                 <div className={`space-y-1.5 border-t ${t.borderSoft} px-2.5 py-2 text-[12px] font-semibold text-slate-700 dark:text-slate-200`}>
                   <p className="text-slate-500 dark:text-slate-400">{subClause.legalText}</p>
-                  {subClause.officerAction && <p><span className={`font-black ${t.labelText}`}>Officer:</span> {subClause.officerAction.join('; ')}</p>}
-                  {subClause.dealerObligation && <p><span className={`font-black ${t.altText}`}>Dealer:</span> {subClause.dealerObligation.join('; ')}</p>}
+                  {subClause.officerAction && <p><span className={`font-black ${t.labelText}`}>{isTe ? 'అధికారి బాధ్యత:' : 'Officer:'}</span> {subClause.officerAction.join('; ')}</p>}
+                  {subClause.dealerObligation && <p><span className={`font-black ${t.altText}`}>{isTe ? 'డీలర్ బాధ్యత:' : 'Dealer:'}</span> {subClause.dealerObligation.join('; ')}</p>}
                   <button type="button" onClick={() => navigator.clipboard?.writeText(`${subClause.no}: ${subClause.legalText}\n${subClause.plainEnglish}`)} className={`inline-flex items-center gap-1.5 rounded-md border ${t.border} bg-white px-2 py-1 text-[11px] font-black ${t.boldText} hover:opacity-80 dark:bg-slate-900`}>
-                    <Copy className="h-3 w-3" /> Copy sub-clause
+                    <Copy className="h-3 w-3" /> {isTe ? 'సబ్-క్లాజు కాపీ చేయి' : 'Copy sub-clause'}
                   </button>
                 </div>
               </details>
@@ -1260,7 +1275,7 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onT
         )}
         {clause.related.length > 0 && (
           <div className={`flex flex-wrap items-center gap-1.5 border-t ${t.borderSoft} pt-2`}>
-            <span className={`text-[10px] font-black uppercase tracking-wide ${t.labelText}`}>Related</span>
+            <span className={`text-[10px] font-black uppercase tracking-wide ${t.labelText}`}>{isTe ? 'సంబంధిత సమాచారం' : 'Related'}</span>
             {clause.related.map((item) => {
               const match = /^(clause|section|rule)\s+(.+)$/i.exec(item.trim());
               const target = match ? fcoClauseLocationByNo.get(`${match[1]} ${match[2]}`.toLowerCase()) : undefined;
@@ -1284,9 +1299,11 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onT
 
 
 function FcoClauseTabContent({ clause, activeTab, accent = 'sky' }: { clause: FcoClause; activeTab: FcoTabId; accent?: FcoAccent }) {
-  if (activeTab === 'fullText') return <FcoTextBlock items={[clause.legalText, ...clause.explanations.map((item) => `Explanation: ${item}`)]} />;
+  const { language } = useLanguage();
+  const isTe = language === 'te';
+  if (activeTab === 'fullText') return <FcoTextBlock items={[clause.legalText, ...clause.explanations.map((item) => `${isTe ? 'వివరణ' : 'Explanation'}: ${item}`)]} />;
   if (activeTab === 'plainEnglish') return <FcoTextBlock items={[clause.plainEnglish, clause.summary]} />;
-  if (activeTab === 'officerAction') return <FcoTextBlock items={clause.subClauses.flatMap((item) => item.officerAction || []).concat(clause.subClauses.flatMap((item) => item.dealerObligation?.map((obligationText) => `Dealer obligation: ${obligationText}`) || []))} empty="No specific officer action listed for this clause." />;
+  if (activeTab === 'officerAction') return <FcoTextBlock items={clause.subClauses.flatMap((item) => item.officerAction || []).concat(clause.subClauses.flatMap((item) => item.dealerObligation?.map((obligationText) => `${isTe ? 'డీలర్ బాధ్యత' : 'Dealer obligation'}: ${obligationText}`) || []))} empty={isTe ? 'ఈ క్లాజుకు సంబంధించి నిర్దిష్ట అధికారి చర్యలు పేర్కొనబడలేదు.' : 'No specific officer action listed for this clause.'} />;
   if (activeTab === 'formsTimelines') return <FcoFormsTimelines clause={clause} accent={accent} />;
   return null;
 }
@@ -1303,10 +1320,12 @@ function parseTimelineDuration(text: string): { value: number; unit: string; lab
 }
 
 function FcoTimelineStepper({ timelines, accent = 'sky' }: { timelines: string[]; accent?: FcoAccent }) {
+  const { language } = useLanguage();
+  const isTe = language === 'te';
   const t = fcoAccentThemes[accent];
   return (
     <div className={`rounded-lg border ${t.panelBox} p-2.5`}>
-      <p className={`text-[10px] font-black uppercase tracking-wide ${t.panelTitle}`}>Deadline track</p>
+      <p className={`text-[10px] font-black uppercase tracking-wide ${t.panelTitle}`}>{isTe ? 'గడువుల ట్రాక్' : 'Deadline track'}</p>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {timelines.map((timeline, index) => {
           const parsed = parseTimelineDuration(timeline);
@@ -1333,16 +1352,18 @@ function FcoTimelineStepper({ timelines, accent = 'sky' }: { timelines: string[]
 }
 
 function FcoFormsTimelines({ clause, accent = 'sky' }: { clause: FcoClause; accent?: FcoAccent }) {
+  const { language } = useLanguage();
+  const isTe = language === 'te';
   const t = fcoAccentThemes[accent];
   if (clause.forms.length === 0 && clause.timelines.length === 0) {
-    return <p className="rounded-lg border border-dashed border-slate-200 p-3 text-sm font-semibold text-slate-500">No specific form or timeline listed for this clause.</p>;
+    return <p className="rounded-lg border border-dashed border-slate-200 p-3 text-sm font-semibold text-slate-500">{isTe ? 'ఈ క్లాజుకు సంబంధించి నిర్దిష్ట ఫారమ్ లేదా కాలపరిమితి పేర్కొనబడలేదు.' : 'No specific form or timeline listed for this clause.'}</p>;
   }
   return (
     <div className="space-y-2.5">
       {clause.timelines.length > 0 && <FcoTimelineStepper timelines={clause.timelines} accent={accent} />}
       {clause.forms.length > 0 && (
         <div className={`rounded-lg border ${t.panelBox} p-2.5`}>
-          <p className={`text-[10px] font-black uppercase tracking-wide ${t.panelTitle}`}>Forms</p>
+          <p className={`text-[10px] font-black uppercase tracking-wide ${t.panelTitle}`}>{isTe ? 'ఫారాలు' : 'Forms'}</p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {clause.forms.map((form) => (
               <span key={form} className={`inline-flex items-center gap-1 rounded-full ${t.panelChip} px-2 py-1 text-[11px] font-black ring-1`}>
@@ -1356,9 +1377,11 @@ function FcoFormsTimelines({ clause, accent = 'sky' }: { clause: FcoClause; acce
   );
 }
 
-function FcoTextBlock({ items, empty = 'No matter available.' }: { items: string[]; empty?: string }) {
+function FcoTextBlock({ items, empty }: { items: string[]; empty?: string }) {
+  const { language } = useLanguage();
+  const defaultEmpty = language === 'te' ? 'సమాచారం అందుబాటులో లేదు.' : 'No matter available.';
   const cleanItems = items.filter(Boolean);
-  if (cleanItems.length === 0) return <p className="rounded-lg border border-dashed border-slate-200 p-3 text-sm font-semibold text-slate-500">{empty}</p>;
+  if (cleanItems.length === 0) return <p className="rounded-lg border border-dashed border-slate-200 p-3 text-sm font-semibold text-slate-500">{empty || defaultEmpty}</p>;
   return (
     <div className="space-y-2 rounded-lg border border-slate-100 bg-white p-3 text-sm font-semibold leading-6 text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
       {cleanItems.map((item) => <p key={item}>{item}</p>)}
@@ -1391,6 +1414,8 @@ function FcoDashboardCards({
   onOpenForms: () => void;
   onSelect: (cardId: string) => void;
 }) {
+  const { language } = useLanguage();
+  const isTe = language === 'te';
   const t = fcoAccentThemes[accent];
   return (
     <div className="grid gap-2 sm:grid-cols-2">
@@ -1404,12 +1429,12 @@ function FcoDashboardCards({
             <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.iconTile} transition group-hover:scale-105`}>
               <FileText className="h-4 w-4" />
             </span>
-            <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>27 statutory forms</span>
+            <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>{isTe ? '27 చట్టబద్ధమైన ఫారాలు' : '27 statutory forms'}</span>
           </div>
-          <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">Forms</h3>
-          <p className="mt-0.5 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">FCO statutory forms grouped for registration, manufacturing, sampling and records.</p>
+          <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{isTe ? 'చట్టబద్ధమైన ఫారాలు' : 'Forms'}</h3>
+          <p className="mt-0.5 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{isTe ? 'నమోదు, తయారీ, నమూనా సేకరణ మరియు రికార్డుల వారీగా FCO చట్టబద్ధమైన ఫారాలు.' : 'FCO statutory forms grouped for registration, manufacturing, sampling and records.'}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {['Search', 'Preview', 'Download'].map((item) => (
+            {(isTe ? ['శోధన', 'ప్రివ్యూ', 'డౌన్‌లోడ్'] : ['Search', 'Preview', 'Download']).map((item) => (
               <span key={item} className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[10px] font-black ring-1`}>
                 {item}
               </span>
@@ -1470,6 +1495,8 @@ function FertilizerFormsPanel({
   onCategoryChange: (value: 'All' | FertilizerFormCategory) => void;
   onViewForm: (form: FertilizerFormEntry) => void;
 }) {
+  const { language } = useLanguage();
+  const isTe = language === 'te';
   const term = search.trim().toLowerCase();
   const visibleForms = fertilizerForms.filter((form) => {
     if (category !== 'All' && form.category !== category) return false;
@@ -1484,14 +1511,14 @@ function FertilizerFormsPanel({
           <div>
             <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
               <FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-              <span>FCO Statutory Forms</span>
+              <span>{isTe ? 'FCO చట్టబద్ధమైన ఫారాలు' : 'FCO Statutory Forms'}</span>
             </h2>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Inspection forms, dealer applications, compliance certificates &amp; notices.
+              {isTe ? 'తనిఖీ ఫారాలు, డీలర్ దరఖాస్తులు, నిబంధనల ధృవీకరణ పత్రాలు & నోటీసులు.' : 'Inspection forms, dealer applications, compliance certificates & notices.'}
             </p>
           </div>
           <span className="self-start sm:self-auto rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800">
-            {visibleForms.length} Forms
+            {visibleForms.length} {isTe ? 'ఫారాలు' : 'Forms'}
           </span>
         </div>
         <div className="relative">
@@ -1499,7 +1526,7 @@ function FertilizerFormsPanel({
           <input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search form no. or clause..."
+            placeholder={isTe ? 'ఫారమ్ నంబర్ లేదా క్లాజును వెతకండి...' : 'Search form no. or clause...'}
             className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
           />
         </div>
@@ -1515,11 +1542,11 @@ function FertilizerFormsPanel({
                   : 'border border-slate-200 bg-slate-50/60 text-slate-900 hover:border-indigo-300 hover:bg-slate-100 dark:border-slate-800/50 dark:bg-slate-900/30 dark:text-slate-200 dark:hover:bg-slate-900/50'
               }`}
             >
-              {item}
+              {item === 'All' && isTe ? 'అన్నీ' : item}
             </button>
           ))}
           <span className="ml-auto rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 px-3 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200/80 dark:from-indigo-950/30 dark:to-violet-950/20 dark:text-indigo-200 dark:ring-indigo-900">
-            {visibleForms.length} forms
+            {visibleForms.length} {isTe ? 'ఫారాలు' : 'forms'}
           </span>
         </div>
       </div>
@@ -1548,7 +1575,7 @@ function FertilizerFormsPanel({
               )}
             </div>
             <div className="mt-2.5 flex items-center justify-end gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-900/50">
-              <button type="button" onClick={() => onViewForm(form)} aria-label="View" title="View" className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-indigo-400 via-indigo-500 to-violet-500 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
+              <button type="button" onClick={() => onViewForm(form)} aria-label={isTe ? 'వీక్షించండి' : 'View'} title={isTe ? 'వీక్షించండి' : 'View'} className="inline-flex min-h-7 items-center gap-1 rounded-md bg-gradient-to-br from-indigo-400 via-indigo-500 to-violet-500 px-2.5 py-1 text-[10px] font-black text-white shadow-sm transition hover:shadow-md hover:brightness-105">
                 <Eye className="h-3.5 w-3.5" />
               </button>
               <a href={form.pdfPath} download className="inline-flex min-h-7 items-center gap-1 rounded-md border border-slate-200 bg-gradient-to-br from-white to-slate-50 px-2.5 py-1 text-[10px] font-black text-slate-800 transition hover:to-slate-100 dark:border-slate-800/50 dark:from-slate-900 dark:to-slate-900 dark:text-slate-200 dark:hover:to-indigo-950/30">
@@ -1559,14 +1586,16 @@ function FertilizerFormsPanel({
         ))}
         {visibleForms.length === 0 && (
           <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 sm:col-span-2 xl:col-span-3 dark:border-slate-800/50">
-            No forms found
+            {isTe ? 'ఎటువంటి ఫారాలు కనుగొనబడలేదు' : 'No forms found'}
           </p>
         )}
       </div>
     </section>
   );
 }
-function FcoOffencesSection({ entries, accent = 'sky', emptyText = 'No FCO offence entry matches the current search.', exportMeta }: { entries: FcoOffenceEntry[]; accent?: FcoAccent; emptyText?: string; exportMeta: { excelFilename: string; pdfFilename: string; title: string; punishmentHeader: string } }) {
+function FcoOffencesSection({ entries, accent = 'sky', emptyText, exportMeta }: { entries: FcoOffenceEntry[]; accent?: FcoAccent; emptyText?: string; exportMeta: { excelFilename: string; pdfFilename: string; title: string; punishmentHeader: string } }) {
+  const { language } = useLanguage();
+  const isTe = language === 'te';
   const t = fcoAccentThemes[accent];
   const [exportOpen, setExportOpen] = useState(false);
   const handleExport = (kind: 'excel' | 'pdf') => {
@@ -1574,6 +1603,7 @@ function FcoOffencesSection({ entries, accent = 'sky', emptyText = 'No FCO offen
     const meta = { filename: kind === 'excel' ? exportMeta.excelFilename : exportMeta.pdfFilename, title: exportMeta.title, punishmentHeader: exportMeta.punishmentHeader };
     void (kind === 'excel' ? exportOffencesExcel(entries, meta) : exportOffencesPdf(entries, meta));
   };
+  const fallbackEmpty = isTe ? 'ఎటువంటి నేరాల వివరాలు కనుగొనబడలేదు.' : 'No FCO offence entry matches the current search.';
   return (
     <div className={`overflow-hidden rounded-lg border ${t.border} bg-white shadow-sm dark:bg-slate-950`}>
       <div className={`flex flex-wrap items-center justify-between gap-2 border-b ${t.borderSoft} bg-white px-4 py-3 dark:bg-slate-950`}>
@@ -1584,12 +1614,12 @@ function FcoOffencesSection({ entries, accent = 'sky', emptyText = 'No FCO offen
             className={`inline-flex items-center gap-2 rounded-lg bg-gradient-to-br ${t.gradient} px-3 py-2 text-sm font-black text-white shadow-sm transition hover:brightness-105`}
           >
             <Download className="h-4 w-4" />
-            Export
+            {isTe ? 'ఎగుమతి' : 'Export'}
             <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`} />
           </button>
           {exportOpen && (
             <>
-              <button type="button" aria-label="Close export menu" onClick={() => setExportOpen(false)} className="fixed inset-0 z-10 cursor-default" />
+              <button type="button" aria-label={isTe ? 'ఎగుమతి మెనూని మూసివేయండి' : 'Close export menu'} onClick={() => setExportOpen(false)} className="fixed inset-0 z-10 cursor-default" />
               <div className={`absolute left-0 z-20 mt-1 w-44 overflow-hidden rounded-lg border ${t.border} bg-white shadow-lg dark:bg-slate-900`}>
                 <button type="button" onClick={() => handleExport('excel')} className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-black ${t.boldText} transition ${t.hoverTint}`}>
                   <FileText className="h-3.5 w-3.5" /> Excel (.xlsx)
@@ -1602,7 +1632,7 @@ function FcoOffencesSection({ entries, accent = 'sky', emptyText = 'No FCO offen
           )}
         </div>
         <span className={`rounded-full ${t.chipCount} px-3 py-1 text-xs font-black ring-1`}>
-          {entries.length} offences
+          {entries.length} {isTe ? 'నేరాలు & ఉల్లంఘనలు' : 'offences'}
         </span>
       </div>
       <div className="grid gap-2 p-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -1629,7 +1659,7 @@ function FcoOffencesSection({ entries, accent = 'sky', emptyText = 'No FCO offen
         ))}
         {entries.length === 0 && (
           <p className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm font-semibold text-slate-500 sm:col-span-2 xl:col-span-3 dark:border-slate-700">
-            {emptyText}
+            {emptyText || fallbackEmpty}
           </p>
         )}
       </div>
@@ -1639,6 +1669,8 @@ function FcoOffencesSection({ entries, accent = 'sky', emptyText = 'No FCO offen
 
 
 function PowersSection({ area }: { area: MainLegalArea }) {
+  const { language } = useLanguage();
+  const isTe = language === 'te';
   const theme = legalAreaCards.find((item) => item.id === area) || legalAreaCards[0];
   const visibleMappings = stopSaleSeizureMappings.filter((item) => {
     if (area === 'fertilizer') return item.group === 'Fertiliser cases under FCO 1985' || item.group === 'Fertiliser Movement Control Order cases';
@@ -1655,14 +1687,14 @@ function PowersSection({ area }: { area: MainLegalArea }) {
             <table className="w-full min-w-[980px] text-left text-sm">
               <thead className={`bg-gradient-to-br ${theme.panel} text-xs font-black uppercase ${theme.accent}`}>
                 <tr>
-                  <th className="px-3 py-2">Situation / violation</th>
-                  <th className="px-3 py-2">Act / Order</th>
-                  <th className="px-3 py-2">Exact reference</th>
-                  <th className="px-3 py-2">Officer power</th>
-                  <th className="px-3 py-2">Procedure</th>
-                  <th className="px-3 py-2">Penal provision</th>
-                  <th className="px-3 py-2">Required form / notice / report</th>
-                  <th className="px-3 py-2">Caution</th>
+                  <th className="px-3 py-2">{isTe ? 'పరిస్థితి / ఉల్లంఘన' : 'Situation / violation'}</th>
+                  <th className="px-3 py-2">{isTe ? 'చట్టం / ఉత్తర్వు' : 'Act / Order'}</th>
+                  <th className="px-3 py-2">{isTe ? 'ఖచ్చితమైన సెక్షన్ / క్లాజ్' : 'Exact reference'}</th>
+                  <th className="px-3 py-2">{isTe ? 'అధికారి అధికారం' : 'Officer power'}</th>
+                  <th className="px-3 py-2">{isTe ? 'అమలు విధానం' : 'Procedure'}</th>
+                  <th className="px-3 py-2">{isTe ? 'శిక్షా నిబంధన' : 'Penal provision'}</th>
+                  <th className="px-3 py-2">{isTe ? 'అవసరమైన ఫారమ్ / నోటీసు / నివేదిక' : 'Required form / notice / report'}</th>
+                  <th className="px-3 py-2">{isTe ? 'జాగ్రత్త / గమనిక' : 'Caution'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1757,6 +1789,8 @@ const insecticideEnforcementConfig: EnforcementDutiesConfig = {
 };
 
 function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig }) {
+  const { language } = useLanguage();
+  const isTe = language === 'te';
   const t = fcoAccentThemes[config.accent];
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set(collectMindMapNodeIds(config.mindMap)));
   const [offenceSearch, setOffenceSearch] = useState('');
@@ -1781,10 +1815,10 @@ function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig })
           <div>
             <h2 className="flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
               <Network className={`h-4 w-4 ${config.accent === 'amber' ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`} />
-              <span>{config.badgeLabel}</span>
+              <span>{isTe ? 'చట్టాల అమలు మైండ్ మ్యాప్' : config.badgeLabel}</span>
             </h2>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Statutory deadlines, procedural mind-maps, and inspection requirements.
+              {isTe ? 'చట్టబద్ధమైన గడువులు, విధివిధానాల మైండ్-మ్యాప్‌లు మరియు తనిఖీ నిబంధనలు.' : 'Statutory deadlines, procedural mind-maps, and inspection requirements.'}
             </p>
           </div>
           <button
@@ -1792,7 +1826,7 @@ function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig })
             onClick={() => setCollapsed(allExpanded ? new Set(allNodeIds) : new Set())}
             className={`self-start sm:self-auto rounded-full border ${t.tabOff} px-3 py-1 text-[11px] font-black transition`}
           >
-            {allExpanded ? 'Collapse all' : 'Expand all'}
+            {allExpanded ? (isTe ? 'అన్నీ కుదించు' : 'Collapse all') : (isTe ? 'అన్నీ విస్తరించు' : 'Expand all')}
           </button>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -1823,8 +1857,12 @@ function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig })
               <Scale className="h-3.5 w-3.5" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-black text-slate-950 dark:text-white">{config.offencesTitle}</span>
-              <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{config.offencesSubtitle}</span>
+              <span className="block text-sm font-black text-slate-950 dark:text-white">
+                {isTe ? (config.accent === 'amber' ? 'పురుగుమందుల నేరాలు & శిక్షా నిబంధనలు' : 'FCO నేరాలు & శిక్షా నిబంధనలు') : config.offencesTitle}
+              </span>
+              <span className="mt-0.5 block text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">
+                {isTe ? (config.accent === 'amber' ? 'పురుగుమందుల చట్టం సెక్షన్లు, నిబంధనలు మరియు శాఖాపరమైన అమలు ఉదాహరణలతో నేరాల సూచిక.' : 'FCO ఉల్లంఘనలు మరియు ECA శిక్షా నిబంధనలతో కూడిన శోధించదగిన నేరాల సూచిక.') : config.offencesSubtitle}
+              </span>
             </span>
             <ChevronDown className={`mt-1 h-4 w-4 shrink-0 ${t.labelText} transition-transform duration-200 ${offencesOpen ? '' : '-rotate-90'}`} />
           </button>
@@ -1835,14 +1873,14 @@ function EnforcementDutiesPanel({ config }: { config: EnforcementDutiesConfig })
                 <input
                   value={offenceSearch}
                   onChange={(event) => setOffenceSearch(event.target.value)}
-                  placeholder={config.offenceSearchPlaceholder}
+                  placeholder={isTe ? (config.accent === 'amber' ? 'నేరం లేదా సెక్షన్ 29 ని వెతకండి...' : 'నేరం లేదా నిబంధనను వెతకండి...') : config.offenceSearchPlaceholder}
                   className={`w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none ${t.focus} focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-white`}
                 />
               </div>
               <FcoOffencesSection
                 entries={filteredOffences}
                 accent={config.accent}
-                emptyText={config.offencesEmpty}
+                emptyText={isTe ? 'ఎటువంటి నేరాల వివరాలు కనుగొనబడలేదు.' : config.offencesEmpty}
                 exportMeta={{
                   excelFilename: config.excelFilename,
                   pdfFilename: config.pdfFilename,

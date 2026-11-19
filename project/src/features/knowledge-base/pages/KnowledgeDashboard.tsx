@@ -3,6 +3,7 @@ import { FileText, CheckCircle2, Loader2, AlertTriangle, ScanLine, Layers, Searc
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { ModernStatCard } from '../../../shared/components/ui/ModernCard';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { KnowledgeNav } from '../components/KnowledgeNav';
 import { useKnowledgeNav } from '../hooks/useKnowledgeNav';
 import { fetchDashboardStats } from '../services/knowledgeService';
@@ -10,6 +11,7 @@ import type { DashboardStats } from '../types/index';
 
 export function KnowledgeDashboard() {
   const { isAdminUser } = useAuth();
+  const { t } = useLanguage();
   const go = useKnowledgeNav();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,14 +33,14 @@ export function KnowledgeDashboard() {
   return (
     <div>
       <PageHeader
-        eyebrow="Knowledge Base"
-        title="Dashboard"
-        description="Overview of the AGRONIX Knowledge Base — documents, processing and queries."
+        eyebrow={t('Knowledge Base', 'నాలెడ్జ్ బేస్')}
+        title={t('Dashboard', 'డ్యాష్‌బోర్డ్')}
+        description={t('Overview of the AGRONIX Knowledge Base — documents, processing and queries.', 'AGRONIX నాలెడ్జ్ బేస్ అవలోకనం — పత్రాలు, ప్రాసెసింగ్ మరియు ప్రశ్నలు.')}
       />
       {isAdminUser && (
         <div className="mb-4 flex justify-end">
           <button onClick={() => go('upload')} className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800">
-            <UploadCloud className="h-4 w-4" /> Upload Document
+            <UploadCloud className="h-4 w-4" /> {t('Upload Document', 'పత్రాన్ని అప్‌లోడ్ చేయండి')}
           </button>
         </div>
       )}
@@ -46,27 +48,27 @@ export function KnowledgeDashboard() {
 
       {error && (
         <div className="portal-card modern-card mb-4 border-red-200 p-4 text-sm font-semibold text-red-700">
-          Could not load dashboard: {error}
+          {t('Could not load dashboard:', 'డ్యాష్‌బోర్డ్ లోడ్ చేయడం విఫలమైంది:')} {error}
         </div>
       )}
 
       <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-6">
-        <ModernStatCard compact label="Total Documents" value={stats?.totalDocuments ?? 0} icon={FileText} gradient="from-emerald-500 to-emerald-600" />
-        <ModernStatCard compact label="Active" value={stats?.activeDocuments ?? 0} icon={CheckCircle2} gradient="from-green-500 to-emerald-600" />
-        <ModernStatCard compact label="Processing" value={stats?.processing ?? 0} icon={Loader2} gradient="from-blue-500 to-cyan-600" />
-        <ModernStatCard compact label="Failed" value={stats?.failed ?? 0} icon={AlertTriangle} gradient="from-red-500 to-rose-600" />
-        <ModernStatCard compact label="OCR Required" value={stats?.ocrRequired ?? 0} icon={ScanLine} gradient="from-amber-500 to-orange-600" />
-        <ModernStatCard compact label="Total Chunks" value={stats?.totalChunks ?? 0} icon={Layers} gradient="from-teal-600 to-emerald-700" />
+        <ModernStatCard compact label={t('Total Documents', 'మొత్తం పత్రాలు')} value={stats?.totalDocuments ?? 0} icon={FileText} gradient="from-emerald-500 to-emerald-600" />
+        <ModernStatCard compact label={t('Active', 'క్రియాశీలకంగా ఉన్నవి')} value={stats?.activeDocuments ?? 0} icon={CheckCircle2} gradient="from-green-500 to-emerald-600" />
+        <ModernStatCard compact label={t('Processing', 'ప్రాసెసింగ్‌లో ఉన్నవి')} value={stats?.processing ?? 0} icon={Loader2} gradient="from-blue-500 to-cyan-600" />
+        <ModernStatCard compact label={t('Failed', 'విఫలమైనవి')} value={stats?.failed ?? 0} icon={AlertTriangle} gradient="from-red-500 to-rose-600" />
+        <ModernStatCard compact label={t('OCR Required', 'OCR అవసరం')} value={stats?.ocrRequired ?? 0} icon={ScanLine} gradient="from-amber-500 to-orange-600" />
+        <ModernStatCard compact label={t('Total Chunks', 'మొత్తం చంక్స్')} value={stats?.totalChunks ?? 0} icon={Layers} gradient="from-teal-600 to-emerald-700" />
       </div>
 
       <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
-        <ModernStatCard compact label="Total Queries" value={stats?.totalQueries ?? 0} icon={Search} gradient="from-sky-600 to-blue-700" />
-        <ModernStatCard compact label="Unanswered" value={stats?.unansweredQuestions ?? 0} icon={AlertTriangle} gradient="from-amber-500 to-yellow-600" />
+        <ModernStatCard compact label={t('Total Queries', 'మొత్తం ప్రశ్నలు')} value={stats?.totalQueries ?? 0} icon={Search} gradient="from-sky-600 to-blue-700" />
+        <ModernStatCard compact label={t('Unanswered', 'సమాధానం లేనివి')} value={stats?.unansweredQuestions ?? 0} icon={AlertTriangle} gradient="from-amber-500 to-yellow-600" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <div className="portal-card modern-card p-4">
-          <h3 className="mb-3 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Recent Uploads</h3>
+          <h3 className="mb-3 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Recent Uploads', 'ఇటీవలి అప్‌లోడ్‌లు')}</h3>
           {stats?.recentUploads.length ? (
             <ul className="space-y-2">
               {stats.recentUploads.map((d) => (
@@ -77,11 +79,11 @@ export function KnowledgeDashboard() {
                 </li>
               ))}
             </ul>
-          ) : <p className="text-sm text-slate-500">No documents uploaded yet.</p>}
+          ) : <p className="text-sm text-slate-500">{t('No documents uploaded yet.', 'ఇంకా పత్రాలు ఏవీ అప్‌లోడ్ చేయబడలేదు.')}</p>}
         </div>
 
         <div className="portal-card modern-card p-4">
-          <h3 className="mb-3 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Recent Queries</h3>
+          <h3 className="mb-3 text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Recent Queries', 'ఇటీవలి ప్రశ్నలు')}</h3>
           {stats?.recentQueries.length ? (
             <ul className="space-y-2">
               {stats.recentQueries.map((q) => (
@@ -92,7 +94,7 @@ export function KnowledgeDashboard() {
                 </li>
               ))}
             </ul>
-          ) : <p className="text-sm text-slate-500">No queries yet.</p>}
+          ) : <p className="text-sm text-slate-500">{t('No queries yet.', 'ఇంకా ప్రశ్నలు ఏవీ లేవు.')}</p>}
         </div>
       </div>
     </div>

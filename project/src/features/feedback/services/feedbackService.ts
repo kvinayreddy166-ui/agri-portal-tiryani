@@ -231,6 +231,24 @@ export async function adminUpdateTicket(
   if (error) throw new Error(error.message || 'Failed to update feedback.');
 }
 
+/** Permanently deletes a feedback ticket (admin-only via RLS) plus its attachment. */
+export async function adminDeleteFeedback(feedbackId: string) {
+  const { data: ticket, error: fetchError } = await db()('feedback')
+    .select('id, attachment_path')
+    .eq('id', feedbackId)
+    .maybeSingle();
+  if (fetchError) throw new Error(fetchError.message || 'Failed to load feedback.');
+  if (!ticket) throw new Error('Feedback not found.');
+
+  const attachmentPath = (ticket as { attachment_path: string | null }).attachment_path;
+  if (attachmentPath) {
+    await supabase.storage.from(FEEDBACK_ATTACHMENT_BUCKET).remove([attachmentPath]);
+  }
+
+  const { error } = await db()('feedback').delete().eq('id', feedbackId);
+  if (error) throw new Error(error.message || 'Failed to delete feedback.');
+}
+
 export async function adminAddResponse(feedbackId: string, message: string, responder: { id: string; name: string }) {
   const { error } = await db()('feedback_responses').insert({
     feedback_id: feedbackId,

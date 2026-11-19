@@ -3,6 +3,7 @@ import { CheckCircle2, Plus, RefreshCw, Search, Trash2, Upload, Phone, User, Bui
 import { supabase } from '../../../shared/lib/supabase';
 import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 type OfficerType = 'AEO' | 'MAO' | 'ADA' | 'DAO';
 
@@ -34,6 +35,7 @@ const TELANGANA_DISTRICTS = [
 ];
 
 export function OfficerContactsAdmin() {
+  const { t } = useLanguage();
   const { askConfirm, confirmDialog } = useConfirmDialog();
   const [contacts, setContacts] = useState<OfficerContact[]>([]);
   const [loading, setLoading] = useState(false);
@@ -67,7 +69,7 @@ export function OfficerContactsAdmin() {
       if (error) throw error;
       setContacts(data || []);
     } catch (error) {
-      setErrorMessage((error instanceof Error ? error.message : "") || 'Failed to load contacts');
+      setErrorMessage((error instanceof Error ? error.message : "") || t('Failed to load contacts', 'సంప్రదింపులు లోడ్ చేయడం విఫలమైంది'));
     } finally {
       setLoading(false);
     }
@@ -114,13 +116,13 @@ export function OfficerContactsAdmin() {
     try {
       // Validate required fields
       if (!editing.officer_type || !editing.district || !editing.phone) {
-        throw new Error('Officer type, district, and phone are required');
+        throw new Error(t('Officer type, district, and phone are required', 'అధికారి రకం, జిల్లా మరియు ఫోన్ తప్పనిసరి'));
       }
 
       // Validate phone number (10 digits)
       const phoneRegex = /^[0-9]{10}$/;
       if (!phoneRegex.test(editing.phone)) {
-        throw new Error('Phone number must be 10 digits');
+        throw new Error(t('Phone number must be 10 digits', 'ఫోన్ నంబర్ 10 అంకెలు ఉండాలి'));
       }
 
       const payload = {
@@ -149,10 +151,10 @@ export function OfficerContactsAdmin() {
       }
 
       setEditing(null);
-      setStatusMessage('Contact saved successfully');
+      setStatusMessage(t('Contact saved successfully', 'సంప్రదింపు విజయవంతంగా భద్రపరచబడింది'));
       await loadContacts();
     } catch (error) {
-      setErrorMessage((error instanceof Error ? error.message : "") || 'Failed to save contact');
+      setErrorMessage((error instanceof Error ? error.message : "") || t('Failed to save contact', 'సంప్రదింపును భద్రపరచడం విఫలమైంది'));
     } finally {
       setBusy(false);
     }
@@ -160,8 +162,8 @@ export function OfficerContactsAdmin() {
 
   const remove = async (contact: OfficerContact) => {
     const confirmed = await askConfirm({
-      title: `Delete ${contact.officer_type} contact for ${contact.district}?`,
-      confirmLabel: 'Delete',
+      title: t(`Delete ${contact.officer_type} contact for ${contact.district}?`, `${contact.district} కోసం ${contact.officer_type} సంప్రదింపును తొలగించాలా?`),
+      confirmLabel: t('Delete', 'తొలగించు'),
     });
     if (!confirmed) return;
     try {
@@ -170,10 +172,10 @@ export function OfficerContactsAdmin() {
         .delete()
         .eq('id', contact.id);
       if (error) throw error;
-      setStatusMessage('Contact deleted successfully');
+      setStatusMessage(t('Contact deleted successfully', 'సంప్రదింపు విజయవంతంగా తొలగించబడింది'));
       await loadContacts();
     } catch (error) {
-      setErrorMessage((error instanceof Error ? error.message : "") || 'Failed to delete contact');
+      setErrorMessage((error instanceof Error ? error.message : "") || t('Failed to delete contact', 'సంప్రదింపును తొలగించడం విఫలమైంది'));
     }
   };
 
@@ -250,8 +252,8 @@ export function OfficerContactsAdmin() {
       <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-2xl font-black text-slate-950 dark:text-white">Officer Contacts Admin</h1>
-            <p className="mt-1 text-sm font-semibold text-slate-500">Manage AEO, MAO, ADA, and DAO contact information</p>
+            <h1 className="text-2xl font-black text-slate-950 dark:text-white">{t('Officer Contacts Admin', 'అధికారుల సంప్రదింపుల నిర్వహణ')}</h1>
+            <p className="mt-1 text-sm font-semibold text-slate-500">{t('Manage AEO, MAO, ADA, and DAO contact information', 'AEO, MAO, ADA, మరియు DAO సంప్రదింపు సమాచారాన్ని నిర్వహించండి')}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <select
@@ -259,7 +261,7 @@ export function OfficerContactsAdmin() {
               onChange={(e) => setSelectedType(e.target.value as OfficerType | '')}
               className="min-h-11 rounded-lg border border-slate-200 px-3 py-2 text-sm font-bold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
             >
-              <option value="">All Types</option>
+              <option value="">{t('All Types', 'అన్ని రకాలు')}</option>
               {OFFICER_TYPES.map(type => (
                 <option key={type} value={type}>{type}</option>
               ))}
@@ -269,21 +271,21 @@ export function OfficerContactsAdmin() {
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white"
             >
               <RefreshCw className="h-4 w-4" />
-              Refresh
+              {t('Refresh', 'రిఫ్రెష్')}
             </button>
             <button
               onClick={() => setShowImportModal(true)}
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-black text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
             >
               <Upload className="h-4 w-4" />
-              Import CSV
+              {t('Import CSV', 'CSV దిగుమతి')}
             </button>
             <button
               onClick={startAdd}
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-black text-white"
             >
               <Plus className="h-4 w-4" />
-              Add Contact
+              {t('Add Contact', 'సంప్రదింపును జోడించండి')}
             </button>
           </div>
         </div>
@@ -306,7 +308,7 @@ export function OfficerContactsAdmin() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search contacts..."
+              placeholder={t('Search contacts...', 'సంప్రదింపులను వెతకండి...')}
               className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
             />
           </div>
@@ -315,9 +317,9 @@ export function OfficerContactsAdmin() {
 
       <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
         {loading ? (
-          <div className="p-6 text-sm font-semibold text-slate-500">Loading contacts...</div>
+          <div className="p-6 text-sm font-semibold text-slate-500">{t('Loading contacts...', 'సంప్రదింపులు లోడ్ అవుతున్నాయి...')}</div>
         ) : filteredContacts.length === 0 ? (
-          <div className="p-6 text-sm font-semibold text-slate-500">No contacts found</div>
+          <div className="p-6 text-sm font-semibold text-slate-500">{t('No contacts found', 'సంప్రదింపులు కనుగొనబడలేదు')}</div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {filteredContacts.map((contact) => {
@@ -335,7 +337,7 @@ export function OfficerContactsAdmin() {
                         </span>
                         {!contact.active && (
                           <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-black text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                            Inactive
+                            {t('Inactive', 'క్రియాశీలంగా లేదు')}
                           </span>
                         )}
                       </div>
@@ -360,14 +362,14 @@ export function OfficerContactsAdmin() {
                       onClick={() => setEditing(contact)}
                       className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white"
                     >
-                      Edit
+                      {t('Edit', 'సవరించు')}
                     </button>
                     <button
                       onClick={() => remove(contact)}
                       className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-black text-white"
                     >
                       <Trash2 className="h-4 w-4" />
-                      Delete
+                      {t('Delete', 'తొలగించు')}
                     </button>
                   </div>
                 </article>
@@ -382,20 +384,20 @@ export function OfficerContactsAdmin() {
           <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl dark:bg-slate-900">
             <div className="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-700">
               <h2 className="text-xl font-black text-slate-950 dark:text-white">
-                {editing.id ? 'Edit Contact' : 'Add Contact'}
+                {editing.id ? t('Edit Contact', 'సంప్రదింపును సవరించండి') : t('Add Contact', 'సంప్రదింపును జోడించండి')}
               </h2>
               <button
                 onClick={() => setEditing(null)}
                 className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white"
               >
-                Cancel
+                {t('Cancel', 'రద్దు చేయండి')}
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               <div className="grid gap-4">
                 <div>
                   <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-500">
-                    Officer Type *
+                    {t('Officer Type *', 'అధికారి రకం *')}
                   </label>
                   <select
                     value={editing.officer_type}
@@ -409,25 +411,25 @@ export function OfficerContactsAdmin() {
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-500">
-                    Name {editing.officer_type === 'ADA' ? '(optional - will show designation)' : ''}
+                    {t('Name', 'పేరు')} {editing.officer_type === 'ADA' ? `(${t('optional - will show designation', 'ఐచ్ఛికం - హోదా చూపబడుతుంది')})` : ''}
                   </label>
                   <input
                     value={editing.name || ''}
                     onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                    placeholder={editing.officer_type === 'ADA' ? 'Leave blank for ADA' : 'Officer name'}
+                    placeholder={editing.officer_type === 'ADA' ? t('Leave blank for ADA', 'ADA కోసం ఖాళీగా ఉంచండి') : t('Officer name', 'అధికారి పేరు')}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-500">
-                    District *
+                    {t('District *', 'జిల్లా *')}
                   </label>
                   <select
                     value={editing.district}
                     onChange={(e) => setEditing({ ...editing, district: e.target.value })}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   >
-                    <option value="">Select District</option>
+                    <option value="">{t('Select District', 'జిల్లాను ఎంచుకోండి')}</option>
                     {TELANGANA_DISTRICTS.map(district => (
                       <option key={district} value={district}>{district}</option>
                     ))}
@@ -435,7 +437,7 @@ export function OfficerContactsAdmin() {
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-500">
-                    Division
+                    {t('Division', 'డివిజన్')}
                   </label>
                   <DivisionPicker
                     district={editing.district || ''}
@@ -443,51 +445,51 @@ export function OfficerContactsAdmin() {
                     onChange={(v) => setEditing({ ...editing, division: v })}
                     selectClassName="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                     inputClassName="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    inputPlaceholder="Division name"
+                    inputPlaceholder={t('Division name', 'డివిజన్ పేరు')}
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-500">
-                    Mandal
+                    {t('Mandal', 'మండలం')}
                   </label>
                   <input
                     value={editing.mandal || ''}
                     onChange={(e) => setEditing({ ...editing, mandal: e.target.value })}
-                    placeholder="Mandal name"
+                    placeholder={t('Mandal name', 'మండలం పేరు')}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-500">
-                    Cluster
+                    {t('Cluster', 'క్లస్టర్')}
                   </label>
                   <input
                     value={editing.cluster || ''}
                     onChange={(e) => setEditing({ ...editing, cluster: e.target.value })}
-                    placeholder="Cluster name"
+                    placeholder={t('Cluster name', 'క్లస్టర్ పేరు')}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-500">
-                    Phone *
+                    {t('Phone *', 'ఫోన్ *')}
                   </label>
                   <input
                     value={editing.phone}
                     onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
-                    placeholder="10-digit phone number"
+                    placeholder={t('10-digit phone number', '10 అంకెల ఫోన్ నంబర్')}
                     maxLength={10}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-500">
-                    Email
+                    {t('Email', 'ఈమెయిల్')}
                   </label>
                   <input
                     value={editing.email || ''}
                     onChange={(e) => setEditing({ ...editing, email: e.target.value })}
-                    placeholder="Email address"
+                    placeholder={t('Email address', 'ఈమెయిల్ చిరునామా')}
                     type="email"
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   />
@@ -501,7 +503,7 @@ export function OfficerContactsAdmin() {
                     className="h-4 w-4 rounded border-slate-300"
                   />
                   <label htmlFor="active" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    Active
+                    {t('Active', 'క్రియాశీలకంగా ఉంది')}
                   </label>
                 </div>
               </div>
@@ -516,14 +518,14 @@ export function OfficerContactsAdmin() {
                 onClick={() => setEditing(null)}
                 className="min-h-11 flex-1 rounded-lg border border-slate-200 px-3 py-2 font-black dark:border-slate-700 dark:text-white"
               >
-                Cancel
+                {t('Cancel', 'రద్దు చేయండి')}
               </button>
               <button
                 onClick={save}
                 disabled={busy}
                 className="min-h-11 flex-1 rounded-lg bg-emerald-700 px-3 py-2 font-black text-white disabled:opacity-50"
               >
-                {busy ? 'Saving...' : 'Save'}
+                {busy ? t('Saving...', 'భద్రపరుస్తోంది...') : t('Save', 'భద్రపరచండి')}
               </button>
             </div>
           </div>
@@ -535,21 +537,21 @@ export function OfficerContactsAdmin() {
           <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-xl bg-white shadow-2xl dark:bg-slate-900">
             <div className="flex items-center justify-between border-b border-slate-200 p-4 dark:border-slate-700">
               <h2 className="text-xl font-black text-slate-950 dark:text-white">
-                Import Contacts from CSV
+                {t('Import Contacts from CSV', 'CSV నుండి సంప్రదింపులను దిగుమతి చేసుకోండి')}
               </h2>
               <button
                 onClick={() => setShowImportModal(false)}
                 className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-black dark:border-slate-700 dark:text-white"
               >
-                Cancel
+                {t('Cancel', 'రద్దు చేయండి')}
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               <div className="space-y-4">
                 <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-800">
-                  <h3 className="text-sm font-black text-slate-950 dark:text-white mb-2">CSV Format</h3>
+                  <h3 className="text-sm font-black text-slate-950 dark:text-white mb-2">{t('CSV Format', 'CSV ఫార్మాట్')}</h3>
                   <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">
-                    First row must contain headers. Required fields: officer_type, district, phone
+                    {t('First row must contain headers. Required fields: officer_type, district, phone', 'మొదటి వరుసలో హెడర్లు ఉండాలి. తప్పనిసరి ఫీల్డులు: officer_type, district, phone')}
                   </p>
                   <pre className="text-xs font-mono text-slate-700 dark:text-slate-300 bg-white p-2 rounded dark:bg-slate-900">
 officer_type,name,district,division,mandal,cluster,phone,email
@@ -559,12 +561,12 @@ MAO,Jane Smith,Karimnagar,Karimnagar,Karimnagar,,9876543211,jane@example.com
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-black uppercase tracking-wide text-slate-500">
-                    CSV Data
+                    {t('CSV Data', 'CSV డేటా')}
                   </label>
                   <textarea
                     value={importData}
                     onChange={(e) => setImportData(e.target.value)}
-                    placeholder="Paste CSV data here..."
+                    placeholder={t('Paste CSV data here...', 'CSV డేటాను ఇక్కడ అతికించండి...')}
                     rows={10}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-mono dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                   />
@@ -581,14 +583,14 @@ MAO,Jane Smith,Karimnagar,Karimnagar,Karimnagar,,9876543211,jane@example.com
                 onClick={() => setShowImportModal(false)}
                 className="min-h-11 flex-1 rounded-lg border border-slate-200 px-3 py-2 font-black dark:border-slate-700 dark:text-white"
               >
-                Cancel
+                {t('Cancel', 'రద్దు చేయండి')}
               </button>
               <button
                 onClick={handleImport}
                 disabled={busy || !importData.trim()}
                 className="min-h-11 flex-1 rounded-lg bg-emerald-700 px-3 py-2 font-black text-white disabled:opacity-50"
               >
-                {busy ? 'Importing...' : 'Import'}
+                {busy ? t('Importing...', 'దిగుమతి చేస్తోంది...') : t('Import', 'దిగుమతి చేయండి')}
               </button>
             </div>
           </div>

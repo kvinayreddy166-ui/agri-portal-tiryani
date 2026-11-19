@@ -2,24 +2,26 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { LayoutDashboard, FolderOpen, UploadCloud, Tags, ListChecks, BarChart3, Settings, BookOpen, Search } from 'lucide-react';
 import { useKnowledgeNav, KNOWLEDGE_PATHS, type KnowledgePage } from '../hooks/useKnowledgeNav';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 interface NavItem {
   id: KnowledgePage;
-  label: string;
+  labelEn: string;
+  labelTe: string;
   icon: React.ComponentType<{ className?: string }>;
   adminOnly?: boolean;
 }
 
 const items: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'library', label: 'Document Library', icon: FolderOpen, adminOnly: true },
-  { id: 'upload', label: 'Upload Document', icon: UploadCloud, adminOnly: true },
-  { id: 'categories', label: 'Categories', icon: Tags, adminOnly: true },
-  { id: 'queue', label: 'Processing Queue', icon: ListChecks, adminOnly: true },
-  { id: 'analytics', label: 'Query Analytics', icon: BarChart3, adminOnly: true },
-  { id: 'settings', label: 'Settings', icon: Settings, adminOnly: true },
-  { id: 'assistant', label: 'Knowledge Assistant', icon: BookOpen },
-  { id: 'search', label: 'Search Documents', icon: Search },
+  { id: 'dashboard', labelEn: 'Dashboard', labelTe: 'డ్యాష్‌బోర్డ్', icon: LayoutDashboard },
+  { id: 'library', labelEn: 'Document Library', labelTe: 'పత్రాల లైబ్రరీ', icon: FolderOpen, adminOnly: true },
+  { id: 'upload', labelEn: 'Upload Document', labelTe: 'పత్రాన్ని అప్‌లోడ్ చేయండి', icon: UploadCloud, adminOnly: true },
+  { id: 'categories', labelEn: 'Categories', labelTe: 'వర్గాలు', icon: Tags, adminOnly: true },
+  { id: 'queue', labelEn: 'Processing Queue', labelTe: 'ప్రాసెసింగ్ క్యూ', icon: ListChecks, adminOnly: true },
+  { id: 'analytics', labelEn: 'Query Analytics', labelTe: 'ప్రశ్నల విశ్లేషణ', icon: BarChart3, adminOnly: true },
+  { id: 'settings', labelEn: 'Settings', labelTe: 'సెట్టింగ్‌లు', icon: Settings, adminOnly: true },
+  { id: 'assistant', labelEn: 'Knowledge Assistant', labelTe: 'నాలెడ్జ్ అసిస్టెంట్', icon: BookOpen },
+  { id: 'search', labelEn: 'Search Documents', labelTe: 'పత్రాలలో వెతకండి', icon: Search },
 ];
 
 interface KnowledgeNavProps {
@@ -27,6 +29,7 @@ interface KnowledgeNavProps {
 }
 
 export function KnowledgeNav({ isAdmin }: KnowledgeNavProps) {
+  const { t } = useLanguage();
   const go = useKnowledgeNav();
   const location = useLocation();
   const visible = items.filter((i) => !i.adminOnly || isAdmin);
@@ -50,7 +53,7 @@ export function KnowledgeNav({ isAdmin }: KnowledgeNavProps) {
               }`}
             >
               <Icon className="h-4 w-4" />
-              {item.label}
+              {t(item.labelEn, item.labelTe)}
             </button>
           );
         })}

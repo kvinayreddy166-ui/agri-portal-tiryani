@@ -507,6 +507,16 @@ export function OfficerRecordsHub() {
   const [renameInput, setRenameInput] = useState('');
   const [recordToDelete, setRecordToDelete] = useState<UnifiedOfficerRecord | null>(null);
   const [docToDelete, setDocToDelete] = useState<OfficerDocumentArchiveRecord | null>(null);
+
+  // Admin bulk selection — item ids match mergedItems (`doc-<id>` / `rec-<id>`)
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteTargets, setBulkDeleteTargets] = useState<Array<{
+    kind: 'document' | 'record';
+    doc?: OfficerDocumentArchiveRecord;
+    record?: UnifiedOfficerRecord;
+    label: string;
+  }> | null>(null);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [exportingType, setExportingType] = useState<'excel' | 'pdf' | null>(null);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
@@ -754,6 +764,115 @@ export function OfficerRecordsHub() {
       }
     } finally {
       setRecordToDelete(null);
+    }
+  };
+
+  // ---------- Admin bulk selection & deletion ----------
+  const toggleSelectItem = (id: string) => {
+    setSelectedItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllVisible = () => {
+    setSelectedItemIds((prev) => {
+      const ids = visibleItems.map((i) => i.id);
+      const allSelected = ids.length > 0 && ids.every((id) => prev.has(id));
+      if (allSelected) {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      }
+      return new Set(ids);
+    });
+  };
+
+  const handleRequestBulkDelete = () => {
+    const targets: NonNullable<typeof bulkDeleteTargets> = [];
+    documents.forEach((d) => {
+      if (selectedItemIds.has(`doc-${d.id}`)) {
+        targets.push({ kind: 'document', doc: d, label: d.document_name });
+      }
+    });
+    records.forEach((r) => {
+      if (selectedItemIds.has(`rec-${r.id}`)) {
+        targets.push({ kind: 'record', record: r, label: r.referenceNumber || r.entityName || r.title });
+      }
+    });
+    if (targets.length > 0) setBulkDeleteTargets(targets);
+  };
+
+  const handleBulkDelete = async () => {
+    if (!bulkDeleteTargets || bulkDeleteTargets.length === 0 || bulkDeleting) return;
+    setBulkDeleting(true);
+    const deletedDocIds = new Set<string>();
+    const deletedRecordIds = new Set<string>();
+    let failed = 0;
+    for (const target of bulkDeleteTargets) {
+      try {
+        if (target.kind === 'document' && target.doc) {
+          const ok = await OfficerDocumentArchiveService.deleteDocument(
+            target.doc.id,
+            target.doc.object_key,
+            target.doc.original_sha256 || target.doc.content_hash
+          );
+          if (ok === false) {
+            failed += 1;
+            continue;
+          }
+          deletedDocIds.add(target.doc.id);
+        } else if (target.kind === 'record' && target.record) {
+          const ok = await OfficerCloudSyncService.deleteRecord(target.record);
+          if (ok === false) {
+            failed += 1;
+            continue;
+          }
+          deletedRecordIds.add(target.record.id);
+        }
+      } catch {
+        failed += 1;
+      }
+    }
+
+    const deletedCount = deletedDocIds.size + deletedRecordIds.size;
+    if (deletedDocIds.size > 0) {
+      setDocuments((prev) => prev.filter((d) => !deletedDocIds.has(d.id)));
+    }
+    if (deletedRecordIds.size > 0) {
+      setRecords((curr) => curr.filter((r) => !deletedRecordIds.has(r.id)));
+      setSelectedRecord((curr) => (curr && deletedRecordIds.has(curr.id) ? null : curr));
+    }
+    try {
+      setStorageStats(await OfficerDocumentArchiveService.getStorageOverview());
+    } catch {
+      // stats refresh is best-effort
+    }
+    setSelectedItemIds(new Set());
+    setBulkDeleteTargets(null);
+    setBulkDeleting(false);
+
+    if (deletedCount > 0) {
+      toast.showSuccess(
+        t('Deleted', 'తొలగించబడింది'),
+        t(
+          `${deletedCount} item(s) permanently deleted.${failed > 0 ? ` ${failed} could not be deleted.` : ''}`,
+          `${deletedCount} అంశాలు శాశ్వతంగా తొలగించబడ్డాయి.${failed > 0 ? ` ${failed} తొలగించలేకపోయాము.` : ''}`
+        )
+      );
+    }
+    if (failed > 0 && deletedCount === 0) {
+      toast.showError(
+        t('Delete failed', 'తొలగింపు విఫలమైంది'),
+        t('The selected items could not be deleted.', 'ఎంచుకున్న అంశాలను తొలగించలేకపోయాము.')
+      );
+    } else if (failed > 0) {
+      toast.showWarning(
+        t('Partial delete', 'పాక్షిక తొలగింపు'),
+        t(`${failed} item(s) could not be deleted.`, `${failed} అంశాలు తొలగించలేకపోయాము.`)
+      );
     }
   };
 
@@ -1086,6 +1205,19 @@ export function OfficerRecordsHub() {
     }
   };
 
+  // Admin-only selection checkbox rendered on each list/grid item
+  const renderSelectCheckbox = (id: string, label: string) =>
+    isAdminUser ? (
+      <input
+        type="checkbox"
+        checked={selectedItemIds.has(id)}
+        onChange={() => toggleSelectItem(id)}
+        aria-label={label}
+        title={label}
+        className="h-4 w-4 shrink-0 cursor-pointer accent-emerald-600"
+      />
+    ) : null;
+
   return (
     <div className="space-y-6">
       {/* Header and Officer Jurisdiction Banner */}
@@ -1221,7 +1353,10 @@ export function OfficerRecordsHub() {
           <button
             key={tab.key}
             type="button"
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => {
+              setActiveTab(tab.key);
+              setSelectedItemIds(new Set());
+            }}
             className={`rounded-xl px-5 py-2.5 text-sm font-bold transition ${
               activeTab === tab.key
                 ? 'bg-emerald-700 text-white shadow-sm'
@@ -1590,6 +1725,45 @@ export function OfficerRecordsHub() {
             </p>
           )}
 
+          {/* Admin bulk-selection action bar */}
+          {isAdminUser && selectedItemIds.size > 0 && (
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-red-200 bg-red-50/80 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/30">
+              <div className="flex items-center gap-3">
+                <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-bold text-red-800 dark:text-red-200">
+                  <input
+                    type="checkbox"
+                    checked={visibleItems.length > 0 && visibleItems.every((i) => selectedItemIds.has(i.id))}
+                    onChange={toggleSelectAllVisible}
+                    className="h-4 w-4 accent-red-600"
+                  />
+                  {t('Select all visible', 'కనిపించే అన్నీ ఎంచుకోండి')}
+                </label>
+                <span className="text-xs font-black text-red-800 dark:text-red-200">
+                  {selectedItemIds.size} {t('selected', 'ఎంచుకోబడ్డాయి')}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedItemIds(new Set())}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-3 py-1.5 text-xs font-bold text-red-700 transition hover:bg-red-50 dark:border-red-800 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-950/40"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  {t('Clear', 'క్లియర్')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRequestBulkDelete}
+                  disabled={bulkDeleting}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-3.5 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 disabled:opacity-50"
+                >
+                  {bulkDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                  {t(`Delete (${selectedItemIds.size})`, `తొలగించు (${selectedItemIds.size})`)}
+                </button>
+              </div>
+            </div>
+          )}
+
         {visibleItems.length === 0 ? (
           <div className="flex min-h-[250px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
@@ -1617,6 +1791,7 @@ export function OfficerRecordsHub() {
                   className="group flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs transition hover:border-emerald-300 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:hover:border-emerald-700/60 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex items-start gap-3 min-w-0 flex-1">
+                    {renderSelectCheckbox(item.id, t('Select record', 'రికార్డు ఎంచుకోండి'))}
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                       <ClipboardList className="h-5 w-5" />
                     </div>
@@ -1721,6 +1896,7 @@ export function OfficerRecordsHub() {
                 >
                   {/* Left: Icon + Doc Name + Metadata */}
                   <div className="flex items-start gap-3 min-w-0 flex-1">
+                    {renderSelectCheckbox(item.id, t('Select document', 'పత్రం ఎంచుకోండి'))}
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                       <FileText className="h-5 w-5" />
                     </div>
@@ -1910,14 +2086,17 @@ export function OfficerRecordsHub() {
                   </div>
 
                   <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRecord(record)}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400"
-                    >
-                      <span>{t('View Details', 'వివరాలు చూడండి')}</span>
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {renderSelectCheckbox(item.id, t('Select record', 'రికార్డు ఎంచుకోండి'))}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRecord(record)}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400"
+                      >
+                        <span>{t('View Details', 'వివరాలు చూడండి')}</span>
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
 
                     <button
                       type="button"
@@ -1982,6 +2161,7 @@ export function OfficerRecordsHub() {
                   {/* Document Action Buttons (Preview, Download, Rename, Delete, Details) */}
                   <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
                     <div className="flex items-center gap-1">
+                      {renderSelectCheckbox(item.id, t('Select document', 'పత్రం ఎంచుకోండి'))}
                       <button
                         type="button"
                         onClick={() => void handlePreview(doc)}
@@ -2606,6 +2786,22 @@ export function OfficerRecordsHub() {
         cancelLabel={t('Cancel', 'రద్దు')}
         onConfirm={() => void handleDeleteRecord()}
         onCancel={() => setRecordToDelete(null)}
+      />
+
+      {/* Bulk Delete Confirmation Dialog (admin multi-select) */}
+      <ConfirmDialog
+        open={Boolean(bulkDeleteTargets)}
+        title={t('Delete selected items?', 'ఎంచుకున్న అంశాలను తొలగించాలా?')}
+        message={t(
+          `${bulkDeleteTargets?.length ?? 0} item(s) will be permanently deleted, including cloud copies and attachments. This cannot be undone.`,
+          `${bulkDeleteTargets?.length ?? 0} అంశాలు, క్లౌడ్ కాపీలు & అటాచ్‌మెంట్‌లతో శాశ్వతంగా తొలగించబడతాయి. ఈ చర్యను రద్దు చేయలేరు.`
+        )}
+        confirmLabel={bulkDeleting ? t('Deleting…', 'తొలగిస్తోంది…') : t('Delete Permanently', 'శాశ్వతంగా తొలగించు')}
+        cancelLabel={t('Cancel', 'రద్దు')}
+        onConfirm={() => void handleBulkDelete()}
+        onCancel={() => {
+          if (!bulkDeleting) setBulkDeleteTargets(null);
+        }}
       />
 
       <ToastContainer toasts={toast.toasts} removeToast={toast.removeToast} />

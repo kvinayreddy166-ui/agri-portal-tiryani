@@ -6,6 +6,7 @@ import { StockInventory } from './StockInventory';
 import { IconButton } from '../../../shared/components/ui/DesignSystem';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { supabase } from '../../../shared/lib/supabase';
 import {
   CATEGORY_UNITS,
@@ -60,6 +61,7 @@ function today() {
 
 export default function StockAnalytics() {
   const { isDealerUser } = useAuth();
+  const { t } = useLanguage();
   const [stockTab, setStockTab] = useState<StockTab>('fertilizer');
   const [dealerMonitoringOpen, setDealerMonitoringOpen] = useState(false);
   const [stockToolsOpen, setStockToolsOpen] = useState(false);
@@ -71,19 +73,19 @@ export default function StockAnalytics() {
   return (
     <div className="max-w-full space-y-4 overflow-hidden bg-[#F2F7F3] dark:bg-slate-950">
       <div>
-        <h2 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">Officer Command Center</h2>
-        <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">Dealer monitoring and stock analytics at a glance.</p>
+        <h2 className="text-xl font-black text-slate-950 dark:text-white sm:text-2xl">{t('Officer Command Center', 'అధికారుల కమాండ్ సెంటర్')}</h2>
+        <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">{t('Dealer monitoring and stock analytics at a glance.', 'డీలర్ల పర్యవేక్షణ మరియు స్టాక్ విశ్లేషణ ఒక్కచూపులో.')}</p>
       </div>
 
       <section className="overflow-hidden rounded-xl border border-indigo-200/70 bg-gradient-to-br from-indigo-50 via-indigo-50/60 to-indigo-50/25 shadow-sm shadow-indigo-100/40 dark:border-indigo-900/50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900">
         <button
-              type="button"
-              onClick={() => setDealerMonitoringOpen((value) => !value)}
+          type="button"
+          onClick={() => setDealerMonitoringOpen((value) => !value)}
           className={`flex w-full items-center justify-between gap-3 bg-indigo-100/50 px-4 py-3 text-left dark:bg-indigo-950/60 ${dealerMonitoringOpen ? 'border-b border-indigo-100 dark:border-indigo-900/50' : ''}`}
         >
           <div>
-            <p className="text-[10px] font-black uppercase tracking-wide text-indigo-600 dark:text-indigo-300">Command Center</p>
-            <h3 className="text-base font-black text-slate-950 dark:text-white">Dealer Monitoring</h3>
+            <p className="text-[10px] font-black uppercase tracking-wide text-indigo-600 dark:text-indigo-300">{t('Command Center', 'కమాండ్ సెంటర్')}</p>
+            <h3 className="text-base font-black text-slate-950 dark:text-white">{t('Dealer Monitoring', 'డీలర్ల పర్యవేక్షణ')}</h3>
           </div>
           <ChevronDown className={`h-5 w-5 text-indigo-600 transition dark:text-indigo-300 ${dealerMonitoringOpen ? 'rotate-180' : ''}`} />
         </button>
@@ -102,8 +104,8 @@ export default function StockAnalytics() {
           className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left"
         >
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Stock Analytics</p>
-            <h3 className="text-base font-black text-slate-950 dark:text-white">Fertilizer Tracking & Stock Inventory</h3>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Stock Analytics', 'స్టాక్ విశ్లేషణ')}</p>
+            <h3 className="text-base font-black text-slate-950 dark:text-white">{t('Fertilizer Tracking & Stock Inventory', 'ఎరువుల ట్రాకింగ్ & స్టాక్ ఇన్వెంటరీ')}</h3>
           </div>
           <ChevronDown className={`h-5 w-5 text-slate-700 dark:text-slate-300 transition ${stockToolsOpen ? 'rotate-180' : ''}`} />
         </button>
@@ -112,16 +114,16 @@ export default function StockAnalytics() {
           <div className="space-y-3 border-t border-slate-200 dark:border-slate-700 p-2 sm:p-3">
             <div className="flex gap-2 overflow-x-auto pb-1">
               <StockSwitch
-                title="Fertilizer Tracking"
-                description="Track fertilizer stock and movements"
+                title={t('Fertilizer Tracking', 'ఎరువుల ట్రాకింగ్')}
+                description={t('Track fertilizer stock and movements', 'ఎరువుల నిల్వలు మరియు కదలికలను ట్రాక్ చేయండి')}
                 active={stockTab === 'fertilizer'}
                 tone="red"
                 icon={<PackageCheck className="h-5 w-5" />}
                 onClick={() => setStockTab('fertilizer')}
               />
               <StockSwitch
-                title="Stock Inventory"
-                description="View and manage stock inventory"
+                title={t('Stock Inventory', 'స్టాక్ ఇన్వెంటరీ')}
+                description={t('View and manage stock inventory', 'స్టాక్ ఇన్వెంటరీని వీక్షించండి మరియు నిర్వహించండి')}
                 active={stockTab === 'inventory'}
                 tone="green"
                 icon={<ClipboardList className="h-5 w-5" />}
@@ -137,6 +139,7 @@ export default function StockAnalytics() {
 }
 
 function CommandCenter() {
+  const { t } = useLanguage();
   const [dealers, setDealers] = useState<DealerRow[]>([]);
   const [stockRows, setStockRows] = useState<StockRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -262,31 +265,31 @@ function CommandCenter() {
       <section className="rounded-xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 via-emerald-50/60 to-emerald-50/25 p-3 shadow-sm shadow-emerald-100/50 dark:border-emerald-900/50 dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Filters</p>
-            <h1 className="text-base font-black text-slate-950 dark:text-white">Monitoring Filters</h1>
+            <p className="text-[11px] font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Filters', 'ఫిల్టర్లు')}</p>
+            <h1 className="text-base font-black text-slate-950 dark:text-white">{t('Monitoring Filters', 'పర్యవేక్షణ ఫిల్టర్లు')}</h1>
           </div>
           <div className="flex items-center gap-2">
-            <IconButton label="Refresh command center" tone="secondary" onClick={loadData} className="h-9 w-9">
+            <IconButton label={t('Refresh command center', 'కమాండ్ సెంటర్‌ను రిఫ్రెష్ చేయండి')} tone="secondary" onClick={loadData} className="h-9 w-9">
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
             </IconButton>
-            <IconButton label="Filters" tone="secondary" onClick={() => setFiltersOpen((value) => !value)} className="h-9 w-9">
+            <IconButton label={t('Filters', 'ఫిల్టర్లు')} tone="secondary" onClick={() => setFiltersOpen((value) => !value)} className="h-9 w-9">
               {filtersOpen ? <ChevronDown className="h-3.5 w-3.5 rotate-180 transition" /> : <Filter className="h-3.5 w-3.5" />}
             </IconButton>
           </div>
         </div>
         <div className={`${filtersOpen ? 'grid' : 'hidden'} mt-3 gap-2 md:grid-cols-4 xl:grid-cols-8`}>
-          <Select label="Category" value={filters.category} onChange={(value) => setFilters((current) => ({ ...current, category: value as CategoryFilter }))} options={['all', 'fertilizer', 'seed', 'pesticide']} />
-          <Select label="Financial Year" value={filters.financialYear} onChange={(value) => setFilters((current) => ({ ...current, financialYear: value }))} options={[...FINANCIAL_YEARS]} />
-          <Input label="From Date" type="date" value={filters.fromDate} onChange={(value) => setFilters((current) => ({ ...current, fromDate: value }))} />
-          <Input label="To Date" type="date" value={filters.toDate} onChange={(value) => setFilters((current) => ({ ...current, toDate: value }))} />
-          <Select label="Product" value={filters.product} onChange={(value) => setFilters((current) => ({ ...current, product: value }))} options={['all', ...productOptions]} />
-          <Select label="Dealer" value={filters.dealer} onChange={(value) => setFilters((current) => ({ ...current, dealer: value }))} options={['all', ...dealerOptions.map((dealer) => dealer.id)]} display={(value) => value === 'all' ? 'All dealers' : dealerOptions.find((dealer) => dealer.id === value)?.name || value} />
-          <Select label="Village" value={filters.village} onChange={(value) => setFilters((current) => ({ ...current, village: value }))} options={['all', ...villageOptions]} />
-          <Select label="Submission" value={filters.submissionStatus} onChange={(value) => setFilters((current) => ({ ...current, submissionStatus: value as AdminFilters['submissionStatus'] }))} options={['all', 'updated', 'pending']} />
+          <Select label={t('Category', 'వర్గం')} value={filters.category} onChange={(value) => setFilters((current) => ({ ...current, category: value as CategoryFilter }))} options={['all', 'fertilizer', 'seed', 'pesticide']} display={(val) => val === 'all' ? t('All', 'అన్నీ') : val === 'fertilizer' ? t('Fertilizer', 'ఎరువులు') : val === 'seed' ? t('Seed', 'విత్తనాలు') : val === 'pesticide' ? t('Pesticide', 'పురుగుమందులు') : val} />
+          <Select label={t('Financial Year', 'ఆర్థిక సంవత్సరం')} value={filters.financialYear} onChange={(value) => setFilters((current) => ({ ...current, financialYear: value }))} options={[...FINANCIAL_YEARS]} />
+          <Input label={t('From Date', 'ప్రారంభ తేదీ')} type="date" value={filters.fromDate} onChange={(value) => setFilters((current) => ({ ...current, fromDate: value }))} />
+          <Input label={t('To Date', 'ముగింపు తేదీ')} type="date" value={filters.toDate} onChange={(value) => setFilters((current) => ({ ...current, toDate: value }))} />
+          <Select label={t('Product', 'ఉత్పత్తి')} value={filters.product} onChange={(value) => setFilters((current) => ({ ...current, product: value }))} options={['all', ...productOptions]} display={(val) => val === 'all' ? t('All', 'అన్నీ') : val} />
+          <Select label={t('Dealer', 'డీలర్')} value={filters.dealer} onChange={(value) => setFilters((current) => ({ ...current, dealer: value }))} options={['all', ...dealerOptions.map((dealer) => dealer.id)]} display={(value) => value === 'all' ? t('All dealers', 'అన్ని డీలర్లు') : dealerOptions.find((dealer) => dealer.id === value)?.name || value} />
+          <Select label={t('Village', 'గ్రామం')} value={filters.village} onChange={(value) => setFilters((current) => ({ ...current, village: value }))} options={['all', ...villageOptions]} display={(val) => val === 'all' ? t('All', 'అన్నీ') : val} />
+          <Select label={t('Submission', 'సమర్పణ')} value={filters.submissionStatus} onChange={(value) => setFilters((current) => ({ ...current, submissionStatus: value as AdminFilters['submissionStatus'] }))} options={['all', 'updated', 'pending']} display={(val) => val === 'all' ? t('All', 'అన్నీ') : val === 'updated' ? t('Updated', 'నవీకరించబడింది') : val === 'pending' ? t('Pending', 'పెండింగ్') : val} />
         </div>
       </section>
 
-      {loading && <div className="rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 p-4 text-sm font-bold text-slate-500 dark:text-slate-400 shadow-sm">Loading command center...</div>}
+      {loading && <div className="rounded-xl border border-emerald-100 dark:border-emerald-900 bg-white dark:bg-slate-900 p-4 text-sm font-bold text-slate-500 dark:text-slate-400 shadow-sm">{t('Loading command center...', 'కమాండ్ సెంటర్ లోడ్ అవుతోంది...')}</div>}
 
       <section className="grid gap-3 xl:grid-cols-2">
         <DealerSubmissionCard rows={submissionRows} submissionTab={submissionTab} setSubmissionTab={setSubmissionTab} />
@@ -295,19 +298,19 @@ function CommandCenter() {
 
       <section className="grid gap-3 xl:grid-cols-2">
         <DashboardListCard
-          title="Expired Licenses"
+          title={t('Expired Licenses', 'గడువు ముగిసిన లైసెన్సులు')}
           tone="red"
-          headers={['Dealer', 'Valid Upto']}
+          headers={[t('Dealer', 'డీలర్'), t('Valid Upto', 'చెల్లుబాటు తేదీ')]}
           rows={expiredLicenses.map((row) => [row.name, formatShortDate(row.date)])}
         />
         <DashboardListCard
-          title="Expiring Soon (60 Days)"
+          title={t('Expiring Soon (60 Days)', 'త్వరలో గడువు ముగిసేవి (60 రోజులు)')}
           tone="amber"
-          headers={['Dealer', 'Valid Upto']}
+          headers={[t('Dealer', 'డీలర్'), t('Valid Upto', 'చెల్లుబాటు తేదీ')]}
           rows={expiringLicenses.map((row) => [row.name, formatShortDate(row.date)])}
         />
         <DashboardListCard
-          title={`Not Logged In > ${filters.idleDays * 24} Hrs`}
+          title={`${t('Not Logged In >', 'లాగిన్ అవ్వలేదు >')} ${filters.idleDays * 24} ${t('Hrs', 'గంటలు')}`}
           tone="blue"
           rows={idleRows.map((row) => [row.name, row.mobile || '-', <DayPill key={row.name} days={row.daysIdle} tone="blue" />])}
         />
@@ -315,12 +318,12 @@ function CommandCenter() {
 
       <section className="grid gap-3 xl:grid-cols-2">
         <DashboardListCard
-          title="Current Nil Stock"
+          title={t('Current Nil Stock', 'ప్రస్తుత నిల్వ శూన్యం (Nil Stock)')}
           tone="red"
           rows={nilStockRows.map((row) => [row.name, row.product, <DayPill key={`${row.id}-${row.product}`} days={row.daysIdle} tone="redSoft" />])}
         />
         <DashboardListCard
-          title="Urea Stock (Ranking)"
+          title={t('Urea Stock (Ranking)', 'యూరియా నిల్వ (ర్యాంకింగ్)')}
           tone="green"
           rows={ureaStockRows.map((row) => [row.name, <BlueNumber key={row.name} value={row.stock} />])}
         />
@@ -330,18 +333,18 @@ function CommandCenter() {
 
       <section className="grid gap-3 xl:grid-cols-2">
         <DashboardListCard
-          title="Urea Sales Ranking"
+          title={t('Urea Sales Ranking', 'యూరియా అమ్మకాల ర్యాంకింగ్')}
           tone="green"
-          headers={['Dealer', 'Sales']}
+          headers={[t('Dealer', 'డీలర్'), t('Sales', 'అమ్మకాలు')]}
           rows={ureaSalesRows.map((row) => [row.name, <BlueNumber key={row.name} value={row.sales} />])}
         />
       </section>
 
       <section className="grid gap-3 xl:grid-cols-2">
         <DashboardListCard
-          title="Highest Stock Received (7 Days)"
+          title={t('Highest Stock Received (7 Days)', 'అత్యధిక స్టాక్ అందుకున్నవి (7 రోజులు)')}
           tone="blue"
-          headers={['Dealer', 'Quantity']}
+          headers={[t('Dealer', 'డీలర్'), t('Quantity', 'పరిమాణం')]}
           rows={weeklyReceipts.map((row) => [row.name, <BlueNumber key={`${row.name}-${row.product}`} value={row.receipts} />])}
         />
         <WeeklyTopSellersCard rows={weeklyTopSellers} />
@@ -367,18 +370,19 @@ function StockSwitch({ title, description, active, tone, icon, onClick }: { titl
 }
 
 function DealerSubmissionCard({ rows, submissionTab, setSubmissionTab }: { rows: { name: string; lastDate: string; status: string }[]; submissionTab: SubmissionTab; setSubmissionTab: (tab: SubmissionTab) => void }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   return (
     <section className="overflow-hidden rounded-xl border border-indigo-200/70 bg-gradient-to-br from-indigo-50 via-indigo-50/60 to-indigo-50/25 shadow-sm shadow-indigo-100/40 dark:border-indigo-900/50 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900">
       <div className={`flex items-center justify-between bg-indigo-100/50 px-3 py-2 dark:bg-indigo-950/60 ${open ? 'border-b border-indigo-100 dark:border-indigo-900/50' : ''}`}>
         <div>
-          <h2 className="text-sm font-black text-slate-950 dark:text-white">Dealer Submission List</h2>
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">Today: {today()}</p>
+          <h2 className="text-sm font-black text-slate-950 dark:text-white">{t('Dealer Submission List', 'డీలర్ సమర్పణల జాబితా')}</h2>
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{t('Today:', 'ఈరోజు:')} {today()}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <div className="grid grid-cols-2 rounded-lg border border-slate-200 dark:border-slate-700 p-1 text-xs font-black">
-            <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'updated' ? 'bg-emerald-700 text-white' : 'text-slate-600 dark:text-slate-300'}`} onClick={() => setSubmissionTab('updated')}>Updated</button>
-            <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'pending' ? 'bg-red-700 text-white' : 'text-slate-600 dark:text-slate-300'}`} onClick={() => setSubmissionTab('pending')}>Pending</button>
+            <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'updated' ? 'bg-emerald-700 text-white' : 'text-slate-600 dark:text-slate-300'}`} onClick={() => setSubmissionTab('updated')}>{t('Updated', 'నవీకరించబడింది')}</button>
+            <button className={`rounded-md px-3 py-1.5 ${submissionTab === 'pending' ? 'bg-red-700 text-white' : 'text-slate-600 dark:text-slate-300'}`} onClick={() => setSubmissionTab('pending')}>{t('Pending', 'పెండింగ్')}</button>
           </div>
           <button type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? 'Collapse Dealer Submission List' : 'Expand Dealer Submission List'} className="rounded-md p-1 text-indigo-600 transition hover:bg-white/70 dark:text-indigo-300 dark:hover:bg-slate-800">
             <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
@@ -386,19 +390,28 @@ function DealerSubmissionCard({ rows, submissionTab, setSubmissionTab }: { rows:
         </div>
       </div>
       {open && (
-        <SimpleTable headers={['S.No', 'Dealer/Firm', 'Last Submitted Date', 'Status']} rows={rows.map((row, index) => [index + 1, row.name, row.lastDate || '-', row.status])} />
+        <SimpleTable
+          headers={[t('S.No', 'క్ర.సం'), t('Dealer/Firm', 'డీలర్/సంస్థ'), t('Last Submitted Date', 'చివరి సమర్పణ తేదీ'), t('Status', 'స్థితి')]}
+          rows={rows.map((row, index) => [
+            index + 1,
+            row.name,
+            row.lastDate || '-',
+            row.status === 'Updated' ? t('Updated', 'నవీకరించబడింది') : row.status === 'Logged In' ? t('Logged In', 'లాగిన్ అయ్యారు') : t('Pending', 'పెండింగ్'),
+          ])}
+        />
       )}
     </section>
   );
 }
 
 function LicenseCounterCard({ counters }: { counters: { label: string; value: number }[] }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   return (
     <section className="rounded-xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-violet-50/60 to-violet-50/25 p-3 shadow-sm shadow-violet-100/70 dark:border-violet-900/50 dark:from-violet-950/30 dark:via-slate-900 dark:to-slate-900">
       <div className={`flex items-center justify-between gap-2 ${open ? 'mb-2 border-b border-violet-100 pb-2 dark:border-violet-900/50' : ''}`}>
         <div className="min-w-0">
-          <h2 className="text-sm font-black text-slate-950 dark:text-white">License Counter</h2>
+          <h2 className="text-sm font-black text-slate-950 dark:text-white">{t('License Counter', 'లైసెన్స్ కౌంటర్')}</h2>
         </div>
         <button type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? 'Collapse License Counter' : 'Expand License Counter'} className="shrink-0 rounded-md p-1 text-violet-600 transition hover:bg-white/70 dark:text-violet-300 dark:hover:bg-slate-800">
           <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
@@ -408,7 +421,9 @@ function LicenseCounterCard({ counters }: { counters: { label: string; value: nu
         <div className="space-y-2">
           {counters.map((item) => (
             <div key={item.label} className="flex items-center justify-between rounded-lg border border-violet-100 bg-violet-50/50 px-3 py-1.5 text-xs font-bold text-slate-700 dark:border-violet-900/50 dark:bg-violet-950/30 dark:text-slate-200">
-              <span className="truncate">{item.label}</span>
+              <span className="truncate">
+                {item.label === 'Fertilizer' ? t('Fertilizer', 'ఎరువులు') : item.label === 'Seeds' ? t('Seeds', 'విత్తనాలు') : item.label === 'Pesticides' ? t('Pesticides', 'పురుగుమందులు') : item.label}
+              </span>
               <span className="rounded-md bg-white px-2 py-0.5 text-sm font-black text-violet-700 shadow-sm dark:bg-slate-900 dark:text-violet-300">{item.value}</span>
             </div>
           ))}
@@ -460,12 +475,13 @@ function DashboardListCard({ title, tone, headers, rows }: { title: string; tone
 }
 
 function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRows> }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   return (
     <section className="overflow-hidden rounded-xl border border-rose-200/70 bg-gradient-to-br from-rose-50 via-rose-50/60 to-rose-50/25 p-3 shadow-sm shadow-rose-100/70 dark:border-rose-900/50 dark:from-rose-950/30 dark:via-slate-900 dark:to-slate-900">
       <div className={`flex items-center justify-between gap-2 ${open ? 'mb-2 border-b border-rose-100 pb-2 dark:border-rose-900/50' : ''}`}>
         <div>
-          <h2 className="text-sm font-black text-slate-950 dark:text-white">Urea: No Sales Alert</h2>
+          <h2 className="text-sm font-black text-slate-950 dark:text-white">{t('Urea: No Sales Alert', 'యూరియా: విక్రయాలు లేని హెచ్చరిక')}</h2>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           <span className="rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-black text-rose-700 dark:bg-rose-950/70 dark:text-rose-300">{rows.length}</span>
@@ -477,10 +493,10 @@ function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRow
       {open && (
         <>
       <div className="grid grid-cols-[1.4fr_0.55fr_0.65fr_0.75fr] gap-2 rounded-md bg-rose-50/80 px-2 py-1.5 text-[10px] font-black uppercase tracking-wide text-slate-500 dark:bg-rose-950/40 dark:text-slate-400">
-        <span>Dealer Name</span>
-        <span className="text-right">Current Stock</span>
-        <span className="text-center">Last Sale Date</span>
-        <span className="text-right">Days Idle</span>
+        <span>{t('Dealer Name', 'డీలర్ పేరు')}</span>
+        <span className="text-right">{t('Current Stock', 'ప్రస్తుత నిల్వ')}</span>
+        <span className="text-center">{t('Last Sale Date', 'చివరి అమ్మకం తేదీ')}</span>
+        <span className="text-right">{t('Days Idle', 'అమ్మకం లేని రోజులు')}</span>
       </div>
       <div className="mt-1.5 max-h-80 overflow-y-auto pr-1">
         {rows.length ? rows.map((row) => (
@@ -502,12 +518,13 @@ function UreaNoSalesCard({ rows }: { rows: ReturnType<typeof buildUreaNoSalesRow
 }
 
 function WeeklyTopSellersCard({ rows }: { rows: ReturnType<typeof buildWeeklyTopSellers> }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   return (
     <section className="rounded-xl border border-teal-200/70 bg-gradient-to-br from-teal-50 via-teal-50/60 to-teal-50/25 p-3 shadow-sm shadow-teal-100/70 dark:border-teal-900/50 dark:from-teal-950/30 dark:via-slate-900 dark:to-slate-900">
       <div className={`flex items-center justify-between gap-2 ${open ? 'mb-2 border-b border-teal-100 pb-2 dark:border-teal-900/50' : ''}`}>
         <div className="min-w-0">
-          <h2 className="truncate text-sm font-black text-slate-950 dark:text-white">Week&apos;s Top Sellers By Category</h2>
+          <h2 className="truncate text-sm font-black text-slate-950 dark:text-white">{t("Week's Top Sellers By Category", "ఈ వారం వర్గాల వారీగా అగ్ర విక్రేతలు")}</h2>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           {rows.length > 0 && <span className="rounded-full bg-teal-100 px-2.5 py-1 text-[11px] font-black text-teal-700 dark:bg-teal-950/70 dark:text-teal-300">{rows.length}</span>}
@@ -523,12 +540,12 @@ function WeeklyTopSellersCard({ rows }: { rows: ReturnType<typeof buildWeeklyTop
             <div className="flex min-w-0 items-center gap-2 font-extrabold text-slate-900 dark:text-white">
               <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${['bg-emerald-600', 'bg-emerald-600', 'bg-lime-600', 'bg-cyan-600', 'bg-slate-500'][index % 5]}`} />
               <span className="break-words">
-              {CATEGORY_LABELS[row.category]}: {row.product}
+              {row.category === 'fertilizer' ? t('Fertilizer', 'ఎరువులు') : row.category === 'seed' ? t('Seed', 'విత్తనాలు') : t('Pesticide', 'పురుగుమందులు')}: {row.product}
               </span>
             </div>
             <div className="text-right">
               <p className="break-words font-black text-emerald-700 dark:text-emerald-300">{row.name}</p>
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">{formatWhole(row.sales)} Sales</p>
+              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">{formatWhole(row.sales)} {t('Sales', 'అమ్మకాలు')}</p>
             </div>
           </div>
         )) : <EmptyCardMessage />}
@@ -543,12 +560,14 @@ function BlueNumber({ value }: { value: number }) {
 }
 
 function DayPill({ days, tone }: { days: number; tone: 'red' | 'redSoft' | 'blue' }) {
+  const { t } = useLanguage();
   const cls = tone === 'blue' ? 'bg-sky-50/70 text-sky-700' : tone === 'redSoft' ? 'bg-rose-50/70 text-rose-600' : 'bg-rose-500 text-white';
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-black ${cls}`}>{days} Days</span>;
+  return <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-black ${cls}`}>{days} {t('Days', 'రోజులు')}</span>;
 }
 
 function EmptyCardMessage() {
-  return <div className="rounded-lg border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-center text-xs font-bold text-slate-500 dark:text-slate-400">No records found.</div>;
+  const { t } = useLanguage();
+  return <div className="rounded-lg border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-center text-xs font-bold text-slate-500 dark:text-slate-400">{t('No records found.', 'రికార్డులు ఏవీ కనుగొనబడలేదు.')}</div>;
 }
 
 function cardTone(tone: 'red' | 'green' | 'blue' | 'amber') {

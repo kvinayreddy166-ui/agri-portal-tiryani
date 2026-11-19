@@ -35,6 +35,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../shared/lib/supabase';
 import { applyDeterministicPdfMetadata } from '../../../shared/lib/pdfDeterministic';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 import { BackButton } from '../../../shared/components/ui/BackButton';
 import { LanguageToggle } from '../../../shared/components/ui/LanguageToggle';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
@@ -1368,8 +1369,7 @@ export function FertilizerCalculator() {
   const toast = useToast();
   const { askConfirm, confirmDialog } = useConfirmDialog();
   const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
-  const [language, setLanguage] = useState<'en' | 'te'>('en');
-  const toggleLanguage = () => setLanguage((current) => (current === 'en' ? 'te' : 'en'));
+  const { language, toggleLanguage } = useLanguage();
   const uiLabels = useMemo(() => (language === 'te' ? repairTeluguRecord(UI_LABELS.te) : UI_LABELS.en), [language]);
   const visibleAgronomicNotes = useMemo(() => (language === 'te' ? AGRONOMIC_NOTES_TE.map(repairTeluguText) : AGRONOMIC_NOTES_EN), [language]);
   const [mode, setMode] = useState<'simple' | 'crop'>('crop');

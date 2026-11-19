@@ -13,6 +13,7 @@ import { appendSheetWithTotals, appendSummarySheet, totalValue } from '../../../
 import { createExcelWorkbook, saveStyledWorkbook } from '../../../shared/utils/styledExcel';
 import { Spinner } from '../../../shared/components/ui/Spinner';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { useLanguage } from '../../../shared/context/LanguageContext';
 
 type DealerProfile = {
   id: string;
@@ -31,6 +32,7 @@ const categoryLabels: Record<StockCategory, string> = {
 };
 
 export default function StockReceiptsSales() {
+  const { t } = useLanguage();
   const toast = useToast();
   const [records, setRecords] = useState<AdminStockRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -208,78 +210,92 @@ export default function StockReceiptsSales() {
       <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Admin stock module</p>
-            <h1 className="text-2xl font-black text-slate-950 dark:text-white">Stock Receipts & Sales</h1>
-            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">All dealers, all categories, date-wise daily stock entries.</p>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-300">{t('Admin stock module', 'అడ్మిన్ స్టాక్ మాడ్యూల్')}</p>
+            <h1 className="text-2xl font-black text-slate-950 dark:text-white">{t('Stock Receipts & Sales', 'స్టాక్ రసీదులు & అమ్మకాలు')}</h1>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{t('All dealers, all categories, date-wise daily stock entries.', 'అన్ని డీలర్లు, అన్ని వర్గాలు, తేదీల వారీగా రోజువారీ స్టాక్ నమోదులు.')}</p>
           </div>
-          <IconButton label="Export all/filtered data to Excel" tone="excel" onClick={exportToExcel}>
+          <IconButton label={t('Export all/filtered data to Excel', 'అన్ని/ఫిల్టర్ చేసిన డేటాను ఎక్సెల్‌కు ఎగుమతి చేయండి')} tone="excel" onClick={exportToExcel}>
             <FileSpreadsheet className="h-4 w-4" />
           </IconButton>
         </div>
       </section>
 
       <section className="grid gap-3 md:grid-cols-4 lg:grid-cols-7">
-        <SummaryCard label="Total Opening Stock" value={summary.opening.toFixed(2)} />
-        <SummaryCard label="Total Received" value={summary.received.toFixed(2)} />
-        <SummaryCard label="Total Sold" value={summary.sold.toFixed(2)} />
-        <SummaryCard label="Current Closing Stock" value={summary.closing.toFixed(2)} />
-        <SummaryCard label="Total Entries" value={String(summary.entries)} />
-        <SummaryCard label="Dealers" value={String(summary.dealers)} />
-        <SummaryCard label="Products" value={String(summary.products)} />
+        <SummaryCard label={t('Total Opening Stock', 'మొత్తం ప్రారంభ నిల్వ')} value={summary.opening.toFixed(2)} />
+        <SummaryCard label={t('Total Received', 'మొత్తం అందుకున్నవి')} value={summary.received.toFixed(2)} />
+        <SummaryCard label={t('Total Sold', 'మొత్తం అమ్మినవి')} value={summary.sold.toFixed(2)} />
+        <SummaryCard label={t('Current Closing Stock', 'ప్రస్తుత ముగింపు నిల్వ')} value={summary.closing.toFixed(2)} />
+        <SummaryCard label={t('Total Entries', 'మొత్తం నమోదులు')} value={String(summary.entries)} />
+        <SummaryCard label={t('Dealers', 'డీలర్లు')} value={String(summary.dealers)} />
+        <SummaryCard label={t('Products', 'ఉత్పత్తులు')} value={String(summary.products)} />
       </section>
 
       <section className="grid gap-3 lg:grid-cols-4">
-        <AdminChartCard title="Category-wise Closing Stock" data={categoryChart} tone="emerald" />
-        <AdminChartCard title="Stock Movement" data={movementChart} tone="slate" />
-        <AdminChartCard title="Top Products" data={productChart} tone="amber" />
-        <AdminChartCard title="Dealer Stock Ranking" data={dealerChart} tone="red" />
+        <AdminChartCard title={t('Category-wise Closing Stock', 'వర్గాల వారీగా ముగింపు నిల్వ')} data={categoryChart} tone="emerald" />
+        <AdminChartCard title={t('Stock Movement', 'స్టాక్ కదలికలు')} data={movementChart} tone="slate" />
+        <AdminChartCard title={t('Top Products', 'అగ్ర ఉత్పత్తులు')} data={productChart} tone="amber" />
+        <AdminChartCard title={t('Dealer Stock Ranking', 'డీలర్ స్టాక్ ర్యాంకింగ్')} data={dealerChart} tone="red" />
       </section>
 
       <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <div className="mb-3 flex items-center gap-2">
           <Filter className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
-          <h2 className="text-base font-black text-slate-950 dark:text-white">Filters</h2>
+          <h2 className="text-base font-black text-slate-950 dark:text-white">{t('Filters', 'ఫిల్టర్లు')}</h2>
         </div>
         <div className="grid gap-2 md:grid-cols-7">
           <select value={financialYear} onChange={(event) => setFinancialYear(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold">
             {FINANCIAL_YEARS.map((year) => <option key={year} value={year}>{year}</option>)}
           </select>
-          <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold" aria-label="From Date" />
-          <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold" aria-label="To Date" />
+          <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold" aria-label={t('From Date', 'ప్రారంభ తేదీ')} />
+          <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold" aria-label={t('To Date', 'ముగింపు తేదీ')} />
           <select value={category} onChange={(event) => setCategory(event.target.value as 'all' | StockCategory)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold">
-            <option value="all">All categories</option>
-            <option value="fertilizer">Fertilizer</option>
-            <option value="seed">Seed</option>
-            <option value="pesticide">Pesticide</option>
+            <option value="all">{t('All categories', 'అన్ని వర్గాలు')}</option>
+            <option value="fertilizer">{t('Fertilizer', 'ఎరువులు')}</option>
+            <option value="seed">{t('Seed', 'విత్తనాలు')}</option>
+            <option value="pesticide">{t('Pesticide', 'పురుగుమందులు')}</option>
           </select>
           <select value={entryType} onChange={(event) => setEntryType(event.target.value)} className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm font-bold">
-            <option value="all">All entry types</option>
-            <option value="daily_stock">Daily Stock</option>
-            <option value="receipt">Receipt</option>
-            <option value="sale">Sale</option>
+            <option value="all">{t('All entry types', 'అన్ని నమోదు రకాలు')}</option>
+            <option value="daily_stock">{t('Daily Stock', 'రోజువారీ నిల్వ')}</option>
+            <option value="receipt">{t('Receipt', 'రసీదు')}</option>
+            <option value="sale">{t('Sale', 'అమ్మకం')}</option>
           </select>
           <label className="relative md:col-span-2">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-            <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search dealer, product, batch" className="w-full rounded-lg border border-slate-300 dark:border-slate-600 py-2 pl-9 pr-3 text-sm font-bold" />
+            <input value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder={t('Search dealer, product, batch', 'డీలర్, ఉత్పత్తి, బ్యాచ్ వెతకండి')} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 py-2 pl-9 pr-3 text-sm font-bold" />
           </label>
         </div>
       </section>
 
       <section className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
         <div className="border-b border-slate-100 dark:border-slate-800 p-4">
-          <h2 className="text-base font-black text-slate-950 dark:text-white">Daily Stock History | Receipts History | Sales History</h2>
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Sorted by entry date descending.</p>
+          <h2 className="text-base font-black text-slate-950 dark:text-white">{t('Daily Stock History | Receipts History | Sales History', 'రోజువారీ నిల్వ చరిత్ర | రసీదుల చరిత్ర | అమ్మకాల చరిత్ర')}</h2>
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('Sorted by entry date descending.', 'నమోదు తేదీ అవరోహణ క్రమంలో అమర్చబడింది.')}</p>
         </div>
         {loading ? (
           <div className="flex h-48 items-center justify-center">
-            <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label="Loading" />
+            <Spinner size="xl" className="text-emerald-600 dark:text-emerald-400" label={t('Loading', 'లోడ్ అవుతోంది')} />
           </div>
         ) : (
           <div className="table-scroll">
             <table className="w-full min-w-[1400px] text-sm">
               <thead className="bg-slate-900 text-white">
                 <tr>
-                  {['Financial Year', 'Entry Date', 'Category', 'Firm Name', 'IFMS ID', 'Product/Crop/Variety Name', 'Opening Stock', 'Received Quantity', 'Sold Quantity', 'Closing Stock', 'Unit', 'Batch/Lot/Invoice', 'Remarks'].map((head) => (
+                  {[
+                    t('Financial Year', 'ఆర్థిక సంవత్సరం'),
+                    t('Entry Date', 'నమోదు తేదీ'),
+                    t('Category', 'వర్గం'),
+                    t('Firm Name', 'సంస్థ పేరు'),
+                    t('IFMS ID', 'IFMS ఐడీ'),
+                    t('Product/Crop/Variety Name', 'ఉత్పత్తి/పంట/రకం పేరు'),
+                    t('Opening Stock', 'ప్రారంభ నిల్వ'),
+                    t('Received Quantity', 'అందుకున్న పరిమాణం'),
+                    t('Sold Quantity', 'అమ్మిన పరిమాణం'),
+                    t('Closing Stock', 'ముగింపు నిల్వ'),
+                    t('Unit', 'యూనిట్'),
+                    t('Batch/Lot/Invoice', 'బ్యాచ్/లాట్/ఇన్‌వాయిస్'),
+                    t('Remarks', 'వ్యాఖ్యలు'),
+                  ].map((head) => (
                     <th key={head} className="px-3 py-2 text-left">{head}</th>
                   ))}
                 </tr>
@@ -289,7 +305,9 @@ export default function StockReceiptsSales() {
                   <tr key={record.id}>
                     <td className="px-3 py-2 font-bold">{record.financial_year || financialYearForDate(record.report_date)}</td>
                     <td className="px-3 py-2">{record.report_date}</td>
-                    <td className="px-3 py-2">{categoryLabels[record.category]}</td>
+                    <td className="px-3 py-2">
+                      {record.category === 'fertilizer' ? t('Fertilizer', 'ఎరువులు') : record.category === 'seed' ? t('Seed', 'విత్తనాలు') : record.category === 'pesticide' ? t('Pesticide', 'పురుగుమందులు') : record.category}
+                    </td>
                     <td className="px-3 py-2">{record.firm_name || record.dealers?.dealer_name || '-'}</td>
                     <td className="px-3 py-2">{record.ifms_id || record.dealers?.ifms_id || '-'}</td>
                     <td className="px-3 py-2 font-black">{[record.product_type, record.crop, record.variety].filter(Boolean).join(' / ')}</td>
@@ -304,7 +322,7 @@ export default function StockReceiptsSales() {
                 ))}
                 {!filteredRecords.length && (
                   <tr>
-                    <td colSpan={13} className="px-3 py-10 text-center text-sm font-semibold text-slate-500 dark:text-slate-400">No stock records match the selected filters.</td>
+                    <td colSpan={13} className="px-3 py-10 text-center text-sm font-semibold text-slate-500 dark:text-slate-400">{t('No stock records match the selected filters.', 'ఎంచుకున్న ఫిల్టర్లకు సరిపోలే స్టాక్ రికార్డులు లేవు.')}</td>
                   </tr>
                 )}
               </tbody>
@@ -327,6 +345,7 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
 }
 
 function AdminChartCard({ title, data, tone }: { title: string; data: { label: string; value: number }[]; tone: 'emerald' | 'slate' | 'amber' | 'red' }) {
+  const { t } = useLanguage();
   const max = Math.max(...data.map((item) => Math.abs(item.value)), 1);
   const color = tone === 'emerald' ? 'bg-emerald-600' : tone === 'amber' ? 'bg-amber-500' : tone === 'red' ? 'bg-red-600' : 'bg-slate-800';
 
@@ -348,7 +367,7 @@ function AdminChartCard({ title, data, tone }: { title: string; data: { label: s
           ))}
         </div>
       ) : (
-        <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 text-center text-xs font-bold text-slate-500 dark:text-slate-400">No chart data.</div>
+        <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 text-center text-xs font-bold text-slate-500 dark:text-slate-400">{t('No chart data.', 'చార్ట్ డేటా అందుబాటులో లేదు.')}</div>
       )}
     </div>
   );
