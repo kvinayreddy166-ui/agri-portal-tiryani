@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   AlertCircle,
@@ -35,8 +35,6 @@ import {
 
 import { AuthStepper } from '../components/AuthStepper';
 import { OtpInput } from '../components/OtpInput';
-import { TurnstileWidget, type TurnstileWidgetHandle } from '../../../shared/components/security/TurnstileWidget';
-import { isTurnstileEnabled } from '../../../shared/lib/turnstile';
 import { isPasswordCompliant, PASSWORD_RULES, passwordPolicyErrorMessage } from '../../../shared/lib/passwordPolicy';
 
 type SignUpStep = 'details' | 'otp' | 'password' | 'completed';
@@ -79,17 +77,6 @@ export function OfficerSignUp() {
   const [revealed, setRevealed] = useState(false);
   const [confirmRevealed, setConfirmRevealed] = useState(false);
 
-  // Cloudflare Turnstile — widget on the details step only
-  const [otpCaptchaToken, setOtpCaptchaToken] = useState<string | null>(null);
-  const otpTurnstileRef = useRef<TurnstileWidgetHandle>(null);
-  const requireCaptcha = (token: string | null) => {
-    if (isTurnstileEnabled() && !token) {
-      setError(t('Please complete the security verification below.', 'దయచేసి దిగువ సెక్యూరిటీ ధృవీకరణను పూర్తి చేయండి.'));
-      return false;
-    }
-    return true;
-  };
-
   const districtKey = OFFICER_DISTRICT_TO_MANDAL_KEY[form.district] || form.district;
   const mandals = getMandalsForDistrict(districtKey);
   const showsMandal = officerShowsMandal(form.designation);
@@ -112,7 +99,7 @@ export function OfficerSignUp() {
   }, [otpCooldown]);
 
   // Handle Step 1 -> Send OTP via Resend
-  const handleSendOtp = async (e?: React.FormEvent, opts?: { skipCaptcha?: boolean }) => {
+  const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setError(null);
     setSuccessMessage(null);
@@ -138,7 +125,6 @@ export function OfficerSignUp() {
       return;
     }
 
-    if (!opts?.skipCaptcha && !requireCaptcha(otpCaptchaToken)) return;
 
     setLoading(true);
     const res = await ResendOtpService.sendOtp({
@@ -146,7 +132,6 @@ export function OfficerSignUp() {
       fullName,
       designation: form.designation,
       purpose: 'registration',
-      captchaToken: otpCaptchaToken ?? undefined,
       payload: {
         fullName,
         designation: form.designation,
@@ -158,8 +143,6 @@ export function OfficerSignUp() {
         phone,
       },
     });
-    setOtpCaptchaToken(null);
-    otpTurnstileRef.current?.reset();
     setLoading(false);
 
     if (!res.success) {
@@ -537,15 +520,6 @@ export function OfficerSignUp() {
                   </div>
                 </div>
 
-                <div className="flex justify-center">
-                  <TurnstileWidget
-                    ref={otpTurnstileRef}
-                    onVerify={setOtpCaptchaToken}
-                    onExpire={() => setOtpCaptchaToken(null)}
-                    onError={() => setOtpCaptchaToken(null)}
-                  />
-                </div>
-
                 <button
                   type="submit"
                   disabled={loading}
@@ -616,7 +590,7 @@ export function OfficerSignUp() {
                   <button
                     type="button"
                     disabled={otpCooldown > 0 || loading}
-                    onClick={() => handleSendOtp(undefined, { skipCaptcha: true })}
+                    onClick={() => handleSendOtp()}
                     className="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline disabled:text-slate-400 flex items-center gap-1.5"
                   >
                     <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />

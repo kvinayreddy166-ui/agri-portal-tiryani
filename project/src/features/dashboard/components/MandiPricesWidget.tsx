@@ -11,7 +11,7 @@ import {
   Search,
   Share2,
   Store,
-  Trash2,
+
   TrendingDown,
   TrendingUp,
   X,
@@ -25,7 +25,7 @@ import {
   ALL_INDIAN_STATES,
   ALL_TELANGANA_DISTRICTS,
   buildMandiWhatsAppText,
-  deleteCustomMandiPrice,
+
   fetchMandiPrices,
   getCommodityMSP,
   invalidateMandiPricesCache,
@@ -39,7 +39,7 @@ const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
 export function MandiPricesWidget() {
   const { t } = useLanguage();
   const toast = useToast();
-  const { askConfirm, confirmDialog } = useConfirmDialog();
+  const { confirmDialog } = useConfirmDialog();
   const { isAdminUser } = useAuth();
 
   const [selectedState, setSelectedState] = useState<string>('Telangana');
@@ -338,18 +338,6 @@ export function MandiPricesWidget() {
       setIsUpdateModalOpen(false);
       loadPrices(true);
     }, 800);
-  };
-
-  const handleDeletePrice = async (id?: string) => {
-    if (!id) return;
-    const confirmed = await askConfirm({
-      title: t('Remove this logged price record?', 'ఈ ధర రికార్డును తొలగించాలా?'),
-      confirmLabel: t('Remove', 'తొలగించు'),
-    });
-    if (confirmed) {
-      deleteCustomMandiPrice(id);
-      loadPrices(true);
-    }
   };
 
   if (loading) {
@@ -696,9 +684,9 @@ export function MandiPricesWidget() {
                 <th className="py-2 pr-3">{t('Market & District', 'మార్కెట్ & జిల్లా')}</th>
                 <th className="py-2 pr-3 text-right">{t('Price Range', 'ధర పరిధి')}</th>
                 <th className="py-2 pr-3 text-right">{t('Modal Price', 'మోడల్ ధర')}</th>
-                <th className="py-2 pr-4 text-center">{t('MSP', 'MSP')}</th>
+                <th className="w-[130px] whitespace-nowrap py-2 pr-4 text-center">{t('MSP', 'MSP')}</th>
                 <th
-                  className="py-2 pr-4 text-right cursor-pointer"
+                  className="w-[90px] whitespace-nowrap py-2 pr-4 text-right cursor-pointer"
                   onClick={() => setDateSortOrder(dateSortOrder === 'asc' ? 'desc' : dateSortOrder === 'desc' ? null : 'asc')}
                 >
                   <div className="flex items-center justify-end gap-1">
@@ -708,7 +696,6 @@ export function MandiPricesWidget() {
                     </span>
                   </div>
                 </th>
-                {isAdminUser && <th className="py-2 pr-2 text-center">{t('Action', 'చర్య')}</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -776,11 +763,11 @@ export function MandiPricesWidget() {
                     </td>
 
                     {/* MSP Comparison Status */}
-                    <td className="py-2 pr-4 text-center">
+                    <td className="whitespace-nowrap py-2 pr-4 text-center">
                       {effectiveMsp ? (
                         <div className="inline-flex flex-col items-center">
                           <span
-                            className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-black ${
+                            className={`inline-flex items-center gap-0.5 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-black ${
                               isAbove
                                 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                                 : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
@@ -793,7 +780,7 @@ export function MandiPricesWidget() {
                                 : `-₹${Math.abs(diff).toLocaleString('en-IN')}`
                               : 'MSP Active'}
                           </span>
-                          <span className="text-[10px] text-slate-400">MSP: ₹{effectiveMsp.toLocaleString('en-IN')}</span>
+                          <span className="whitespace-nowrap text-[10px] text-slate-400">MSP: ₹{effectiveMsp.toLocaleString('en-IN')}</span>
                         </div>
                       ) : (
                         <span className="text-[11px] text-slate-400">—</span>
@@ -801,34 +788,16 @@ export function MandiPricesWidget() {
                     </td>
 
                     {/* Date */}
-                    <td className="py-2 pr-4 text-right text-[11px] text-slate-500 dark:text-slate-400">
-                      <div className="flex flex-col items-end">
-                        <span>{formatDateLabel(arrivalToIso(r.arrival_date)).split(' ')[0]}</span>
-                        <span>{formatDateLabel(arrivalToIso(r.arrival_date)).split(' ').slice(1).join(' ')}</span>
-                      </div>
+                    <td className="whitespace-nowrap py-2 pr-4 text-right text-[11px] text-slate-500 dark:text-slate-400">
+                      {formatDateLabel(arrivalToIso(r.arrival_date))}
                     </td>
-
-                    {/* Officer delete action */}
-                    {isAdminUser && (
-                      <td className="py-2 pr-3 text-center">
-                        {r.isCustom && (
-                          <button
-                            onClick={() => handleDeletePrice(r.id)}
-                            className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950"
-                            title={t('Delete record', 'రికార్డు తొలగించు')}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </td>
-                    )}
                   </tr>
                 );
               })}
 
               {visibleRecords.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center font-semibold text-slate-500">
+                  <td colSpan={6} className="py-8 text-center font-semibold text-slate-500">
                     <p>
                       {districtFilter
                         ? t(

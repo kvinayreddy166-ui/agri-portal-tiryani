@@ -44,7 +44,7 @@ const toastConfig: Record<ToastType, { icon: LucideIcon; bgColor: string; textCo
   },
 };
 
-export function Toast({ type, title, subtitle, duration = 4000, onClose }: ToastProps) {
+export function Toast({ type, title, subtitle, duration = 8000, onClose }: ToastProps) {
   const [isVisible, setIsVisible] = useState(false);
   const onCloseRef = useRef(onClose);
 
@@ -136,7 +136,7 @@ export function useToast() {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
-  const showToast = (type: ToastType, title: string, subtitle?: string, duration = 4000) => {
+  const showToast = (type: ToastType, title: string, subtitle?: string, duration = 8000) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     setToasts((prev) => [...prev, { id, type, title, subtitle, duration }]);
     timersRef.current[id] = setTimeout(() => removeToast(id), duration + 200);

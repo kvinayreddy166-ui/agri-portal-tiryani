@@ -11,6 +11,7 @@ import { fetchAllRows } from '../../../shared/lib/pagedFetch';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import { PageHeader } from '../../../shared/components/ui/PageHeader';
+import { downloadBlobFile } from '../../documents/lib/documentActions';
 import {
   TELANGANA_DISTRICTS,
   getMandalsForDistrict,
@@ -106,6 +107,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
   const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState('');
   const [dataMenuOpen, setDataMenuOpen] = useState(false);
+  const [templateDownloading, setTemplateDownloading] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
   const dataMenuRef = useRef<HTMLDivElement>(null);
   const resetDataMenuIdle = useIdleAutoClose(dataMenuOpen, () => setDataMenuOpen(false));
@@ -495,16 +497,51 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
     }
   };
 
+  // Downloads the static import template. Fetching first lets us verify the
+  // server returned a real .xlsx (not the SPA index.html fallback) and gives
+  // the user a visible error instead of a silent dead link.
+  const handleTemplateDownload = async () => {
+    const fileName = `dealer-import-template-${activeTab}.xlsx`;
+    setTemplateDownloading(true);
+    try {
+      const res = await fetch(`/templates/${fileName}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Template not found (HTTP ${res.status})`);
+      const blob = await res.blob();
+      const head = new Uint8Array(await blob.slice(0, 2).arrayBuffer());
+      if (head[0] !== 0x50 || head[1] !== 0x4b) {
+        throw new Error('Template file is unavailable on this deployment');
+      }
+      downloadBlobFile(
+        new Blob([blob], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        }),
+        fileName
+      );
+    } catch (error) {
+      console.error('Template download failed:', error);
+      toast.showError(
+        'Template download failed',
+        (error as { message?: string })?.message || 'Could not download the import template'
+      );
+    } finally {
+      setTemplateDownloading(false);
+    }
+  };
   const handleExportExcel = async () => {
     const tabLabel = TABS.find((tab) => tab.id === activeTab)?.label ?? activeTab;
     setLoading(true);
     try {
-      const res = await fetchAllRows<Dealer>({
-        table: 'dealers',
-        columns: DEALER_COLUMNS,
-        order: [{ column: 'dealer_name' }, { column: 'id' }],
-        applyFilters: (q) => applyDealerFilters(q, true),
-      });
+      const runExport = (columns: string, withLocation: boolean) =>
+        fetchAllRows<Dealer>({
+          table: 'dealers',
+          columns,
+          order: [{ column: 'dealer_name' }, { column: 'id' }],
+          applyFilters: (q) => applyDealerFilters(q, withLocation),
+        });
+      // Same legacy-column fallback as the table loader: export must not fail
+      // just because the district/mandal migration is missing on this database.
+      let res = await runExport(DEALER_COLUMNS, true);
+      if (res.error) res = await runExport(DEALER_COLUMNS_LEGACY, false);
       if (res.error) throw res.error;
       const rows = res.data;
 
@@ -627,14 +664,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
       const blob = new Blob([buffer], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `dealers-${activeTab}-${dateStr}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      downloadBlobFile(blob, `dealers-${activeTab}-${dateStr}.xlsx`);
       toast.showSuccess(
         'Export ready',
         `${rows.length} ${tabLabel.toLowerCase()} dealer(s) exported to Excel.`
@@ -761,15 +791,18 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
                       {t('Import Excel', 'Excel దిగుమతి')}
                     </button>
                   )}
-                  <a
-                    href={`/templates/dealer-import-template-${activeTab}.xlsx`}
-                    download
-                    onClick={() => setDataMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-emerald-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDataMenuOpen(false);
+                      void handleTemplateDownload();
+                    }}
+                    disabled={templateDownloading}
+                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-emerald-50 disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     <FileSpreadsheet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                    {t('Template', 'టెంప్లేట్')}
-                  </a>
+                    {templateDownloading ? t('Downloading…', 'డౌన్‌లోడ్…') : t('Template', 'టెంప్లేట్')}
+                  </button>
                   <button
                     type="button"
                     onClick={() => {

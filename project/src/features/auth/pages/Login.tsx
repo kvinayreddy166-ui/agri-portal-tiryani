@@ -289,6 +289,16 @@ export function Login() {
                       {loading ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <LogIn className="h-4 w-4 shrink-0" />}
                       <span>{loading ? t('Signing in...', 'లాగిన్ అవుతోంది...') : t('Sign In as Officer', 'అధికారిగా లాగిన్ అవ్వండి')}</span>
                     </button>
+                    <p className="pt-1 text-center text-xs text-slate-500 dark:text-slate-400">
+                      {t("Don't have an account?", 'ఖాతా లేదా?')}{' '}
+                      <button
+                        type="button"
+                        onClick={() => navigate('/register')}
+                        className="font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
+                      >
+                        {t('Sign up as Officer', 'అధికారిగా సైన్ అప్')}
+                      </button>
+                    </p>
                     <div className="flex justify-center pt-1">
                       <TurnstileWidget
                         ref={turnstileRef}
