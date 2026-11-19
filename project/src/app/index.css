@@ -614,36 +614,81 @@ main,
     color: #0f172a;
   }
 
-  /* Category accents for inspection modules — applied on top of the shared
-     primary button so geometry/hierarchy stay identical across modules. */
-  .action-button-accent-sky {
+  /* Category accents for module buttons — applied on top of the shared
+     primary/secondary styles so geometry/hierarchy stay identical. */
+  .action-button-primary.action-button-accent-sky {
     border-color: #0284c7;
     background: #0284c7;
   }
 
-  .action-button-accent-sky:hover {
+  .action-button-primary.action-button-accent-sky:hover {
     border-color: #0369a1;
     background: #0369a1;
   }
 
-  .action-button-accent-amber {
+  .action-button-primary.action-button-accent-amber {
     border-color: #d97706;
     background: #d97706;
   }
 
-  .action-button-accent-amber:hover {
+  .action-button-primary.action-button-accent-amber:hover {
     border-color: #b45309;
     background: #b45309;
   }
 
-  .action-button-accent-purple {
+  .action-button-primary.action-button-accent-purple {
     border-color: #7c3aed;
     background: #7c3aed;
   }
 
-  .action-button-accent-purple:hover {
+  .action-button-primary.action-button-accent-purple:hover {
     border-color: #6d28d9;
     background: #6d28d9;
+  }
+
+  /* Secondary (outlined) accent variants — tinted border/text, white fill. */
+  .action-button-secondary.action-button-accent-sky {
+    border-color: rgba(2, 132, 199, 0.4);
+    color: #0369a1;
+  }
+
+  .action-button-secondary.action-button-accent-sky:hover {
+    background: rgba(224, 242, 254, 0.85);
+    border-color: #0284c7;
+    color: #075985;
+  }
+
+  .dark .action-button-secondary.action-button-accent-sky {
+    border-color: rgba(56, 189, 248, 0.4);
+    color: #7dd3fc;
+  }
+
+  .dark .action-button-secondary.action-button-accent-sky:hover {
+    background: rgba(12, 74, 110, 0.4);
+    border-color: rgba(56, 189, 248, 0.6);
+    color: #bae6fd;
+  }
+
+  .action-button-secondary.action-button-accent-amber {
+    border-color: rgba(217, 119, 6, 0.45);
+    color: #b45309;
+  }
+
+  .action-button-secondary.action-button-accent-amber:hover {
+    background: rgba(254, 243, 199, 0.85);
+    border-color: #d97706;
+    color: #92400e;
+  }
+
+  .dark .action-button-secondary.action-button-accent-amber {
+    border-color: rgba(251, 191, 36, 0.4);
+    color: #fcd34d;
+  }
+
+  .dark .action-button-secondary.action-button-accent-amber:hover {
+    background: rgba(120, 53, 15, 0.35);
+    border-color: rgba(251, 191, 36, 0.6);
+    color: #fde68a;
   }
 
   .dark .action-button-tertiary {

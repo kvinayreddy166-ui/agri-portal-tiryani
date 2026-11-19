@@ -83,6 +83,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const config = useMemo(() => getConfig(form.category), [form.category]);
+  const noticeButtonAccent = form.category === 'seed' ? 'emerald' : form.category === 'pesticide' ? 'amber' : 'sky';
   const categoryViolations = useMemo(
     () => allShowCauseViolations.filter((item) => item.category === form.category),
     [form.category]
@@ -556,7 +557,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               ))}
             </div>
             ) : <span />}
-            <ActionButton tone="secondary" onClick={resetNotice}><RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />Reset</ActionButton>
+            <ActionButton tone="secondary" className="text-red-600 dark:text-red-300" onClick={resetNotice}><RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />Reset</ActionButton>
           </div>
 
           <div className={`rounded-lg border ${sectionBorderColor} bg-white dark:bg-slate-900 p-3 shadow-sm`}>
@@ -764,7 +765,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               <span className="mb-1 flex items-center justify-between gap-3 text-xs font-black text-slate-600 dark:text-slate-300">
                 <span>{config.observationLabel}</span>
                 {!showProductDetails && (
-                  <ActionButton tone="primary" size="sm" onClick={() => setShowProductDetails(true)} icon={Plus}>Add Product</ActionButton>
+                  <ActionButton tone="primary" accent={noticeButtonAccent} size="sm" onClick={() => setShowProductDetails(true)} icon={Plus}>Add Product</ActionButton>
                 )}
               </span>
               <textarea
@@ -803,10 +804,10 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <ActionButton tone="secondary" onClick={previewNotice} icon={Eye}>Preview</ActionButton>
-            <ActionButton tone="primary" onClick={saveNotice} icon={Save}>Save Draft</ActionButton>
+            <ActionButton tone="secondary" accent={noticeButtonAccent} onClick={previewNotice} icon={Eye}>Preview</ActionButton>
+            <ActionButton tone="primary" accent={noticeButtonAccent} onClick={saveNotice} icon={Save}>Save Draft</ActionButton>
             <div className="relative">
-              <ActionButton tone="primary" onClick={() => setExportOpen((open) => !open)} icon={Download} aria-haspopup="menu" aria-expanded={exportOpen}>Export<ChevronDown className={`h-4 w-4 transition-transform ${exportOpen ? 'rotate-180' : ''}`} aria-hidden="true" /></ActionButton>
+              <ActionButton tone="primary" accent={noticeButtonAccent} onClick={() => setExportOpen((open) => !open)} icon={Download} aria-haspopup="menu" aria-expanded={exportOpen}>Export<ChevronDown className={`h-4 w-4 transition-transform ${exportOpen ? 'rotate-180' : ''}`} aria-hidden="true" /></ActionButton>
               {exportOpen && (
                 <>
                   <button

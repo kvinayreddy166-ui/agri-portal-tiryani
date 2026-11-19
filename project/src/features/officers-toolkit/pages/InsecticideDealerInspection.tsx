@@ -664,7 +664,7 @@ export function InsecticideDealerInspection() {
             <SummaryChip label="Samples" value={summary.samples} />
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-amber-100 pt-3 dark:border-amber-900/40">
-            <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
+            <ActionButton onClick={openPreview} icon={Eye} tone="white">Preview</ActionButton>
             <ExportMenu tone="amber" onPdf={generatePdf} onExcel={generateExcel} onPrint={printPreview} />
           </div>
         </div>

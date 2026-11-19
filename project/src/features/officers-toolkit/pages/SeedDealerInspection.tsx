@@ -699,7 +699,7 @@ export function SeedDealerInspection() {
             <SummaryChip label="Samples" value={summary.samples} />
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-emerald-100 pt-3 dark:border-emerald-900/40">
-            <ActionButton onClick={openPreview} icon={Eye} tone="purple">Preview</ActionButton>
+            <ActionButton onClick={openPreview} icon={Eye} tone="white">Preview</ActionButton>
             <ExportMenu tone="emerald" onPdf={generatePdf} onExcel={generateExcel} onPrint={printPreview} />
           </div>
         </div>

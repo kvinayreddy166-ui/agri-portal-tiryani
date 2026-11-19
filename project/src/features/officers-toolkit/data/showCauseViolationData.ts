@@ -48,25 +48,6 @@ export interface NoticeCategoryConfig {
 
 export const noticeCategoryConfigs: NoticeCategoryConfig[] = [
   {
-    category: 'fertiliser',
-    tabLabel: 'Fertiliser',
-    title: 'Show Cause Notice Entry',
-    heading: 'Violations: FCO 1985 Clause Descriptions',
-    dealerLabel: 'Select Dealer',
-    memoPrefix: 'Frt/1',
-    observationLabel: 'Specific Observation',
-    observationPlaceholder: 'e.g. Stock mismatch noticed during inspection...',
-    previewButtonLabel: 'Preview Notice',
-    theme: {
-      panel: 'border-blue-200 bg-blue-50/60 dark:border-blue-900/60 dark:bg-blue-950/30',
-      header: 'from-blue-700 to-sky-700',
-      badge: 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200',
-      button: 'bg-blue-700 hover:bg-blue-800 focus:ring-blue-100',
-      card: 'border-blue-100 bg-white hover:border-blue-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-700',
-      checkbox: 'text-blue-700 focus:ring-blue-500',
-    },
-  },
-  {
     category: 'seed',
     tabLabel: 'Seed',
     title: 'Show Cause Notice: Seed (Control) Order',
@@ -83,6 +64,25 @@ export const noticeCategoryConfigs: NoticeCategoryConfig[] = [
       button: 'bg-green-700 hover:bg-green-800 focus:ring-green-100',
       card: 'border-green-100 bg-white hover:border-green-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-green-700',
       checkbox: 'text-green-700 focus:ring-green-500',
+    },
+  },
+  {
+    category: 'fertiliser',
+    tabLabel: 'Fertiliser',
+    title: 'Show Cause Notice Entry',
+    heading: 'Violations: FCO 1985 Clause Descriptions',
+    dealerLabel: 'Select Dealer',
+    memoPrefix: 'Frt/1',
+    observationLabel: 'Specific Observation',
+    observationPlaceholder: 'e.g. Stock mismatch noticed during inspection...',
+    previewButtonLabel: 'Preview Notice',
+    theme: {
+      panel: 'border-blue-200 bg-blue-50/60 dark:border-blue-900/60 dark:bg-blue-950/30',
+      header: 'from-blue-700 to-sky-700',
+      badge: 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200',
+      button: 'bg-blue-700 hover:bg-blue-800 focus:ring-blue-100',
+      card: 'border-blue-100 bg-white hover:border-blue-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-700',
+      checkbox: 'text-blue-700 focus:ring-blue-500',
     },
   },
   {

@@ -571,7 +571,7 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
       />
 
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <ActionButton tone="secondary" onClick={() => setResetConfirmOpen(true)}><RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />Reset</ActionButton>
+        <ActionButton tone="secondary" className="text-red-600 dark:text-red-300" onClick={() => setResetConfirmOpen(true)}><RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />Reset</ActionButton>
       </div>
 
       <div className="rounded-lg border border-emerald-200/80 dark:border-emerald-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
@@ -644,7 +644,7 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
       <div className="rounded-lg border border-emerald-200/80 dark:border-emerald-800/60 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <div className="mb-3 pb-2 border-b border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-between gap-3">
           <h3 className="text-sm font-black uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-black">Stock Details</h3>
-          <ActionButton tone="primary" size="sm" onClick={addProduct} icon={Plus}>Add Row</ActionButton>
+          <ActionButton tone="primary" accent="emerald" size="sm" onClick={addProduct} icon={Plus}>Add Row</ActionButton>
         </div>
         <div className="space-y-3">
           {form.products.map((row, index) => (
@@ -679,10 +679,10 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <ActionButton tone="secondary" onClick={previewOrder} icon={Eye}>Preview</ActionButton>
-        <ActionButton tone="primary" onClick={saveOrder} icon={Save}>Save Draft</ActionButton>
+        <ActionButton tone="secondary" accent="emerald" onClick={previewOrder} icon={Eye}>Preview</ActionButton>
+        <ActionButton tone="primary" accent="emerald" onClick={saveOrder} icon={Save}>Save Draft</ActionButton>
         <div className="relative">
-          <ActionButton tone="primary" onClick={() => setExportOpen((open) => !open)} icon={Download} aria-haspopup="menu" aria-expanded={exportOpen}>Export<ChevronDown className={`h-4 w-4 transition-transform ${exportOpen ? 'rotate-180' : ''}`} aria-hidden="true" /></ActionButton>
+          <ActionButton tone="primary" accent="emerald" onClick={() => setExportOpen((open) => !open)} icon={Download} aria-haspopup="menu" aria-expanded={exportOpen}>Export<ChevronDown className={`h-4 w-4 transition-transform ${exportOpen ? 'rotate-180' : ''}`} aria-hidden="true" /></ActionButton>
           {exportOpen && (
             <>
               <button

@@ -3,6 +3,7 @@ import { Loader2, type LucideIcon } from 'lucide-react';
 
 type Tone = 'primary' | 'secondary' | 'danger' | 'warning';
 type ActionTone = Tone | 'tertiary';
+type ActionAccent = 'emerald' | 'sky' | 'amber';
 type IconTone = Tone | 'excel' | 'sky' | 'slate';
 
 export function AppCard({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -116,6 +117,7 @@ export function EmptyState({ title, description }: { title: string; description?
  */
 export function ActionButton({
   tone = 'primary',
+  accent,
   size = 'md',
   icon: Icon,
   loading = false,
@@ -125,6 +127,8 @@ export function ActionButton({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
   tone?: ActionTone;
+  /** Category accent applied to primary buttons (Seed=emerald, Fertilizer=sky, Pesticide=amber). */
+  accent?: ActionAccent;
   size?: 'sm' | 'md';
   icon?: LucideIcon;
   loading?: boolean;
@@ -139,10 +143,12 @@ export function ActionButton({
 
   const iconClass = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
 
+  const accentClass = (tone === 'primary' || tone === 'secondary') && accent && accent !== 'emerald' ? `action-button-accent-${accent}` : '';
+
   return (
     <button
       type="button"
-      className={`action-button${size === 'sm' ? ' action-button-sm' : ''} ${toneClass} ${className}`}
+      className={`action-button${size === 'sm' ? ' action-button-sm' : ''} ${toneClass} ${accentClass} ${className}`}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       {...props}
