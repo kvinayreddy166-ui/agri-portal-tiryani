@@ -30,6 +30,7 @@ type DealerRow = {
   ifms_id?: string | null;
   phone_number?: string | null;
   license_number?: string | null;
+  issue_date?: string | null;
   expiry_date?: string | null;
   location?: string | null;
   dealer_category?: StockCategory | null;
@@ -407,7 +408,8 @@ function buildReportRows(
         Phone: dealer.phone_number || '',
         License: dealer.license_number || '',
         Village: dealer.location || '',
-        'Valid Upto': dealer.expiry_date || '',
+        'Date of Issue': dealer.issue_date || '',
+        'Validity': dealer.expiry_date || '',
       }));
     case 'fertilizer-receipts':
       return receiptRows.map((row, index) => ({
@@ -463,7 +465,7 @@ function buildReportRows(
 async function fetchDealerRows(): Promise<DealerRow[]> {
   const primary = await fetchAllRows<DealerRow>({
     table: 'dealers',
-    columns: 'id, dealer_name, ifms_id, phone_number, license_number, expiry_date, location, dealer_category',
+    columns: 'id, dealer_name, ifms_id, phone_number, license_number, issue_date, expiry_date, location, dealer_category',
     order: [{ column: 'dealer_name' }],
   });
   if (!primary.error) return primary.data;
@@ -471,7 +473,7 @@ async function fetchDealerRows(): Promise<DealerRow[]> {
   console.warn('Dealer report query fallback:', primary.error);
   const fallback = await fetchAllRows<DealerRow>({
     table: 'dealers',
-    columns: 'id, dealer_name, ifms_id, phone_number, license_number, expiry_date, location',
+    columns: 'id, dealer_name, ifms_id, phone_number, license_number, issue_date, expiry_date, location',
     order: [{ column: 'dealer_name' }],
   });
   return fallback.data;

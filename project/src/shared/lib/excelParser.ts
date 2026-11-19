@@ -22,9 +22,18 @@ function normalizeHeader(h: string): string {
   return h.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 }
 
+const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;
+
+// Converts an instant to the intended IST calendar date. Licence exports store
+// IST midnight as ~18:29-18:30 UTC (IST 23:59:5x after truncation), so the
+// shifted instant is rounded forward by 30 minutes before taking the date.
+function toIstDateString(d: Date): string {
+  return new Date(d.getTime() + IST_OFFSET_MS + 30 * 60 * 1000).toISOString().slice(0, 10);
+}
+
 function parseDate(value: unknown): string {
-  if (!value) return new Date().toISOString().slice(0, 10);
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (!value) return toIstDateString(new Date());
+  if (value instanceof Date) return toIstDateString(value);
   const str = String(value).trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
   const dayFirst = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
@@ -34,12 +43,11 @@ function parseDate(value: unknown): string {
   }
   const excelDate = Number(value);
   if (!Number.isNaN(excelDate) && excelDate > 30000) {
-    const date = new Date((excelDate - 25569) * 86400 * 1000);
-    return date.toISOString().slice(0, 10);
+    return toIstDateString(new Date((excelDate - 25569) * 86400 * 1000));
   }
   const parsed = new Date(str);
-  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
-  return new Date().toISOString().slice(0, 10);
+  if (!Number.isNaN(parsed.getTime())) return toIstDateString(parsed);
+  return toIstDateString(new Date());
 }
 
 function rowToDealer(
@@ -53,17 +61,17 @@ function rowToDealer(
   const isPesticide = category === 'pesticide';
   const expiry = isPesticide
     ? '2099-12-31'
-    : parseDate(row.expiry_date || row.valid_until || row.validity);
+    : parseDate(row.expiry_date || row.valid_until || row.validity || row.licence_expiry_date);
 
   return {
     dealer_name: String(name).trim(),
-    ifms_id: category === 'fertilizer' ? String(row.ifms_id || row.ifms || row.ifmsid || '').trim() : '',
-    phone_number: String(row.phone_number || row.phone || row.mobile || '').replace(/\D/g, '').slice(0, 10),
-    license_number: String(row.license_number || row.license || '').trim() || 'N/A',
-    issue_date: parseDate(row.issue_date || row.license_issue_date || row.issued),
+    ifms_id: category === 'fertilizer' ? String(row.ifms_id || row.ifms || row.ifmsid || row.dealer_id || '').trim() : '',
+    phone_number: String(row.phone_number || row.phone || row.mobile || row.dealer_mobile_no || row.mobile_no || '').replace(/\D/g, '').slice(0, 10),
+    license_number: String(row.license_number || row.license || row.licence_number || row.licence || '').trim() || 'N/A',
+    issue_date: parseDate(row.issue_date || row.license_issue_date || row.licence_issue_date || row.issued),
     expiry_date: expiry,
     location: String(row.address || row.location || row.village || '').trim() || 'Tiryani',
-    district: normalizeDistrictName(String(row.district || row.dist || '').trim()) || undefined,
+    district: normalizeDistrictName(String(row.district || row.district_name || row.dist || '').trim()) || undefined,
     mandal: String(row.mandal || row.mandals || '').trim() || undefined,
     dealer_category: category,
   };

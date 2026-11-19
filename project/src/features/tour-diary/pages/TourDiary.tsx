@@ -338,6 +338,8 @@ export function TourDiary() {
   // Toast + dialog state (replaces native alert/confirm/prompt)
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const toastSeq = useRef(0);
+  const autoResumeUserRef = useRef<string | null>(null);
+  const restoredPeriodRef = useRef<{ year: number; month: number } | null>(null);
   const [dialogState, setDialogState] = useState<DialogState | null>(null);
   const [expandedOverrides, setExpandedOverrides] = useState<Record<string, boolean>>({});
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -590,6 +592,57 @@ export function TourDiary() {
     }
   }, []);
 
+  // Auto-resume the current month's draft for the logged-in officer so
+  // saved entries survive leaving the session and returning. Runs once per user.
+  useEffect(() => {
+    if (!user || autoResumeUserRef.current === user.id) return;
+    autoResumeUserRef.current = user.id;
+
+    let cancelled = false;
+    loadAllDrafts().then((drafts) => {
+      if (cancelled) return;
+      // A pending recovery prompt already covers restoring unsaved work
+      if (getRecoveryState()) return;
+
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const monthKey = `${year}-${String(month).padStart(2, '0')}`;
+      const hasContent = (d: TourDiaryDraft) =>
+        d.journeys.length > 0 ||
+        Object.keys(d.dateStatusOverrides || {}).length > 0 ||
+        Object.keys(d.dateRemarks || {}).length > 0;
+
+      const candidates = drafts.filter(
+        (d) => d.year === year && d.month === month && hasContent(d)
+      );
+      if (candidates.length === 0) return;
+
+      // Draft ids are `${officerId}_${year}-${MM}` where officerId is the auth
+      // user id when logged in, otherwise the officer name/email.
+      const idMatch = candidates.find((d) => d.id === `${user.id}_${monthKey}`);
+      const nameKeys = [
+        officerProfile?.full_name,
+        user.email,
+        (user.user_metadata?.full_name as string | undefined),
+      ]
+        .filter((v): v is string => !!v)
+        .map(normalizeOfficerName);
+      const match =
+        idMatch ||
+        candidates.find((d) => nameKeys.includes(normalizeOfficerName(d.officerName || '')));
+
+      if (match) {
+        void loadDraftFromLocal(match);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, officerProfile]);
+
   // Load data when month/year changes
   useEffect(() => {
     // Load holidays regardless of user (static data)
@@ -616,22 +669,29 @@ export function TourDiary() {
       dateStatusOverrides
     });
     
-    if (lastSavedState && currentState !== lastSavedState) {
+    const hasContent =
+      journeys.length > 0 ||
+      Object.keys(dateStatusOverrides).length > 0 ||
+      Object.keys(dateRemarks).length > 0 ||
+      !!officerName;
+
+    if (currentState !== lastSavedState && (lastSavedState !== '' || hasContent)) {
       setHasUnsavedChanges(true);
     }
-  }, [officerName, designation, district, mandal, division, journeys, dateStatusOverrides, lastSavedState]);
+  }, [officerName, designation, district, mandal, division, journeys, dateStatusOverrides, dateRemarks, lastSavedState]);
 
   // Autosave draft to IndexedDB (debounced)
   const autosaveDraft = useCallback(async () => {
-    if (!officerName || !currentMonth || !currentYear) {
+    const effectiveOfficerName = officerName || officerInfo?.name || user?.email || '';
+    if (!effectiveOfficerName || !currentMonth || !currentYear) {
       return;
     }
 
     try {
-      const officerId = user?.id || officerName;
+      const officerId = user?.id || effectiveOfficerName;
       await saveDraftToIndexedDB(
         officerId,
-        officerName,
+        effectiveOfficerName,
         designation || customDesignation || '',
         district || customDistrict || '',
         mandal || customMandal || '',
@@ -646,7 +706,7 @@ export function TourDiary() {
     } catch (error) {
       console.error('Error autosaving draft:', error);
     }
-  }, [officerName, designation, customDesignation, district, customDistrict, mandal, customMandal, currentYear, currentMonth, tourDiary, journeys, dateStatusOverrides, dateRemarks, user]);
+  }, [officerName, officerInfo, designation, customDesignation, district, customDistrict, mandal, customMandal, currentYear, currentMonth, tourDiary, journeys, dateStatusOverrides, dateRemarks, user]);
 
   // Trigger autosave when hasUnsavedChanges becomes true
   useEffect(() => {
@@ -905,6 +965,7 @@ export function TourDiary() {
       }));
       setHasUnsavedChanges(false);
       setShowDraftPicker(false);
+      restoredPeriodRef.current = { year: draft.year, month: draft.month };
       setShowLandingPage(false);
     } catch (error) {
       console.error('Error loading draft:', error);
@@ -915,7 +976,13 @@ export function TourDiary() {
   // Load journeys for current month
   async function loadJourneys() {
     // Journeys are now managed locally through the draft system
-    // This function is kept for compatibility but does nothing
+    // This function is kept for compatibility but does nothing.
+    // Skip clearing once for a period whose journeys were just restored from a draft.
+    const restored = restoredPeriodRef.current;
+    if (restored && restored.year === currentYear && restored.month === currentMonth) {
+      restoredPeriodRef.current = null;
+      return;
+    }
     setJourneys([]);
   }
 
@@ -1128,8 +1195,8 @@ export function TourDiary() {
     const dayJourneys = getJourneysForDate(date);
     if (dayJourneys.length === 0) return false;
     
-    // Check if at least one journey has all mandatory fields
-    return dayJourneys.some(j => 
+    // Check if every journey on the date has all mandatory fields
+    return dayJourneys.every(j => 
       j.to_place && 
       j.distance_km !== null && j.distance_km !== undefined && j.distance_km > 0 &&
       j.purposes && j.purposes.length > 0
@@ -1386,14 +1453,6 @@ export function TourDiary() {
       return;
     }
 
-    // Only one journey is allowed per date - open the existing entry for editing instead
-    const existingJourneys = getJourneysForDate(date);
-    if (existingJourneys.length > 0) {
-      showToast('Only one journey is allowed per date. Opening the existing entry for editing.', 'info');
-      editJourney(existingJourneys[0]);
-      return;
-    }
-
     setSelectedDate(date);
     setEditingJourney(null);
     setFormErrors({});
@@ -1486,19 +1545,6 @@ export function TourDiary() {
         return;
       }
       setFormErrors({});
-
-      // One journey per date - block duplicates on create
-      if (!editingJourney && journeys.some(j => j.journey_date === formData.journey_date)) {
-        showToast('Only one journey per date is allowed. Edit the existing entry instead.', 'warning');
-        setShowJourneyForm(false);
-        return;
-      }
-
-      // Only one journey is allowed per date
-      if (!editingJourney && journeys.some(j => j.journey_date === formData.journey_date)) {
-        showToast('A journey already exists for this date. Edit the existing entry instead.', 'warning');
-        return;
-      }
 
       const journeyData: TourJourney = {
         id: editingJourney?.id || crypto.randomUUID(),
@@ -2740,7 +2786,7 @@ export function TourDiary() {
                       ) : null}
                     </span>
                   </button>
-                  {!entryDisabled && dayJourneys.length === 0 && (
+                  {!entryDisabled && (
                     <button
                       type="button"
                       onClick={() => openJourneyForm(date)}

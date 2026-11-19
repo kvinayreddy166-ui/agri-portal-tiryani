@@ -158,7 +158,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
         const safe = term.replace(/[%,()"'\\]/g, '');
         if (safe) {
           q = q.or(
-            `dealer_name.ilike.%${safe}%,location.ilike.%${safe}%,license_number.ilike.%${safe}%`
+            `dealer_name.ilike.%${safe}%,location.ilike.%${safe}%,license_number.ilike.%${safe}%,ifms_id.ilike.%${safe}%,phone_number.ilike.%${safe}%`
           );
         }
       }
@@ -564,7 +564,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
         'Portal Email',
         'License Number',
         'Issue Date',
-        'Expiry Date',
+        'Validity',
         'Location',
         'District',
         'Mandal',
@@ -721,8 +721,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
   }, [dealers, loading, currentPage]);
 
   const showIfms = activeTab === 'fertilizer';
-  const validityLabel =
-    activeTab === 'pesticide' ? t('Validity', 'చెల్లుబాటు') : t('Valid Until', 'చెల్లుబాటు తేదీ');
+  const validityLabel = t('Validity', 'చెల్లుబాటు');
 
   if (showSkeleton) {
     return (
@@ -1140,7 +1139,7 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
 
       <div className="portal-card overflow-hidden">
         <div className="table-scroll">
-          <table className="w-full min-w-[1020px] border-collapse text-xs">
+          <table className="w-full min-w-[1140px] border-collapse text-xs">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left dark:border-slate-700 dark:bg-slate-800/60">
                 {canManageDealers && (
@@ -1175,11 +1174,9 @@ export function DealerManagement({ scopeToCreator = false }: { scopeToCreator?: 
                 <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {t('License', 'లైసెన్స్')}
                 </th>
-                {activeTab === 'pesticide' && (
-                  <th className="w-[104px] whitespace-nowrap px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <th className="w-[104px] whitespace-nowrap px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     {t('Issue Date', 'జారీ తేదీ')}
-                  </th>
-                )}
+                </th>
                 {activeTab !== 'pesticide' && (
                   <th className="w-[104px] whitespace-nowrap px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     {validityLabel}
@@ -1601,11 +1598,9 @@ function DisplayRow({
       {showIfms && <td className={`${cellCls} font-mono text-xs text-slate-600 dark:text-slate-400`}>{dealer.ifms_id || '—'}</td>}
       <td className={`${cellCls} font-mono text-xs tabular-nums text-slate-600 dark:text-slate-400`}>{dealer.phone_number}</td>
       <td className={`${cellCls} font-mono text-xs text-slate-600 dark:text-slate-400`}>{dealer.license_number}</td>
-      {isPermanent && (
-        <td className={`${cellCls} whitespace-nowrap text-xs tabular-nums text-slate-600 dark:text-slate-400`}>
-          {dealer.issue_date ? formatDealerDate(dealer.issue_date) || '—' : '—'}
-        </td>
-      )}
+      <td className={`${cellCls} whitespace-nowrap text-xs tabular-nums text-slate-600 dark:text-slate-400`}>
+        {dealer.issue_date ? formatDealerDate(dealer.issue_date) || '—' : '—'}
+      </td>
       {!isPermanent && (
         <td className={`${cellCls} whitespace-nowrap`}>
           {validityDate ? (
@@ -1718,16 +1713,14 @@ function EditRow({
           className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
         />
       </td>
-      {activeTab === 'pesticide' && (
-        <td className="px-3 py-2 align-middle">
-          <input
-            type="date"
-            value={dealer.issue_date}
-            onChange={(e) => updateLocalDealer(dealer.id, 'issue_date', e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
-          />
-        </td>
-      )}
+      <td className="px-3 py-2 align-middle">
+        <input
+          type="date"
+          value={dealer.issue_date}
+          onChange={(e) => updateLocalDealer(dealer.id, 'issue_date', e.target.value)}
+          className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-900 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:focus:ring-emerald-900/40"
+        />
+      </td>
       {activeTab !== 'pesticide' && (
         <td className="px-3 py-2 align-middle">
           <input
