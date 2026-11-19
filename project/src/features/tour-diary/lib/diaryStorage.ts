@@ -43,6 +43,7 @@ export interface DraftRecord {
   status: 'DRAFT';
   totalEntries?: number; // Number of journey entries
   displayName?: string; // Custom display name for the draft
+  explicitly_saved?: boolean; // True only when the user tapped "Save Draft" explicitly
   createdAt: string;
   updatedAt: string;
 }
@@ -263,7 +264,8 @@ export async function saveDraft(
   openingMeter: number,
   journeys: any[],
   dateStatusOverrides: Record<string, any>,
-  dateRemarks: Record<string, string>
+  dateRemarks: Record<string, string>,
+  explicitlySaved = false
 ): Promise<DraftRecord> {
   try {
     const db = await getDatabase();
@@ -285,6 +287,7 @@ export async function saveDraft(
       dateRemarks,
       status: 'DRAFT',
       totalEntries: journeys.length,
+      explicitly_saved: explicitlySaved,
       createdAt: now,
       updatedAt: now
     };

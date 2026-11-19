@@ -34,6 +34,7 @@ export interface TourDiaryDraft {
   closingMeter: number | null;
   totalKm: number;
   displayName?: string;
+  explicitlySaved?: boolean;
   createdAt: string;
   updatedAt: string;
   dateRemarks?: Record<string, string>;

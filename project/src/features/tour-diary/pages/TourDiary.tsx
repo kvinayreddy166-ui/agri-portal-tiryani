@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { supabase } from '../../../shared/lib/supabase';
-import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, X, ClipboardList, Download, Printer } from 'lucide-react';
+import { Plus, FileText, Table, Edit, Trash2, ChevronLeft, ChevronRight, ChevronDown, AlertCircle, AlertTriangle, CheckCircle, Info, RefreshCw, Eye, NotebookPen, MoreVertical, X, ClipboardList, Download, Printer, Play } from 'lucide-react';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { TELANGANA_DISTRICTS, getMandalsForDistrict, SEED_DESIGNATION_OPTIONS, getDivisionsForDistrict } from '../../../shared/data/telanganaDistrictMandalData';
 import { statutoryDesignationForProfile, normalizeTelanganaDistrict } from '../../auth/lib/officerInspectorDefaults';
 import { OFFICER_DESIGNATION_OPTIONS } from '../../auth/lib/officerProfileForm';
 import { statutoryDesignationDisplay } from '../../../shared/data/assistantDirectorLocation';
 import { deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
-import { getAllSavedDiaries, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, renameDraft } from '../lib/diaryStorage';
+import { getAllSavedDiaries, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, getDraft as getDraftFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, renameDraft } from '../lib/diaryStorage';
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import type {
   TourDiary,
@@ -54,6 +54,21 @@ function formatOptionalTime(time?: string | null): string {
 function formatOptionalNumber(value?: number | null): string {
   return value === null || value === undefined || Number.isNaN(value) ? '' : value.toFixed(0);
 }
+
+// crypto.randomUUID is unavailable in non-secure contexts (http, some
+// in-app browsers), so fall back to a RFC4122 v4 generator.
+function generateJourneyId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Draft Helper Functions
 function normalizeOfficerName(name: string): string {
@@ -493,6 +508,7 @@ export function TourDiary() {
         dateStatusOverrides: draft.dateStatusOverrides || {},
         dateRemarks: draft.dateRemarks || {},
         displayName: draft.displayName,
+        explicitlySaved: draft.explicitly_saved,
         createdAt: draft.createdAt,
         updatedAt: draft.updatedAt
       }));
@@ -517,7 +533,9 @@ export function TourDiary() {
       data: TourDiaryDraft | DiaryPdfMetadata;
     }> = [];
 
-    allDrafts.forEach(draft => {
+    // My Diaries lists only drafts the user explicitly saved via "Save Draft".
+    // Leftover autosaved work is surfaced separately through Resume Draft.
+    allDrafts.filter(draft => draft.explicitlySaved === true).forEach(draft => {
       items.push({
         id: draft.id,
         type: 'draft',
@@ -576,6 +594,32 @@ export function TourDiary() {
       console.error('Error loading saved diaries:', error);
     }
   }, []);
+
+  // Latest unfinished draft that can be resumed from the landing page.
+  // Prefers drafts belonging to the logged-in officer.
+  const resumableDraft = useMemo(() => {
+    const hasContent = (d: TourDiaryDraft) =>
+      d.journeys.length > 0 ||
+      Object.keys(d.dateStatusOverrides || {}).length > 0 ||
+      Object.keys(d.dateRemarks || {}).length > 0;
+    const candidates = allDrafts.filter(
+      (d) => hasContent(d) && d.explicitlySaved !== true
+    );
+    if (candidates.length === 0) return null;
+    if (!user) return candidates[0];
+    const nameKeys = [
+      officerProfile?.full_name,
+      user.email,
+      (user.user_metadata?.full_name as string | undefined),
+    ]
+      .filter((v): v is string => !!v)
+      .map(normalizeOfficerName);
+    return (
+      candidates.find((d) => d.id.startsWith(`${user.id}_`)) ||
+      candidates.find((d) => nameKeys.includes(normalizeOfficerName(d.officerName || ''))) ||
+      null
+    );
+  }, [allDrafts, user, officerProfile]);
 
   // Initialize
   useEffect(() => {
@@ -672,8 +716,7 @@ export function TourDiary() {
     const hasContent =
       journeys.length > 0 ||
       Object.keys(dateStatusOverrides).length > 0 ||
-      Object.keys(dateRemarks).length > 0 ||
-      !!officerName;
+      Object.keys(dateRemarks).length > 0;
 
     if (currentState !== lastSavedState && (lastSavedState !== '' || hasContent)) {
       setHasUnsavedChanges(true);
@@ -689,6 +732,21 @@ export function TourDiary() {
 
     try {
       const officerId = user?.id || effectiveOfficerName;
+      const hasEntries =
+        journeys.length > 0 ||
+        Object.keys(dateStatusOverrides).length > 0 ||
+        Object.keys(dateRemarks).length > 0;
+      const draftId = `${officerId}_${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+      if (!hasEntries) {
+        // Nothing worth keeping - remove any stale empty draft instead of
+        // overwriting it with empty content.
+        await deleteDraftFromIndexedDB(draftId);
+        setLastSaved(new Date());
+        return;
+      }
+      // Preserve the explicit-save flag: once the user taps "Save Draft" the
+      // record stays in My Diaries even while autosave keeps it updated.
+      const existing = await getDraftFromIndexedDB(draftId);
       await saveDraftToIndexedDB(
         officerId,
         effectiveOfficerName,
@@ -700,7 +758,8 @@ export function TourDiary() {
         tourDiary?.opening_meter || 0,
         journeys,
         dateStatusOverrides,
-        dateRemarks
+        dateRemarks,
+        existing?.explicitly_saved === true
       );
       setLastSaved(new Date());
     } catch (error) {
@@ -878,7 +937,8 @@ export function TourDiary() {
         tourDiary?.opening_meter || 0,
         journeys,
         dateStatusOverrides,
-        dateRemarks
+        dateRemarks,
+        true
       );
 
       setLastSaved(new Date());
@@ -1195,8 +1255,8 @@ export function TourDiary() {
     const dayJourneys = getJourneysForDate(date);
     if (dayJourneys.length === 0) return false;
     
-    // Check if every journey on the date has all mandatory fields
-    return dayJourneys.every(j => 
+    // Check if at least one journey has all mandatory fields
+    return dayJourneys.some(j => 
       j.to_place && 
       j.distance_km !== null && j.distance_km !== undefined && j.distance_km > 0 &&
       j.purposes && j.purposes.length > 0
@@ -1453,6 +1513,14 @@ export function TourDiary() {
       return;
     }
 
+    // Only one journey is allowed per date - open the existing entry for editing instead
+    const existingJourneys = getJourneysForDate(date);
+    if (existingJourneys.length > 0) {
+      showToast('Only one journey is allowed per date. Opening the existing entry for editing.', 'info');
+      editJourney(existingJourneys[0]);
+      return;
+    }
+
     setSelectedDate(date);
     setEditingJourney(null);
     setFormErrors({});
@@ -1546,8 +1614,15 @@ export function TourDiary() {
       }
       setFormErrors({});
 
+      // One journey per date - block duplicates on create
+      if (!editingJourney && journeys.some(j => j.journey_date === formData.journey_date)) {
+        showToast('Only one journey per date is allowed. Edit the existing entry instead.', 'warning');
+        setShowJourneyForm(false);
+        return;
+      }
+
       const journeyData: TourJourney = {
-        id: editingJourney?.id || crypto.randomUUID(),
+        id: editingJourney?.id || generateJourneyId(),
         tour_diary_id: tourDiary?.id || '',
         officer_id: user?.id || '',
         journey_date: formData.journey_date,
@@ -1573,8 +1648,10 @@ export function TourDiary() {
         setJourneys(prev => [...prev, journeyData]);
       }
 
-      // If tour diary exists in database, also sync to Supabase
-      if (tourDiary && user?.id) {
+      // If tour diary exists in database, also sync to Supabase.
+      // tourDiary can be a local placeholder (recovery/draft id, not a real
+      // tour_diaries UUID) - only sync when the id is a valid UUID.
+      if (tourDiary && user?.id && UUID_RE.test(tourDiary.id)) {
         const supabaseJourneyData = {
           tour_diary_id: tourDiary.id,
           officer_id: user.id,
@@ -1953,6 +2030,29 @@ export function TourDiary() {
               <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-emerald-600 dark:text-slate-500 dark:group-hover:text-emerald-400" />
             </button>
 
+            {/* Resume Draft Card - shown only when an unfinished draft exists */}
+            {resumableDraft && (
+              <button
+                onClick={() => {
+                  void loadDraftFromLocal(resumableDraft);
+                }}
+                className="group flex w-full items-center gap-3 rounded-xl border border-amber-200/60 bg-amber-50/60 px-4 py-3 text-left shadow-sm transition-colors hover:border-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-amber-800/50 dark:bg-amber-950/20 dark:hover:border-amber-600"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500 text-white">
+                  <Play className="h-4 w-4" strokeWidth={2.5} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-sm font-bold text-slate-900 dark:text-white">
+                    {t('Resume Draft', 'డ్రాఫ్ట్ కొనసాగించండి')}
+                  </h3>
+                  <p className="truncate text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {`${MONTHS[resumableDraft.month - 1]} ${resumableDraft.year} • ${resumableDraft.journeys.length} ${t('entries', 'ఎంట్రీలు')}`}
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-amber-600 dark:text-slate-500 dark:group-hover:text-amber-400" />
+              </button>
+            )}
+
             {/* My Diaries Card */}
             <button
               onClick={handleMyDiaries}
@@ -1968,7 +2068,7 @@ export function TourDiary() {
                 </h3>
                 <p className="truncate text-xs font-medium text-slate-500 dark:text-slate-400">
                   {t('Drafts', 'డ్రాఫ్ట్‌లు')}
-                  {allDrafts.length > 0 && ` • ${allDrafts.length}`}
+                  {allDrafts.filter(d => d.explicitlySaved === true).length > 0 && ` • ${allDrafts.filter(d => d.explicitlySaved === true).length}`}
                 </p>
               </div>
               <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 group-hover:text-emerald-600 dark:text-slate-500 dark:group-hover:text-emerald-400 ${showMyDiariesDropdown ? 'rotate-180 text-emerald-600 dark:text-emerald-400' : ''}`} />
@@ -2786,7 +2886,7 @@ export function TourDiary() {
                       ) : null}
                     </span>
                   </button>
-                  {!entryDisabled && (
+                  {!entryDisabled && dayJourneys.length === 0 && (
                     <button
                       type="button"
                       onClick={() => openJourneyForm(date)}

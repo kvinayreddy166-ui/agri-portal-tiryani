@@ -120,8 +120,21 @@ function AppContent() {
 
   const handleBack = useCallback(() => {
     if (!confirmDiscardIfDirty()) return;
+    const state = window.history.state as { idx?: number; from?: string } | null;
+    // Prefer the actual previous in-app page recorded during navigation so
+    // back behaves like an immediate back for every user role.
+    const fromPage = state?.from;
+    if (fromPage && fromPage !== currentPage && validPages.has(fromPage)) {
+      // Navigate directly (not via navigateToPage) to avoid a second
+      // dirty-check prompt - handleBack already confirmed above.
+      setCurrentPage(fromPage);
+      navigate(pageToPath(fromPage), {
+        state: { tiryaniPage: fromPage, from: currentPage },
+      });
+      return;
+    }
     if (isAdminUser || isTestUser) {
-      const idx = (window.history.state as { idx?: number } | null)?.idx;
+      const idx = state?.idx;
       if (typeof idx === 'number' && idx > 0) {
         navigate(-1);
         return;
@@ -129,7 +142,7 @@ function AppContent() {
     }
     const fallbackPage = getPageBackFallback(currentPage, isDealerUser);
     navigate(pageToPath(fallbackPage), { replace: true });
-  }, [currentPage, isAdminUser, isTestUser, isDealerUser, navigate]);
+  }, [currentPage, isAdminUser, isTestUser, isDealerUser, navigate, validPages]);
 
   useEffect(() => {
     const nextPage = getPageFromLocation();
