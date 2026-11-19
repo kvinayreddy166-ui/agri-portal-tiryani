@@ -1147,7 +1147,8 @@ export function OfficerRecordsHub() {
                   <FileText className="h-4 w-4" />
                 </span>
               </div>
-              <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">{t('Archived officer files', 'భద్రపరిచిన రికార్డులు')}</p>
+              <div className="mt-2 text-2xl font-black tracking-tight text-slate-950 dark:text-white">{storageStats.totalDocuments}</div>
+              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">{t('Archived officer files', 'భద్రపరిచిన రికార్డులు')}</p>
             </div>
 
             <div className="relative overflow-hidden rounded-xl border border-emerald-200/80 bg-emerald-50/30 p-3.5 shadow-2xs dark:border-emerald-900/60 dark:bg-emerald-950/20">
@@ -1158,7 +1159,8 @@ export function OfficerRecordsHub() {
                   <Cloud className="h-4 w-4" />
                 </span>
               </div>
-              <p className="mt-2 text-[11px] text-emerald-700/80 dark:text-emerald-400">{t('Synced to cloud storage', 'క్లౌడ్ నిల్వకు సమించబడింది')}</p>
+              <div className="mt-2 text-2xl font-black tracking-tight text-emerald-700 dark:text-emerald-300">{storageStats.successfullyUploaded}</div>
+              <p className="mt-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400">{t('Synced to cloud storage', 'క్లౌడ్ నిల్వకు సమించబడింది')}</p>
             </div>
 
             <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
@@ -1169,9 +1171,21 @@ export function OfficerRecordsHub() {
                   <Archive className="h-4 w-4" />
                 </span>
               </div>
-              <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="mt-2 text-2xl font-black tracking-tight text-slate-950 dark:text-white">
+                {formatBytes(storageStats.totalStoredBytes || storageStats.totalStorageBytes)}
+              </div>
+              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
                 {t('Compressed cloud footprint', 'కంప్రెస్డ్ నిల్వ')}
               </p>
+              {storageStats.storageSavedBytes > 0 && (
+                <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                  <CheckCircle2 className="h-3 w-3" />
+                  {t(
+                    `${formatBytes(storageStats.storageSavedBytes)} saved (${storageStats.compressionPercentage}%)`,
+                    `${formatBytes(storageStats.storageSavedBytes)} ఆదా (${storageStats.compressionPercentage}%)`
+                  )}
+                </p>
+              )}
             </div>
           </div>
 
@@ -1183,6 +1197,7 @@ export function OfficerRecordsHub() {
                 : 'border-slate-200/80 bg-slate-50/60 text-slate-600 dark:border-slate-800 dark:bg-slate-800/40'
             }`}>
               <div className="text-xs font-semibold">{t('Pending Uploads', 'పెండింగ్ అప్‌లోడ్లు')}</div>
+              <div className="mt-1 text-base font-black">{storageStats.pendingUploads}</div>
             </div>
 
             <div className={`rounded-xl border p-2.5 text-center ${
@@ -1191,6 +1206,7 @@ export function OfficerRecordsHub() {
                 : 'border-slate-200/80 bg-slate-50/60 text-slate-600 dark:border-slate-800 dark:bg-slate-800/40'
             }`}>
               <div className="text-xs font-semibold">{t('Failed Uploads', 'విఫలమైన అప్‌లోడ్లు')}</div>
+              <div className="mt-1 text-base font-black">{storageStats.failedUploads}</div>
             </div>
           </div>
         </div>
@@ -1213,6 +1229,13 @@ export function OfficerRecordsHub() {
             }`}
           >
             {tab.label}
+            <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${
+              activeTab === tab.key
+                ? 'bg-white/20 text-white'
+                : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+            }`}>
+              {tab.key === 'documents' ? filteredDocuments.length : filteredRecords.length}
+            </span>
           </button>
         ))}
       </div>
@@ -1254,87 +1277,6 @@ export function OfficerRecordsHub() {
           )}
 
           {/* Admin-only district/mandal filters */}
-
-
-          {/* Admin-only filter reset */}
-          {isAdminUser && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setDistrictFilter('all');
-                setMandalFilter('all');
-                setSyncFilter('all');
-                setCategoryFilter('all');
-                setCommodityFilter('all');
-                setYearFilter('all');
-                setMonthFilter('all');
-                setDateFilter('all');
-              }}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-xs transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-              title={t('Reset all filters', 'అన్ని ఫిల్టర్లను రీసెట్ చేయండి')}
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span>{t('Reset', 'రీసెట్')}</span>
-            </button>
-          )}
-
-
-          {/* Export Dropdown Button (Tucks Excel & PDF inside) — records tab only */}
-          {activeTab === 'records' && (
-          <div className="relative" ref={exportMenuRef}>
-            <button
-              type="button"
-              onClick={() => setIsExportMenuOpen((prev) => !prev)}
-              disabled={exportingType !== null || visibleItems.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-              title={t('Export Register & Reports', 'రిజిస్టర్ & నివేదికలను ఎగుమతి చేయండి')}
-              aria-haspopup="true"
-              aria-expanded={isExportMenuOpen}
-            >
-              {exportingType !== null ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600 dark:text-emerald-400" />
-              ) : (
-                <Download className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-              )}
-              <span>{t('Export', 'ఎగుమతి')}</span>
-              <ChevronDown
-                className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${
-                  isExportMenuOpen ? 'rotate-180 text-emerald-600' : ''
-                }`}
-              />
-            </button>
-
-            {isExportMenuOpen && (
-              <div className="absolute right-0 mt-1.5 w-32 rounded-xl border border-slate-200 bg-white py-1 shadow-lg z-30 dark:border-slate-700 dark:bg-slate-800">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsExportMenuOpen(false);
-                    void handleExport('excel');
-                  }}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 transition"
-                >
-                  <FileSpreadsheet className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>EXCEL</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsExportMenuOpen(false);
-                    void handleExport('pdf');
-                  }}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-800 dark:text-slate-200 dark:hover:bg-rose-950/40 dark:hover:text-rose-300 transition border-t border-slate-100 dark:border-slate-700/60"
-                >
-                  <Printer className="h-4 w-4 text-rose-600 shrink-0" />
-                  <span>PDF</span>
-                </button>
-
-              </div>
-            )}
-          </div>
-          )}
 
           {isAdminUser && (
             <>
@@ -1452,6 +1394,91 @@ export function OfficerRecordsHub() {
             <option value="30days">{t('Last 30 Days', 'గత 30 రోజులు')}</option>
           </select>
 
+          {/* Export Dropdown Button (Tucks Excel & PDF inside) — records tab only */}
+          {activeTab === 'records' && (
+          <div className="relative" ref={exportMenuRef}>
+            <button
+              type="button"
+              onClick={() => setIsExportMenuOpen((prev) => !prev)}
+              disabled={exportingType !== null || visibleItems.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              title={t('Export Register & Reports', 'రిజిస్టర్ & నివేదికలను ఎగుమతి చేయండి')}
+              aria-haspopup="true"
+              aria-expanded={isExportMenuOpen}
+            >
+              {exportingType !== null ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600 dark:text-emerald-400" />
+              ) : (
+                <Download className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              )}
+              <span>{t('Export', 'ఎగుమతి')}</span>
+              <ChevronDown
+                className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${
+                  isExportMenuOpen ? 'rotate-180 text-emerald-600' : ''
+                }`}
+              />
+            </button>
+
+            {isExportMenuOpen && (
+              <div className="absolute right-0 mt-1.5 w-32 rounded-xl border border-slate-200 bg-white py-1 shadow-lg z-30 dark:border-slate-700 dark:bg-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    void handleExport('excel');
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-200 dark:hover:bg-emerald-950/40 dark:hover:text-emerald-300 transition"
+                >
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>EXCEL</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    void handleExport('pdf');
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-800 dark:text-slate-200 dark:hover:bg-rose-950/40 dark:hover:text-rose-300 transition border-t border-slate-100 dark:border-slate-700/60"
+                >
+                  <Printer className="h-4 w-4 text-rose-600 shrink-0" />
+                  <span>PDF</span>
+                </button>
+
+              </div>
+            )}
+          </div>
+          )}
+
+          {/* Filter reset */}
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery('');
+              setDistrictFilter('all');
+              setMandalFilter('all');
+              setSyncFilter('all');
+              setCategoryFilter('all');
+              setCommodityFilter('all');
+              setYearFilter('all');
+              setMonthFilter('all');
+              setDateFilter('all');
+            }}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-xs transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            title={t('Reset all filters', 'అన్ని ఫిల్టర్లను రీసెట్ చేయండి')}
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            <span>{t('Reset', 'రీసెట్')}</span>
+          </button>
+
+          {/* Result count — colored badge */}
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3.5 py-1.5 text-[11px] font-black text-white shadow-sm dark:bg-emerald-500">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-200" />
+            {(activeTab === 'documents' ? filteredDocuments.length : filteredRecords.length)}
+            {(activeTab === 'documents' ? filteredDocuments.length : filteredRecords.length) !== (activeTab === 'documents' ? documents.length : records.length) &&
+              ` / ${activeTab === 'documents' ? documents.length : records.length}`}
+          </span>
+
 
 
           {/* View Mode Toggle — grid default, pinned to the right of the filter row */}
@@ -1522,18 +1549,21 @@ export function OfficerRecordsHub() {
                       ? [
                           pendingSyncCount > 0
                             ? t(
-                                `record(s) saved locally — not yet backed up to cloud`,
-                                `రికార్డులు స్థానికంగా ఉన్నాయి — ఇంకా క్లౌడ్‌కు బ్యాకప్ కాలేదు`
+                                `${pendingSyncCount} record(s) saved locally — not yet backed up to cloud`,
+                                `${pendingSyncCount} రికార్డులు స్థానికంగా ఉన్నాయి — ఇంకా క్లౌడ్‌కు బ్యాకప్ కాలేదు`
                               )
                             : '',
                           pendingDocs > 0
                             ? t(
-                                `document(s) pending cloud upload — upload manually from Documents tab`,
-                                `పత్రాలు క్లౌడ్ అప్‌లోడ్ కోసం పెండింగ్ — పత్రాల ట్యాబ్ నుండి మాన్యువల్‌గా అప్‌లోడ్ చేయండి`
+                                `${pendingDocs} document(s) pending cloud upload — upload manually from Documents tab`,
+                                `${pendingDocs} పత్రాలు క్లౌడ్ అప్‌లోడ్ కోసం పెండింగ్ — పత్రాల ట్యాబ్ నుండి మాన్యువల్‌గా అప్‌లోడ్ చేయండి`
                               )
                             : '',
                         ].filter(Boolean).join(' · ')
                       : t('All records and documents are backed up to cloud', 'అన్ని రికార్డులు & పత్రాలు క్లౌడ్‌కు బ్యాకప్ అయ్యాయి')}
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                    ({cloudRecordCount}/{records.length} {t('records', 'రికార్డులు')} · {storageStats.successfullyUploaded}/{documents.length} {t('docs', 'పత్రాలు')} {t('in cloud', 'క్లౌడ్‌లో')})
                   </span>
                 </div>
                 {pendingSyncCount > 0 && (
