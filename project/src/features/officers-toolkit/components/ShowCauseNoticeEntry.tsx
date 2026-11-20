@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, Download, Edit3, Eye, FileText, FileType, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Download, Edit3, Eye, FileText, FileType, FolderOpen, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { ActionButton } from '../../../shared/components/ui/DesignSystem';
 import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
 import { currentFinancialYear, financialYearForDate } from '../../../shared/utils/financialYear';
@@ -57,6 +57,7 @@ import {
   noticeBlocksHtml,
   renderNoticePdfDocument,
 } from './noticeDocumentRenderers';
+import { InspectionTheme, Modal } from '../inspection/ui';
 
 export * from './showCauseNoticeModel';
 export * from './noticeDocumentRenderers';
@@ -68,6 +69,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const [savedNotices, setSavedNotices] = useState<SavedNotice[]>(() => readSavedNotices());
   const { askConfirm, confirmDialog } = useConfirmDialog();
   const [savedSearch, setSavedSearch] = useState('');
+  const [showSavedList, setShowSavedList] = useState(false);
   const [showProductDetails, setShowProductDetails] = useState(false);
   const [showNoticePreview, setShowNoticePreview] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
@@ -136,6 +138,8 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const isDAOOfficer = isDaoDesignation(form.officerDesignation);
   const isMAOOfficer = isMaoDesignation(form.officerDesignation);
   const usesPlaceOfInspection = isADAOfficer || isDAOOfficer;
+
+  const savedCount = lockedCategory ? savedNotices.filter((notice) => notice.category === lockedCategory).length : savedNotices.length;
 
   const filteredSaved = useMemo(() => {
     const scoped = lockedCategory ? savedNotices.filter((notice) => notice.category === lockedCategory) : savedNotices;
@@ -506,7 +510,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
         : 'border-blue-200/80 dark:border-blue-800/60';
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-10">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       {confirmDialog}
       <ConfirmDialog
@@ -540,7 +544,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
         </div>
       )}
 
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-start gap-2">
             {!lockedCategory ? (
             <div className="inline-flex flex-wrap rounded-lg border border-white bg-white dark:bg-slate-900 p-1 shadow-sm">
               {noticeCategoryConfigs.map((item) => (
@@ -557,7 +561,11 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
               ))}
             </div>
             ) : <span />}
-            <ActionButton tone="secondary" className="text-red-600 dark:text-red-300" onClick={resetNotice}><RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />Reset</ActionButton>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <ActionButton tone="primary" accent={noticeButtonAccent} onClick={saveNotice} icon={Save}>Save Draft</ActionButton>
+              <ActionButton tone="secondary" accent={noticeButtonAccent} onClick={() => setShowSavedList(true)} icon={FolderOpen}>Drafts{savedCount ? ` (${savedCount})` : ''}</ActionButton>
+              <ActionButton tone="secondary" className="text-red-600 dark:text-red-300" onClick={resetNotice}><RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />Reset</ActionButton>
+            </div>
           </div>
 
           <div className={`rounded-lg border ${sectionBorderColor} bg-white dark:bg-slate-900 p-3 shadow-sm`}>
@@ -805,7 +813,6 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
           <div className="flex flex-wrap gap-2">
             <ActionButton tone="secondary" accent={noticeButtonAccent} onClick={previewNotice} icon={Eye}>Preview</ActionButton>
-            <ActionButton tone="primary" accent={noticeButtonAccent} onClick={saveNotice} icon={Save}>Save Draft</ActionButton>
             <div className="relative">
               <ActionButton tone="primary" accent={noticeButtonAccent} onClick={() => setExportOpen((open) => !open)} icon={Download} aria-haspopup="menu" aria-expanded={exportOpen}>Export<ChevronDown className={`h-4 w-4 transition-transform ${exportOpen ? 'rotate-180' : ''}`} aria-hidden="true" /></ActionButton>
               {exportOpen && (
@@ -861,56 +868,65 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
         </section>
       )}
 
-      <section className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
-        <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <h3 className="text-base font-black text-slate-900 dark:text-white">Saved Notices</h3>
-          <div className="relative max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-            <input
-              value={savedSearch}
-              onChange={(event) => setSavedSearch(event.target.value)}
-              placeholder="Search saved notices"
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-            />
-          </div>
-        </div>
-        <div className="overflow-x-auto rounded-lg border border-slate-100 dark:border-slate-800">
-          <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-black uppercase text-slate-500 dark:text-slate-400">
-              <tr>
-                <th className="px-3 py-2">Memo</th>
-                <th className="px-3 py-2">Dealer</th>
-                <th className="px-3 py-2">Inspection</th>
-                <th className="px-3 py-2">Clauses/Sections/Rules</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {filteredSaved.map((notice) => (
-                <tr key={notice.id}>
-                  <td className="px-3 py-2 font-black">{notice.memoNumber}</td>
-                  <td className="px-3 py-2">{notice.firmName || notice.dealerName || '-'}</td>
-                  <td className="px-3 py-2">{notice.inspectionDate}</td>
-                  <td className="px-3 py-2">{allShowCauseViolations.filter((item) => notice.selectedViolationIds.includes(item.violationId)).map((item) => item.exactReference).join(', ') || '-'}</td>
-                  <td className="px-3 py-2">{notice.status}</td>
-                  <td className="px-3 py-2 text-right">
-                    <div className="inline-flex items-center gap-1">
-                      <ActionButton tone="tertiary" size="sm" onClick={() => editSavedNotice(notice)} icon={Edit3}>Edit</ActionButton>
-                      <ActionButton tone="danger" size="sm" onClick={() => deleteSavedNotice(notice)} icon={Trash2} aria-label="Delete saved notice" className="px-2" />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredSaved.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center font-semibold text-slate-500 dark:text-slate-400">No saved notices yet.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      {showSavedList && (
+        <InspectionTheme tone={noticeButtonAccent}>
+          <Modal title="Saved notices" wide onClose={() => setShowSavedList(false)}>
+            <div className="relative mb-3 max-w-md">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+              <input
+                value={savedSearch}
+                onChange={(event) => setSavedSearch(event.target.value)}
+                placeholder="Search saved notices"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              />
+            </div>
+            <div className="overflow-x-auto rounded-lg border border-slate-100 dark:border-slate-800">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-black uppercase text-slate-500 dark:text-slate-400">
+                  <tr>
+                    <th className="px-3 py-2">Memo</th>
+                    <th className="px-3 py-2">Dealer</th>
+                    <th className="px-3 py-2">Inspection</th>
+                    <th className="px-3 py-2">Clauses/Sections/Rules</th>
+                    <th className="px-3 py-2">Status</th>
+                    <th className="px-3 py-2">Record</th>
+                    <th className="px-3 py-2 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {filteredSaved.map((notice) => (
+                    <tr key={notice.id}>
+                      <td className="px-3 py-2 font-black">{notice.memoNumber}</td>
+                      <td className="px-3 py-2">{notice.firmName || notice.dealerName || '-'}</td>
+                      <td className="px-3 py-2">{notice.inspectionDate}</td>
+                      <td className="px-3 py-2">{allShowCauseViolations.filter((item) => notice.selectedViolationIds.includes(item.violationId)).map((item) => item.exactReference).join(', ') || '-'}</td>
+                      <td className="px-3 py-2">{notice.status}</td>
+                      <td className="px-3 py-2">
+                        {notice.issuedAt ? (
+                          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-black text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">Issued</span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-black text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">Draft</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <div className="inline-flex items-center gap-1">
+                          <ActionButton tone="tertiary" size="sm" onClick={() => { setShowSavedList(false); editSavedNotice(notice); }} icon={Edit3}>Edit</ActionButton>
+                          <ActionButton tone="danger" size="sm" onClick={() => deleteSavedNotice(notice)} icon={Trash2} aria-label="Delete saved notice" className="px-2" />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredSaved.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-3 py-8 text-center font-semibold text-slate-500 dark:text-slate-400">{savedCount ? 'No matching notices.' : 'No saved notices yet.'}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Modal>
+        </InspectionTheme>
+      )}
     </div>
   );
 }

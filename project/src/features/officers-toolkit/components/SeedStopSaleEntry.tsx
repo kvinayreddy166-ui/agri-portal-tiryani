@@ -1,6 +1,6 @@
 import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, Download, Edit3, Eye, FileText, FileType, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { ChevronDown, Download, Edit3, Eye, FileText, FileType, FolderOpen, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { ActionButton } from '../../../shared/components/ui/DesignSystem';
 import { currentFinancialYear } from '../../../shared/utils/financialYear';
 import { withOthersOption, effectiveLocationValue } from '../../../shared/data/assistantDirectorLocation';
@@ -38,6 +38,7 @@ import { DealerPartySelect } from '../../../shared/components/DealerPartySelect'
 import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 import type { Dealer } from '../../../shared/types/database';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
+import { InspectionTheme, Modal } from '../inspection/ui';
 interface SeedStopSaleProductRow {
   id: string;
   crop: string;
@@ -286,6 +287,7 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
   const [savedOrders, setSavedOrders] = useState<SavedSeedStopSaleOrder[]>(() => readSavedOrders());
   const { askConfirm, confirmDialog } = useConfirmDialog();
   const [savedSearch, setSavedSearch] = useState('');
+  const [showSavedList, setShowSavedList] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
@@ -537,7 +539,7 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-10">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       {confirmDialog}
       <ConfirmDialog
@@ -566,7 +568,9 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
         onCancel={() => { setDeleteConfirmOpen(false); setOrderToDelete(null); }}
       />
 
-      <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="flex flex-wrap items-center justify-start gap-2">
+        <ActionButton tone="primary" accent="emerald" onClick={saveOrder} icon={Save}>Save Draft</ActionButton>
+        <ActionButton tone="secondary" accent="emerald" onClick={() => setShowSavedList(true)} icon={FolderOpen}>Drafts{savedOrders.length ? ` (${savedOrders.length})` : ''}</ActionButton>
         <ActionButton tone="secondary" className="text-red-600 dark:text-red-300" onClick={() => setResetConfirmOpen(true)}><RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />Reset</ActionButton>
       </div>
 
@@ -683,7 +687,6 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
 
       <div className="flex flex-wrap gap-2">
         <ActionButton tone="secondary" accent="emerald" onClick={previewOrder} icon={Eye}>Preview</ActionButton>
-        <ActionButton tone="primary" accent="emerald" onClick={saveOrder} icon={Save}>Save Draft</ActionButton>
         <div className="relative">
           <ActionButton tone="primary" accent="emerald" onClick={() => setExportOpen((open) => !open)} icon={Download} aria-haspopup="menu" aria-expanded={exportOpen}>Export<ChevronDown className={`h-4 w-4 transition-transform ${exportOpen ? 'rotate-180' : ''}`} aria-hidden="true" /></ActionButton>
           {exportOpen && (
@@ -739,57 +742,66 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
         </section>
       )}
 
-      <section className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
-        <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <h3 className="text-base font-black text-slate-900 dark:text-white">Saved Orders</h3>
-          <div className="relative max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-            <input
-              value={savedSearch}
-              onChange={(event) => setSavedSearch(event.target.value)}
-              placeholder="Search saved orders"
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-            />
-          </div>
-        </div>
-        <div className="overflow-x-auto rounded-lg border border-slate-100 dark:border-slate-800">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-black uppercase text-slate-500 dark:text-slate-400">
-              <tr>
-                <th className="px-3 py-2">Order No.</th>
-                <th className="px-3 py-2">Dealer</th>
-                <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">Items</th>
-                <th className="px-3 py-2 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {filteredSaved.map((order) => (
-                <tr key={order.id}>
-                  <td className="px-3 py-2 font-black">{order.orderNumber}</td>
-                  <td className="px-3 py-2">{order.firmName || order.dealerName || '-'}</td>
-                  <td className="px-3 py-2">{formatNoticeDate(order.noticeDate) || '-'}</td>
-                  <td className="px-3 py-2">{order.products.filter((row) => row.crop.trim() || row.variety.trim()).length || '-'}</td>
-                  <td className="px-3 py-2 text-right">
-                    <div className="inline-flex items-center gap-1">
-                      <ActionButton tone="tertiary" size="sm" onClick={() => editSavedOrder(order)} icon={Edit3}>Edit</ActionButton>
-                      {onRevoke && (
-                        <ActionButton tone="danger" size="sm" onClick={() => onRevoke(order)}>Revoke</ActionButton>
-                      )}
-                      <ActionButton tone="danger" size="sm" onClick={() => deleteSavedOrder(order)} aria-label="Delete saved order" className="px-2"><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></ActionButton>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredSaved.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-3 py-8 text-center font-semibold text-slate-500 dark:text-slate-400">No saved orders yet.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      {showSavedList && (
+        <InspectionTheme tone="emerald">
+          <Modal title="Saved orders" wide onClose={() => setShowSavedList(false)}>
+            <div className="relative mb-3 max-w-md">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+              <input
+                value={savedSearch}
+                onChange={(event) => setSavedSearch(event.target.value)}
+                placeholder="Search saved orders"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              />
+            </div>
+            <div className="overflow-x-auto rounded-lg border border-slate-100 dark:border-slate-800">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-black uppercase text-slate-500 dark:text-slate-400">
+                  <tr>
+                    <th className="px-3 py-2">Order No.</th>
+                    <th className="px-3 py-2">Dealer</th>
+                    <th className="px-3 py-2">Date</th>
+                    <th className="px-3 py-2">Items</th>
+                    <th className="px-3 py-2">Status</th>
+                    <th className="px-3 py-2 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {filteredSaved.map((order) => (
+                    <tr key={order.id}>
+                      <td className="px-3 py-2 font-black">{order.orderNumber}</td>
+                      <td className="px-3 py-2">{order.firmName || order.dealerName || '-'}</td>
+                      <td className="px-3 py-2">{formatNoticeDate(order.noticeDate) || '-'}</td>
+                      <td className="px-3 py-2">{order.products.filter((row) => row.crop.trim() || row.variety.trim()).length || '-'}</td>
+                      <td className="px-3 py-2">
+                        {order.issuedAt ? (
+                          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-black text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">Issued</span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-black text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">Draft</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <div className="inline-flex items-center gap-1">
+                          <ActionButton tone="tertiary" size="sm" onClick={() => { setShowSavedList(false); editSavedOrder(order); }} icon={Edit3}>Edit</ActionButton>
+                          {onRevoke && (
+                            <ActionButton tone="danger" size="sm" onClick={() => onRevoke(order)}>Revoke</ActionButton>
+                          )}
+                          <ActionButton tone="danger" size="sm" onClick={() => deleteSavedOrder(order)} aria-label="Delete saved order" className="px-2"><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></ActionButton>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredSaved.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-3 py-8 text-center font-semibold text-slate-500 dark:text-slate-400">{savedOrders.length ? 'No matching orders.' : 'No saved orders yet.'}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Modal>
+        </InspectionTheme>
+      )}
     </div>
   );
 }

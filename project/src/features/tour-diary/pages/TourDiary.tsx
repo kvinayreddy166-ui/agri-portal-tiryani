@@ -2667,62 +2667,42 @@ export function TourDiary() {
         <details className={`group mb-6 rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-lg backdrop-blur-sm transition duration-700 delay-100 dark:border-emerald-800/50 dark:bg-slate-900/80 ${mounted ? 'opacity-100' : 'translate-y-8 opacity-0'}`}>
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-slate-900 dark:text-white">
             <span>Monthly Summary</span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true" />
+            <span className="flex items-center gap-3">
+              <span className="hidden text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400 sm:inline">
+                {summary.workingDays} working days · {summary.tourDays} tour days · {summary.totalDistance.toFixed(1)} km
+              </span>
+              <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" aria-hidden="true" />
+            </span>
           </summary>
-          <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Working Days</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.workingDays}</p>
-            </div>
-            <div className="rounded-lg bg-orange-50 p-3 dark:bg-orange-950/30 col-span-2 sm:col-span-3 lg:col-span-2">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Holidays & Non-Working Days</p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">Sundays:</span>
-                  <span className="ml-1 font-black text-orange-700 dark:text-orange-400">{summary.sundays}</span>
-                </div>
-                <div>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">Second Saturdays:</span>
-                  <span className="ml-1 font-black text-orange-700 dark:text-orange-400">{summary.secondSaturdays}</span>
-                </div>
-                <div>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">Government Holidays:</span>
-                  <span className="ml-1 font-black text-orange-700 dark:text-orange-400">{summary.governmentHolidays}</span>
-                </div>
-                <div>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">Optional Holidays:</span>
-                  <span className="ml-1 font-black text-orange-700 dark:text-orange-400">{summary.optionalHolidays}</span>
-                </div>
+          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3 lg:grid-cols-4">
+            {[
+              { label: 'Working days', value: summary.workingDays, color: 'text-emerald-700 dark:text-emerald-400' },
+              { label: 'Tour days', value: summary.tourDays, color: 'text-emerald-700 dark:text-emerald-400' },
+              { label: 'Total distance', value: `${summary.totalDistance.toFixed(1)} km`, color: 'text-emerald-700 dark:text-emerald-400' },
+              { label: 'Closing meter', value: summary.closingMeter.toFixed(1), color: 'text-emerald-700 dark:text-emerald-400' },
+              { label: 'Leaves availed', value: summary.leavesAvailed, color: 'text-amber-700 dark:text-amber-400' },
+              { label: 'Villages visited', value: summary.villagesVisited, color: 'text-sky-700 dark:text-sky-400' },
+              { label: 'Optional holidays availed', value: summary.optionalHolidaysAvailed, color: 'text-purple-700 dark:text-purple-400' },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{stat.label}</p>
+                <p className={`text-base font-black tabular-nums ${stat.color}`}>{stat.value}</p>
               </div>
-            </div>
-            <div className="rounded-lg bg-purple-50 p-3 dark:bg-purple-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">No. of Optional Holidays Availed</p>
-              <p className="text-lg font-black text-purple-700 dark:text-purple-400">{summary.optionalHolidaysAvailed}</p>
-            </div>
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Total Distance</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.totalDistance.toFixed(1)} km</p>
-            </div>
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">Closing Meter</p>
-              <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.closingMeter.toFixed(1)}</p>
-            </div>
-            <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30 col-span-2 sm:col-span-3 lg:col-span-4">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Tour Summary</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div>
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Total No. of Days on Tour</p>
-                  <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.tourDays}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">Leaves Availed</p>
-                  <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.leavesAvailed}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">No. of Villages Visited</p>
-                  <p className="text-lg font-black text-emerald-700 dark:text-emerald-400">{summary.villagesVisited}</p>
-                </div>
-              </div>
+            ))}
+          </div>
+          <div className="mt-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+            <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Non-working days</p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+              {[
+                { label: 'Sundays', value: summary.sundays },
+                { label: '2nd Saturdays', value: summary.secondSaturdays },
+                { label: 'Government holidays', value: summary.governmentHolidays },
+                { label: 'Optional holidays', value: summary.optionalHolidays },
+              ].map((item) => (
+                <span key={item.label} className="font-semibold text-slate-600 dark:text-slate-300">
+                  {item.label} <span className="font-black tabular-nums text-orange-700 dark:text-orange-400">{item.value}</span>
+                </span>
+              ))}
             </div>
           </div>
           {summary.isReconciled ? (

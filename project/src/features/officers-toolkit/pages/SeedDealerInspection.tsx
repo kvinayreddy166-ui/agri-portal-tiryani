@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardCheck, Eye, FileDown, FolderOpen, RotateCcw, Save, Search, Trash2 } from 'lucide-react';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
+import { ActionButton as SharedActionButton } from '../../../shared/components/ui/DesignSystem';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
 import { addEmblemImageWatermark } from '../../../shared/lib/pdfWatermark';
@@ -159,6 +160,7 @@ export function SeedDealerInspection() {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
+  const [resetSpinKey, setResetSpinKey] = useState(0);
   const previewRef = useRef<HTMLDivElement>(null);
   const inputClass = useInputClass();
 
@@ -268,6 +270,7 @@ export function SeedDealerInspection() {
         setActiveDraftId(null);
         setError('');
         setDirty(false);
+        setResetSpinKey((key) => key + 1);
         showReset('Form reset');
       },
     });
@@ -442,7 +445,7 @@ export function SeedDealerInspection() {
 
   return (
     <InspectionTheme tone="emerald">
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-950">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-50 to-cyan-50 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-950 pb-10">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       {confirmDialog}
       <ConfirmDialog
@@ -476,7 +479,10 @@ export function SeedDealerInspection() {
         <div className="mb-3 flex flex-wrap gap-2">
           <ActionButton onClick={saveDraft} icon={Save} tone="emerald">Save Draft</ActionButton>
           <ActionButton onClick={() => setShowDrafts(true)} icon={FolderOpen} tone="white">Drafts{drafts.length ? ` (${drafts.length})` : ''}</ActionButton>
-          <ActionButton onClick={resetForm} icon={RotateCcw} tone="white">Reset</ActionButton>
+          <SharedActionButton tone="secondary" onClick={resetForm} className="text-red-600 dark:text-red-300">
+            <RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />
+            Reset
+          </SharedActionButton>
         </div>
 
         <div className="mb-5 grid gap-3 sm:grid-cols-3">
