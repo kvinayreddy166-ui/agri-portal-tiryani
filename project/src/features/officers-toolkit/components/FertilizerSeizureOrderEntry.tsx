@@ -1,7 +1,8 @@
 import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, Download, Edit3, Eye, FileText, FileType, FolderOpen, ListOrdered, Plus, Printer, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { Edit3, Eye, FolderOpen, ListOrdered, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { ActionButton } from '../../../shared/components/ui/DesignSystem';
+import { ExportActionsMenu } from '../../../shared/components/ui/ExportActionsMenu';
 import { currentFinancialYear } from '../../../shared/utils/financialYear';
 import { withOthersOption, effectiveLocationValue } from '../../../shared/data/assistantDirectorLocation';
 import {
@@ -298,7 +299,6 @@ export function FertilizerSeizureOrderEntry() {
   const [showSavedList, setShowSavedList] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [exportOpen, setExportOpen] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const [resetSpinKey, setResetSpinKey] = useState(0);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
@@ -746,52 +746,14 @@ export function FertilizerSeizureOrderEntry() {
 
       <div className="flex flex-wrap gap-2">
         <ActionButton tone="secondary" accent="sky" onClick={previewOrder} icon={Eye}>Preview</ActionButton>
-        <div className="relative">
-          <ActionButton tone="primary" accent="sky" onClick={() => setExportOpen((open) => !open)} icon={Download} aria-haspopup="menu" aria-expanded={exportOpen}>Export<ChevronDown className={`h-4 w-4 transition-transform ${exportOpen ? 'rotate-180' : ''}`} aria-hidden="true" /></ActionButton>
-          {exportOpen && (
-            <>
-              <button
-                type="button"
-                aria-label="Close export menu"
-                onClick={() => setExportOpen(false)}
-                className="fixed inset-0 z-40 cursor-default"
-              />
-              <div className="absolute left-0 z-50 mt-1 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
-                <button
-                  type="button"
-                  onClick={() => { setExportOpen(false); void downloadPdf(); }}
-                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs font-black text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800 sm:text-sm"
-                >
-                  <FileText className="h-4 w-4" aria-hidden="true" />
-                  PDF
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setExportOpen(false); void downloadWord(); }}
-                  className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-left text-xs font-black text-blue-700 transition hover:bg-blue-50 dark:border-slate-800 dark:text-blue-300 dark:hover:bg-slate-800 sm:text-sm"
-                >
-                  <FileType className="h-4 w-4" aria-hidden="true" />
-                  WORD
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setExportOpen(false); void printPreview(); }}
-                  className="flex w-full items-center gap-2 border-t border-slate-100 px-3 py-2.5 text-left text-xs font-black text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800 sm:text-sm"
-                >
-                  <Printer className="h-4 w-4" aria-hidden="true" />
-                  PRINT
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        <ExportActionsMenu accent="sky" onPdf={downloadPdf} onWord={downloadWord} onPrint={printPreview} />
       </div>
 
       {showPreview && (
         <section ref={previewRef} className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h3 className="text-base font-black text-slate-900 dark:text-white">Seizure of Stock Notice Preview</h3>
-            <ActionButton tone="secondary" size="sm" onClick={() => setShowPreview(false)} icon={X} aria-label="Close preview">Close Preview</ActionButton>
+            <ActionButton tone="secondary" size="sm" onClick={() => setShowPreview(false)} icon={X} aria-label="Close preview" className="!text-red-600 dark:!text-red-400">Close</ActionButton>
           </div>
           <div
             className="max-h-[520px] overflow-auto rounded-lg bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-white shadow-inner ring-1 ring-slate-100"

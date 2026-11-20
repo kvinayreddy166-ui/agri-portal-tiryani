@@ -28,7 +28,9 @@ import {
   UserPlus,
   Users,
   Zap,
+  type LucideIcon,
 } from 'lucide-react';
+import ShinyText from '../components/react-bits/ShinyText';
 import { PortalLogo } from '../../../shared/components/ui/PortalLogo';
 import { OfficialChannelsSidebar } from '../../../shared/components/ui/OfficialChannelsSidebar';
 import { FloatingActions } from '../../../shared/components/ui/FloatingActions';
@@ -45,7 +47,19 @@ const STATS = [
   { value: '100%', label: 'Offline Capable', labelTe: 'పూర్తి ఆఫ్‌లైన్ సదుపాయం', sub: 'PWA for Rural Field Areas', subTe: 'గ్రామీణ ప్రాంతాల కోసం PWA', icon: Smartphone },
 ];
 
-const MODULE_HIGHLIGHTS = [
+type ModuleHighlight = {
+  icon: LucideIcon;
+  title: string;
+  titleTe: string;
+  desc: string;
+  descTe: string;
+  badge: string;
+  badgeTe: string;
+  badgeColor: 'emerald' | 'gold';
+  route: string;
+};
+
+const MODULE_HIGHLIGHTS: ModuleHighlight[] = [
   {
     icon: ClipboardCheck,
     title: 'Statutory Inspection & Enforcement',
@@ -326,9 +340,14 @@ export function LandingPage() {
               <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl md:text-5xl">
                 {t('Empowering Agriculture Through', 'వ్యవసాయానికి ఆధునిక సాంకేతికత')}
                 <br />
-                <span className="bg-gradient-to-r from-gold-300 via-gold-400 to-amber-300 bg-clip-text text-transparent">
-                  {t('Digital Intelligence & Enforcement', 'డిజిటల్ సాధనాలు & చట్టబద్ధ పర్యవేక్షణ')}
-                </span>
+                <ShinyText
+                  text={t('Digital Intelligence & Enforcement', 'డిజిటల్ సాధనాలు & చట్టబద్ధ పర్యవేక్షణ')}
+                  color="#fbbf24"
+                  shineColor="#fffbeb"
+                  speed={5}
+                  shineWidth={60}
+                  trigger="loop"
+                />
               </h1>
 
               <p className="max-w-2xl text-sm leading-relaxed text-justify text-emerald-100/90 sm:text-base">
@@ -424,7 +443,9 @@ export function LandingPage() {
                     {language === 'te' ? s.subTe : s.sub}
                   </span>
                 </div>
-                <p className="text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">{s.value}</p>
+                <p className="text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">
+                  <ShinyText text={s.value} color="#0f172a" shineColor="#059669" speed={3} shineWidth={60} trigger="view" />
+                </p>
                 <p className="mt-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
                   {language === 'te' ? s.labelTe : s.label}
                 </p>
@@ -485,7 +506,14 @@ export function LandingPage() {
                   <span>{language === 'te' ? currentTab.labelTe : currentTab.label}</span>
                 </div>
                 <h3 className="text-xl font-black text-slate-900 dark:text-white sm:text-2xl">
-                  {language === 'te' ? currentTab.headlineTe : currentTab.headline}
+                  <ShinyText
+                    text={language === 'te' ? currentTab.headlineTe : currentTab.headline}
+                    color="#0f172a"
+                    shineColor="#f59e0b"
+                    speed={4}
+                    shineWidth={45}
+                    trigger="view"
+                  />
                 </h3>
                 <p className="text-sm leading-relaxed text-justify text-slate-600 dark:text-slate-300">
                   {language === 'te' ? currentTab.descriptionTe : currentTab.description}
@@ -613,7 +641,14 @@ export function LandingPage() {
                   </div>
 
                   <h3 className="line-clamp-2 min-h-[2.5rem] text-base font-black leading-snug text-slate-900 dark:text-white">
-                    {language === 'te' ? mod.titleTe : mod.title}
+                    <ShinyText
+                      text={language === 'te' ? mod.titleTe : mod.title}
+                      color="#0f172a"
+                      shineColor="#f59e0b"
+                      speed={4}
+                      shineWidth={45}
+                      trigger="view"
+                    />
                   </h3>
                   <p className="mt-2 line-clamp-4 text-xs leading-relaxed text-justify text-slate-600 dark:text-slate-400">
                     {language === 'te' ? mod.descTe : mod.desc}

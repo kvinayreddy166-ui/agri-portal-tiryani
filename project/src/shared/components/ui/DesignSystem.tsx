@@ -3,7 +3,7 @@ import { Loader2, type LucideIcon } from 'lucide-react';
 
 type Tone = 'primary' | 'secondary' | 'danger' | 'warning';
 type ActionTone = Tone | 'tertiary';
-type ActionAccent = 'emerald' | 'sky' | 'amber';
+export type ActionAccent = 'emerald' | 'sky' | 'amber';
 type IconTone = Tone | 'excel' | 'sky' | 'slate';
 
 export function AppCard({ children, className = '' }: { children: ReactNode; className?: string }) {
