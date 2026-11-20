@@ -49,7 +49,6 @@ export type PesticidePdfValues = {
   sampleQuantity: string;
   sampleQuantityAnalysis: string;
   stockBeforeSampling: string;
-  stockAfterSampling: string;
   stockRegisterFolio: string;
   stockReceiptDetails: string;
   invoiceParticulars: string;
@@ -57,6 +56,8 @@ export type PesticidePdfValues = {
   invoiceDate: string;
   stockReceiptDate: string;
   stockPosition: string;
+  stockAfterSampling: string;
+  stockAfterSamplingManuallyEdited?: boolean;
   specimenSeal: string;
   distinctMark: string;
   cdaCode: string;
@@ -130,6 +131,7 @@ export const initialPesticidePdfValues: PesticidePdfValues = {
   sampleQuantityAnalysis: '',
   stockBeforeSampling: '',
   stockAfterSampling: '',
+  stockAfterSamplingManuallyEdited: false,
   stockRegisterFolio: '',
   stockReceiptDetails: '',
   invoiceParticulars: '',
@@ -677,30 +679,15 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   // Add consistent spacing after paragraph before numbered items
   cursor.y += LINE_HEIGHT;
   
-  // Calculate stock after sampling: Stock Position - 3
-  // Parse the stock position to extract quantity and preserve pack size/units
-  const calculateStockAfter = (stockPosition: string): string => {
-    if (!stockPosition || stockPosition.trim() === '') return '';
-    
-    const trimmed = stockPosition.trim();
-    // Match pattern: first number at start, then everything else (including *, spaces, parentheses, etc.)
-    const match = trimmed.match(/^(\d+)(.*)$/);
-    
-    if (match) {
-      const quantity = parseInt(match[1], 10);
-      const rest = match[2] || '';
-      const newQuantity = Math.max(0, quantity - 3);
-      
-      return `${newQuantity}${rest}`;
-    }
-    
-    // If no match, return empty (invalid format)
-    return '';
-  };
-  
-  const stockAfter = calculateStockAfter(values.stockPosition);
+  // Use the field value when present. When empty, fall back to the calculated
+  // value only if the user has not deliberately cleared the field.
+  const stockAfter = values.stockAfterSampling?.trim()
+    || (values.stockAfterSamplingManuallyEdited ? '' : calculateStockAfterSampling(values.stockPosition, values.sampleQuantity));
   // Display stock position value without appending "Units"
   const stockPositionDisplay = values.stockPosition || '';
+  
+  // Calculate stock breakdown for Point 12 display
+  const stockBreakdown = getStockCalculationBreakdown(values.stockPosition, values.sampleQuantity);
   
   // Move point 1 up by 3 units
   cursor.y -= 3;
@@ -731,16 +718,27 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   ], 82, 0, compactFieldOptions);
   
   // Points 7-14: use default spacing
-  fieldList(cursor, [
+  const point12Fields: Array<[string, string, string?]> = [
     ['7. Batch number', values.batchNumber],
     ['8. Date of manufacture', formatDate(values.manufactureDate)],
     ['9. Date of expiry', formatDate(values.expiryDate)],
     ['10. Stock before sampling', stockPositionDisplay, '(Mention units)'],
     ['11. Quantity of the sample taken', values.sampleQuantity, '(Mention units)'],
-    ['12. Stock after sampling', stockAfter, '(Mention units)'],
+  ];
+  
+  // Point 12: Show only the calculated balance value
+  if (stockBreakdown.hasError) {
+    point12Fields.push(['12. Stock after sampling', `Error: ${stockBreakdown.errorMessage}`, '(Mention units)']);
+  } else {
+    point12Fields.push(['12. Stock after sampling', stockAfter, '(Mention units)']);
+  }
+  
+  point12Fields.push(
     ['13. Folio/page number of stock register', values.stockRegisterFolio],
-    ['14. Any other relevant information', values.otherInformation],
-  ], 82);
+    ['14. Any other relevant information', values.otherInformation]
+  );
+  
+  fieldList(cursor, point12Fields, 82);
   cursor.y += 3;
   signatureLineMixed(cursor, [{ label: 'Date:', value: formatDate(values.sampleDrawnDate) }], 'Insecticide Inspector Seal');
   cursor.y += 2;
@@ -768,6 +766,404 @@ function drawFormVC(cursor: PdfCursor, values: PesticidePdfValues) {
   cursor.doc.setFont(PDF_FONT, 'normal');
   cursor.doc.setLineHeightFactor(1.25);
 }
+
+// Calculate stock after sampling with intelligent format detection and unit conversion
+// Supports: Count × Pack Size, Simple Quantity, Individual Units
+// Units: Weight (gms, kg), Volume (ml, litres), Count (bottles, packets, etc.)
+// Exported for use in UI component for auto-calculation
+export const calculateStockAfterSampling = (stockPosition: string, sampleQuantity: string): string => {
+  if (!stockPosition || stockPosition.trim() === '') return '';
+  if (!sampleQuantity || sampleQuantity.trim() === '') return stockPosition;
+
+  // Unit type definitions
+  type UnitType = 'weight' | 'volume' | 'count' | 'unknown';
+  type ParsedQuantity = { value: number; unit: string; normalizedUnit: string; unitType: UnitType; originalUnit: string };
+
+  // Strip filler words like "approx", "about", "approximately" from either end
+  const stripFiller = (input: string): string => input
+    .replace(/^(?:approx\.?|approximately|about|around|nearly|say)\s+/i, '')
+    .replace(/\s+(?:approx\.?|approximately|about|around|nearly|say)\.?$/i, '')
+    .trim();
+
+  // Parse a numeric token that may be a fraction like "1/2" -> 0.5
+  const parseNumericValue = (token: string): number => {
+    if (token.includes('/')) {
+      const parts = token.split('/').map(p => parseFloat(p.trim()));
+      return parts.reduce((acc, n) => acc / n);
+    }
+    return parseFloat(token);
+  };
+
+  // Normalize unit to standard form
+  const normalizeUnit = (unit: string): { normalized: string; type: UnitType } => {
+    const u = unit.toLowerCase().trim().replace(/\.$/, '');
+    
+    // Weight units
+    if (['g', 'gm', 'gms', 'gram', 'grams'].includes(u)) return { normalized: 'g', type: 'weight' };
+    if (['mg', 'mgs'].includes(u)) return { normalized: 'mg', type: 'weight' };
+    if (['kg', 'kgs', 'kilogram', 'kilograms'].includes(u)) return { normalized: 'kg', type: 'weight' };
+    
+    // Volume units
+    if (['ml', 'mls', 'millilitre', 'millilitres', 'milliliter', 'milliliters'].includes(u)) return { normalized: 'ml', type: 'volume' };
+    if (['l', 'ltr', 'ltrs', 'litre', 'litres', 'liter', 'liters'].includes(u)) return { normalized: 'l', type: 'volume' };
+    
+    // Count units
+    if (['bottle', 'bottles', 'packet', 'packets', 'pkt', 'pkts', 'container', 'containers',
+         'bag', 'bags', 'unit', 'units', 'box', 'boxes', 'can', 'cans', 'sachet', 'sachets',
+         'tin', 'tins', 'jar', 'jars', 'drum', 'drums', 'pc', 'pcs',
+         'lot', 'lots', 'nos', 'no', 'number', 'numbers'].includes(u)) {
+      return { normalized: u, type: 'count' };
+    }
+    
+    return { normalized: u, type: 'unknown' };
+  };
+
+  // Convert to base unit (grams for weight, ml for volume)
+  const toBaseUnit = (value: number, unit: string): number => {
+    const { normalized, type } = normalizeUnit(unit);
+    
+    if (type === 'weight') {
+      if (normalized === 'kg') return value * 1000; // kg to g
+      if (normalized === 'mg') return value / 1000; // mg to g
+      return value; // g stays g
+    }
+    
+    if (type === 'volume') {
+      if (normalized === 'l') return value * 1000; // l to ml
+      return value; // ml stays ml
+    }
+    
+    // Count units - no conversion
+    return value;
+  };
+
+  // Format a base-unit value, trimming floating-point noise
+  const formatBaseValue = (baseValue: number): string => String(Math.round(baseValue * 100) / 100);
+
+  // Format from base unit back to preferred unit
+  const formatFromBase = (baseValue: number, preferredUnit: string, unitType: UnitType): string => {
+    const { normalized } = normalizeUnit(preferredUnit);
+    
+    if (unitType === 'weight') {
+      // Use kg only when the original unit was kg and the result is >= 1 kg; otherwise gms
+      if (normalized === 'kg' && baseValue >= 1000) {
+        const kgValue = baseValue / 1000;
+        return `${formatBaseValue(kgValue)} kg`;
+      }
+      return `${formatBaseValue(baseValue)} gms`;
+    }
+    
+    if (unitType === 'volume') {
+      // Use litres only when the original unit was litres and the result is >= 1 litre; otherwise ml
+      if (normalized === 'l' && baseValue >= 1000) {
+        const lValue = baseValue / 1000;
+        return `${formatBaseValue(lValue)} litres`;
+      }
+      return `${formatBaseValue(baseValue)} ml`;
+    }
+    
+    // Count units - return as is
+    return `${formatBaseValue(baseValue)} ${preferredUnit}`;
+  };
+
+  // Parse a single quantity with unit
+  const parseQuantity = (input: string): ParsedQuantity | null => {
+    const trimmed = stripFiller(input.trim().toLowerCase());
+    
+    // Match patterns like "1000 gms", "2 kg", "120 ml", "50 bottles", "1/2 kg", "120 gms each"
+    // Also handle "1000gms", "1000 g", "0.4 kg", "750ml", etc.
+    const match = trimmed.match(/^(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*([a-zA-Z]+)?(?:\s+(?:each|apiece|per\s+(?:sample|pack|packet|pkt|bottle|container|bag|unit|item)))?\.?$/);
+    
+    if (match) {
+      const value = parseNumericValue(match[1]);
+      const unit = match[2] || '';
+      const { normalized, type } = normalizeUnit(unit);
+      
+      return { value, unit, normalizedUnit: normalized, unitType: type, originalUnit: unit };
+    }
+    
+    return null;
+  };
+
+  // Parse stock position format
+  const parseStockPosition = (input: string): {
+    type: 'count_pack' | 'simple' | 'count' | 'unknown';
+    count?: number;
+    packSize?: ParsedQuantity;
+    totalQuantity?: ParsedQuantity;
+    countUnit?: string;
+    originalString: string;
+  } => {
+    const trimmed = stripFiller(input.trim());
+    
+    // Pattern 1: Count × Pack Size (e.g., "50 × 120 gms", "50x120ml", "50 * 120 g",
+    // "50 * (120 ml)", "50 nos x 120 gms", "50 packets of 120 gms", "2 dozen × 500 ml")
+    // Match: number, optional count descriptor, separator (×, x, *, or "of"), optional "(", number, unit, optional ")"
+    const countPackMatch = trimmed.match(/^(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*(?:(?:nos?|numbers?|pkts?|boxes?|bottles?|packets?|containers?|bags?|units?|pcs?|lots?)\b\.?\s*)?(?:[×x*]|\bof\b)\s*\(?\s*(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*([a-zA-Z]+)?\s*\)?\s*$/i);
+    if (countPackMatch) {
+      const count = parseNumericValue(countPackMatch[1]);
+      const packValue = parseNumericValue(countPackMatch[2]);
+      const packUnit = countPackMatch[3] || '';
+      const { normalized, type } = normalizeUnit(packUnit);
+      
+      return {
+        type: 'count_pack',
+        count,
+        packSize: { value: packValue, unit: packUnit, normalizedUnit: normalized, unitType: type, originalUnit: packUnit },
+        originalString: trimmed
+      };
+    }
+    
+    // Pattern 2: Count with unit (e.g., "50 bottles", "100 packets", "50 containers", "2 dozen")
+    const countMatch = trimmed.match(/^(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*([a-zA-Z]+)$/);
+    if (countMatch) {
+      const count = parseNumericValue(countMatch[1]);
+      const unit = countMatch[2];
+      const { type } = normalizeUnit(unit);
+      
+      if (type === 'count') {
+        return {
+          type: 'count',
+          count,
+          countUnit: unit,
+          originalString: trimmed
+        };
+      }
+    }
+    
+    // Pattern 3: Simple quantity (e.g., "1000 gms", "1 kg", "5 litres", "750 ml", "1/2 kg")
+    const simpleMatch = trimmed.match(/^(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*([a-zA-Z]+)?$/);
+    if (simpleMatch) {
+      const value = parseNumericValue(simpleMatch[1]);
+      const unit = simpleMatch[2] || '';
+      const { normalized, type } = normalizeUnit(unit);
+      
+      if (type !== 'unknown' || unit === '') {
+        return {
+          type: 'simple',
+          totalQuantity: { value, unit, normalizedUnit: normalized, unitType: type, originalUnit: unit },
+          originalString: trimmed
+        };
+      }
+    }
+    
+    // Fallback: try to parse as simple number
+    const fallbackMatch = trimmed.match(/^(\d+)(.*)$/);
+    if (fallbackMatch) {
+      const quantity = parseInt(fallbackMatch[1], 10);
+      const rest = fallbackMatch[2] || '';
+      return {
+        type: 'simple',
+        totalQuantity: { value: quantity, unit: rest.trim(), normalizedUnit: rest.trim().toLowerCase(), unitType: 'unknown', originalUnit: rest.trim() },
+        originalString: trimmed
+      };
+    }
+    
+    return { type: 'unknown', originalString: trimmed };
+  };
+
+  // Parse sample quantity, supporting an explicit multiplier
+  // e.g. "120 gms", "120 gms * 3", "1000*3", "750 ml × 3", "3 x 120 gms", "3*750ml"
+  const sampleTrimmed = stripFiller(sampleQuantity.trim());
+  const sampleMultMatch = sampleTrimmed.match(/^(.*?)[\s]*[×x*][\s]*(\d+(?:\.\d+)?)\s*$/);
+  const samplePrefixMatch = sampleTrimmed.match(/^(\d+(?:\.\d+)?)\s*[×x*]\s*(.+)$/);
+  let sampleBaseInput = sampleTrimmed;
+  let explicitMultiplier: number | null = null;
+  if (sampleMultMatch) {
+    const base = sampleMultMatch[1].trim();
+    const mult = parseFloat(sampleMultMatch[2]);
+    if (base && !Number.isNaN(mult) && mult > 0) {
+      sampleBaseInput = base;
+      explicitMultiplier = mult;
+    }
+  } else if (samplePrefixMatch) {
+    // Prefix form: "3 x 120 gms" -> multiplier 3, quantity "120 gms"
+    const mult = parseFloat(samplePrefixMatch[1]);
+    const rest = samplePrefixMatch[2].trim();
+    if (rest && !Number.isNaN(mult) && mult > 0) {
+      sampleBaseInput = rest;
+      explicitMultiplier = mult;
+    }
+  }
+  const sampleParsed = parseQuantity(sampleBaseInput);
+  if (!sampleParsed) {
+    // Fallback to original logic if parsing fails
+    const stockMatch = stockPosition.trim().match(/^(\d+)(.*)$/);
+    if (stockMatch) {
+      const quantity = parseInt(stockMatch[1], 10);
+      const rest = stockMatch[2] || '';
+      const newQuantity = Math.max(0, quantity - 3);
+      return `${newQuantity}${rest}`;
+    }
+    return '';
+  }
+
+  // Validate sample quantity > 0
+  if (sampleParsed.value <= 0) {
+    return 'Error: Sample quantity must be greater than zero';
+  }
+
+  // Parse stock position
+  const stockParsed = parseStockPosition(stockPosition);
+  
+  if (stockParsed.type === 'unknown') {
+    // Fallback to original logic
+    const stockMatch = stockPosition.trim().match(/^(\d+)(.*)$/);
+    if (stockMatch) {
+      const quantity = parseInt(stockMatch[1], 10);
+      const rest = stockMatch[2] || '';
+      const newQuantity = Math.max(0, quantity - 3);
+      return `${newQuantity}${rest}`;
+    }
+    return '';
+  }
+
+  // Calculate total quantity drawn.
+  // Default: sample quantity × 3 (three representative samples).
+  // If the user already entered an explicit multiplier (e.g. "1000*3"),
+  // use it as-is instead of multiplying by 3 again.
+  const sampleInBase = toBaseUnit(sampleParsed.value, sampleParsed.unit);
+  const totalDrawn = sampleInBase * (explicitMultiplier ?? 3);
+
+  // Handle different stock position types
+  if (stockParsed.type === 'count_pack' && stockParsed.count !== undefined && stockParsed.packSize) {
+    // Count × Pack Size: deduct 3 packs, keep pack size
+    const newCount = Math.max(0, stockParsed.count - 3);
+    const packSizeDisplay = `${stockParsed.packSize.value} ${stockParsed.packSize.unit}`;
+    return `${newCount} × ${packSizeDisplay}`;
+  }
+
+  if (stockParsed.type === 'count' && stockParsed.count !== undefined && stockParsed.countUnit) {
+    // Count with unit (bottles, packets, etc.): deduct 3 units
+    // Check if sample quantity matches the count unit
+    const sampleUnitNormalized = normalizeUnit(sampleParsed.unit).normalized;
+    const stockUnitNormalized = normalizeUnit(stockParsed.countUnit).normalized;
+    
+    // If sample is in same count unit, deduct 3
+    if (sampleUnitNormalized === stockUnitNormalized || sampleParsed.unitType === 'count') {
+      const newCount = Math.max(0, stockParsed.count - 3);
+      return `${newCount} ${stockParsed.countUnit}`;
+    }
+    
+    // Incompatible units (e.g. "68 bottles" stock with "120 gms" sample):
+    // fall back to the legacy leading-number minus 3 behaviour
+    const legacyMatch = stockPosition.trim().match(/^(\d+)(.*)$/);
+    if (legacyMatch) {
+      const quantity = parseInt(legacyMatch[1], 10);
+      const rest = legacyMatch[2] || '';
+      return `${Math.max(0, quantity - 3)}${rest}`;
+    }
+    return 'Error: Cannot convert sample quantity to count units. Please specify pack size.';
+  }
+
+  if (stockParsed.type === 'simple' && stockParsed.totalQuantity) {
+    // Simple quantity: deduct total drawn from stock
+    const stockInBase = toBaseUnit(stockParsed.totalQuantity.value, stockParsed.totalQuantity.unit);
+    
+    // Check unit compatibility
+    const stockUnitType = stockParsed.totalQuantity.unitType;
+    const sampleUnitType = sampleParsed.unitType;
+    
+    // Weight and volume cannot be mixed
+    if ((stockUnitType === 'weight' && sampleUnitType === 'volume') || 
+        (stockUnitType === 'volume' && sampleUnitType === 'weight')) {
+      return 'Error: Cannot mix weight and volume units';
+    }
+    
+    // Count units cannot be mixed with weight/volume
+    if ((stockUnitType === 'count' && (sampleUnitType === 'weight' || sampleUnitType === 'volume')) ||
+        ((stockUnitType === 'weight' || stockUnitType === 'volume') && sampleUnitType === 'count')) {
+      return 'Error: Cannot mix count units with weight/volume units';
+    }
+    
+    // Calculate balance
+    const balanceInBase = Math.max(0, stockInBase - totalDrawn);
+    
+    // Check if stock is insufficient
+    if (stockInBase < totalDrawn) {
+      return 'Error: Insufficient stock for sampling';
+    }
+    
+    // Format result
+    return formatFromBase(balanceInBase, stockParsed.totalQuantity.originalUnit, stockUnitType);
+  }
+
+  // Fallback
+  return '';
+};
+
+// Get detailed calculation breakdown for Point 12 display
+export const getStockCalculationBreakdown = (stockPosition: string, sampleQuantity: string): {
+  originalStock: string;
+  sampleDrawn: string;
+  balanceStock: string;
+  hasError: boolean;
+  errorMessage?: string;
+} => {
+  const result = {
+    originalStock: stockPosition || '',
+    sampleDrawn: '',
+    balanceStock: '',
+    hasError: false,
+    errorMessage: undefined as string | undefined
+  };
+
+  if (!stockPosition || !sampleQuantity) return result;
+
+  // Calculate sample drawn display (quantity × 3, or explicit multiplier if present)
+  const sampleTrimmed = sampleQuantity.trim()
+    .replace(/^(?:approx\.?|approximately|about|around|nearly|say)\s+/i, '')
+    .replace(/\s+(?:approx\.?|approximately|about|around|nearly|say)\.?$/i, '')
+    .trim();
+  const sampleMultMatch = sampleTrimmed.match(/^(.*?)[\s]*[×x*][\s]*(\d+(?:\.\d+)?)\s*$/);
+  const samplePrefixMatch = sampleTrimmed.match(/^(\d+(?:\.\d+)?)\s*[×x*]\s*(.+)$/);
+  let sampleBaseInput = sampleTrimmed;
+  let explicitMultiplier: number | null = null;
+  if (sampleMultMatch) {
+    const base = sampleMultMatch[1].trim();
+    const mult = parseFloat(sampleMultMatch[2]);
+    if (base && !Number.isNaN(mult) && mult > 0) {
+      sampleBaseInput = base;
+      explicitMultiplier = mult;
+    }
+  } else if (samplePrefixMatch) {
+    const mult = parseFloat(samplePrefixMatch[1]);
+    const rest = samplePrefixMatch[2].trim();
+    if (rest && !Number.isNaN(mult) && mult > 0) {
+      sampleBaseInput = rest;
+      explicitMultiplier = mult;
+    }
+  }
+  const sampleParsed = sampleBaseInput.match(/^(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*([a-zA-Z]+)?$/);
+  if (sampleParsed) {
+    const rawValue = sampleParsed[1];
+    const sampleValue = rawValue.includes('/')
+      ? rawValue.split('/').map(p => parseFloat(p.trim())).reduce((acc, n) => acc / n)
+      : parseFloat(rawValue);
+    const sampleUnit = sampleParsed[2] || '';
+    const multiplier = explicitMultiplier ?? 3;
+    const totalDrawn = Math.round(sampleValue * multiplier * 100) / 100;
+    result.sampleDrawn = `${sampleValue}${sampleUnit ? ' ' + sampleUnit : ''} × ${multiplier} = ${totalDrawn}${sampleUnit ? ' ' + sampleUnit : ''}`;
+  } else {
+    result.sampleDrawn = explicitMultiplier !== null
+      ? `${sampleQuantity} = ${sampleQuantity}`
+      : `${sampleQuantity} × 3`;
+  }
+
+  // Calculate balance
+  const balance = calculateStockAfterSampling(stockPosition, sampleQuantity);
+  
+  // Check if it's an error
+  if (balance.startsWith('Error:')) {
+    result.hasError = true;
+    result.errorMessage = balance.replace('Error: ', '');
+    result.balanceStock = '';
+  } else {
+    result.balanceStock = balance;
+  }
+
+  return result;
+};
 
 function subItemField(cursor: PdfCursor, mainLabel: string, subItems: Array<[string, string]>, labelWidth = 74) {
   const x = PAGE.marginX;

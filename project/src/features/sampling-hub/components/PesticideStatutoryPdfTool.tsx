@@ -1,6 +1,6 @@
 import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Bug, Eye, FileText, HelpCircle, RotateCcw, Save, UserCheck, Store, Package, Factory } from 'lucide-react';
+import { Bug, Calculator, Eye, FileText, HelpCircle, RotateCcw, Save, UserCheck, Store, Package, Factory } from 'lucide-react';
 import { PesticideCoveringLetterModal } from './PesticideCoveringLetterModal';
 import { PesticideInstructionModal } from '../../../shared/components/ui/PesticideInstructionModal';
 import {
@@ -14,6 +14,8 @@ import {
   isCombinationProduct,
   extractIngredientNames,
   ActiveIngredient,
+  calculateStockAfterSampling,
+  getStockCalculationBreakdown,
 } from '../lib/statutoryPesticidePdf';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
@@ -164,7 +166,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
     fields: [
       { key: 'tradeName', label: 'TRADE NAME', placeholder: 'Brand Name Eg: Coragen' },
       { key: 'technicalName', label: 'TECHNICAL NAME', placeholder: 'Eg: Chlorantraniliprole' },
-      { key: 'activeIngredient', label: 'ACTIVE INGREDIENT', placeholder: 'Eg: 18% w/w or w/v' },
+      { key: 'activeIngredient', label: 'ACTIVE INGREDIENT %', placeholder: 'Eg: 18% w/w or w/v' },
       { key: 'formulationType', label: 'FORMULATION TYPE', type: 'select', options: formulationTypeOptions },
       { key: 'manualFormulationType', label: 'ENTER FORMULATION TYPE', placeholder: 'Enter formulation type' },
       { key: 'batchNumber', label: 'BATCH NUMBER', placeholder: 'Enter Batch No as Per Label' },
@@ -178,6 +180,7 @@ const fieldSections: { title: string; fields: FieldConfig[] }[] = [
       { key: 'invoiceDate', label: 'INVOICE DATE', type: 'date' },
       { key: 'stockReceiptDate', label: 'STOCK RECEIPT DATE', type: 'date' },
       { key: 'stockPosition', label: 'STOCK POSITION OF BATCH', type: 'textarea', placeholder: 'Eg: 50 x (120 GMS) / 50 x (120 Ml)' },
+      { key: 'stockAfterSampling', label: 'STOCK AFTER SAMPLING', placeholder: 'Auto-calculated from stock position and sample quantity. Edit if needed.' },
       { key: 'otherInformation', label: 'ANY OTHER RELEVANT INFORMATION', type: 'textarea' },
       { key: 'dispatchDate', label: 'DATE OF DISPATCH', type: 'date' },
       { key: 'ptlNameMode', label: 'NAME OF THE P.T.L.', type: 'select', options: [{ label: 'DEFAULT', value: 'default' }, { label: 'EMPTY', value: 'empty' }] },
@@ -242,6 +245,7 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
 
   const [showInstructionModal, setShowInstructionModal] = useState(true);
   const [showCoveringLetterModal, setShowCoveringLetterModal] = useState(false);
+  const [showStockCalcModal, setShowStockCalcModal] = useState(false);
   const [values, setValues] = useState<PesticidePdfValues>(() => {
     try {
       const saved = safeStorage.getItem(STORAGE_KEY);
@@ -352,6 +356,46 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
     }
   }, [values.designation, values.district]);
 
+  // Auto-calculate stock after sampling when stock position or sample quantity changes
+  // Only auto-fill if the field is empty or was previously auto-calculated (not manually edited)
+  useEffect(() => {
+    const stockPosition = values.stockPosition?.trim() || '';
+    const sampleQuantity = values.sampleQuantity?.trim() || '';
+    const currentStockAfter = values.stockAfterSampling?.trim() || '';
+    
+    // Only auto-calculate if stock position and sample quantity are provided
+    if (!stockPosition || !sampleQuantity) {
+      // Clear auto-calculated value if inputs are cleared
+      if (currentStockAfter && !values.stockAfterSamplingManuallyEdited) {
+        setValues(prev => ({ ...prev, stockAfterSampling: '' }));
+      }
+      return;
+    }
+    
+    // Calculate the stock after sampling
+    const calculated = calculateStockAfterSampling(stockPosition, sampleQuantity);
+    
+    // Auto-fill only when the field has not been manually edited.
+    // An emptied field counts as a manual override so it stays cleared
+    // until stock position / sample quantity changes again.
+    if (!values.stockAfterSamplingManuallyEdited) {
+      setValues(prev => ({ ...prev, stockAfterSampling: calculated }));
+    } else if (currentStockAfter === calculated.trim()) {
+      // If user entered the same value as calculated, reset manual edit flag
+      setValues(prev => ({ ...prev, stockAfterSamplingManuallyEdited: false }));
+    }
+  }, [values.stockPosition, values.sampleQuantity, values.stockAfterSamplingManuallyEdited, values.stockAfterSampling]);
+
+  // Calculate stock breakdown for preview display
+  const stockBreakdown = useMemo(() => {
+    const stockPosition = values.stockPosition?.trim() || '';
+    const sampleQuantity = values.sampleQuantity?.trim() || '';
+    
+    if (!stockPosition || !sampleQuantity) return null;
+    
+    return getStockCalculationBreakdown(stockPosition, sampleQuantity);
+  }, [values.stockPosition, values.sampleQuantity]);
+
   const resetDealerDetails = () => {
     setValues(prev => ({
       ...prev,
@@ -439,15 +483,35 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
           next.mandal = '';
           next.manualMandal = '';
         } else {
-          next.division = '';
-          next.manualDivision = '';
           next.sampleDrawingMandal = '';
           next.manualPlaceOfCollection = '';
-          next.office = '';
         }
+        next.division = '';
+        next.manualDivision = '';
+        next.sampleDrawingMandal = '';
+        next.manualPlaceOfCollection = '';
+        next.office = '';
         // Prefill OFFICE for Asst. Director of Agriculture (T)
         if (isAssistantDirectorOfAgricultureT(value)) {
           next.office = ASSISTANT_DIRECTOR_T_OFFICE_DEFAULT;
+        }
+      }
+      // Track manual edit of stockAfterSampling field
+      // Empty value = deliberate clear (manual override); same as calculated = back to auto
+      if (key === 'stockAfterSampling') {
+        const calculated = calculateStockAfterSampling(next.stockPosition, next.sampleQuantity);
+        next.stockAfterSamplingManuallyEdited = value.trim() === ''
+          ? true
+          : value.trim() !== calculated.trim();
+      }
+      // Auto-calculate stockAfterSampling when stockPosition or sampleQuantity changes.
+      // Resume auto-calculation if the field was cleared (empty manual override).
+      if (key === 'stockPosition' || key === 'sampleQuantity') {
+        const stockAfterEmpty = !(next.stockAfterSampling ?? '').trim();
+        if (!next.stockAfterSamplingManuallyEdited || stockAfterEmpty) {
+          const calculated = calculateStockAfterSampling(next.stockPosition, next.sampleQuantity);
+          next.stockAfterSampling = calculated;
+          next.stockAfterSamplingManuallyEdited = false;
         }
       }
       if (key === 'mandal') {
@@ -1189,6 +1253,32 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                         return null;
                       }
                       
+                      // Show a calculator icon after stockAfterSampling field that opens the calculation modal
+                      if (field.key === 'stockAfterSampling') {
+                        return (
+                          <div key={field.key}>
+                            <PdfInput
+                              field={field}
+                              value={fieldValue}
+                              onChange={(value) => setField(field.key, value)}
+                              options={fieldOptions}
+                              values={values}
+                            />
+                            {stockBreakdown && stockBreakdown.sampleDrawn && (
+                              <button
+                                type="button"
+                                onClick={() => setShowStockCalcModal(true)}
+                                title="View calculation"
+                                className="mt-1.5 inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-[11px] font-bold text-red-700 transition hover:bg-red-100 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70"
+                              >
+                                <Calculator className="h-3.5 w-3.5" />
+                                View Calculation
+                              </button>
+                            )}
+                          </div>
+                        );
+                      }
+                      
                       return (
                         <PdfInput
                           key={field.key}
@@ -1236,6 +1326,54 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
               Note: Samples are added to the Covering Letter queue only via <span className="font-black">Download All Forms → Download</span>. Preview and individual form downloads will not add them.
             </p>
           </div>
+
+          {showStockCalcModal && stockBreakdown && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm" onClick={() => setShowStockCalcModal(false)}>
+              <div className="w-full max-w-sm overflow-hidden rounded-xl border border-red-200 bg-white shadow-2xl dark:border-red-800 dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
+                <div className="border-b border-red-100 bg-gradient-to-r from-red-50 via-white to-rose-50 px-5 py-4 dark:border-red-800/50 dark:from-red-950/40 dark:via-slate-900 dark:to-rose-950/40">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-md shadow-red-500/25">
+                      <Calculator className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-red-600/80 dark:text-red-300/80">Pesticide sampling</p>
+                      <h3 className="text-base font-black leading-tight text-slate-900 dark:text-white">Stock Calculation</h3>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2.5 px-5 py-4 text-sm">
+                  <div className="flex justify-between gap-4">
+                    <span className="text-slate-500 dark:text-slate-400">Original stock:</span>
+                    <span className="text-right font-semibold text-slate-900 dark:text-white">{stockBreakdown.originalStock}</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-slate-500 dark:text-slate-400">Sample drawn:</span>
+                    <span className="text-right font-semibold text-slate-900 dark:text-white">{stockBreakdown.sampleDrawn}</span>
+                  </div>
+                  {stockBreakdown.hasError ? (
+                    <div className="flex justify-between gap-4">
+                      <span className="text-red-600 dark:text-red-400">Error:</span>
+                      <span className="text-right font-semibold text-red-600 dark:text-red-400">{stockBreakdown.errorMessage}</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between gap-4 rounded-lg border border-red-100 bg-red-50/60 px-3 py-2.5 dark:border-red-800/60 dark:bg-red-950/30">
+                      <span className="text-slate-500 dark:text-slate-400">Balance stock:</span>
+                      <span className="text-right font-black text-red-700 dark:text-red-300">{stockBreakdown.balanceStock}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="border-t border-red-100 px-5 py-3 dark:border-red-800/50">
+                  <button
+                    type="button"
+                    onClick={() => setShowStockCalcModal(false)}
+                    className="w-full rounded-lg border border-red-600 bg-red-600 px-4 py-2 text-sm font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {showDownloadAllDialog && (
             <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
