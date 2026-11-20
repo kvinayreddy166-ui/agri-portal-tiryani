@@ -1,7 +1,7 @@
-const RESCUE_SW_VERSION = 'agronix-rescue-sw-v16';
+const RESCUE_SW_VERSION = 'agronix-rescue-sw-v17';
 const RECOVERY_URL = '/?refresh=sw-missing-asset&reason=missing-asset';
-const STATIC_CACHE_NAME = 'agronix-static-v16';
-const RUNTIME_CACHE_NAME = 'agronix-runtime-v16';
+const STATIC_CACHE_NAME = 'agronix-static-v17';
+const RUNTIME_CACHE_NAME = 'agronix-runtime-v17';
 
 // Get recovery URL that preserves current path for public routes
 function getRecoveryUrl(request) {
@@ -31,7 +31,8 @@ self.addEventListener('install', (event) => {
     caches.open(STATIC_CACHE_NAME)
       .then((cache) => cache.addAll(STATIC_ASSETS))
   );
-  // Do NOT call skipWaiting() here - let the new SW wait for user approval
+  // Auto-activate new SW to ensure mobile users get fresh CSS/assets immediately
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -42,8 +43,7 @@ self.addEventListener('activate', (event) => {
       self.clients.claim(),
     ])
       .then(() => {
-        // Do NOT call skipWaiting() here - wait for explicit user action
-        // Only notify clients that SW is ready
+        // Notify clients that SW is ready and active
         return notifyClients({ type: 'SW_READY', version: RESCUE_SW_VERSION });
       })
   );

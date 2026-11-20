@@ -2,7 +2,7 @@ const RECOVERY_KEY = 'tiryani-pwa-recovery-attempted-at';
 const RECOVERY_WINDOW_MS = 30_000;
 
 // Must match STATIC_CACHE_NAME / RUNTIME_CACHE_NAME in public/service-worker.js.
-const CURRENT_SW_CACHES = ['agronix-static-v16', 'agronix-runtime-v16'];
+const CURRENT_SW_CACHES = ['agronix-static-v17', 'agronix-runtime-v17'];
 
 const CHUNK_ERROR_PATTERNS = [
   /ChunkLoadError/i,
