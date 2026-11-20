@@ -899,7 +899,7 @@ export const calculateStockAfterSampling = (stockPosition: string, sampleQuantit
     // Pattern 1: Count × Pack Size (e.g., "50 × 120 gms", "50x120ml", "50 * 120 g",
     // "50 * (120 ml)", "50 nos x 120 gms", "50 packets of 120 gms", "2 dozen × 500 ml")
     // Match: number, optional count descriptor, separator (×, x, *, or "of"), optional "(", number, unit, optional ")"
-    const countPackMatch = trimmed.match(/^(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*(?:(?:nos?|numbers?|pkts?|boxes?|bottles?|packets?|containers?|bags?|units?|pcs?|lots?)\b\.?\s*)?(?:[×x*]|\bof\b)\s*\(?\s*(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*([a-zA-Z]+)?\s*\)?\s*$/i);
+    const countPackMatch = trimmed.match(/^(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*(?:(?:nos?|numbers?|pkts?|boxes?|bottles?|packets?|containers?|bags?|units?|pcs?|lots?)\b\.?\s*)?(?:[×x*@]|\bof\s+(?:each|apiece)\b|\bof\b|\beach\b)\s*\(?\s*(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*([a-zA-Z]+)?(?:\s+(?:each|apiece))?\s*\)?\s*$/i);
     if (countPackMatch) {
       const count = parseNumericValue(countPackMatch[1]);
       const packValue = parseNumericValue(countPackMatch[2]);
@@ -965,8 +965,8 @@ export const calculateStockAfterSampling = (stockPosition: string, sampleQuantit
   // Parse sample quantity, supporting an explicit multiplier
   // e.g. "120 gms", "120 gms * 3", "1000*3", "750 ml × 3", "3 x 120 gms", "3*750ml"
   const sampleTrimmed = stripFiller(sampleQuantity.trim());
-  const sampleMultMatch = sampleTrimmed.match(/^(.*?)[\s]*[×x*][\s]*(\d+(?:\.\d+)?)\s*$/);
-  const samplePrefixMatch = sampleTrimmed.match(/^(\d+(?:\.\d+)?)\s*[×x*]\s*(.+)$/);
+  const sampleMultMatch = sampleTrimmed.match(/^(.*?)[\s]*[×x*@][\s]*(\d+(?:\.\d+)?)\s*$/);
+  const samplePrefixMatch = sampleTrimmed.match(/^(\d+(?:\.\d+)?)\s*[×x*@]\s*(.+)$/);
   let sampleBaseInput = sampleTrimmed;
   let explicitMultiplier: number | null = null;
   if (sampleMultMatch) {
@@ -1115,8 +1115,8 @@ export const getStockCalculationBreakdown = (stockPosition: string, sampleQuanti
     .replace(/^(?:approx\.?|approximately|about|around|nearly|say)\s+/i, '')
     .replace(/\s+(?:approx\.?|approximately|about|around|nearly|say)\.?$/i, '')
     .trim();
-  const sampleMultMatch = sampleTrimmed.match(/^(.*?)[\s]*[×x*][\s]*(\d+(?:\.\d+)?)\s*$/);
-  const samplePrefixMatch = sampleTrimmed.match(/^(\d+(?:\.\d+)?)\s*[×x*]\s*(.+)$/);
+  const sampleMultMatch = sampleTrimmed.match(/^(.*?)[\s]*[×x*@][\s]*(\d+(?:\.\d+)?)\s*$/);
+  const samplePrefixMatch = sampleTrimmed.match(/^(\d+(?:\.\d+)?)\s*[×x*@]\s*(.+)$/);
   let sampleBaseInput = sampleTrimmed;
   let explicitMultiplier: number | null = null;
   if (sampleMultMatch) {

@@ -54,4 +54,22 @@ describe('Point 12 stock calculation', () => {
   it('50 boxes x 100 g -> 47 × 100 g', () => {
     expect(calculateStockAfterSampling('50 boxes x 100 g', '100 g')).toBe('47 × 100 g');
   });
+  it('120 gms @ 3 -> 640 gms (no double multiply)', () => {
+    expect(calculateStockAfterSampling('1000 gms', '120 gms @ 3')).toBe('640 gms');
+  });
+  it('3 @ 120 gms prefix -> 640 gms', () => {
+    expect(calculateStockAfterSampling('1000 gms', '3 @ 120 gms')).toBe('640 gms');
+  });
+  it('50 @ 120 gms stock -> 47 × 120 gms', () => {
+    expect(calculateStockAfterSampling('50 @ 120 gms', '120 gms')).toBe('47 × 120 gms');
+  });
+  it('25 bottles of each 250 g -> 22 × 250 g', () => {
+    expect(calculateStockAfterSampling('25 bottles of each 250 g', '250 g')).toBe('22 × 250 g');
+  });
+  it('25 bottles of 250 g each -> 22 × 250 g', () => {
+    expect(calculateStockAfterSampling('25 bottles of 250 g each', '250 g')).toBe('22 × 250 g');
+  });
+  it('25 bottles each 250 gms -> 22 × 250 gms', () => {
+    expect(calculateStockAfterSampling('25 bottles each 250 gms', '250 gms')).toBe('22 × 250 gms');
+  });
 });
