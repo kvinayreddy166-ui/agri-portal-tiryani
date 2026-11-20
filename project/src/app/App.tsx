@@ -33,6 +33,14 @@ import { Layout, Login, LandingPage } from './router/lazyPages';
 import { safeStorage } from '../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../features/officers-toolkit/services/officerCloudSyncService';
 import { OfficerDocumentArchiveService } from '../features/officers-toolkit/services/officerDocumentArchiveService';
+// Dealer inspection forms run chromeless — they render their own full-page
+// header/back inside a min-h-screen gradient shell instead of the app Layout.
+const FULL_SCREEN_PAGE_KEYS = new Set([
+  'seed-dealer-inspection',
+  'fertilizer-dealer-inspection',
+  'insecticide-dealer-inspection',
+]);
+
 function AppContent() {
   const { user, loading, authChecked, appReady, isAdminUser, isElevatedOfficerUser, isTestUser, isDealerUser, isOfficerUser } = useAuth();
   const { isDark } = useTheme();
@@ -299,11 +307,19 @@ function AppContent() {
     );
   }
 
+  const pageSwitch = (
+    <PageSwitch currentPage={currentPage} isAdminUser={isAdminUser} isTestUser={isTestUser} isOfficerUser={isOfficerUser} isElevatedOfficerUser={isElevatedOfficerUser} onNavigate={navigateToPage} />
+  );
+
   return (
     <SafeSuspense fallback={<PageLoader hideLogo={hideCalculatorLogo} />}>
-      <Layout currentPage={currentPage} onNavigate={navigateToPage} onBack={handleBack}>
-        <PageSwitch currentPage={currentPage} isAdminUser={isAdminUser} isTestUser={isTestUser} isOfficerUser={isOfficerUser} isElevatedOfficerUser={isElevatedOfficerUser} onNavigate={navigateToPage} />
-      </Layout>
+      {FULL_SCREEN_PAGE_KEYS.has(currentPage) ? (
+        pageSwitch
+      ) : (
+        <Layout currentPage={currentPage} onNavigate={navigateToPage} onBack={handleBack}>
+          {pageSwitch}
+        </Layout>
+      )}
     </SafeSuspense>
   );
 }

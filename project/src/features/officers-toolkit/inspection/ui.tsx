@@ -352,6 +352,69 @@ export function SummaryChip({ label, value }: { label: string; value: number }) 
   );
 }
 
+export interface SummaryStatItem {
+  label: string;
+  value: number | string;
+  tone?: 'yes' | 'no';
+}
+
+/**
+ * Compact inspection summary bar — completion progress plus inline stat
+ * readouts and the page's export/preview actions in a single strip.
+ */
+export function InspectionSummaryBar({
+  completed,
+  total,
+  stats,
+  actions,
+}: {
+  completed: number;
+  total: number;
+  stats: SummaryStatItem[];
+  actions?: React.ReactNode;
+}) {
+  const styles = useToneStyles();
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const statValueClass = (tone?: SummaryStatItem['tone']) =>
+    tone === 'yes'
+      ? 'text-emerald-600 dark:text-emerald-400'
+      : tone === 'no'
+        ? 'text-red-600 dark:text-red-400'
+        : 'text-slate-800 dark:text-slate-100';
+  return (
+    <div className={`mt-5 flex flex-col gap-3 rounded-2xl border bg-white/90 px-4 py-3 shadow-sm backdrop-blur-sm dark:bg-slate-900/80 lg:flex-row lg:items-center lg:justify-between ${styles.sectionBorder}`}>
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Inspection summary</p>
+          <p className="text-sm font-black tabular-nums text-slate-900 dark:text-white">
+            {completed}<span className="font-bold text-slate-400 dark:text-slate-500">/{total}</span>
+            <span className="ml-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">{pct}% complete</span>
+          </p>
+        </div>
+        <div
+          className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-slate-200/80 sm:w-32 dark:bg-slate-700"
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Inspection completion"
+        >
+          <div className={`h-full rounded-full bg-gradient-to-r transition-[width] duration-300 ${styles.badgeGradient}`} style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        {stats.map((stat) => (
+          <div key={stat.label} className="flex items-baseline gap-1.5">
+            <span className={`text-sm font-black tabular-nums ${statValueClass(stat.tone)}`}>{stat.value}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{stat.label}</span>
+          </div>
+        ))}
+      </div>
+      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
 export function CheckRow({ label, checked, onToggle, children }: { label: string; checked: boolean; onToggle: (checked: boolean) => void; children: React.ReactNode }) {
   const styles = useToneStyles();
   return (

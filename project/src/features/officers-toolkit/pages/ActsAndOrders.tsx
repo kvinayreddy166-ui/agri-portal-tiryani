@@ -44,6 +44,7 @@ import { InsecticideExplorer, type InsecticideExplorerSection } from '../compone
 import { FcoImplementationModal } from '../../../shared/components/ui/FcoImplementationModal';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { setBreadcrumbTrail, clearBreadcrumbTrail } from '../../../shared/lib/breadcrumbTrail';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
@@ -105,6 +106,18 @@ export function ActsAndOrders() {
       if (card) setCategory(card.category);
     }
   }, [areaFromPath, localizedLegalAreas]);
+
+  // While a legal area / FCO view is open, surface the module itself in the
+  // breadcrumb so users can tap back to the Acts & Orders home.
+  useEffect(() => {
+    if (!selectedLegalArea) {
+      clearBreadcrumbTrail();
+      return;
+    }
+    setBreadcrumbTrail([{ label: t('Acts & Orders', 'చట్టాలు & ఉత్తర్వులు'), page: 'acts-and-orders' }]);
+  }, [selectedLegalArea, t]);
+
+  useEffect(() => () => clearBreadcrumbTrail(), []);
 
   useEffect(() => {
     safeStorage.setItem(BOOKMARK_KEY, JSON.stringify(bookmarks));

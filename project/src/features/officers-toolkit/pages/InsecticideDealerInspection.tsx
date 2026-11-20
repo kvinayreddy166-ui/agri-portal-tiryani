@@ -1,21 +1,18 @@
 import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardCheck, Eye, FileDown, FileUp, FolderOpen, RotateCcw, Save, Trash2 } from 'lucide-react';
+import { ClipboardCheck, Eye, FileDown, FolderOpen, RotateCcw, Save, Search, Trash2 } from 'lucide-react';
 import { ToastContainer, useToast } from '../../../shared/components/ui/Toast';
 import { DateClearButton } from '../../../shared/components/ui/DateInput';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { useConfirmDialog } from '../../../shared/components/ui/useConfirmDialog';
-import { ModulePageHeader } from '../../../shared/components/ui/ModulePageHeader';
-import { ToolkitPageHeader } from '../../../shared/components/ui/ToolkitPageHeader';
-import { useAuth } from '../../../shared/context/AuthContext';
 import { addEmblemImageWatermark } from '../../../shared/lib/pdfWatermark';
 import { setupPdfUnicodeFonts } from '../../../shared/lib/pdfUnicodeFonts';
 import { applyDeterministicPdfMetadata } from '../../../shared/lib/pdfDeterministic';
-import { ActionButton, ExportMenu, Field, InspectionTheme, Modal, RowTable, Section, StatusButtons, StatusInput, SummaryChip, useInputClass } from '../inspection/ui';
+import { ActionButton, ExportMenu, Field, InspectionSummaryBar, InspectionTheme, Modal, RowTable, Section, StatusButtons, StatusInput, useInputClass } from '../inspection/ui';
 import { emptyStatus, formatDate, listOrNil, statusText, toggleText } from '../inspection/types';
 import type { DraftRecord as DraftRecordBase, PdfSubTable, Status, StatusField } from '../inspection/types';
-import { exportDraftsFile, importDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../inspection/persistence';
+import { exportDraftsFile, loadPersistedDrafts, loadPersistedForm, persistDraftRecords, savePersistedForm } from '../inspection/persistence';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 import { confirmDiscardIfDirty, useDirtyGuard } from '../inspection/useDirtyGuard';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
@@ -137,8 +134,6 @@ function migrateForm(parsed: Partial<InspectionForm>): Partial<InspectionForm> {
 
 export function InsecticideDealerInspection() {
   const navigate = useNavigate();
-  const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
-  const showCompactHeader = !user || isAdminUser || isTestUser || isOfficerUser;
   const { toasts, removeToast, showSaved, showLoaded, showDeleted, showReset, showSuccess, showInfo, showWarning } = useToast();
   const [confirmAction, setConfirmAction] = useState<{ title: string; message?: string; action: () => void } | null>(null);
   const [form, setForm] = useState<InspectionForm>(() => loadPersistedForm(FORM_KEY, initialForm, migrateForm));
@@ -149,10 +144,10 @@ export function InsecticideDealerInspection() {
   const [sameStorageAsSale, setSameStorageAsSale] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
+  const [draftsSearch, setDraftsSearch] = useState('');
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
-  const importInputRef = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const inputClass = useInputClass();
 
@@ -251,19 +246,6 @@ export function InsecticideDealerInspection() {
   const exportDrafts = () => {
     exportDraftsFile('insecticide', drafts, `insecticide-inspection-drafts-${localTodayDate()}.json`);
     showInfo('Drafts exported');
-  };
-
-  const importDrafts = async (file: File) => {
-    try {
-      const imported = await importDraftsFile<InspectionForm>(file);
-      const incoming = imported.drafts.map((draft) => ({ ...draft, form: migrateForm(draft.form) as InspectionForm }));
-      const next = [...incoming.filter((d) => !drafts.some((existing) => existing.id === d.id)), ...drafts];
-      setDrafts(next);
-      persistDraftRecords(DRAFTS_KEY, next);
-      showSuccess(`${incoming.length} draft(s) imported`);
-    } catch {
-      setError('Could not import drafts — invalid file.');
-    }
   };
 
   const resetForm = () => {
@@ -425,6 +407,22 @@ export function InsecticideDealerInspection() {
     6: { done: (form.samplesDrawn !== '' ? 1 : 0) + (form.remarks.trim() ? 1 : 0), total: 2 },
   }), [form]);
 
+  const filteredDrafts = useMemo(() => {
+    const term = draftsSearch.trim().toLowerCase();
+    if (!term) return drafts;
+    return drafts.filter((draft) =>
+      [draft.name, draft.form.dealerName, draft.form.licenceNo, formatDate(draft.form.inspectionDate)]
+        .some((v) => String(v ?? '').toLowerCase().includes(term)),
+    );
+  }, [drafts, draftsSearch]);
+
+  const handleClose = () => {
+    if (!confirmDiscardIfDirty(dirty)) return;
+    const idx = (window.history.state as { idx?: number } | null)?.idx;
+    if (typeof idx === 'number' && idx > 0) navigate(-1);
+    else navigate('/officer-toolkit/inspection-enforcement');
+  };
+
   return (
     <InspectionTheme tone="amber">
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-slate-950 dark:via-amber-950 dark:to-orange-950">
@@ -437,36 +435,25 @@ export function InsecticideDealerInspection() {
         onConfirm={() => { const action = confirmAction?.action; setConfirmAction(null); action?.(); }}
         onCancel={() => setConfirmAction(null)}
       />
-      <div className="relative mx-auto max-w-7xl p-4 pb-28 sm:p-6 lg:p-8">
-        {showCompactHeader ? (
-          <ModulePageHeader
-            className="mb-4"
-            title="Pesticide dealer inspection form"
-            subtitle="Insecticide inspection"
-            icon={ClipboardCheck}
-            onBack={!user ? () => {
-              if (!confirmDiscardIfDirty(dirty)) return;
-              const idx = (window.history.state as { idx?: number } | null)?.idx;
-              if (typeof idx === 'number' && idx > 0) navigate(-1);
-              else navigate('/officer-toolkit/inspection-enforcement');
-            } : undefined}
-          />
-        ) : (
-          <ToolkitPageHeader
-            icon={ClipboardCheck}
-            tone="amber"
-            eyebrow="Insecticide inspection"
-            title="Pesticide dealer inspection form"
-            fallbackPath="/officer-toolkit/inspection-enforcement"
-            onBack={() => {
-              if (!confirmDiscardIfDirty(dirty)) return;
-              const idx = (window.history.state as { idx?: number } | null)?.idx;
-              if (typeof idx === 'number' && idx > 0) navigate(-1);
-              else navigate('/officer-toolkit/inspection-enforcement');
-            }}
-          />
-        )}
-
+      <header className="relative flex shrink-0 items-start justify-between gap-3 border-b border-amber-100/60 bg-gradient-to-r from-amber-50 via-white to-yellow-50 px-4 py-4 sm:px-6 dark:border-amber-900/50 dark:from-amber-950/70 dark:via-slate-900 dark:to-yellow-950/60">
+        <div className="relative flex min-w-0 flex-1 items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 text-white shadow-lg shadow-amber-500/25">
+            <ClipboardCheck className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-black uppercase tracking-widest text-amber-700/80 dark:text-amber-400">Insecticide inspection</p>
+            <h2 className="max-w-full whitespace-normal text-base font-black leading-tight text-slate-900 dark:text-white sm:text-lg">Pesticide dealer inspection form</h2>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleClose}
+          className="relative inline-flex shrink-0 items-center justify-center rounded-lg border border-red-600 bg-red-600 px-3 py-1.5 text-xs font-black text-white shadow-sm transition hover:bg-red-700 hover:border-red-700"
+        >
+          Close
+        </button>
+      </header>
+      <div className="relative mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
         {error && <div className="mb-4 rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-sm font-bold text-red-700 dark:text-red-300">{error}</div>}
 
         <div className="mb-3 flex flex-wrap gap-2">
@@ -650,50 +637,86 @@ export function InsecticideDealerInspection() {
           </Section>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-amber-200/60 bg-white/90 p-3 shadow-md dark:border-amber-800/50 dark:bg-slate-900/80">
-          <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-amber-800 dark:text-amber-300">Inspection summary</p>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-            <SummaryChip label="Total items" value={summary.total} />
-            <SummaryChip label="Completed" value={summary.completed} />
-            <SummaryChip label="Yes" value={summary.yes} />
-            <SummaryChip label="No" value={summary.no} />
-            <SummaryChip label="N/A" value={summary.na} />
-            <SummaryChip label="Variations" value={summary.variations} />
-            <SummaryChip label="Detained" value={summary.detained} />
-            <SummaryChip label="Seized" value={summary.seized} />
-            <SummaryChip label="Samples" value={summary.samples} />
-          </div>
-          <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-amber-100 pt-3 dark:border-amber-900/40">
-            <ActionButton onClick={openPreview} icon={Eye} tone="white">Preview</ActionButton>
-            <ExportMenu tone="amber" onPdf={generatePdf} onExcel={generateExcel} onPrint={printPreview} />
-          </div>
-        </div>
+        <InspectionSummaryBar
+          completed={summary.completed}
+          total={summary.total}
+          stats={[
+            { label: 'Yes', value: summary.yes, tone: 'yes' },
+            { label: 'No', value: summary.no, tone: 'no' },
+            { label: 'N/A', value: summary.na },
+            { label: 'Variations', value: summary.variations },
+            { label: 'Detained', value: summary.detained },
+            { label: 'Seized', value: summary.seized },
+            { label: 'Samples', value: summary.samples },
+          ]}
+          actions={
+            <>
+              <ActionButton onClick={openPreview} icon={Eye} tone="white">Preview</ActionButton>
+              <ExportMenu tone="amber" onPdf={generatePdf} onExcel={generateExcel} onPrint={printPreview} />
+            </>
+          }
+        />
       </div>
 
       {showDrafts && (
-        <Modal title="Saved drafts" onClose={() => setShowDrafts(false)}>
-          <div className="mb-3 flex flex-wrap gap-2">
-            <ActionButton onClick={exportDrafts} icon={FileDown} tone="amber" disabled={!drafts.length} size="sm">Export drafts</ActionButton>
-            <ActionButton onClick={() => importInputRef.current?.click()} icon={FileUp} tone="white" size="sm">Import drafts</ActionButton>
-            <input ref={importInputRef} type="file" accept="application/json" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importDrafts(file); e.target.value = ''; }} />
+        <Modal title="Saved inspections" wide onClose={() => setShowDrafts(false)}>
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <ActionButton onClick={exportDrafts} icon={FileDown} tone="amber" disabled={!drafts.length} size="sm">Export</ActionButton>
+            </div>
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+              <input
+                value={draftsSearch}
+                onChange={(event) => setDraftsSearch(event.target.value)}
+                placeholder="Search saved inspections"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-100"
+              />
+            </div>
           </div>
           {drafts.length === 0 ? (
-            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No drafts saved yet.</p>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No inspections saved yet.</p>
           ) : (
-            <ul className="divide-y divide-slate-200 dark:divide-slate-700">
-              {drafts.map((draft) => (
-                <li key={draft.id} className="flex items-center justify-between gap-3 py-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-slate-900 dark:text-white">{draft.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Saved {new Date(draft.savedAt).toLocaleString()}</p>
-                  </div>
-                  <div className="flex shrink-0 gap-2">
-                    <ActionButton onClick={() => loadDraft(draft)} tone="amber" size="sm">Edit</ActionButton>
-                    <ActionButton onClick={() => deleteDraft(draft.id)} icon={Trash2} tone="danger" size="sm" aria-label="Delete draft" className="px-2" />
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="overflow-x-auto rounded-lg border border-slate-100 dark:border-slate-800">
+              <table className="w-full min-w-[560px] text-left text-sm">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-black uppercase text-slate-500 dark:text-slate-400">
+                  <tr>
+                    <th className="px-3 py-2">Inspection</th>
+                    <th className="px-3 py-2">Dealer</th>
+                    <th className="px-3 py-2">Date</th>
+                    <th className="px-3 py-2">Status</th>
+                    <th className="px-3 py-2 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {filteredDrafts.map((draft) => (
+                    <tr key={draft.id}>
+                      <td className="px-3 py-2 font-black">{draft.name}</td>
+                      <td className="px-3 py-2">{draft.form.dealerName || '-'}</td>
+                      <td className="px-3 py-2">{formatDate(draft.form.inspectionDate) || new Date(draft.savedAt).toLocaleDateString()}</td>
+                      <td className="px-3 py-2">
+                        {draft.issuedAt ? (
+                          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-black text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">Issued</span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-black text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">Draft</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <div className="inline-flex items-center gap-1">
+                          <ActionButton onClick={() => loadDraft(draft)} tone="amber" size="sm">Edit</ActionButton>
+                          <ActionButton onClick={() => deleteDraft(draft.id)} icon={Trash2} tone="danger" size="sm" aria-label="Delete saved inspection" className="px-2" />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredDrafts.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-3 py-8 text-center font-semibold text-slate-500 dark:text-slate-400">No matching inspections.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
         </Modal>
       )}

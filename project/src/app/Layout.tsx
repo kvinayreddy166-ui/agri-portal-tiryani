@@ -14,6 +14,8 @@ import { MODULE_MENU_ITEMS, getVisibleModuleItems, moduleSections, translateMenu
 import { MobileBottomNav } from '../shared/components/navigation/MobileBottomNav';
 import { NotificationBell } from '../shared/components/ui/NotificationBell';
 import { recordRecentModule } from '../shared/lib/modulePrefs';
+import { TOUR_DIARY_BACK_EVENT } from '../features/tour-diary/lib/tourDiaryData';
+import { BREADCRUMB_TRAIL_EVENT, type BreadcrumbTrailCrumb } from '../shared/lib/breadcrumbTrail';
 
 interface LayoutProps {
   children: ReactNode;
@@ -57,8 +59,32 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
   const { language, toggleLanguage, t } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
   const pageMeta = useMemo(() => getPageMeta(currentPage, t), [currentPage, t]);
+  const [trailCrumbs, setTrailCrumbs] = useState<BreadcrumbTrailCrumb[]>([]);
+
+  // Pages with internal drill-down views (Acts & Orders, Tour Diary) publish
+  // extra crumbs — e.g. the module itself — so the trail can offer a way back
+  // to the module home without leaving the page key.
+  useEffect(() => {
+    const handler = (event: Event) => {
+      setTrailCrumbs((event as CustomEvent<BreadcrumbTrailCrumb[]>).detail ?? []);
+    };
+    window.addEventListener(BREADCRUMB_TRAIL_EVENT, handler);
+    return () => window.removeEventListener(BREADCRUMB_TRAIL_EVENT, handler);
+  }, []);
+
   const hidePortalLogo = currentPage === 'fertilizer-calculator' || currentPage === 'acreage-calculator';
   const isOfficer = isOfficerUser || (!isAdminUser && !isDealerUser);
+
+  // A crumb pointing at the current page key is the module-home crumb pushed
+  // by drill-down pages — route it through the same back-to-root handling.
+  const handleModuleHomeCrumb = (page: string) => {
+    if (page === 'tour-diary') {
+      const backEvent = new CustomEvent(TOUR_DIARY_BACK_EVENT, { cancelable: true });
+      window.dispatchEvent(backEvent);
+      if (backEvent.defaultPrevented) return;
+    }
+    onNavigate(page);
+  };
 
   const handleNavigation = (page: string) => {
     const replaceOverlayEntry = sidebarOpen || profileOpen;
@@ -381,16 +407,17 @@ export function Layout({ children, currentPage, onNavigate, onBack }: LayoutProp
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <nav className="flex min-w-0 flex-wrap items-center gap-1 text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400" aria-label="Breadcrumb">
-                {pageMeta.breadcrumbs.map((item, index) => {
-                  const isLink = Boolean(item.page && item.page !== currentPage);
-                  const isCurrent = !isLink && index === pageMeta.breadcrumbs.length - 1;
+                {[...pageMeta.breadcrumbs, ...trailCrumbs].map((item, index, crumbs) => {
+                  const isModuleHome = Boolean(item.page && item.page === currentPage);
+                  const isLink = Boolean(item.page);
+                  const isCurrent = !isLink && index === crumbs.length - 1;
                   return (
                     <React.Fragment key={`${item.label}-${index}`}>
                       {index > 0 && <ChevronRight className="h-3.5 w-3.5 text-slate-400" />}
                       {isLink ? (
                         <button
                           type="button"
-                          onClick={() => onNavigate(item.page!)}
+                          onClick={() => (isModuleHome ? handleModuleHomeCrumb(item.page!) : onNavigate(item.page!))}
                           className="rounded-md px-1.5 py-1 text-emerald-700 transition-colors hover:bg-emerald-50 hover:underline hover:underline-offset-2 dark:text-emerald-300 dark:hover:bg-slate-800"
                         >
                           {t(item.label, translateMenu(item.label))}
@@ -468,6 +495,7 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'stock-receipts-sales': { title: t('Stock Receipts & Sales', 'స్టాక్ రసీట్లు & అమ్మకాలు'), breadcrumbs: [dashboard] },
     'dealer-portal': { title: t('Stock Analytics', 'స్టాక్ విశ్లేషణలు'), breadcrumbs: [dashboard] },
     dealers: { title: t('Dealers Directory', 'డీలర్ల డైరెక్టరీ'), breadcrumbs: [dashboard] },
+    'dealer-management': { title: t('Dealer Management', 'డీలర్ నిర్వహణ'), breadcrumbs: [dashboard] },
     'farmer-database': { title: t('Farmer Database', 'రైతుల డేటాబేస్'), breadcrumbs: [dashboard] },
     'officer-toolkit': { title: t('Officer Toolkit', 'ఆఫీసర్ టూల్‌కిట్'), breadcrumbs: [dashboard] },
     'field-tools': { title: t('Field Tools Hub', 'క్షేత్ర పరికరాల హబ్'), breadcrumbs: [dashboard] },
@@ -511,6 +539,6 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'feedback-admin': { title: t('Feedback Admin', 'ఫీడ్‌బ్యాక్ నిర్వహణ'), breadcrumbs: [dashboard, { label: t('Feedback & Suggestions', 'ఫీడ్‌బ్యాక్ & సూచనలు'), page: 'feedback' }] },
   };
 
-  return meta[page] || { title: t('Dashboard', 'డ్యాష్‌బోర్డ్'), breadcrumbs: [{ label: t('Dashboard', 'డ్యాష్‌బోర్డ్') }] };
+  return meta[page] || { title: t('Dashboard', 'డ్యాష్‌బోర్డ్'), breadcrumbs: [{ label: t('Dashboard', 'డ్యాష్‌బోర్డ్'), page: 'dashboard' }] };
 }
 

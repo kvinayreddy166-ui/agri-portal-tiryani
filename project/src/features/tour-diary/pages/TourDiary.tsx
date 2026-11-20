@@ -13,6 +13,7 @@ import { statutoryDesignationDisplay } from '../../../shared/data/assistantDirec
 import { deleteDiaryPdf, renameDiaryPdf, getDiaryPdf, DiaryPdfMetadata } from '../lib/diaryPdfStorage';
 import { getAllSavedDiaries, SavedDiaryRecord, saveDraft as saveDraftToIndexedDB, getAllDrafts as getAllDraftsFromIndexedDB, getDraft as getDraftFromIndexedDB, deleteDraft as deleteDraftFromIndexedDB, renameDraft } from '../lib/diaryStorage';
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { setBreadcrumbTrail, clearBreadcrumbTrail } from '../../../shared/lib/breadcrumbTrail';
 import type {
   TourDiary,
   TourDiaryDraft,
@@ -843,6 +844,18 @@ export function TourDiary() {
     window.addEventListener(TOUR_DIARY_BACK_EVENT, handleAppBack);
     return () => window.removeEventListener(TOUR_DIARY_BACK_EVENT, handleAppBack);
   }, [showLandingPage]);
+
+  // While a diary/draft is open (off the landing view), surface the module
+  // itself in the breadcrumb so users can tap back to the Tour Diary home.
+  useEffect(() => {
+    if (showLandingPage) {
+      clearBreadcrumbTrail();
+      return;
+    }
+    setBreadcrumbTrail([{ label: t('Tour Diary', 'టూర్ డైరీ'), page: 'tour-diary' }]);
+  }, [showLandingPage, t]);
+
+  useEffect(() => () => clearBreadcrumbTrail(), []);
 
   // Load officer profile (officer_profiles table) whenever it changes, and
   // prefill empty Officer Details fields from it.
