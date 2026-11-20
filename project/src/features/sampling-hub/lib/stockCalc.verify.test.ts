@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateStockAfterSampling } from './statutoryPesticidePdf';
+import { calculateStockAfterSampling, getStockCalculationBreakdown } from './statutoryPesticidePdf';
 
 describe('Point 12 stock calculation', () => {
   it('50 × 120 gms -> 47 × 120 gms', () => {
@@ -71,5 +71,36 @@ describe('Point 12 stock calculation', () => {
   });
   it('25 bottles each 250 gms -> 22 × 250 gms', () => {
     expect(calculateStockAfterSampling('25 bottles each 250 gms', '250 gms')).toBe('22 × 250 gms');
+  });
+  it('25 (250 ml) -> 22 × 250 ml', () => {
+    expect(calculateStockAfterSampling('25 (250 ml)', '250 ml')).toBe('22 × 250 ml');
+  });
+  it('25/ 250ml -> 22 × 250 ml', () => {
+    expect(calculateStockAfterSampling('25/ 250ml', '250 ml')).toBe('22 × 250 ml');
+  });
+  it('25/ (250ml) -> 22 × 250 ml', () => {
+    expect(calculateStockAfterSampling('25/ (250ml)', '250 ml')).toBe('22 × 250 ml');
+  });
+  it('1/2 kg still parses as fraction', () => {
+    expect(calculateStockAfterSampling('1/2 kg', '100 gms')).toBe('200 gms');
+  });
+  it('breakdown shows kg equivalent for gms balance', () => {
+    const b = getStockCalculationBreakdown('1000 gms', '120 gms');
+    expect(b.balanceStock).toBe('640 gms');
+    expect(b.balanceStockInfo).toBe('0.64 kg');
+  });
+  it('breakdown shows litres equivalent for ml balance', () => {
+    const b = getStockCalculationBreakdown('15000 ml', '750 ml');
+    expect(b.balanceStock).toBe('12750 ml');
+    expect(b.balanceStockInfo).toBe('12.75 litres');
+  });
+  it('breakdown shows kg equivalent for count-pack balance', () => {
+    const b = getStockCalculationBreakdown('50 x 120 gms', '120 gms');
+    expect(b.balanceStock).toBe('47 × 120 gms');
+    expect(b.balanceStockInfo).toBe('5.64 kg');
+  });
+  it('breakdown skips equivalent when already in kg', () => {
+    const b = getStockCalculationBreakdown('5 kg', '1 kg');
+    expect(b.balanceStockInfo).toBeUndefined();
   });
 });

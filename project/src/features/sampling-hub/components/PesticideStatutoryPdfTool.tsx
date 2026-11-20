@@ -1356,10 +1356,18 @@ export function PesticideStatutoryPdfTool({ onClose }: { onClose: () => void }) 
                       <span className="text-right font-semibold text-red-600 dark:text-red-400">{stockBreakdown.errorMessage}</span>
                     </div>
                   ) : (
-                    <div className="flex justify-between gap-4 rounded-lg border border-red-100 bg-red-50/60 px-3 py-2.5 dark:border-red-800/60 dark:bg-red-950/30">
-                      <span className="text-slate-500 dark:text-slate-400">Balance stock:</span>
-                      <span className="text-right font-black text-red-700 dark:text-red-300">{stockBreakdown.balanceStock}</span>
-                    </div>
+                    <>
+                      <div className="flex justify-between gap-4 rounded-lg border border-red-100 bg-red-50/60 px-3 py-2.5 dark:border-red-800/60 dark:bg-red-950/30">
+                        <span className="text-slate-500 dark:text-slate-400">Balance stock:</span>
+                        <span className="text-right font-black text-red-700 dark:text-red-300">{stockBreakdown.balanceStock}</span>
+                      </div>
+                      {stockBreakdown.balanceStockInfo && (
+                        <div className="flex justify-between gap-4">
+                          <span className="text-slate-500 dark:text-slate-400">Equivalent (kg / litres):</span>
+                          <span className="text-right font-semibold text-slate-700 dark:text-slate-300">{stockBreakdown.balanceStockInfo}</span>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
                 <div className="border-t border-red-100 px-5 py-3 dark:border-red-800/50">

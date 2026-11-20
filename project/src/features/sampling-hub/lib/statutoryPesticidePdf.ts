@@ -899,7 +899,7 @@ export const calculateStockAfterSampling = (stockPosition: string, sampleQuantit
     // Pattern 1: Count × Pack Size (e.g., "50 × 120 gms", "50x120ml", "50 * 120 g",
     // "50 * (120 ml)", "50 nos x 120 gms", "50 packets of 120 gms", "2 dozen × 500 ml")
     // Match: number, optional count descriptor, separator (×, x, *, or "of"), optional "(", number, unit, optional ")"
-    const countPackMatch = trimmed.match(/^(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*(?:(?:nos?|numbers?|pkts?|boxes?|bottles?|packets?|containers?|bags?|units?|pcs?|lots?)\b\.?\s*)?(?:[×x*@]|\bof\s+(?:each|apiece)\b|\bof\b|\beach\b)\s*\(?\s*(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*([a-zA-Z]+)?(?:\s+(?:each|apiece))?\s*\)?\s*$/i);
+    const countPackMatch = trimmed.match(/^(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*(?:(?:nos?|numbers?|pkts?|boxes?|bottles?|packets?|containers?|bags?|units?|pcs?|lots?)\b\.?\s*)?(?:(?:[×x*@]|\/(?=[\s(])|\bof\s+(?:each|apiece)\b|\bof\b|\beach\b)\s*|\()\s*\(?\s*(\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?)\s*([a-zA-Z]+)?(?:\s+(?:each|apiece))?\s*\)?\s*$/i);
     if (countPackMatch) {
       const count = parseNumericValue(countPackMatch[1]);
       const packValue = parseNumericValue(countPackMatch[2]);
@@ -1029,7 +1029,7 @@ export const calculateStockAfterSampling = (stockPosition: string, sampleQuantit
   if (stockParsed.type === 'count_pack' && stockParsed.count !== undefined && stockParsed.packSize) {
     // Count × Pack Size: deduct 3 packs, keep pack size
     const newCount = Math.max(0, stockParsed.count - 3);
-    const packSizeDisplay = `${stockParsed.packSize.value} ${stockParsed.packSize.unit}`;
+    const packSizeDisplay = `${stockParsed.packSize.value} ${stockParsed.packSize.unit}`.trim();
     return `${newCount} × ${packSizeDisplay}`;
   }
 
@@ -1092,11 +1092,61 @@ export const calculateStockAfterSampling = (stockPosition: string, sampleQuantit
   return '';
 };
 
+// Derive an informational kg/litres equivalent from a calculated balance string.
+// Returns undefined when no meaningful conversion exists (count units, errors, already-large units).
+const getBalanceStockEquivalent = (balance: string): string | undefined => {
+  if (!balance || balance.startsWith('Error:')) return undefined;
+
+  const fmt = (v: number): string => String(Math.round(v * 100) / 100);
+
+  // Convert a value+unit to base units (grams for weight, ml for volume)
+  const toBase = (value: number, unit: string): { base: number; type: 'weight' | 'volume' } | null => {
+    const u = unit.toLowerCase().trim().replace(/\.$/, '');
+    if (['g', 'gm', 'gms', 'gram', 'grams'].includes(u)) return { base: value, type: 'weight' };
+    if (['mg', 'mgs'].includes(u)) return { base: value / 1000, type: 'weight' };
+    if (['kg', 'kgs', 'kilogram', 'kilograms'].includes(u)) return { base: value * 1000, type: 'weight' };
+    if (['ml', 'mls', 'millilitre', 'millilitres', 'milliliter', 'milliliters'].includes(u)) return { base: value, type: 'volume' };
+    if (['l', 'ltr', 'ltrs', 'litre', 'litres', 'liter', 'liters'].includes(u)) return { base: value * 1000, type: 'volume' };
+    return null;
+  };
+
+  const isLargeWeightUnit = (u: string) => ['kg', 'kgs', 'kilogram', 'kilograms'].includes(u.toLowerCase().trim().replace(/\.$/, ''));
+  const isLargeVolumeUnit = (u: string) => ['l', 'ltr', 'ltrs', 'litre', 'litres', 'liter', 'liters'].includes(u.toLowerCase().trim().replace(/\.$/, ''));
+
+  // Count × pack size result, e.g. "47 × 120 gms" -> total 5640 g -> "5.64 kg"
+  const countPackMatch = balance.match(/^(\d+(?:\.\d+)?)\s*×\s*(\d+(?:\.\d+)?)\s*([a-zA-Z]+)$/);
+  if (countPackMatch) {
+    const count = parseFloat(countPackMatch[1]);
+    const packValue = parseFloat(countPackMatch[2]);
+    const packUnit = countPackMatch[3];
+    const parsed = toBase(packValue, packUnit);
+    if (!parsed) return undefined;
+    const totalBase = count * parsed.base;
+    return parsed.type === 'weight' ? `${fmt(totalBase / 1000)} kg` : `${fmt(totalBase / 1000)} litres`;
+  }
+
+  // Simple quantity result, e.g. "640 gms" -> "0.64 kg", "12750 ml" -> "12.75 litres"
+  const simpleMatch = balance.match(/^(\d+(?:\.\d+)?)\s*([a-zA-Z]+)$/);
+  if (simpleMatch) {
+    const value = parseFloat(simpleMatch[1]);
+    const unit = simpleMatch[2];
+    const parsed = toBase(value, unit);
+    if (!parsed) return undefined;
+    // Skip when the display already uses the large unit (would be identical info)
+    if (parsed.type === 'weight' && isLargeWeightUnit(unit)) return undefined;
+    if (parsed.type === 'volume' && isLargeVolumeUnit(unit)) return undefined;
+    return parsed.type === 'weight' ? `${fmt(parsed.base / 1000)} kg` : `${fmt(parsed.base / 1000)} litres`;
+  }
+
+  return undefined;
+};
+
 // Get detailed calculation breakdown for Point 12 display
 export const getStockCalculationBreakdown = (stockPosition: string, sampleQuantity: string): {
   originalStock: string;
   sampleDrawn: string;
   balanceStock: string;
+  balanceStockInfo?: string;
   hasError: boolean;
   errorMessage?: string;
 } => {
@@ -1104,6 +1154,7 @@ export const getStockCalculationBreakdown = (stockPosition: string, sampleQuanti
     originalStock: stockPosition || '',
     sampleDrawn: '',
     balanceStock: '',
+    balanceStockInfo: undefined as string | undefined,
     hasError: false,
     errorMessage: undefined as string | undefined
   };
@@ -1160,6 +1211,7 @@ export const getStockCalculationBreakdown = (stockPosition: string, sampleQuanti
     result.balanceStock = '';
   } else {
     result.balanceStock = balance;
+    result.balanceStockInfo = getBalanceStockEquivalent(balance);
   }
 
   return result;
