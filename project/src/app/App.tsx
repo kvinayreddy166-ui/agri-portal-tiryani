@@ -5,6 +5,7 @@ import { ThemeProvider, useTheme } from '../shared/context/ThemeContext';
 import { GlobalMobileDatePickerProvider } from '../shared/components/ui/DateInput';
 import { confirmDiscardIfDirty } from '../features/officers-toolkit/inspection/useDirtyGuard';
 import { TOUR_DIARY_BACK_EVENT } from '../features/tour-diary/lib/tourDiaryData';
+import { ACTS_AND_ORDERS_BACK_EVENT } from '../shared/lib/breadcrumbTrail';
 import { BrowserRouter, Navigate, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { SEO, OrganizationSchema } from '../shared/components/seo/SEO';
@@ -134,6 +135,13 @@ function AppContent() {
     // module - the page prevents default after switching back.
     if (currentPage === 'tour-diary') {
       const backEvent = new CustomEvent(TOUR_DIARY_BACK_EVENT, { cancelable: true });
+      window.dispatchEvent(backEvent);
+      if (backEvent.defaultPrevented) return;
+    }
+    // Acts & Orders keeps FCO card/section/form drill-downs inside the page —
+    // let it unwind one level at a time before leaving the module.
+    if (currentPage === 'acts-and-orders') {
+      const backEvent = new CustomEvent(ACTS_AND_ORDERS_BACK_EVENT, { cancelable: true });
       window.dispatchEvent(backEvent);
       if (backEvent.defaultPrevented) return;
     }

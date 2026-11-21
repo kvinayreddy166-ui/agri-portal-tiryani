@@ -208,7 +208,7 @@ export function CompactToolkitHeader({
               )}
               <div className="min-w-0 flex-1">
                 {eyebrow && (
-                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300 mb-0.5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300 mb-0.5 whitespace-nowrap">
                     {eyebrow}
                   </p>
                 )}
@@ -224,7 +224,7 @@ export function CompactToolkitHeader({
             </div>
           </div>
         </div>
-        {actions && <div className="flex shrink-0 items-center gap-2 self-start pt-1">{actions}</div>}
+        {actions && <div className="flex shrink-0 items-center gap-2 self-start pt-1 min-w-0">{actions}</div>}
       </div>
     </header>
   );
@@ -302,7 +302,7 @@ export function ToolkitPageHeader({
               )}
               <div className="min-w-0 flex-1">
                 {eyebrow && (
-                  <p className={`text-[10px] sm:text-xs font-black uppercase tracking-wider mb-0.5 ${theme.eyebrow}`}>
+                  <p className={`text-[10px] sm:text-xs font-black uppercase tracking-wider mb-0.5 whitespace-nowrap ${theme.eyebrow}`}>
                     {eyebrow}
                   </p>
                 )}
@@ -318,7 +318,7 @@ export function ToolkitPageHeader({
             </div>
           </div>
         </div>
-        {actions && <div className="flex shrink-0 items-center gap-2 self-start pt-1">{actions}</div>}
+        {actions && <div className="flex shrink-0 items-center gap-2 self-start pt-1 min-w-0">{actions}</div>}
       </div>
     </div>
   );

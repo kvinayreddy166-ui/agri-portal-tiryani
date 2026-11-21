@@ -155,15 +155,6 @@ export function CropProtectionDashboard({
             className="h-10 w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-3 text-sm font-bold text-slate-900 shadow-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
           />
         </div>
-        <button
-          type="button"
-          onClick={() => setIsAiDiagnosisOpen(true)}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-700 via-green-600 to-emerald-700 px-3.5 text-xs font-black text-white shadow-sm transition hover:from-emerald-800 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-          title={label('Identify from Photo', language)}
-        >
-          <Camera className="h-4 w-4" />
-          <span className="hidden sm:inline">{label('Identify from Photo', language)}</span>
-        </button>
       </div>
       <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">

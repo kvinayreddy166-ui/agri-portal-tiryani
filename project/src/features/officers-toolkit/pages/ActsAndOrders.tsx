@@ -36,7 +36,6 @@ import { fertilizerSchedules, type FertilizerScheduleEntry } from '../../samplin
 import { officerWorkflows, stopSaleSeizureMappings } from '../data/stopSaleSeizureData';
 import { enforcementDeadlines, enforcementMindMap, type EnforcementDeadline, type MindMapNode } from '../data/fcoEnforcementMindMap';
 import { insecticideDeadlines, insecticideMindMap, insecticideOffenceEntries } from '../data/insecticideEnforcement';
-import { BackButton } from '../../../shared/components/ui/BackButton';
 import { applyDeterministicPdfMetadata } from '../../../shared/lib/pdfDeterministic';
 import { FertilizerFormPdfGenerator } from '../../sampling-hub/components/FertilizerFormPdfGenerator';
 import { FcoExplorer, type FcoExplorerSection } from '../components/FcoExplorer';
@@ -44,7 +43,7 @@ import { InsecticideExplorer, type InsecticideExplorerSection } from '../compone
 import { FcoImplementationModal } from '../../../shared/components/ui/FcoImplementationModal';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
-import { setBreadcrumbTrail, clearBreadcrumbTrail } from '../../../shared/lib/breadcrumbTrail';
+import { ACTS_AND_ORDERS_BACK_EVENT, setBreadcrumbTrail, clearBreadcrumbTrail } from '../../../shared/lib/breadcrumbTrail';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';
@@ -106,6 +105,23 @@ export function ActsAndOrders() {
       if (card) setCategory(card.category);
     }
   }, [areaFromPath, localizedLegalAreas]);
+
+  // Route changes (e.g. tapping the "Acts & Orders" breadcrumb crumb) reset
+  // every drill-down level so stale section/card/form state cannot leak into
+  // the next visit. Keyed on the path only so a language switch does not kick
+  // the user out of an open view.
+  const prevAreaFromPathRef = useRef(areaFromPath);
+  useEffect(() => {
+    if (prevAreaFromPathRef.current === areaFromPath) return;
+    prevAreaFromPathRef.current = areaFromPath;
+    setSelectedFcoCardId(null);
+    setFertilizerSection(null);
+    setInsecticideSection(null);
+    setSelectedFertilizerForm(null);
+    setSelectedInsecticideForm(null);
+    setQuery('');
+    setView('powers');
+  }, [areaFromPath]);
 
   // While a legal area / FCO view is open, surface the module itself in the
   // breadcrumb so users can tap back to the Acts & Orders home.
@@ -178,7 +194,10 @@ export function ActsAndOrders() {
     setView('powers');
     setQuery('');
     setSelectedFcoCardId(null);
+    setFertilizerSection(null);
     setInsecticideSection(null);
+    setSelectedFertilizerForm(null);
+    setSelectedInsecticideForm(null);
     if (areaCard) setCategory(areaCard.category);
     navigate(`/officer-toolkit/acts-and-orders/${area}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -195,21 +214,38 @@ export function ActsAndOrders() {
     setSelectedLegalArea(null);
     setQuery('');
     setSelectedFcoCardId(null);
+    setFertilizerSection(null);
     setInsecticideSection(null);
+    setSelectedFertilizerForm(null);
+    setSelectedInsecticideForm(null);
     setView('powers');
     if (areaFromPath) navigate('/officer-toolkit/acts-and-orders');
   };
 
+  // Stepwise back: form modal → clause card → section → legal-area explorer →
+  // module home. Used by both the in-page BackButton and the app-level back
+  // event so every entry point unwinds the same hierarchy.
   const handleBack = () => {
+    if (selectedFertilizerForm) {
+      setSelectedFertilizerForm(null);
+      return;
+    }
+    if (selectedInsecticideForm) {
+      setSelectedInsecticideForm(null);
+      return;
+    }
+    if (selectedFcoCardId) {
+      setSelectedFcoCardId(null);
+      setQuery('');
+      return;
+    }
     if (selectedLegalArea === 'insecticide' && insecticideSection) {
       setInsecticideSection(null);
-      setSelectedFcoCardId(null);
       setQuery('');
       return;
     }
     if (selectedLegalArea === 'fertilizer' && fertilizerSection) {
       setFertilizerSection(null);
-      setSelectedFcoCardId(null);
       setSelectedFertilizerForm(null);
       setQuery('');
       return;
@@ -220,6 +256,34 @@ export function ActsAndOrders() {
     }
     navigate('/officer-toolkit');
   };
+
+  const hasInternalDrillDown = Boolean(
+    selectedFcoCardId ||
+    fertilizerSection ||
+    insecticideSection ||
+    selectedFertilizerForm ||
+    selectedInsecticideForm ||
+    selectedLegalArea
+  );
+
+  // App-level Back (Layout back button) asks this page to unwind one drill-down
+  // level at a time. Only intercept when a level is actually open — at module
+  // home the default navigation proceeds so Back leaves the module normally.
+  const drillDownOpenRef = useRef(false);
+  const appBackHandlerRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    drillDownOpenRef.current = hasInternalDrillDown;
+    appBackHandlerRef.current = handleBack;
+  });
+  useEffect(() => {
+    const handler = (event: Event) => {
+      if (!drillDownOpenRef.current) return;
+      event.preventDefault();
+      appBackHandlerRef.current();
+    };
+    window.addEventListener(ACTS_AND_ORDERS_BACK_EVENT, handler);
+    return () => window.removeEventListener(ACTS_AND_ORDERS_BACK_EVENT, handler);
+  }, []);
 
   const activeAreaCard = selectedLegalArea ? localizedLegalAreas.find((item) => item.id === selectedLegalArea) : null;
 
@@ -334,7 +398,6 @@ export function ActsAndOrders() {
             title={renderHeadingTitle(currentMeta.title, false)}
             subtitle={currentMeta.subtitle}
             icon={CurrentIcon}
-            onBack={!user ? handleBack : undefined}
           />
         ) : (
           <section className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 text-white shadow-lg ${
@@ -349,7 +412,6 @@ export function ActsAndOrders() {
             <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
-                <BackButton onClick={handleBack} tone="solid" className="mt-1 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start gap-3">
                     <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
@@ -412,7 +474,6 @@ export function ActsAndOrders() {
             setQuery(value);
             setSelectedFcoCardId(null);
           }}
-          onBackToCards={() => setSelectedFcoCardId(null)}
           onSelectCard={(cardId) => {
             setSelectedFcoCardId(cardId);
             setFcoActiveTab('plainEnglish');
@@ -474,7 +535,6 @@ export function ActsAndOrders() {
             setQuery(value);
             setSelectedFcoCardId(null);
           }}
-          onBackToCards={() => setSelectedFcoCardId(null)}
           onSelectCard={(cardId) => {
             setSelectedFcoCardId(cardId);
             setFcoActiveTab('plainEnglish');
@@ -500,7 +560,6 @@ export function ActsAndOrders() {
             setQuery(value);
             setSelectedFcoCardId(null);
           }}
-          onBackToCards={() => setSelectedFcoCardId(null)}
           onSelectCard={(cardId) => {
             setSelectedFcoCardId(cardId);
             setFcoActiveTab('plainEnglish');
@@ -589,7 +648,7 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
               )}
             </p>
           </div>
-          <span className="self-start sm:self-auto rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-black text-orange-800 ring-1 ring-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:ring-orange-800">
+          <span className="self-start sm:self-auto rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-black text-orange-800 ring-1 ring-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:ring-orange-800 whitespace-nowrap">
             {t(`${visibleForms.length} Forms`, `${visibleForms.length} ఫారాలు`)}
           </span>
         </div>
@@ -618,7 +677,7 @@ function InsecticideFormsPanel({ search, onSearchChange, onViewForm, accent = 'a
                 <h3 className="mt-0.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{form.title}</h3>
                 <p className="mt-0.5 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.purpose}</p>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  <span className="rounded-full bg-gradient-to-br from-amber-50 to-orange-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-800 ring-1 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60">{form.rule}</span>
+                  <span className="rounded-full bg-gradient-to-br from-amber-50 to-orange-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-800 ring-1 ring-amber-200 dark:from-amber-950/40 dark:to-orange-950/30 dark:text-amber-200 dark:ring-amber-800/60 whitespace-nowrap">{form.rule}</span>
                 </div>
               </div>
             </div>
@@ -654,7 +713,6 @@ function FertilizerClausesPanel({
   simpleHeader = false,
   onSearchChange,
   onTabChange,
-  onBackToCards,
   onSelectCard,
   onToggleBookmark,
 }: {
@@ -671,7 +729,6 @@ function FertilizerClausesPanel({
   simpleHeader?: boolean;
   onSearchChange: (value: string) => void;
   onTabChange: (tab: FcoTabId) => void;
-  onBackToCards: () => void;
   onSelectCard: (cardId: string) => void;
   onToggleBookmark: (id: string) => void;
 }) {
@@ -687,7 +744,6 @@ function FertilizerClausesPanel({
         bare={bare}
         simpleHeader={simpleHeader}
         bookmarks={bookmarks}
-        onBack={onBackToCards}
         onToggleBookmark={onToggleBookmark}
         onTabChange={onTabChange}
         onOpenRelated={(target) => {
@@ -713,7 +769,7 @@ function FertilizerClausesPanel({
               {t('Search by clause number, keyword, schedule reference, or officer powers.', 'క్లాజు నంబర్, కీలకపదం, షెడ్యూల్ లేదా అధికారాల ద్వారా శోధించండి.')}
             </p>
           </div>
-          <span className={`self-start sm:self-auto rounded-full px-2.5 py-1 text-[11px] font-black ${
+          <span className={`self-start sm:self-auto rounded-full px-2.5 py-1 text-[11px] font-black whitespace-nowrap ${
             accent === 'amber'
               ? 'bg-amber-50 text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800'
               : 'bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800'
@@ -769,7 +825,7 @@ function FertilizerSchedulesPanel({ search, onSearchChange }: { search: string; 
               {t('Chemical specifications, tolerance limits, and official sampling methods under FCO 1985.', 'FCO 1985 కింద రసాయన ప్రమాణాలు, టాలరెన్స్ పరిమితులు మరియు అధికారిక నమూనా సేకరణ పద్ధతులు.')}
             </p>
           </div>
-          <span className="self-start sm:self-auto rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800">
+          <span className="self-start sm:self-auto rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800 whitespace-nowrap">
             {t(`${visibleSchedules.length} Schedules`, `${visibleSchedules.length} షెడ్యూళ్లు`)}
           </span>
         </div>
@@ -954,7 +1010,7 @@ function LegalAreaOpeningScreen({ cards, onOpen }: { cards: typeof legalAreaCard
                   {card.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-lg bg-white/80 px-2 py-0.5 text-[10px] font-bold text-slate-700 shadow-2xs border border-slate-200/80 dark:bg-slate-800/90 dark:border-slate-700 dark:text-slate-300"
+                      className="rounded-lg bg-white/80 px-2 py-0.5 text-[10px] font-bold text-slate-700 shadow-2xs border border-slate-200/80 dark:bg-slate-800/90 dark:border-slate-700 dark:text-slate-300 whitespace-nowrap"
                     >
                       {tag}
                     </span>
@@ -1064,7 +1120,6 @@ function FcoCardDetailPage({
   accent = 'sky',
   bare = false,
   simpleHeader: _simpleHeader = false,
-  onBack,
   onToggleBookmark,
   onOpenRelated,
   onTabChange,
@@ -1076,7 +1131,6 @@ function FcoCardDetailPage({
   accent?: FcoAccent;
   bare?: boolean;
   simpleHeader?: boolean;
-  onBack: () => void;
   onToggleBookmark: (id: string) => void;
   onOpenRelated: (target: { clauseId: string; cardId: string }) => void;
   onTabChange: (tab: FcoTabId) => void;
@@ -1097,12 +1151,6 @@ function FcoCardDetailPage({
           title={card.cardTitle}
           subtitle={card.summary}
           tone={accent === 'amber' ? 'amber' : 'indigo'}
-          onBack={onBack}
-          actions={
-            <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 shadow-xs dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-              {badgeLabel} {card.cardNo} ({card.clauseRange})
-            </span>
-          }
           className="mb-1"
         />
       ) : (
@@ -1114,7 +1162,6 @@ function FcoCardDetailPage({
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-white/30 via-white/70 to-white/30" />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3 sm:gap-3.5 min-w-0 flex-1">
-              <BackButton onClick={onBack} tone="solid" label={t('Back to cards', 'కార్డులకు తిరిగి వెళ్లండి')} className="mt-1 shrink-0" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-3">
                   <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 shadow-sm ring-1 ring-white/25 backdrop-blur-xs text-white mt-0.5">
@@ -1132,11 +1179,6 @@ function FcoCardDetailPage({
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-2 self-end sm:self-center pt-1 sm:pt-0">
-              <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white ring-1 ring-white/30 backdrop-blur-xs">
-                {badgeLabel} {card.cardNo} ({card.clauseRange})
-              </span>
             </div>
           </div>
         </div>
@@ -1198,7 +1240,7 @@ const fcoGlanceChipTones: Record<FcoAccent, Record<'slate' | 'amber' | 'blue' | 
 
 function FcoGlanceChip({ icon: Icon, label, tone = 'slate', accent = 'sky' }: { icon: typeof Clock; label: string; tone?: 'slate' | 'amber' | 'blue' | 'emerald'; accent?: FcoAccent }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ring-1 ${fcoGlanceChipTones[accent][tone]}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ring-1 whitespace-nowrap ${fcoGlanceChipTones[accent][tone]}`}>
       <Icon className="h-3 w-3" />
       {label}
     </span>
@@ -1294,11 +1336,11 @@ function FcoClauseAccordion({ clause, activeTab, bookmarked, accent = 'sky', onT
               const target = match ? fcoClauseLocationByNo.get(`${match[1]} ${match[2]}`.toLowerCase()) : undefined;
               if (!target) {
                 return (
-                  <span key={item} className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700">{item}</span>
+                  <span key={item} className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700 whitespace-nowrap">{item}</span>
                 );
               }
               return (
-                <button key={item} type="button" onClick={() => onOpenRelated(target)} className={`inline-flex items-center gap-1 rounded-full ${t.related} px-2 py-0.5 text-[10px] font-black ring-1 transition`}>
+                <button key={item} type="button" onClick={() => onOpenRelated(target)} className={`inline-flex items-center gap-1 rounded-full ${t.related} px-2 py-0.5 text-[10px] font-black ring-1 transition whitespace-nowrap`}>
                   {item} <ArrowRight className="h-3 w-3" />
                 </button>
               );
@@ -1442,13 +1484,13 @@ function FcoDashboardCards({
             <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.iconTile} transition group-hover:scale-105`}>
               <FileText className="h-4 w-4" />
             </span>
-            <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>{isTe ? '27 చట్టబద్ధమైన ఫారాలు' : '27 statutory forms'}</span>
+            <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1 whitespace-nowrap`}>{isTe ? '27 చట్టబద్ధమైన ఫారాలు' : '27 statutory forms'}</span>
           </div>
           <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{isTe ? 'చట్టబద్ధమైన ఫారాలు' : 'Forms'}</h3>
           <p className="mt-0.5 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{isTe ? 'నమోదు, తయారీ, నమూనా సేకరణ మరియు రికార్డుల వారీగా FCO చట్టబద్ధమైన ఫారాలు.' : 'FCO statutory forms grouped for registration, manufacturing, sampling and records.'}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {(isTe ? ['శోధన', 'ప్రివ్యూ', 'డౌన్‌లోడ్'] : ['Search', 'Preview', 'Download']).map((item) => (
-              <span key={item} className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[10px] font-black ring-1`}>
+              <span key={item} className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[10px] font-black ring-1 whitespace-nowrap`}>
                 {item}
               </span>
             ))}
@@ -1473,13 +1515,13 @@ function FcoDashboardCards({
               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${t.iconTile} transition group-hover:scale-105`}>
                 <Icon className="h-4 w-4" />
               </span>
-              <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>{card.clauseRange}</span>
+              <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1 whitespace-nowrap`}>{card.clauseRange}</span>
             </div>
             <h3 className="mt-2.5 text-[13px] font-black leading-4 text-slate-950 dark:text-white">{card.cardTitle}</h3>
             <p className="mt-0.5 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{card.summary}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {card.contains.slice(0, 5).map((item) => (
-                <span key={item} className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[10px] font-black ring-1`}>
+                <span key={item} className={`rounded-full ${t.chipAlt} px-2 py-0.5 text-[10px] font-black ring-1 whitespace-nowrap`}>
                   {item}
                 </span>
               ))}
@@ -1530,7 +1572,7 @@ function FertilizerFormsPanel({
               {isTe ? 'తనిఖీ ఫారాలు, డీలర్ దరఖాస్తులు, నిబంధనల ధృవీకరణ పత్రాలు & నోటీసులు.' : 'Inspection forms, dealer applications, compliance certificates & notices.'}
             </p>
           </div>
-          <span className="self-start sm:self-auto rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800">
+          <span className="self-start sm:self-auto rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:ring-indigo-800 whitespace-nowrap">
             {visibleForms.length} {isTe ? 'ఫారాలు' : 'Forms'}
           </span>
         </div>
@@ -1578,11 +1620,11 @@ function FertilizerFormsPanel({
             </div>
             <p className="mt-2 flex-1 text-[11px] font-semibold leading-4 text-slate-600 dark:text-slate-300">{form.description}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <span className="rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 px-2 py-0.5 text-[10px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:from-violet-950/40 dark:to-indigo-950/30 dark:text-indigo-200 dark:ring-indigo-800/60">
+              <span className="rounded-full bg-gradient-to-br from-indigo-50 to-violet-50 px-2 py-0.5 text-[10px] font-black text-indigo-800 ring-1 ring-indigo-200 dark:from-violet-950/40 dark:to-indigo-950/30 dark:text-indigo-200 dark:ring-indigo-800/60 whitespace-nowrap">
                 {form.category}
               </span>
               {form.clause && (
-                <span className="rounded-full bg-gradient-to-br from-violet-50 to-indigo-50 px-2 py-0.5 text-[10px] font-black text-violet-800 ring-1 ring-violet-200 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-200 dark:ring-indigo-800/60">
+                <span className="rounded-full bg-gradient-to-br from-violet-50 to-indigo-50 px-2 py-0.5 text-[10px] font-black text-violet-800 ring-1 ring-violet-200 dark:from-indigo-950/40 dark:to-violet-950/30 dark:text-indigo-200 dark:ring-indigo-800/60 whitespace-nowrap">
                   {form.clause}
                 </span>
               )}
@@ -1658,10 +1700,10 @@ function FcoOffencesSection({ entries, accent = 'sky', emptyText, exportMeta }: 
               <p className="min-w-0 flex-1 text-xs font-black leading-4 text-slate-900 dark:text-white">{entry.offenceType}</p>
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1`}>
+              <span className={`rounded-full ${t.chip} px-2 py-0.5 text-[10px] font-black ring-1 whitespace-nowrap`}>
                 {entry.contraventionProvision}
               </span>
-              <span className="rounded-full bg-gradient-to-br from-red-50 to-slate-50 px-2 py-0.5 text-[10px] font-black text-red-700 ring-1 ring-red-200 dark:from-red-950/40 dark:to-amber-950/30 dark:text-red-300 dark:ring-red-800/60">
+              <span className="rounded-full bg-gradient-to-br from-red-50 to-slate-50 px-2 py-0.5 text-[10px] font-black text-red-700 ring-1 ring-red-200 dark:from-red-950/40 dark:to-amber-950/30 dark:text-red-300 dark:ring-red-800/60 whitespace-nowrap">
                 {entry.punishmentProvision}
               </span>
             </div>
