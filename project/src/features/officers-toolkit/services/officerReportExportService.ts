@@ -1,5 +1,6 @@
 import type { OfficerDocumentArchiveRecord } from '../types/officerArchiveTypes';
 import type { UnifiedOfficerRecord } from './officerCloudSyncService';
+import { downloadBlobFile, savePdfDocument } from '../../documents/lib/documentActions';
 
 export interface ReportExportOptions {
   activeTab: 'documents' | 'forms' | 'enforcement' | 'all';
@@ -566,7 +567,7 @@ export class OfficerReportExportService {
     const blob = new Blob([buffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    triggerDownload(blob, filename);
+    downloadBlobFile(blob, filename);
   }
 
   /**
@@ -695,17 +696,6 @@ export class OfficerReportExportService {
       doc.text(`(${options.officerName || 'Name & Office Seal'})`, pageWidth - 14, finalY + 20, { align: 'right' });
     }
 
-    doc.save(filename);
+    await savePdfDocument(doc, filename);
   }
-}
-
-function triggerDownload(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }

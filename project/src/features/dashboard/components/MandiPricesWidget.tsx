@@ -29,6 +29,7 @@ import {
   fetchMandiPrices,
   getCommodityMSP,
   invalidateMandiPricesCache,
+  isLocalMarket,
   MandiPriceRecord,
   saveCustomMandiPrice,
 } from '../services/mandiPrices';
@@ -110,6 +111,11 @@ export function MandiPricesWidget() {
     loadPrices();
     detectUserLocation().then((loc) => {
       setLocation(loc);
+      // Re-stamp isLocal now that the user's district is known — records fetched
+      // before GPS resolved were flagged with the fallback geography.
+      setRecords((prev) =>
+        prev.map((r) => ({ ...r, isLocal: isLocalMarket(r.district, r.market, r.state || selectedState) }))
+      );
     });
     const interval = setInterval(() => loadPrices(false), REFRESH_INTERVAL_MS);
     return () => clearInterval(interval);

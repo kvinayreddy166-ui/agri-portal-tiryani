@@ -119,7 +119,7 @@ const designationOptions = [
   { label: 'Fertilizer Inspector', value: 'Fertilizer Inspector' },
 ];
 
-const fertilizerTypeGradeOptions = [
+export const fertilizerTypeGradeOptions = [
   { label: 'Ammonium Chloride (25% N)', value: 'Ammonium Chloride (25% N)' },
   { label: 'Ammonium Nitrate Phosphate (23-23-0)', value: 'Ammonium Nitrate Phosphate (23-23-0)' },
   { label: 'Ammonium Phosphate (14-28-0)', value: 'Ammonium Phosphate (14-28-0)' },
@@ -162,7 +162,7 @@ const fertilizerTypeGradeOptions = [
   { label: 'Other', value: 'Other' },
 ];
 
-const microNutrientTypeGradeOptions = [
+export const microNutrientTypeGradeOptions = [
   { label: 'Ammonium Molybdate (Mo 52%)', value: 'Ammonium Molybdate (Mo 52%)' },
   { label: 'Borax (Sodium Tetraborate) (B 10.5%)', value: 'Borax (Sodium Tetraborate) (B 10.5%)' },
   { label: 'Boric Acid (B 17%)', value: 'Boric Acid (B 17%)' },
@@ -231,12 +231,13 @@ const fertilizerCategoryOptions = [
   { label: '100% Water Soluble Fertilizers', value: 'Water Soluble Fertilizers' },
 ];
 
-const dealerManufacturerImporterOptions = [
+export const dealerManufacturerImporterOptions = [
   { label: 'Agro Phos (India) Ltd.', value: 'Agro Phos (India) Ltd.' },
   { label: 'Arawali Phosphates Ltd.', value: 'Arawali Phosphates Ltd.' },
   { label: 'Aries Agro Ltd.', value: 'Aries Agro Ltd.' },
   { label: 'Arihant Fertilizers & Chemicals Ltd.', value: 'Arihant Fertilizers & Chemicals Ltd.' },
   { label: 'Arihant Phosphates & Fertilisers Ltd.', value: 'Arihant Phosphates & Fertilisers Ltd.' },
+  { label: 'Andhra Fertilizers Limited', value: 'Andhra Fertilizers Limited' },
   { label: 'Asha Phosphates Ltd.', value: 'Asha Phosphates Ltd.' },
   { label: 'Asian Fertilizers Ltd.', value: 'Asian Fertilizers Ltd.' },
   { label: 'Basant Agro Tech (India) Ltd.', value: 'Basant Agro Tech (India) Ltd.' },
@@ -250,6 +251,7 @@ const dealerManufacturerImporterOptions = [
   { label: 'Deepak Fertilisers & Petrochemicals Corporation Ltd.', value: 'Deepak Fertilisers & Petrochemicals Corporation Ltd.' },
   { label: 'Dharmaj Crop Guard Ltd.', value: 'Dharmaj Crop Guard Ltd.' },
   { label: 'Fertilizer Corporation of India Ltd. (FCIL)', value: 'Fertilizer Corporation of India Ltd. (FCIL)' },
+  { label: 'Godawari Fertilizers & Chemicals Ltd. (GFCL)', value: 'Godawari Fertilizers & Chemicals Ltd. (GFCL)' },
   { label: 'Gujarat Agro Industries Corporation Ltd.', value: 'Gujarat Agro Industries Corporation Ltd.' },
   { label: 'Gujarat Narmada Valley Fertilizers & Chemicals Ltd. (GNFC)', value: 'Gujarat Narmada Valley Fertilizers & Chemicals Ltd. (GNFC)' },
   { label: 'Gujarat State Fertilizers & Chemicals Ltd. (GSFC)', value: 'Gujarat State Fertilizers & Chemicals Ltd. (GSFC)' },
@@ -289,7 +291,7 @@ const dealerManufacturerImporterOptions = [
   { label: 'Other', value: 'Other' },
 ];
 
-const waterSolubleTypeGradeOptions = [
+export const waterSolubleTypeGradeOptions = [
   { label: 'Calcium Nitrate (N 15.5%, Ca 18.8%)', value: 'Calcium Nitrate (N 15.5%, Ca 18.8%)' },
   { label: 'Mono Ammonium Phosphate (12:61:0)', value: 'Mono Ammonium Phosphate (12:61:0)' },
   { label: 'Mono Potassium Phosphate (0:52:34)', value: 'Mono Potassium Phosphate (0:52:34)' },

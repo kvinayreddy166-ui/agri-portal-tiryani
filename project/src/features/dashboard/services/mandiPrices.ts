@@ -15,6 +15,7 @@
 
 import { supabase } from '../../../shared/lib/supabase';
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { getStoredUserLocation } from './userLocation';
 
 const EDGE_FUNCTION_BASE = `${import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '') || 'https://api.supabase.co'}/functions/v1`;
 const CACHE_PREFIX = 'mandi-prices:v9:';
@@ -277,11 +278,27 @@ export function getCommodityMSP(
 }
 
 /**
- * Check if a market belongs to the local target area (KB Asifabad / Adilabad / Mancherial for Telangana, or Guntur / Kurnool / Palnadu for AP).
+ * Check if a market belongs to the user's local area.
+ * Prefers the detected user district (GPS/profile) so "Local Mandis" and the
+ * crop highlight cards follow the officer's actual location; falls back to the
+ * legacy KB Asifabad / Adilabad / Mancherial (TG) or Guntur / Kurnool /
+ * Palnadu (AP) lists when no location is known.
  */
 export function isLocalMarket(district: string, market: string, state = 'Telangana'): boolean {
   const d = district.toLowerCase();
   const m = market.toLowerCase();
+
+  const userDistrict = getStoredUserLocation()?.district?.toLowerCase() ?? '';
+  if (userDistrict) {
+    const norm = (s: string) => s.replace(/[^a-z]/g, '');
+    const ud = norm(userDistrict);
+    const rd = norm(d);
+    const rm = norm(m);
+    // A known user district is authoritative — never fall back to the legacy
+    // hardcoded area, otherwise e.g. a Karimnagar user still sees Adilabad.
+    return Boolean(ud && ((rd && (rd.includes(ud) || ud.includes(rd))) || (rm && rm.includes(ud))));
+  }
+
   if (state.toLowerCase().includes('andhra')) {
     return (
       d.includes('guntur') ||

@@ -140,6 +140,16 @@
   --agri-focus: 0 0 0 4px rgba(21, 128, 61, 0.15);
 }
 
+/* Dark-mode token remap — every var(--agri-*) consumer (form labels via
+   label > span / .field-label, muted text, cards, empty states) adapts
+   without needing per-component dark: variants. */
+.dark {
+  --agri-bg: #020617;
+  --agri-card: #0f172a;
+  --agri-text: #e2e8f0;
+  --agri-muted: #cbd5e1;
+}
+
 html,
 body,
 #root {
@@ -232,6 +242,34 @@ textarea {
 .dark .page-subtitle,
 .dark .muted-text {
   color: #cbd5e1;
+}
+
+/* Labels and legends that carry a dark text utility without a dark:
+   counterpart still resolve to a readable colour. Explicit dark:text-*
+   classes keep winning via higher specificity. */
+.dark label,
+.dark legend {
+  color: #cbd5e1;
+}
+
+/* Placeholders stay visible on dark inputs even when a placeholder:text-*
+   utility only defines the light-mode shade. */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+/* Native <option>/<optgroup> rendering inside dark selects. */
+.dark select option,
+.dark select optgroup {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+.dark .empty-state {
+  border-color: rgba(148, 163, 184, 0.3);
+  background: rgba(15, 23, 42, 0.55);
 }
 
 img,
@@ -842,9 +880,9 @@ button {
 }
 
 
-.dark input,
-.dark select,
-.dark textarea {
+/* Root-level dark color-scheme so native form controls, select popups,
+   scrollbars and date pickers render dark consistently on every page. */
+html.dark {
   color-scheme: dark;
 }
 

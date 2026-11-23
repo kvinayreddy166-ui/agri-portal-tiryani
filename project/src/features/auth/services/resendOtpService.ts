@@ -77,7 +77,7 @@ export class ResendOtpService {
       if (data?.success) {
         return {
           success: true,
-          message: data.message || 'OTP sent successfully via Resend.',
+          message: data.message || 'OTP sent successfully.',
           devOtp: data.devOtp,
         };
       }

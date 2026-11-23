@@ -27,6 +27,8 @@ import {
   resolveDistrict,
   resolveMandal,
   SelectInput,
+  stockValueDisplay,
+  stockValueTotal,
   TextInput,
   type NoticeBlock,
   type NoticeSegment,
@@ -48,6 +50,7 @@ interface SeedStopSaleProductRow {
   lotNo: string;
   source: string;
   quantity: string;
+  value: string;
   remarks: string;
 }
 
@@ -105,6 +108,7 @@ const emptyProduct = (): SeedStopSaleProductRow => ({
   lotNo: '',
   source: '',
   quantity: '',
+  value: '',
   remarks: '',
 });
 
@@ -183,7 +187,7 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
     return [crop, item.variety.trim()].filter(Boolean).join(' / ');
   };
   const filledProducts = form.products.filter((item) =>
-    [item.crop, item.cropOther, item.variety, item.lotNo, item.source, item.quantity, item.remarks].some((field) => field.trim())
+    [item.crop, item.cropOther, item.variety, item.lotNo, item.source, item.quantity, item.value ?? '', item.remarks].some((field) => field.trim())
   );
   const productRows = filledProducts.length > 0 ? filledProducts : form.products;
   const tableRows = productRows.map((item, index) => [
@@ -192,8 +196,25 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
     item.lotNo,
     item.source,
     item.quantity,
-    item.remarks,
+    stockValueDisplay(item.value),
   ]);
+
+  const remarkLines = productRows
+    .flatMap((item) => String(item.remarks ?? '').split('\n'))
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const remarkBlocks: NoticeBlock[] = remarkLines.length > 0
+    ? [
+        { kind: 'lines', items: [[{ text: 'Remarks:', bold: true }]] },
+        ...remarkLines.map((line, index): NoticeBlock => ({
+          kind: 'labelPara',
+          label: `${index + 1}.`,
+          labelBold: false,
+          indent: 8,
+          segments: [{ text: line }],
+        })),
+      ]
+    : [];
 
   const defectLines = form.defects.split('\n').map((line) => line.trim()).filter(Boolean);
   const defectItems: NoticeSegment[][] = defectLines.length > 0
@@ -242,11 +263,17 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
     { kind: 'gap', mm: 2 },
     {
       kind: 'gridTable',
-      header: ['S.No.', 'Name of Seed (Crop & Variety)', 'Lot / Batch No.', 'Source / Purchased from', 'Quantity', 'Remarks'],
-      colWeights: [7, 28, 14, 22, 12, 17],
+      header: ['S.No.', 'Name of Seed (Crop & Variety)', 'Lot / Batch No.', 'Source / Purchased from', 'Quantity', 'Value (Rs.)'],
+      colWeights: [7, 30, 14, 21, 11, 17],
       rows: tableRows,
     },
-    { kind: 'gap', mm: 4 },
+    { kind: 'gap', mm: 1 },
+    {
+      kind: 'lines',
+      items: [[{ text: 'Total Value: ', bold: true }, { text: stockValueTotal(productRows) || '______________', bold: true }]],
+    },
+    ...remarkBlocks,
+    { kind: 'gap', mm: 3 },
     {
       kind: 'para',
       firstLineIndent: 10,
@@ -678,6 +705,7 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
                 <TextInput label="Lot / Batch No." value={row.lotNo} onChange={(value) => updateProduct(row.id, { lotNo: value })} />
                 <TextInput label="Source / Purchased from" value={row.source} onChange={(value) => updateProduct(row.id, { source: value })} />
                 <TextInput label="Quantity" value={row.quantity} onChange={(value) => updateProduct(row.id, { quantity: value })} />
+                <TextInput label="Value (₹)" value={row.value ?? ''} onChange={(value) => updateProduct(row.id, { value: value })} />
                 <TextInput label="Remarks" value={row.remarks} onChange={(value) => updateProduct(row.id, { remarks: value })} />
               </div>
             </div>

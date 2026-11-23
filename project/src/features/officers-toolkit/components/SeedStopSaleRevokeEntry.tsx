@@ -1,6 +1,6 @@
 import { localTodayDate } from '../../../shared/utils/dateUtils';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Edit3, Eye, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
+import { Edit3, Eye, FolderOpen, Plus, RotateCcw, Save, Search, Trash2, X } from 'lucide-react';
 import { ActionButton } from '../../../shared/components/ui/DesignSystem';
 import { ExportActionsMenu } from '../../../shared/components/ui/ExportActionsMenu';
 import { currentFinancialYear } from '../../../shared/utils/financialYear';
@@ -27,6 +27,8 @@ import {
   resolveDistrict,
   resolveMandal,
   SelectInput,
+  stockValueDisplay,
+  stockValueTotal,
   TextInput,
   type NoticeBlock,
   type NoticeSegment,
@@ -35,6 +37,7 @@ import type { SavedSeedStopSaleOrder } from './SeedStopSaleEntry';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
+import { InspectionTheme, Modal } from '../inspection/ui';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
 import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
@@ -48,6 +51,7 @@ interface SeedRevokeProductRow {
   lotNo: string;
   source: string;
   quantity: string;
+  value: string;
   remarks: string;
 }
 
@@ -88,6 +92,7 @@ const emptyProduct = (): SeedRevokeProductRow => ({
   lotNo: '',
   source: '',
   quantity: '',
+  value: '',
   remarks: '',
 });
 
@@ -162,7 +167,7 @@ function makeFormFromOrder(order: SavedSeedStopSaleOrder): SeedRevokeFormState {
     noticeNo: order.orderNumber,
     noticeDate: order.noticeDate,
     products: order.products.length
-      ? order.products.map((item) => ({ id: uid(), crop: item.crop, cropOther: item.cropOther, variety: item.variety, lotNo: item.lotNo, source: item.source, quantity: item.quantity, remarks: item.remarks }))
+      ? order.products.map((item) => ({ id: uid(), crop: item.crop, cropOther: item.cropOther, variety: item.variety, lotNo: item.lotNo, source: item.source, quantity: item.quantity, value: item.value ?? '', remarks: item.remarks }))
       : [emptyProduct()],
   };
 }
@@ -209,7 +214,7 @@ function buildRevokeModel(form: SeedRevokeFormState): NoticeBlock[] {
     return [crop, item.variety.trim()].filter(Boolean).join(' / ');
   };
   const filledProducts = form.products.filter((item) =>
-    [item.crop, item.cropOther, item.variety, item.lotNo, item.source, item.quantity, item.remarks].some((field) => field.trim())
+    [item.crop, item.cropOther, item.variety, item.lotNo, item.source, item.quantity, item.value ?? '', item.remarks].some((field) => field.trim())
   );
   const productRows = filledProducts.length > 0 ? filledProducts : form.products;
   const tableRows = productRows.map((item, index) => [
@@ -218,8 +223,25 @@ function buildRevokeModel(form: SeedRevokeFormState): NoticeBlock[] {
     item.lotNo,
     item.source,
     item.quantity,
-    item.remarks,
+    stockValueDisplay(item.value),
   ]);
+
+  const remarkLines = productRows
+    .flatMap((item) => String(item.remarks ?? '').split('\n'))
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const remarkBlocks: NoticeBlock[] = remarkLines.length > 0
+    ? [
+        { kind: 'lines', items: [[{ text: 'Remarks:', bold: true }]] },
+        ...remarkLines.map((line, index): NoticeBlock => ({
+          kind: 'labelPara',
+          label: `${index + 1}.`,
+          labelBold: false,
+          indent: 8,
+          segments: [{ text: line }],
+        })),
+      ]
+    : [];
 
   const copyLines = (isDaoDesignation(officerDesignation)
     ? `1. The Commissioner & Director of Agriculture, Telangana State, for favour of information and necessary action.\n2. The Asst. Director of Agriculture (R) concerned, for information and to serve the order on the dealer under proper dated acknowledgement.\n3. Stock File / Spare.`
@@ -265,11 +287,17 @@ function buildRevokeModel(form: SeedRevokeFormState): NoticeBlock[] {
     { kind: 'gap', mm: 1, keepWithNext: true },
     {
       kind: 'gridTable',
-      header: ['S.No.', 'Name of Seed (Crop & Variety)', 'Lot / Batch No.', 'Source / Purchased from', 'Quantity', 'Remarks'],
-      colWeights: [7, 28, 14, 22, 12, 17],
+      header: ['S.No.', 'Name of Seed (Crop & Variety)', 'Lot / Batch No.', 'Source / Purchased from', 'Quantity', 'Value (Rs.)'],
+      colWeights: [7, 30, 14, 21, 11, 17],
       rows: tableRows,
       keepWithNext: true,
     },
+    { kind: 'gap', mm: 1 },
+    {
+      kind: 'lines',
+      items: [[{ text: 'Total Value: ', bold: true }, { text: stockValueTotal(productRows) || '______________', bold: true }]],
+    },
+    ...remarkBlocks,
     { kind: 'gap', mm: 13, keepWithNext: true },
     {
       kind: 'memoRow',
@@ -299,6 +327,7 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
   const [savedOrders, setSavedOrders] = useState<SavedSeedRevokeOrder[]>(() => readSavedOrders());
   const { askConfirm, confirmDialog } = useConfirmDialog();
   const [savedSearch, setSavedSearch] = useState('');
+  const [showSavedList, setShowSavedList] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -570,7 +599,9 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
         onCancel={() => { setDeleteConfirmOpen(false); setOrderToDelete(null); }}
       />
 
-      <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="flex flex-wrap items-center justify-start gap-2">
+        <ActionButton tone="primary" accent="emerald" onClick={saveOrder} icon={Save}>Save Draft</ActionButton>
+        <ActionButton tone="secondary" accent="emerald" onClick={() => setShowSavedList(true)} icon={FolderOpen}>Drafts{savedOrders.length ? ` (${savedOrders.length})` : ''}</ActionButton>
         <ActionButton tone="secondary" className="text-red-600 dark:text-red-300" onClick={() => setResetConfirmOpen(true)}><RotateCcw key={resetSpinKey} className="h-4 w-4 reset-ccw-spin" aria-hidden="true" />Reset</ActionButton>
       </div>
 
@@ -671,6 +702,7 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
                 <TextInput label="Lot / Batch No." value={row.lotNo} onChange={(value) => updateProduct(row.id, { lotNo: value })} />
                 <TextInput label="Source / Purchased from" value={row.source} onChange={(value) => updateProduct(row.id, { source: value })} />
                 <TextInput label="Quantity" value={row.quantity} onChange={(value) => updateProduct(row.id, { quantity: value })} />
+                <TextInput label="Value (₹)" value={row.value ?? ''} onChange={(value) => updateProduct(row.id, { value: value })} />
                 <TextInput label="Remarks" value={row.remarks} onChange={(value) => updateProduct(row.id, { remarks: value })} />
               </div>
             </div>
@@ -680,7 +712,6 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
 
       <div className="flex flex-wrap gap-2">
         <ActionButton tone="secondary" accent="emerald" onClick={previewOrder} icon={Eye}>Preview</ActionButton>
-        <ActionButton tone="primary" accent="emerald" onClick={saveOrder} icon={Save}>Save Draft</ActionButton>
         <ExportActionsMenu accent="emerald" onPdf={downloadPdf} onWord={downloadWord} onPrint={printOrder} />
       </div>
 
@@ -698,10 +729,10 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
         </section>
       )}
 
-      <section className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
-        <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <h3 className="text-base font-black text-slate-900 dark:text-white">Saved Orders</h3>
-          <div className="relative max-w-md">
+      {showSavedList && (
+        <InspectionTheme tone="emerald">
+          <Modal title="Saved orders" wide onClose={() => setShowSavedList(false)}>
+            <div className="relative mb-3 max-w-md">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
               value={savedSearch}
@@ -710,7 +741,6 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
               className="w-full rounded-lg border border-slate-200 dark:border-slate-700 py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
             />
           </div>
-        </div>
         <div className="overflow-x-auto rounded-lg border border-slate-100 dark:border-slate-800">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-black uppercase text-slate-500 dark:text-slate-400">
@@ -731,7 +761,7 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
                   <td className="px-3 py-2">{order.products.filter((row) => row.crop.trim() || row.variety.trim()).length || '-'}</td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex items-center gap-1">
-                      <ActionButton tone="tertiary" size="sm" onClick={() => editSavedOrder(order)} icon={Edit3}>Edit</ActionButton>
+                      <ActionButton tone="tertiary" size="sm" onClick={() => { setShowSavedList(false); editSavedOrder(order); }} icon={Edit3}>Edit</ActionButton>
                       <ActionButton tone="danger" size="sm" onClick={() => deleteSavedOrder(order)} aria-label="Delete saved order" className="px-2"><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></ActionButton>
                     </div>
                   </td>
@@ -745,7 +775,9 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
             </tbody>
           </table>
         </div>
-      </section>
+          </Modal>
+        </InspectionTheme>
+      )}
     </div>
   );
 }

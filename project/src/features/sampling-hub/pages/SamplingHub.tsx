@@ -24,6 +24,7 @@ const SAMPLE_CATEGORIES = [
     telugu: 'ఎరువులు',
     forms: 'Form O, covering letter & sample memo',
     icon: FlaskConical,
+    tone: 'sky',
     tile: 'bg-sky-50 text-sky-600 ring-1 ring-sky-200/70 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-800/50',
   },
   {
@@ -32,7 +33,8 @@ const SAMPLE_CATEGORIES = [
     telugu: 'విత్తనాలు',
     forms: 'Form II, Form V, Form VI & Form VIII',
     icon: Sprout,
-    tile: 'bg-lime-50 text-lime-600 ring-1 ring-lime-200/70 dark:bg-lime-950/40 dark:text-lime-300 dark:ring-lime-800/50',
+    tone: 'emerald',
+    tile: 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200/70 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-800/50',
   },
   {
     id: 'pesticides',
@@ -40,9 +42,20 @@ const SAMPLE_CATEGORIES = [
     telugu: 'పురుగుమందులు',
     forms: 'Insecticide sample forms & covering letter',
     icon: Bug,
+    tone: 'amber',
     tile: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/70 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/50',
   },
 ];
+
+// Selected-state palette per category tone — mirrors the header accents used
+// across the toolkit (fertilizer=sky, seed=emerald, pesticide=amber).
+const CATEGORY_SELECTED_STYLES: Record<string, string> = {
+  sky: 'border-sky-700 bg-gradient-to-br from-sky-800 to-sky-900 text-white shadow-md shadow-sky-950/20',
+  emerald: 'border-emerald-700 bg-gradient-to-br from-emerald-800 to-emerald-900 text-white shadow-md shadow-emerald-950/20',
+  amber: 'border-amber-700 bg-gradient-to-br from-amber-600 to-amber-800 text-white shadow-md shadow-amber-950/20',
+};
+
+const FALLBACK_SELECTED_STYLE = CATEGORY_SELECTED_STYLES.emerald;
 
 export function SamplingHub() {
   const { t } = useLanguage();
@@ -87,8 +100,8 @@ export function SamplingHub() {
               onClick={() => setCategory(item.id)}
               className={`relative flex min-h-[48px] sm:h-[52px] items-center overflow-hidden rounded-xl border px-3.5 py-2.5 text-left transition duration-200 ${
                 selected
-                  ? 'border-emerald-700 bg-gradient-to-br from-emerald-800 to-emerald-900 text-white shadow-md shadow-emerald-950/20'
-                  : 'border-slate-200/90 bg-white text-slate-800 shadow-sm hover:border-emerald-500/40 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100'
+                  ? (CATEGORY_SELECTED_STYLES[item.tone] ?? FALLBACK_SELECTED_STYLE)
+                  : 'border-slate-200/90 bg-white text-slate-800 shadow-sm hover:border-slate-400/50 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100'
               }`}
             >
               {selected && (

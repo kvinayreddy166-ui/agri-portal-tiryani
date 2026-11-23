@@ -10,6 +10,7 @@ import { PageHeader } from '../../../shared/components/ui/PageHeader';
 import { normalizeDistrictName } from '../../../shared/data/telanganaDistrictMandalData';
 import { usePersistentState } from '../../../shared/hooks/usePersistentState';
 import { adminSendNotifications } from '../../feedback/services/feedbackService';
+import { downloadBlobFile } from '../../documents/lib/documentActions';
 
 
 interface OfficerRow {
@@ -419,14 +420,7 @@ export function UserManagement() {
       const blob = new Blob([buffer], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `officer-accounts-${dateStr}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      downloadBlobFile(blob, `officer-accounts-${dateStr}.xlsx`);
       toast.showSuccess('Export ready', `${adminOfficers.length} officer account(s) exported to Excel.`);
     } catch {
       toast.showError('Export failed', 'Could not export officer accounts.');

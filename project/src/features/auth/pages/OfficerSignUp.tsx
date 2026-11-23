@@ -515,7 +515,7 @@ export function OfficerSignUp() {
                       />
                     </div>
                     <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                      {t('A 6-digit OTP verification code will be sent to this email via Resend.', 'ఈ ఇమెయిల్‌కు Resend ద్వారా 6-అంకెల OTP కోడ్ పంపబడుతుంది.')}
+                      {t('A 6-digit OTP verification code will be sent to this email.', 'ఈ ఇమెయిల్‌కు 6-అంకెల OTP కోడ్ పంపబడుతుంది.')}
                     </p>
                   </div>
                 </div>
@@ -526,7 +526,7 @@ export function OfficerSignUp() {
                   className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 dark:bg-emerald-600 dark:hover:bg-emerald-500 px-4 text-sm font-semibold text-white shadow-xs hover:shadow active:scale-[0.99] transition disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin shrink-0" /> : <Send className="h-4 w-4 shrink-0" />}
-                  <span>{loading ? t('Sending OTP via Resend...', 'Resend ద్వారా OTP పంపుతోంది...') : t('Send Verification OTP & Continue', 'ధృవీకరణ OTP పంపి కొనసాగించండి')}</span>
+                  <span>{loading ? t('Sending OTP...', 'OTP పంపుతోంది...') : t('Send Verification OTP & Continue', 'ధృవీకరణ OTP పంపి కొనసాగించండి')}</span>
                 </button>
 
                 <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-500 dark:text-slate-400">
@@ -546,7 +546,7 @@ export function OfficerSignUp() {
                     {t('Step 2: Verify Your Official Email', 'దశ 2: మీ అధికారిక ఇమెయిల్‌ను ధృవీకరించండి')}
                   </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    {t('Enter the 6-digit OTP code dispatched via Resend.', 'Resend ద్వారా పంపిన 6-అంకెల OTP కోడ్‌ను నమోదు చేయండి.')}
+                    {t('Enter the 6-digit OTP code sent to your email.', 'మీ ఇమెయిల్‌కు పంపిన 6-అంకెల OTP కోడ్‌ను నమోదు చేయండి.')}
                   </p>
                 </div>
 
@@ -554,7 +554,7 @@ export function OfficerSignUp() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <span className="font-bold text-emerald-950 dark:text-emerald-100 block text-xs sm:text-sm">
-                        {t('OTP Dispatched via Resend', 'Resend ద్వారా OTP పంపబడింది')}
+                        {t('OTP Sent', 'OTP పంపబడింది')}
                       </span>
                       <span className="text-slate-700 dark:text-slate-300 mt-1 block">
                         {t('Sent to:', 'పంపబడిన ఇమెయిల్:')} <strong className="text-emerald-900 dark:text-emerald-200 font-bold">{form.email}</strong>

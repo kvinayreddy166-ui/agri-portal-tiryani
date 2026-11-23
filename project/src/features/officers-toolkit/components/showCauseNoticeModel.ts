@@ -304,6 +304,35 @@ export function isMaoDesignation(designation: string): boolean {
   return lower.includes('mandal agriculture officer') || lower.trim() === 'mao';
 }
 
+/** Parses a user-entered ₹ amount ("1,20,000", "₹ 500") into a number. */
+export function parseInrAmount(raw: string | null | undefined): number {
+  const cleaned = String(raw ?? '').replace(/[₹,\s]/g, '');
+  if (!cleaned) return 0;
+  const value = Number(cleaned);
+  return Number.isFinite(value) ? value : 0;
+}
+
+/** Formats a ₹ amount with Indian digit grouping. Uses "Rs." because the
+ *  document fonts (Times New Roman / jsPDF built-ins) have no ₹ glyph — the
+ *  symbol would print as blank/notdef in Word and PDF exports. */
+export function formatInrAmount(amount: number): string {
+  return `Rs. ${amount.toLocaleString('en-IN')}`;
+}
+
+/** Display text for a stock row's Value (₹) cell — formatted when numeric. */
+export function stockValueDisplay(raw: string | null | undefined): string {
+  const trimmed = String(raw ?? '').trim();
+  if (!trimmed) return '';
+  const amount = parseInrAmount(trimmed);
+  return amount > 0 ? formatInrAmount(amount) : trimmed.replace(/₹/g, 'Rs.');
+}
+
+/** Sum of all parseable row values; '' when no row has a numeric value. */
+export function stockValueTotal(rows: { value?: string | null }[]): string {
+  const total = rows.reduce((sum, row) => sum + parseInrAmount(row.value), 0);
+  return total > 0 ? formatInrAmount(total) : '';
+}
+
 export interface NoticeSegment {
   text: string;
   bold?: boolean;

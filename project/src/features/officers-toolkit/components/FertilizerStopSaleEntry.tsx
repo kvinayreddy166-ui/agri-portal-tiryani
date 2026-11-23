@@ -26,6 +26,8 @@ import {
   resolveDistrict,
   resolveMandal,
   SelectInput,
+  stockValueDisplay,
+  stockValueTotal,
   TextInput,
   type NoticeBlock,
   type NoticeSegment,
@@ -35,16 +37,35 @@ import { safeStorage } from '../../../shared/lib/safeStorage';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
 import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
+
+// Keeps legacy/free-typed values selectable in the statutory dropdowns.
+const withCurrentOption = (options: { label: string; value: string }[], value: string) =>
+  value && value !== 'Other' && !options.some((o) => o.value === value)
+    ? [{ label: value, value }, ...options]
+    : options;
+
+// Macro + micro + water-soluble fertilizer names & grades (deduped, 'Other' last).
+const allFertilizerTypeGradeOptions = [
+  ...fertilizerTypeGradeOptions,
+  ...microNutrientTypeGradeOptions,
+  ...waterSolubleTypeGradeOptions,
+]
+  .filter((o, i, arr) => arr.findIndex((x) => x.value === o.value) === i)
+  .sort((a, b) => (a.value === 'Other' ? 1 : b.value === 'Other' ? -1 : 0));
 import { DivisionPicker } from '../../../shared/components/ui/DivisionPicker';
 import type { Dealer } from '../../../shared/types/database';
+import { fertilizerTypeGradeOptions, microNutrientTypeGradeOptions, waterSolubleTypeGradeOptions, dealerManufacturerImporterOptions } from '../../sampling-hub/components/FertilizerStatutoryPdfTool';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 import { InspectionTheme, Modal } from '../inspection/ui';
 interface FertStopSaleProductRow {
   id: string;
   name: string;
+  nameOther: string;
   batchNo: string;
   manufacturer: string;
+  manufacturerOther: string;
   quantityMt: string;
+  value: string;
   remarks: string;
 }
 
@@ -96,9 +117,12 @@ function formatStopDays(raw: string): string {
 const emptyProduct = (): FertStopSaleProductRow => ({
   id: uid(),
   name: '',
+  nameOther: '',
   batchNo: '',
   manufacturer: '',
+  manufacturerOther: '',
   quantityMt: '',
+  value: '',
   remarks: '',
 });
 
@@ -181,18 +205,39 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
     segments: [{ text: line }],
   }));
 
+  const fertDisplayName = (item: FertStopSaleProductRow) =>
+    item.name === 'Other' ? (item.nameOther ?? '').trim() || 'Other' : item.name;
+  const fertDisplayManufacturer = (item: FertStopSaleProductRow) =>
+    item.manufacturer === 'Other' ? (item.manufacturerOther ?? '').trim() || 'Other' : item.manufacturer;
   const filledProducts = form.products.filter((item) =>
-    [item.name, item.batchNo, item.manufacturer, item.quantityMt, item.remarks].some((field) => field.trim())
+    [item.name, item.nameOther ?? '', item.batchNo, item.manufacturer, item.manufacturerOther ?? '', item.quantityMt, item.value ?? '', item.remarks].some((field) => field.trim())
   );
   const productRows = filledProducts.length > 0 ? filledProducts : form.products;
   const tableRows = productRows.map((item, index) => [
     String(index + 1),
-    item.name,
+    fertDisplayName(item),
     item.batchNo,
-    item.manufacturer,
+    fertDisplayManufacturer(item),
     item.quantityMt,
-    item.remarks,
+    stockValueDisplay(item.value),
   ]);
+
+  const remarkLines = productRows
+    .flatMap((item) => String(item.remarks ?? '').split('\n'))
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const remarkBlocks: NoticeBlock[] = remarkLines.length > 0
+    ? [
+        { kind: 'lines', items: [[{ text: 'Remarks:', bold: true }]] },
+        ...remarkLines.map((line, index): NoticeBlock => ({
+          kind: 'labelPara',
+          label: `${index + 1}.`,
+          labelBold: false,
+          indent: 8,
+          segments: [{ text: line }],
+        })),
+      ]
+    : [];
 
   const designationParts = officerDesignation.split('&').map((part) => part.trim()).filter(Boolean);
   const signatureItems: NoticeSegment[][] = designationParts.length > 1
@@ -238,11 +283,17 @@ function buildStopSaleModel(form: FertStopSaleFormState): NoticeBlock[] {
     { kind: 'gap', mm: 2 },
     {
       kind: 'gridTable',
-      header: ['S.No.', 'Name of Fertilizer', 'Batch No. (if applicable)', 'Name of the Manufacturer / Importer', 'Quantity (MT)', 'Remarks'],
-      colWeights: [7, 27, 14, 23, 12, 17],
+      header: ['S.No.', 'Name of Fertilizer', 'Batch No. (if applicable)', 'Name of the Manufacturer / Importer', 'Quantity (MT)', 'Value (Rs.)'],
+      colWeights: [7, 29, 13, 22, 11, 18],
       rows: tableRows,
     },
-    { kind: 'gap', mm: 4 },
+    { kind: 'gap', mm: 1 },
+    {
+      kind: 'lines',
+      items: [[{ text: 'Total Value: ', bold: true }, { text: stockValueTotal(productRows) || '______________', bold: true }]],
+    },
+    ...remarkBlocks,
+    { kind: 'gap', mm: 2 },
     ...(observationBlocks.length > 0
       ? [
           { kind: 'lines', items: [[{ text: 'Observations:', bold: true }]] } as NoticeBlock,
@@ -359,7 +410,11 @@ export function FertilizerStopSaleEntry({ onRevoke }: { onRevoke?: (order: Saved
   const { dealers: directoryDealers } = useDealers('fertilizer');
   const applyDealerPick = (dealer: Dealer | null) => {
     if (!dealer) return;
-    updateForm({ firmName: dealer.dealer_name, dealerAddress: dealerAddressLine(dealer) });
+    updateForm({
+      firmName: dealer.dealer_name,
+      dealerAddress: dealerAddressLine(dealer),
+      formA2Number: dealer.license_number || form.formA2Number,
+    });
   };
 
   const updateProduct = (id: string, patch: Partial<FertStopSaleProductRow>) =>
@@ -412,7 +467,14 @@ export function FertilizerStopSaleEntry({ onRevoke }: { onRevoke?: (order: Saved
   };
 
   const editSavedOrder = (order: SavedFertStopSaleOrder) => {
-    setForm({ ...order, products: order.products.length ? order.products : [emptyProduct()] });
+    setForm({
+      ...order,
+      products: (order.products.length ? order.products : [emptyProduct()]).map((row) => ({
+        ...row,
+        nameOther: row.nameOther ?? '',
+        manufacturerOther: row.manufacturerOther ?? '',
+      })),
+    });
     setEditingId(order.id);
     setShowPreview(false);
     showLoaded('Order loaded', order.orderNumber || 'Stop Sale Notice');
@@ -636,15 +698,6 @@ export function FertilizerStopSaleEntry({ onRevoke }: { onRevoke?: (order: Saved
         <h3 className="mb-2.5 pb-2 border-b border-sky-200/80 dark:border-sky-800/60 text-sm font-black uppercase tracking-wide text-sky-700 dark:text-sky-400 font-black">Order Details</h3>
         <div className="grid gap-3 md:grid-cols-3">
           <TextInput label="Stop Sale Period (days)" value={form.stopDays} onChange={updateStopDays} />
-          <label className="block md:col-span-2">
-            <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Observations (Optional — one per line)</span>
-            <textarea
-              value={form.observations}
-              onChange={(event) => updateForm({ observations: event.target.value })}
-              rows={2}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
-            />
-          </label>
         </div>
       </div>
 
@@ -661,18 +714,31 @@ export function FertilizerStopSaleEntry({ onRevoke }: { onRevoke?: (order: Saved
                 <ActionButton tone="tertiary" size="sm" onClick={() => removeProduct(row.id)} icon={Trash2} aria-label="Remove row" className="text-red-600 dark:text-red-300">Remove</ActionButton>
               </div>
               <div className="grid gap-3 md:grid-cols-4">
-                <label className="block md:col-span-2">
-                  <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Name of Fertilizer</span>
-                  <textarea
+                <div className="md:col-span-2 grid gap-3">
+                  <SelectInput
+                    label="Name of Fertilizer"
                     value={row.name}
-                    onChange={(event) => updateProduct(row.id, { name: event.target.value })}
-                    rows={1}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                    onChange={(value) => updateProduct(row.id, { name: value })}
+                    options={withCurrentOption(allFertilizerTypeGradeOptions, row.name)}
                   />
-                </label>
+                  {row.name === 'Other' && (
+                    <TextInput label="Enter Fertilizer Name" value={row.nameOther} onChange={(value) => updateProduct(row.id, { nameOther: value })} />
+                  )}
+                </div>
                 <TextInput label="Batch No." value={row.batchNo} onChange={(value) => updateProduct(row.id, { batchNo: value })} />
-                <TextInput label="Manufacturer / Importer" value={row.manufacturer} onChange={(value) => updateProduct(row.id, { manufacturer: value })} />
+                <div className="grid gap-3">
+                  <SelectInput
+                    label="Manufacturer / Importer"
+                    value={row.manufacturer}
+                    onChange={(value) => updateProduct(row.id, { manufacturer: value })}
+                    options={withCurrentOption(dealerManufacturerImporterOptions, row.manufacturer)}
+                  />
+                  {row.manufacturer === 'Other' && (
+                    <TextInput label="Enter Manufacturer Name" value={row.manufacturerOther} onChange={(value) => updateProduct(row.id, { manufacturerOther: value })} />
+                  )}
+                </div>
                 <TextInput label="Quantity (MT)" value={row.quantityMt} onChange={(value) => updateProduct(row.id, { quantityMt: value })} />
+                <TextInput label="Value (₹)" value={row.value ?? ''} onChange={(value) => updateProduct(row.id, { value: value })} />
                 <TextInput label="Remarks" value={row.remarks} onChange={(value) => updateProduct(row.id, { remarks: value })} />
               </div>
             </div>

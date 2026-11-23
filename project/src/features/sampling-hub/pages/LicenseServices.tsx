@@ -331,6 +331,28 @@ const LICENSE_CATEGORIES = [
   },
 ] as const;
 
+// Selected-state palette per category tone — mirrors the header accents used
+// across the toolkit (fertilizer=sky, seed=emerald, pesticide=amber).
+const CATEGORY_SELECTED_STYLES: Record<string, { button: string; subtext: string; badge: string }> = {
+  sky: {
+    button: 'border-sky-700 bg-gradient-to-br from-sky-800 to-sky-900 text-white shadow-md shadow-sky-950/20',
+    subtext: 'text-sky-200',
+    badge: 'bg-sky-50 text-sky-700 border-sky-200/60 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-800/60',
+  },
+  emerald: {
+    button: 'border-emerald-700 bg-gradient-to-br from-emerald-800 to-emerald-900 text-white shadow-md shadow-emerald-950/20',
+    subtext: 'text-emerald-200',
+    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60',
+  },
+  amber: {
+    button: 'border-amber-700 bg-gradient-to-br from-amber-600 to-amber-800 text-white shadow-md shadow-amber-950/20',
+    subtext: 'text-amber-200',
+    badge: 'bg-amber-50 text-amber-700 border-amber-200/60 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/60',
+  },
+};
+
+const FALLBACK_SELECTED_STYLE = CATEGORY_SELECTED_STYLES.emerald;
+
 export function LicenseServices() {
   const { user, isAdminUser, isTestUser, isOfficerUser } = useAuth();
   const isLoginUser = Boolean(user) || isAdminUser || isTestUser || isOfficerUser;
@@ -717,7 +739,7 @@ export function LicenseServices() {
               </p>
             </div>
             {licenseType && (
-              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60">
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold border ${(CATEGORY_SELECTED_STYLES[LICENSE_CATEGORIES.find((c) => c.id === licenseType)?.tone ?? ''] ?? FALLBACK_SELECTED_STYLE).badge}`}>
                 {licenseType === 'fertilizer' ? t('Fertilizer', 'ఎరువులు') : licenseType === 'seed' ? t('Seed', 'విత్తనాలు') : t('Pesticide', 'పురుగుమందులు')}
               </span>
             )}
@@ -733,8 +755,8 @@ export function LicenseServices() {
                   onClick={() => handleLicenseTypeChange(cat.id as LicenseType)}
                   className={`group relative flex min-h-[58px] items-center justify-between overflow-hidden rounded-xl border p-3 sm:p-3.5 text-left transition-all duration-200 ${
                     isSelected
-                      ? 'border-emerald-700 bg-gradient-to-br from-emerald-800 to-emerald-900 text-white shadow-md shadow-emerald-950/20'
-                      : 'border-slate-200/90 bg-slate-50/60 text-slate-800 shadow-2xs hover:-translate-y-0.5 hover:border-emerald-500/40 hover:bg-white hover:shadow-xs dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800/80'
+                      ? (CATEGORY_SELECTED_STYLES[cat.tone] ?? FALLBACK_SELECTED_STYLE).button
+                      : 'border-slate-200/90 bg-slate-50/60 text-slate-800 shadow-2xs hover:-translate-y-0.5 hover:border-slate-400/50 hover:bg-white hover:shadow-xs dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800/80'
                   }`}
                 >
                   {isSelected && (
@@ -758,7 +780,7 @@ export function LicenseServices() {
                       <span className="block truncate text-sm font-black font-[var(--font-heading)]">
                         {language === 'te' ? cat.telugu : cat.label}
                       </span>
-                      <span className={`block text-[11px] font-semibold ${isSelected ? 'text-emerald-200' : 'text-slate-400 dark:text-slate-500'}`}>
+                      <span className={`block text-[11px] font-semibold ${isSelected ? (CATEGORY_SELECTED_STYLES[cat.tone] ?? FALLBACK_SELECTED_STYLE).subtext : 'text-slate-400 dark:text-slate-500'}`}>
                         {language === 'te' ? cat.subtextTelugu : cat.subtext}
                       </span>
                     </div>

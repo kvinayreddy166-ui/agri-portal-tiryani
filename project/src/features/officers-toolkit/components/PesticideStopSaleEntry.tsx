@@ -26,6 +26,8 @@ import {
   resolveDistrict,
   resolveMandal,
   SelectInput,
+  stockValueDisplay,
+  stockValueTotal,
   TextInput,
   type NoticeBlock,
   type NoticeSegment,
@@ -47,6 +49,7 @@ interface StopSaleProductRow {
   mfgDate: string;
   expiryDate: string;
   quantity: string;
+  value: string;
   remarks: string;
 }
 
@@ -106,6 +109,7 @@ const emptyProduct = (): StopSaleProductRow => ({
   mfgDate: '',
   expiryDate: '',
   quantity: '',
+  value: '',
   remarks: '',
 });
 
@@ -201,7 +205,7 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
   }));
 
   const filledProducts = form.products.filter((item) =>
-    [item.name, item.manufacturer, item.batchNo, item.mfgDate, item.expiryDate, item.quantity, item.remarks].some((field) => field.trim())
+    [item.name, item.manufacturer, item.batchNo, item.mfgDate, item.expiryDate, item.quantity, item.value ?? '', item.remarks].some((field) => field.trim())
   );
   const productRows = filledProducts.length > 0 ? filledProducts : form.products;
   const tableRows = productRows.map((item, index) => [
@@ -211,8 +215,25 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
     item.batchNo,
     [item.mfgDate && `Mfg: ${formatNoticeDate(item.mfgDate)}`, item.expiryDate && `Exp: ${formatNoticeDate(item.expiryDate)}`].filter(Boolean).join(' / '),
     item.quantity,
-    item.remarks,
+    stockValueDisplay(item.value),
   ]);
+
+  const remarkLines = productRows
+    .flatMap((item) => String(item.remarks ?? '').split('\n'))
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const remarkBlocks: NoticeBlock[] = remarkLines.length > 0
+    ? [
+        { kind: 'lines', items: [[{ text: 'Remarks:', bold: true }]] },
+        ...remarkLines.map((line, index): NoticeBlock => ({
+          kind: 'labelPara',
+          label: `${index + 1}.`,
+          labelBold: false,
+          indent: 8,
+          segments: [{ text: line }],
+        })),
+      ]
+    : [];
 
   const designationParts = officerDesignation.split('&').map((part) => part.trim()).filter(Boolean);
   const signatureItems: NoticeSegment[][] = [
@@ -259,11 +280,17 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
     { kind: 'gap', mm: 2 },
     {
       kind: 'gridTable',
-      header: ['S.No.', 'Name of the Insecticide with complete details', 'Manufactured by', 'Batch No.', 'Date of Manufacture and Date of Expiry', 'Stock Quantity as on Date (indicate units also)', 'Remarks'],
-      colWeights: [6, 26, 15, 10, 15, 14, 14],
+      header: ['S.No.', 'Name of the Insecticide with complete details', 'Manufactured by', 'Batch No.', 'Date of Manufacture and Date of Expiry', 'Stock Quantity as on Date (indicate units also)', 'Value (Rs.)'],
+      colWeights: [6, 27, 15, 9, 14, 13, 16],
       rows: tableRows,
     },
-    { kind: 'gap', mm: 4 },
+    { kind: 'gap', mm: 1 },
+    {
+      kind: 'lines',
+      items: [[{ text: 'Total Value: ', bold: true }, { text: stockValueTotal(productRows) || '______________', bold: true }]],
+    },
+    ...remarkBlocks,
+    { kind: 'gap', mm: 2 },
     ...(observationBlocks.length > 0
       ? [
           { kind: 'lines', items: [[{ text: 'Observations:', bold: true }]] } as NoticeBlock,
@@ -673,15 +700,6 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
             onChange={(value) => updateForm({ rulesRef: value })}
           />
           <TextInput label="Stop Sale Period (days)" value={form.stopDays} onChange={updateStopDays} />
-          <label className="block md:col-span-3">
-            <span className="mb-1 block text-xs font-black text-slate-600 dark:text-slate-300">Observations (Optional — one per line)</span>
-            <textarea
-              value={form.observations}
-              onChange={(event) => updateForm({ observations: event.target.value })}
-              rows={2}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
-            />
-          </label>
         </div>
       </div>
 
@@ -712,6 +730,7 @@ export function PesticideStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedP
                 <TextInput label="Mfg. Date" type="date" value={row.mfgDate} onChange={(value) => updateProduct(row.id, { mfgDate: value })} />
                 <TextInput label="Expiry Date" type="date" value={row.expiryDate} onChange={(value) => updateProduct(row.id, { expiryDate: value })} />
                 <TextInput label="Stock Qty (with units)" value={row.quantity} onChange={(value) => updateProduct(row.id, { quantity: value })} />
+                <TextInput label="Value (₹)" value={row.value ?? ''} onChange={(value) => updateProduct(row.id, { value: value })} />
                 <TextInput label="Remarks" value={row.remarks} onChange={(value) => updateProduct(row.id, { remarks: value })} />
               </div>
             </div>
