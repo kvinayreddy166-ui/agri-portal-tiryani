@@ -590,7 +590,7 @@ export function PesticideStopSaleRevokeEntry({ prefill }: { prefill?: SavedPestS
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-10">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       {confirmDialog}
       <ConfirmDialog

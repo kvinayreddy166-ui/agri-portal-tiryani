@@ -43,7 +43,7 @@ import { InsecticideExplorer, type InsecticideExplorerSection } from '../compone
 import { FcoImplementationModal } from '../../../shared/components/ui/FcoImplementationModal';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
-import { ACTS_AND_ORDERS_BACK_EVENT, setBreadcrumbTrail, clearBreadcrumbTrail } from '../../../shared/lib/breadcrumbTrail';
+import { ACTS_AND_ORDERS_BACK_EVENT, setBreadcrumbTrail, clearBreadcrumbTrail, type BreadcrumbTrailCrumb } from '../../../shared/lib/breadcrumbTrail';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { CompactToolkitHeader } from '../../../shared/components/ui/ToolkitPageHeader';

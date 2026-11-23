@@ -134,7 +134,7 @@ export function SamplingHub() {
             <button
               type="button"
               onClick={() => setTargetsOpen(true)}
-              className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-emerald-600/50 bg-gradient-to-br from-emerald-50 to-emerald-100/70 px-4 py-3 text-sm font-black text-emerald-800 shadow-sm transition hover:border-emerald-600 hover:from-emerald-100 hover:to-emerald-200/70 hover:shadow-md dark:border-emerald-500/40 dark:from-emerald-950/50 dark:to-emerald-900/30 dark:text-emerald-200"
+              className="group relative inline-flex w-full sm:max-w-lg items-center justify-center gap-2 overflow-hidden rounded-xl border border-emerald-600/50 bg-gradient-to-br from-emerald-50 to-emerald-100/70 px-4 py-3 text-sm font-black text-emerald-800 shadow-sm transition hover:border-emerald-600 hover:from-emerald-100 hover:to-emerald-200/70 hover:shadow-md dark:border-emerald-500/40 dark:from-emerald-950/50 dark:to-emerald-900/30 dark:text-emerald-200"
             >
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-700 text-white shadow-sm transition group-hover:scale-105">
                 <Hash className="h-4 w-4" />
@@ -145,7 +145,7 @@ export function SamplingHub() {
           <button
             type="button"
             onClick={openTool}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 px-4 py-3 text-sm font-black text-white shadow-md shadow-emerald-950/20 transition hover:from-emerald-900 hover:to-emerald-800 hover:shadow-lg"
+            className="inline-flex w-full sm:max-w-lg items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-800 to-emerald-700 px-4 py-3 text-sm font-black text-white shadow-md shadow-emerald-950/20 transition hover:from-emerald-900 hover:to-emerald-800 hover:shadow-lg"
           >
             <FileText className="h-5 w-5" />
             {t('Start New Sample Drawal', 'కొత్త నమూనా డ్రాయింగ్‌ను ప్రారంభించండి')}

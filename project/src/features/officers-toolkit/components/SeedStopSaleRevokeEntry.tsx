@@ -581,7 +581,7 @@ export function SeedStopSaleRevokeEntry({ prefill }: { prefill?: SavedSeedStopSa
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-10">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       {confirmDialog}
       <ConfirmDialog
