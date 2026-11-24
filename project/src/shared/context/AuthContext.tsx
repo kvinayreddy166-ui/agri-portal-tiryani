@@ -13,6 +13,7 @@ import {
   isDealerRpcMissing,
 } from '../../features/auth/lib/dealerLoginMessages';
 import type { OfficerProfile, OfficerRegistrationData } from '../../features/auth/types/officerAuth';
+import { checkLoginThrottle, logSecurityEvent, recordLoginAttempt } from '../lib/securityAudit';
 
 const AUTH_STARTUP_TIMEOUT_MS = 5000;
 
@@ -278,6 +279,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error('Email and password are required') };
     }
 
+    const throttle = await checkLoginThrottle(normalizedEmail);
+    if (!throttle.allowed) {
+      const mins = Math.max(1, Math.ceil(throttle.retryAfterSeconds / 60));
+      return { error: new Error(`Too many failed sign-in attempts. Please try again in ${mins} minute${mins === 1 ? '' : 's'}.`) };
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
@@ -285,7 +292,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         options: captchaToken ? { captchaToken } : undefined,
       });
 
+      await recordLoginAttempt(normalizedEmail, !error);
       if (error) {
+        void logSecurityEvent({ module: 'auth', action: 'LOGIN_FAILED', actorEmail: normalizedEmail, details: { reason: error.message } });
         console.error('Supabase signIn error:', error.message);
         if (error.message === 'Email not confirmed') {
           return { error: new Error('Email not confirmed. Please check your email or contact the administrator.') };
@@ -311,6 +320,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setDealerName
       );
       void fetchOfficerProfile(data.session?.user ?? null);
+      void logSecurityEvent({
+        module: 'auth',
+        action: 'LOGIN',
+        recordId: data.session?.user?.id ?? null,
+        actorEmail: normalizedEmail,
+      });
 
       return { error: null };
     } catch (error) {
@@ -382,6 +397,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setDealerName
         );
         void fetchOfficerProfile(data.session.user);
+        void logSecurityEvent({
+          module: 'auth',
+          action: 'OTP_LOGIN',
+          recordId: data.session.user.id,
+          actorEmail: normalizedEmail,
+        });
       }
       return { error: null };
     } catch (err) {
@@ -457,6 +478,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
     }
 
+    const throttle = await checkLoginThrottle(`dealer:${digits}`);
+    if (!throttle.allowed) {
+      const mins = Math.max(1, Math.ceil(throttle.retryAfterSeconds / 60));
+      return { error: new Error(`Too many failed sign-in attempts. Please try again in ${mins} minute${mins === 1 ? '' : 's'}.`) };
+    }
+
     try {
       let portalEmail = dealerEmailFromPhone(phone);
       let targetDealerId: string | null = null;
@@ -483,7 +510,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password: dealerPassword,
           options: captchaToken ? { captchaToken } : undefined,
         });
-        if (error) return { error };
+        if (error) {
+          await recordLoginAttempt(`dealer:${digits}`, false);
+          void logSecurityEvent({ module: 'auth', action: 'LOGIN_FAILED', actorEmail: portalEmail, details: { role: 'dealer', reason: error.message } });
+          return { error };
+        }
+        await recordLoginAttempt(`dealer:${digits}`, true);
         const signedDealerId = targetDealerId || getDealerIdFromUser(data.session?.user);
         applySession(
           data.session ?? null,
@@ -495,6 +527,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setDealerName
         );
         void recordDealerLogin(signedDealerId);
+        void logSecurityEvent({
+          module: 'auth',
+          action: 'DEALER_LOGIN',
+          recordId: data.session?.user?.id ?? null,
+          recordLabel: dealerDisplayName || digits,
+          actorEmail: portalEmail,
+          details: { dealer_id: signedDealerId },
+        });
         return { error: null };
       };
 
@@ -565,6 +605,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    void logSecurityEvent({
+      module: 'auth',
+      action: 'LOGOUT',
+      recordId: user?.id ?? null,
+      actorEmail: user?.email ?? null,
+    });
     clearPersistedSupabaseAuth();
     setStorageActiveUser(null);
     if (typeof window !== 'undefined') {

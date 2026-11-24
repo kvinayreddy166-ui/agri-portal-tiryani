@@ -64,8 +64,16 @@ export async function authenticateRequest(
       // Token rejected by Supabase — do not fall back to weaker local checks
       return null;
     } catch (err) {
-      console.error('Supabase Auth verification error, falling back to local JWT check:', err);
+      // Fail closed: a Supabase outage must not downgrade to unverified JWT parsing
+      console.error('Supabase Auth verification error:', err);
+      return null;
     }
+  }
+
+  // No Supabase Auth config — only accept locally-verified signed JWTs.
+  if (!env.SUPABASE_JWT_SECRET) {
+    console.error('SUPABASE_URL/SUPABASE_ANON_KEY not configured and SUPABASE_JWT_SECRET missing — rejecting token');
+    return null;
   }
 
   try {

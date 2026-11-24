@@ -69,6 +69,9 @@ Deno.serve(async (req: Request) => {
       email: normalizedEmail,
       password: String(password),
       email_confirm: true, // Mark email as confirmed since OTP was already verified
+      app_metadata: {
+        role: 'officer',
+      },
       user_metadata: {
         role: 'officer',
         full_name: String(full_name).trim(),

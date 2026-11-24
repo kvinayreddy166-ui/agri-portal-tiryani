@@ -50,7 +50,7 @@ function AppContent() {
   const navigationType = useNavigationType();
   const [isHydrated, setIsHydrated] = useState(true);
   const [forceAppShell, setForceAppShell] = useState(false);
-  const currentPathIsPublic = PUBLIC_AUTH_ROUTES.has(location.pathname) || location.pathname.startsWith('/officer-toolkit/') || location.pathname === '/' || location.pathname === '/login' || location.pathname === '/disclaimer' || location.pathname === '/privacy-policy' || location.pathname === '/terms-conditions';
+  const currentPathIsPublic = PUBLIC_AUTH_ROUTES.has(location.pathname) || location.pathname.startsWith('/officer-toolkit/') || location.pathname === '/' || location.pathname === '/login' || location.pathname === '/disclaimer' || location.pathname === '/privacy-policy' || location.pathname === '/terms-conditions' || location.pathname === '/security-trust';
   const isPublicToolkitPath = location.pathname === '/officer-toolkit' || location.pathname.startsWith('/officer-toolkit/');
   const hideCalculatorLogo =
     location.pathname === '/officer-toolkit/fertilizer-calculator' ||
@@ -215,7 +215,8 @@ function AppContent() {
       location.pathname.startsWith('/officer-toolkit/') ||
       location.pathname === '/disclaimer' ||
       location.pathname === '/privacy-policy' ||
-      location.pathname === '/terms-conditions'
+      location.pathname === '/terms-conditions' ||
+      location.pathname === '/security-trust'
     ) return;
     navigateToPage('landing', { replace: true });
   }, [currentPage, loading, location.pathname, navigateToPage, user]);

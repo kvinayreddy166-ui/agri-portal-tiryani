@@ -1,12 +1,12 @@
 import { authenticateRequest, isUserAuthorizedForPath } from './auth';
 import { deleteDocumentFromR2, getDocumentFromR2, probeR2Health, uploadDocumentToR2 } from './r2';
-import type { Env } from './types';
+import type { AuthenticatedUser, Env } from './types';
 
 /**
  * Cloudflare Worker entrypoint for agronix-storage-api
  */
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx?: ExecutionContext): Promise<Response> {
     const origin = request.headers.get('Origin') || '';
     const corsHeaders = getCorsHeaders(origin, env.ALLOWED_ORIGINS);
 
@@ -121,6 +121,8 @@ export default {
           month,
         });
 
+        logDocumentAudit(env, request, user, 'UPLOAD', uploadResult?.objectKey || documentId, ctx);
+
         return jsonResponse(uploadResult, 200, corsHeaders);
       }
 
@@ -145,6 +147,8 @@ export default {
         if (!object) {
           return jsonResponse({ error: 'Document not found in storage' }, 404, corsHeaders);
         }
+
+        logDocumentAudit(env, request, user, 'DOWNLOAD', objectKey, ctx);
 
         const raw = url.searchParams.get('raw') === 'true';
         const method = object.customMetadata?.compressionMethod;
@@ -201,6 +205,8 @@ export default {
           return jsonResponse({ error: 'Document not found in storage' }, 404, corsHeaders);
         }
 
+        logDocumentAudit(env, request, user, 'PREVIEW', objectKey, ctx);
+
         const raw = url.searchParams.get('raw') === 'true';
         const method = object.customMetadata?.compressionMethod;
         const originalFilename = object.customMetadata?.originalFilename || objectKey.split('/').pop() || 'document.pdf';
@@ -252,6 +258,7 @@ export default {
         }
 
         await deleteDocumentFromR2(env, objectKey);
+        logDocumentAudit(env, request, user, 'DELETE', objectKey, ctx);
         return jsonResponse({ success: true, message: 'Document deleted from R2' }, 200, corsHeaders);
       }
 
@@ -293,6 +300,51 @@ function getCorsHeaders(origin: string, allowedOriginsConfig?: string): HeadersI
 function appendCorsHeaders(target: Headers, corsHeaders: HeadersInit): void {
   for (const [key, value] of Object.entries(corsHeaders)) {
     target.set(key, value);
+  }
+}
+
+/**
+ * Fire-and-forget audit write to public.security_audit_logs via the
+ * log_security_event RPC, authenticated with the caller's own Supabase JWT.
+ * Runs via ctx.waitUntil so it never adds latency to the response.
+ */
+function logDocumentAudit(
+  env: Env,
+  request: Request,
+  user: AuthenticatedUser,
+  action: string,
+  objectKey: string,
+  ctx?: ExecutionContext
+): void {
+  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return;
+
+  const authHeader = request.headers.get('Authorization') || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.substring(7).trim() : '';
+  if (!token) return;
+
+  const clientIp = request.headers.get('cf-connecting-ip') || '';
+  const recordLabel = objectKey.split('/').pop() || objectKey;
+
+  const promise = fetch(`${env.SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/rpc/log_security_event`, {
+    method: 'POST',
+    headers: {
+      apikey: env.SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      p_module: 'documents',
+      p_action: action,
+      p_record_label: recordLabel,
+      p_actor_email: user.email || null,
+      p_details: { object_key: objectKey, client_ip: clientIp },
+    }),
+  }).catch((err) => {
+    console.warn('[Audit] log_security_event failed:', err);
+  });
+
+  if (ctx?.waitUntil) {
+    ctx.waitUntil(promise);
   }
 }
 

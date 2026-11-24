@@ -48,7 +48,7 @@
       (function() {
         try {
           var p = window.location.pathname.replace(/\/+$/, '') || '/';
-          if (p === '/' || p === '/home' || p === '/landing' || p === '/login' || p === '/register' || p === '/officer-register' || p === '/forgot-password' || p === '/disclaimer' || p === '/privacy-policy' || p === '/terms-conditions') return;
+          if (p === '/' || p === '/home' || p === '/landing' || p === '/login' || p === '/register' || p === '/officer-register' || p === '/forgot-password' || p === '/disclaimer' || p === '/privacy-policy' || p === '/terms-conditions' || p === '/security-trust') return;
           var theme = localStorage.getItem('tiryani-portal-theme');
           var isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
           if (isDark) {

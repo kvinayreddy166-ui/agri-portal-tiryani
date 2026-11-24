@@ -10,6 +10,7 @@ export const PUBLIC_AUTH_ROUTES = new Set([
   '/disclaimer',
   '/privacy-policy',
   '/terms-conditions',
+  '/security-trust',
   '/officer-toolkit',
   '/officer-toolkit/license-services',
   '/officer-toolkit/smart-sampling',
@@ -50,6 +51,7 @@ export const ALWAYS_LIGHT_PATHS = new Set([
   '/disclaimer',
   '/privacy-policy',
   '/terms-conditions',
+  '/security-trust',
 ]);
 
 // Public directory/info pages that stay light for signed-out visitors but may
@@ -67,6 +69,7 @@ export const PUBLIC_PAGES = new Set([
   'disclaimer',
   'privacy-policy',
   'terms-conditions',
+  'security-trust',
   'dealers',
   'officer-toolkit',
   'forms-library',
@@ -154,6 +157,7 @@ export const PAGE_PATHS: Record<string, string> = {
   disclaimer: '/disclaimer',
   'privacy-policy': '/privacy-policy',
   'terms-conditions': '/terms-conditions',
+  'security-trust': '/security-trust',
   feedback: '/feedback',
   'feedback-admin': '/admin/feedback',
 };
@@ -213,7 +217,7 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
   if (page === 'all-modules') return 'dashboard';
   if (page === 'officer-records' || page === 'enforcement-tracker') return 'dashboard';
   if (page === 'field-tools' || page === 'government-portals') return 'dashboard';
-  if (page === 'disclaimer' || page === 'privacy-policy' || page === 'terms-conditions') return 'landing';
+  if (page === 'disclaimer' || page === 'privacy-policy' || page === 'terms-conditions' || page === 'security-trust') return 'landing';
   if (
     page === 'forms' ||
     page === 'forms-library' ||
@@ -262,6 +266,7 @@ export const VALID_PAGES = new Set([
   'disclaimer',
   'privacy-policy',
   'terms-conditions',
+  'security-trust',
   'stock-analytics',
   'stock-receipts-sales',
   'dealer-portal',

@@ -66,7 +66,20 @@ Deno.serve(async (req: Request) => {
       return errorResponse('Verification code has expired. Please request a new one.', 400);
     }
 
+    // Brute-force guard: max 5 wrong guesses per OTP (mirrors verify_officer_email_otp)
+    if ((otpRecord.attempts ?? 0) >= 5) {
+      await supabase
+        .from('officer_email_otps')
+        .update({ consumed: true })
+        .eq('id', otpRecord.id);
+      return errorResponse('Too many failed attempts. Please request a new verification code.', 429);
+    }
+
     if (otpRecord.otp_code !== token) {
+      await supabase
+        .from('officer_email_otps')
+        .update({ attempts: (otpRecord.attempts ?? 0) + 1 })
+        .eq('id', otpRecord.id);
       return errorResponse('Invalid verification code. Please enter the correct 6-digit code received in your email.', 400);
     }
 

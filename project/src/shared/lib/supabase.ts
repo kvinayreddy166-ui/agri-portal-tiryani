@@ -103,15 +103,28 @@ export const isElevatedOfficerUser = (email: string | undefined) => {
 // auth.users.id of the portal admin — used to identify admin-created records.
 export const ADMIN_USER_ID = '0aa47647-42c0-4000-af00-e10ef4c2a77b';
 
-export const isDealerUser = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
-  return user?.user_metadata?.role === 'dealer';
+type AuthUserLike = {
+  app_metadata?: Record<string, unknown>;
+  user_metadata?: Record<string, unknown>;
+} | null | undefined;
+
+// app_metadata is service-role only (non-forgeable); user_metadata is kept as
+// a read fallback for sessions issued before the app_metadata migration.
+const metaRole = (user: AuthUserLike) =>
+  (user?.app_metadata?.role as string | undefined) ??
+  (user?.user_metadata?.role as string | undefined);
+
+export const isDealerUser = (user: AuthUserLike) => {
+  return metaRole(user) === 'dealer';
 };
 
-export const isOfficerUser = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
-  return user?.user_metadata?.role === 'officer';
+export const isOfficerUser = (user: AuthUserLike) => {
+  return metaRole(user) === 'officer';
 };
 
-export const getDealerIdFromUser = (user: { user_metadata?: Record<string, unknown> } | null | undefined) => {
-  const id = user?.user_metadata?.dealer_id;
+export const getDealerIdFromUser = (user: AuthUserLike) => {
+  const id =
+    (user?.app_metadata?.dealer_id as string | undefined) ??
+    (user?.user_metadata?.dealer_id as string | undefined);
   return typeof id === 'string' && id.length > 0 ? id : null;
 };

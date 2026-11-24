@@ -1071,6 +1071,10 @@ export function LandingPage() {
               <button type="button" onClick={() => navigate('/terms-conditions')} className="cursor-pointer text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300">
                 {t('Terms & Conditions', 'నిబంధనలు & షరతులు')}
               </button>
+              <span className="text-slate-300 dark:text-slate-700">&bull;</span>
+              <button type="button" onClick={() => navigate('/security-trust')} className="cursor-pointer text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 dark:hover:text-emerald-300">
+                {t('Security & Trust', 'భద్రత & నమ్మకం')}
+              </button>
             </div>
             <p className="mt-3">
               &copy; 2026 Agronix, {t('All Rights Reserved.', 'సర్వ హక్కులు ప్రత్యేకించబడ్డాయి.')}

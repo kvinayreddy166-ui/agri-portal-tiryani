@@ -53,6 +53,7 @@ import {
   ProfitabilityCalculator,
   SeedDealerInspection,
   SeedRateCalculator,
+  SecurityTrust,
   SoilHealthMeter,
   Settings,
   StockAnalytics,
@@ -326,6 +327,12 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser
           <TermsConditions />
         </SafeSuspense>
       );
+    case 'security-trust':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <SecurityTrust />
+        </SafeSuspense>
+      );
     default:
       return <Dashboard />;
   }
@@ -441,6 +448,12 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return (
         <SafeSuspense fallback={<PageLoader />}>
           <TermsConditions />
+        </SafeSuspense>
+      );
+    case 'security-trust':
+      return (
+        <SafeSuspense fallback={<PageLoader />}>
+          <SecurityTrust />
         </SafeSuspense>
       );
     default:

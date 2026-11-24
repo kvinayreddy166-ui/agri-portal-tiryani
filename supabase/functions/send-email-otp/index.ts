@@ -45,6 +45,25 @@ Deno.serve(async (req: Request) => {
 
     // 3. Save OTP in database using admin client
     const supabase = createAdminClient();
+
+    // Resend throttle: at most one OTP per email+purpose per 60 seconds
+    const { data: recentOtp } = await supabase
+      .from('officer_email_otps')
+      .select('created_at')
+      .eq('email', email)
+      .eq('purpose', purpose)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (recentOtp?.created_at) {
+      const ageMs = Date.now() - new Date(recentOtp.created_at).getTime();
+      if (ageMs < 60_000) {
+        const waitSec = Math.ceil((60_000 - ageMs) / 1000);
+        return errorResponse(`Please wait ${waitSec} seconds before requesting a new verification code.`, 429);
+      }
+    }
+
     const { error: dbError } = await supabase.rpc('save_officer_email_otp', {
       p_email: email,
       p_otp_code: otp,
