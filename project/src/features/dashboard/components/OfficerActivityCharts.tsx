@@ -41,6 +41,13 @@ export function OfficerActivityCharts() {
   const [allocations, setAllocations] = useState<TargetAllocation[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [progressMounted, setProgressMounted] = useState(false);
+
+  // Mount the progress bars at 0 so the width transition animates on first paint.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setProgressMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   useEffect(() => {
     if (!isOfficerUser || !user) return;
@@ -237,8 +244,11 @@ export function OfficerActivityCharts() {
                 </div>
                 <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                   <div
-                    className={`h-full rounded-full transition-all ${row.bar}`}
-                    style={{ width: `${row.percent}%` }}
+                    className={`h-full rounded-full transition-[width] duration-500 ease-out motion-reduce:transition-none ${row.bar}`}
+                    style={{
+                      width: `${progressMounted ? row.percent : 0}%`,
+                      transitionTimingFunction: 'cubic-bezier(0.23, 1, 0.32, 1)',
+                    }}
                   />
                 </div>
                 {row.codesTotal > 0 && (

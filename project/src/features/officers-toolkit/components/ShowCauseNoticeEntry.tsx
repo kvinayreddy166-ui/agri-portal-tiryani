@@ -24,6 +24,7 @@ import {
 } from '../data/showCauseViolationData';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { sha256Hex } from '../../../shared/lib/fileHash';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
 import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
@@ -286,7 +287,7 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     );
   };
 
-  const persistNotice = (notify = false, issue = false) => {
+  const persistNotice = (notify = false, issue = false): SavedNotice => {
     const id = `${form.memoNumber || 'draft'}-${Date.now()}`;
     const prevIssuedAt = savedNotices.find((item) => item.memoNumber === form.memoNumber)?.issuedAt;
     const saved: SavedNotice = { ...form, id, savedAt: new Date().toISOString(), issuedAt: issue ? new Date().toISOString() : prevIssuedAt };
@@ -294,19 +295,20 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
     const comm: StatutoryCommodity = form.category === 'fertiliser' ? 'fertilizer' : form.category;
     if (issue) void OfficerCloudSyncService.syncStatutoryOrder('show_cause', comm, saved as unknown as Record<string, unknown>);
     if (notify) showSaved('Draft saved', form.memoNumber || 'Untitled notice');
+    return saved;
   };
 
   const saveNotice = () => persistNotice(true);
 
-  // Persist the record when the document is actually issued (download),
+  // Persist the record when the document is actually issued (download/print),
   // not merely when the form is filled in.
-  const persistNoticeForExport = async (): Promise<boolean> => {
+  const persistNoticeForExport = async (): Promise<SavedNotice | null> => {
     const errors: Record<string, string> = {};
     if (!String(form.firmName ?? form.dealerName ?? '').trim()) errors.firmName = 'Firm name is required.';
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
       showWarning('Please complete required fields', Object.values(errors)[0]);
-      return false;
+      return null;
     }
     const dealer = String(form.firmName ?? form.dealerName ?? '').trim();
     const ref = String(form.memoNumber || '').trim();
@@ -315,9 +317,21 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       message: 'The record will be saved to cloud records.',
       confirmLabel: 'Issue',
     });
-    if (!ok) return false;
-    persistNotice(false, true);
-    return true;
+    if (!ok) return null;
+    return persistNotice(false, true);
+  };
+
+  // Binds the issued PDF's SHA-256 into the saved record + cloud payload so
+  // the stored record can be verified against the document later.
+  const bindIssuedPdfHash = (entry: SavedNotice, blob: Blob) => {
+    void sha256Hex(blob)
+      .then((hash) => {
+        const bound: SavedNotice = { ...entry, issuedPdfSha256: hash };
+        setSavedNotices((current) => current.map((item) => (item.id === entry.id ? bound : item)));
+        const comm: StatutoryCommodity = entry.category === 'fertiliser' ? 'fertilizer' : entry.category;
+        void OfficerCloudSyncService.syncStatutoryOrder('show_cause', comm, bound as unknown as Record<string, unknown>);
+      })
+      .catch(() => {});
   };
 
   const editSavedNotice = (notice: SavedNotice) => {
@@ -412,14 +426,17 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
   const buildNoticePdfDoc = () => renderNoticePdfDocument(noticeBlocks, form.memoNumber || 'Show Cause Notice');
 
   const downloadPdf = async () => {
-    if (!(await persistNoticeForExport())) return;
+    const persisted = await persistNoticeForExport();
+    if (!persisted) return;
     const doc = await buildNoticePdfDoc();
+    const pdfBlob = doc.output('blob');
+    bindIssuedPdfHash(persisted, pdfBlob);
     const filename = noticeFileName();
     doc.save(filename);
     showSuccess('PDF downloaded', filename);
 
     // Auto-archive in background (non-blocking)
-    await OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+    await OfficerDocumentArchiveService.archiveGeneratedDocument(pdfBlob, {
       filename,
       documentCategory: 'notice',
       documentNumber: form.memoNumber || undefined,
@@ -463,8 +480,11 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
 
   const printPreview = async () => {
     try {
+      const persisted = await persistNoticeForExport();
+      if (!persisted) return;
       const doc = await buildNoticePdfDoc();
       const pdfBlob = doc.output('blob');
+      bindIssuedPdfHash(persisted, pdfBlob);
       const pdfUrl = URL.createObjectURL(pdfBlob);
       const printWindow = window.open(pdfUrl, '_blank');
       if (printWindow) {

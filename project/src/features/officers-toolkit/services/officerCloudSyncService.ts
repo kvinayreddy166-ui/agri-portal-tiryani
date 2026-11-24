@@ -29,6 +29,8 @@ export interface UnifiedOfficerRecord {
   details: Record<string, unknown>;
   synced: boolean;
   createdAt: string;
+  /** Owning officer's auth user id (cloud rows only; used for tombstones). */
+  officerId?: string | null;
 }
 
 export const OFFICER_LOCAL_STORAGE_KEYS = {
@@ -70,6 +72,63 @@ export class OfficerCloudSyncService {
   }
 
   /**
+   * officer_record_tombstones is added by migration 20261241000000; the
+   * generated Database types don't know it yet, so access it loosely.
+   */
+  private static tombstoneTable() {
+    return (supabase as unknown as { from: (table: string) => any }).from('officer_record_tombstones');
+  }
+
+  /**
+   * Returns true when a deletion tombstone exists for this record — i.e. an
+   * admin/officer deleted it and a stale local copy must not be re-uploaded.
+   */
+  private static async isTombstoned(
+    officerId: string,
+    kind: 'order' | 'inspection' | 'sample',
+    ref: string
+  ): Promise<boolean> {
+    if (!ref) return false;
+    try {
+      const { data, error } = await this.tombstoneTable()
+        .select('id')
+        .eq('officer_id', officerId)
+        .eq('record_kind', kind)
+        .eq('record_ref', ref)
+        .limit(1)
+        .maybeSingle();
+      return !error && Boolean(data);
+    } catch {
+      return false;
+    }
+  }
+
+  /** Writes a deletion tombstone so stale devices can't resurrect the record. */
+  private static async writeTombstone(
+    officerId: string | null | undefined,
+    kind: 'order' | 'inspection' | 'sample',
+    ref: string,
+    commodity?: string
+  ): Promise<void> {
+    if (!officerId || !ref) return;
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      await this.tombstoneTable().upsert(
+        {
+          officer_id: officerId,
+          record_kind: kind,
+          record_ref: ref,
+          commodity: commodity ?? null,
+          deleted_by: session?.session?.user?.id ?? null,
+        },
+        { onConflict: 'officer_id,record_kind,record_ref', ignoreDuplicates: true }
+      );
+    } catch {
+      // best-effort — delete still proceeds
+    }
+  }
+
+  /**
    * Saves or updates a statutory order both locally and to Supabase
    */
   static async syncStatutoryOrder(
@@ -94,6 +153,9 @@ export class OfficerCloudSyncService {
 
     if (officerId && isOnline) {
       try {
+        if (await this.isTombstoned(officerId, 'order', orderNumber)) {
+          return { success: true, syncedToCloud: true, id };
+        }
         const payload: OfficerStatutoryOrderDbRecord = {
           officer_id: officerId,
           order_type: orderType,
@@ -162,6 +224,9 @@ export class OfficerCloudSyncService {
 
     if (officerId && isOnline) {
       try {
+        if (await this.isTombstoned(officerId, 'inspection', id)) {
+          return { success: true, syncedToCloud: true, id };
+        }
         // Dedupe by (officer_id, findings_json->>'id'): drafts carry a stable
         // id, so re-saving the same draft updates the existing row instead of
         // inserting duplicates on every save.
@@ -270,6 +335,9 @@ export class OfficerCloudSyncService {
 
     if (officerId && isOnline) {
       try {
+        if (await this.isTombstoned(officerId, 'sample', sampleCode)) {
+          return { success: true, syncedToCloud: true, id };
+        }
         // Dedupe by (officer_id, commodity, sample_code): re-downloading or
         // re-previewing the same sample updates the existing row instead of
         // creating duplicates. lab_status is preserved unless explicitly set,
@@ -358,18 +426,35 @@ export class OfficerCloudSyncService {
     const cloudInspectionDraftIds = new Set<string>();
     const cloudOrderRefs = new Set<string>();
     const cloudSampleCodes = new Set<string>();
+    const tombstonedRefs = new Set<string>();
 
-    // 1. Read Cloud Records if online
+    // 1. Read Cloud Records if online. Each table is queried independently —
+    // a failure on one (e.g. stale schema cache, transient RLS error) must
+    // not discard the records returned by the others.
     if (officerId && isOnline) {
       try {
-        const [ordersRes, inspRes, samplesRes] = await Promise.all([
+        const [ordersRes, inspRes, samplesRes] = await Promise.allSettled([
           supabase.from('officer_statutory_orders').select('*').order('order_date', { ascending: false }),
           supabase.from('officer_inspections').select('*').order('inspection_date', { ascending: false }),
           supabase.from('officer_samples').select('*').order('date_of_sampling', { ascending: false }),
         ]);
 
-        if (ordersRes.data) {
-          (ordersRes.data as unknown as (OfficerStatutoryOrderDbRecord & { id: string })[]).forEach((row) => {
+        const fulfilledData = <T,>(res: PromiseSettledResult<unknown>): T[] => {
+          if (res.status === 'rejected') {
+            console.warn('Officer records fetch failed:', res.reason);
+            return [];
+          }
+          const value = res.value as { data?: T[] | null; error?: unknown } | null;
+          if (value?.data) return value.data;
+          if (value?.error) console.warn('Officer records query error:', value.error);
+          return [];
+        };
+
+        const orders = fulfilledData<OfficerStatutoryOrderDbRecord & { id: string }>(ordersRes);
+        const inspections = fulfilledData<OfficerInspectionDbRecord & { id: string }>(inspRes);
+        const samples = fulfilledData<OfficerSampleDbRecord & { id: string }>(samplesRes);
+
+        orders.forEach((row) => {
             if (row.order_number) cloudOrderRefs.add(String(row.order_number));
             records.push({
               id: row.id,
@@ -385,12 +470,11 @@ export class OfficerCloudSyncService {
               details: row.payload_json || {},
               synced: true,
               createdAt: row.created_at || row.order_date,
+              officerId: row.officer_id ?? null,
             });
           });
-        }
 
-        if (inspRes.data) {
-          (inspRes.data as unknown as (OfficerInspectionDbRecord & { id: string })[]).forEach((row) => {
+        inspections.forEach((row) => {
             const fj = row.findings_json as Record<string, unknown> | undefined;
             if (fj && typeof fj === 'object' && fj.id) cloudInspectionDraftIds.add(String(fj.id));
             records.push({
@@ -407,12 +491,11 @@ export class OfficerCloudSyncService {
               details: row.findings_json || {},
               synced: true,
               createdAt: row.created_at || row.inspection_date,
+              officerId: row.officer_id ?? null,
             });
           });
-        }
 
-        if (samplesRes.data) {
-          (samplesRes.data as unknown as (OfficerSampleDbRecord & { id: string })[]).forEach((row) => {
+        samples.forEach((row) => {
             if (row.sample_code) cloudSampleCodes.add(String(row.sample_code));
             records.push({
               id: row.id,
@@ -445,11 +528,23 @@ export class OfficerCloudSyncService {
               },
               synced: true,
               createdAt: row.created_at || row.date_of_sampling,
+              officerId: row.officer_id ?? null,
             });
           });
-        }
       } catch (err) {
         console.warn('Failed to fetch officer cloud records:', err);
+      }
+
+      // Deletion tombstones — local copies of deleted records must not resurface.
+      try {
+        const { data: tombRows } = await this.tombstoneTable()
+          .select('record_kind, record_ref')
+          .eq('officer_id', officerId);
+        (tombRows ?? []).forEach((t: { record_kind: string; record_ref: string }) => {
+          tombstonedRefs.add(`${t.record_kind}:${String(t.record_ref)}`);
+        });
+      } catch {
+        // best-effort — tombstones only suppress re-sync, never block reads
       }
     }
 
@@ -480,6 +575,7 @@ export class OfficerCloudSyncService {
           // seizure orders never match their cloud row and appear duplicated.
           const refNo = String(item.orderNumber || item.noticeNumber || item.memoNumber || item.refNumber || item.id || '');
           if (refNo && cloudOrderRefs.has(refNo)) return; // already in cloud list
+          if (refNo && tombstonedRefs.has(`order:${refNo}`)) return; // deleted — don't resurrect
 
           records.push({
             id: String(item.id || `local-${Math.random().toString(36).slice(2, 7)}`),
@@ -516,6 +612,7 @@ export class OfficerCloudSyncService {
           if (!item.issuedAt) return;
           const draftId = String(item.id || '');
           if (draftId && cloudInspectionDraftIds.has(draftId)) return;
+          if (draftId && tombstonedRefs.has(`inspection:${draftId}`)) return; // deleted — don't resurrect
 
           const form = (item.form && typeof item.form === 'object' ? item.form : {}) as Record<string, unknown>;
           records.push({
@@ -553,6 +650,7 @@ export class OfficerCloudSyncService {
           if (!item.issuedAt) return; // unissued covering-letter queue drafts are not records
           const sampleCode = String(item.sampleCode || '').trim();
           if (!sampleCode || cloudSampleCodes.has(sampleCode)) return;
+          if (tombstonedRefs.has(`sample:${sampleCode}`)) return; // deleted — don't resurrect
 
           records.push({
             id: `local-sample-${comm}-${sampleCode}-${index}`,
@@ -653,6 +751,19 @@ export class OfficerCloudSyncService {
         // ignore
       }
     });
+
+    // Tombstone the record so stale local copies on other devices can't
+    // resurrect it via flushPendingLocalRecords / resyncLocalRecord.
+    const tombOfficerId = record.officerId ?? (await this.getCurrentOfficerId());
+    const tombRef =
+      record.category === 'order'
+        ? record.referenceNumber
+        : record.category === 'sample'
+          ? record.referenceNumber
+          : String(detailId || record.id);
+    const tombKind =
+      record.category === 'order' ? 'order' : record.category === 'sample' ? 'sample' : 'inspection';
+    await this.writeTombstone(tombOfficerId, tombKind, tombRef, record.commodity);
 
     // Unlink the record from any open enforcement case
     const officerId = await this.getCurrentOfficerId();

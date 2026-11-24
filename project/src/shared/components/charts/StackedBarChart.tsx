@@ -89,6 +89,17 @@ function StackedBarTooltip({
   );
 }
 
+const CHART_EASE = 'cubic-bezier(0.23, 1, 0.32, 1)';
+const CHART_DURATION = 600;
+
+function usePrefersReducedMotion() {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
 export const StackedBarChart = React.memo(function StackedBarChart({
   data,
   xKey,
@@ -102,6 +113,7 @@ export const StackedBarChart = React.memo(function StackedBarChart({
   height?: number;
   minWidth?: number;
 }) {
+  const reduceMotion = usePrefersReducedMotion();
   const width = Math.max(minWidth, data.length * 120);
   const truncate = (value: unknown) => {
     const text = String(value ?? '');
@@ -135,6 +147,9 @@ export const StackedBarChart = React.memo(function StackedBarChart({
                 name={bar.label}
                 stackId="dealers"
                 fill={PALETTE[i % PALETTE.length]}
+                isAnimationActive={!reduceMotion}
+                animationDuration={CHART_DURATION}
+                animationEasing={CHART_EASE}
               />
             ))}
           </BarChart>

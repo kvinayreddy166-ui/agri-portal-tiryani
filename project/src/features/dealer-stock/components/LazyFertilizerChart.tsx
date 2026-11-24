@@ -1,11 +1,23 @@
 import React from 'react';
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
+const CHART_EASE = 'cubic-bezier(0.23, 1, 0.32, 1)';
+const CHART_DURATION = 600;
+
+function usePrefersReducedMotion() {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
 interface FertilizerChartProps {
   data: Array<{ fertilizer: string; Receipts: number }>;
 }
 
 export default function FertilizerChart({ data }: FertilizerChartProps) {
+  const reduceMotion = usePrefersReducedMotion();
   const chartData = data.map((item) => ({
     ...item,
     Receipts: Number(item.Receipts || 0),
@@ -55,7 +67,15 @@ export default function FertilizerChart({ data }: FertilizerChartProps) {
             fontWeight: 700,
           }}
         />
-        <Bar dataKey="Receipts" fill="url(#fertilizerReceiptsGradient)" radius={[0, 8, 8, 0]} barSize={18}>
+        <Bar
+          dataKey="Receipts"
+          fill="url(#fertilizerReceiptsGradient)"
+          radius={[0, 8, 8, 0]}
+          barSize={18}
+          isAnimationActive={!reduceMotion}
+          animationDuration={CHART_DURATION}
+          animationEasing={CHART_EASE}
+        >
           <LabelList
             dataKey="Receipts"
             position="right"

@@ -31,6 +31,7 @@ import {
 } from './ShowCauseNoticeEntry';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { sha256Hex } from '../../../shared/lib/fileHash';
 import { OfficerDocumentArchiveService } from '../services/officerDocumentArchiveService';
 import { FIELD_ERROR_CLASSES, FieldErrorMessage } from '../../../shared/components/ui/fieldError';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
@@ -71,6 +72,8 @@ interface SavedPestSeizureOrder extends PestSeizureFormState {
   id: string;
   savedAt: string;
   issuedAt?: string;
+  /** SHA-256 of the issued PDF, bound on download/print for later verification. */
+  issuedPdfSha256?: string;
 }
 
 const STORAGE_KEY = 'agri-legal-pesticide-seizure-orders';
@@ -395,7 +398,7 @@ export function PesticideSeizureOrderEntry() {
   const removeProduct = (id: string) =>
     setForm((current) => ({ ...current, products: current.products.filter((row) => row.id !== id) }));
 
-  const persistOrder = (notify = false, issue = false) => {
+  const persistOrder = (notify = false, issue = false): SavedPestSeizureOrder => {
     const entryId = editingId || uid();
     const entry: SavedPestSeizureOrder = {
       ...form,
@@ -407,20 +410,21 @@ export function PesticideSeizureOrderEntry() {
     setEditingId(entry.id);
     if (issue) void OfficerCloudSyncService.syncStatutoryOrder('seizure', 'pesticide', entry as unknown as Record<string, unknown>);
     if (notify) showSaved('Order saved', entry.refNumber || 'Receipt for Seized Insecticides');
+    return entry;
   };
 
   const saveOrder = () => persistOrder(true);
 
   // Persist the record when the document is actually issued (download/print),
   // not merely when the form is filled in.
-  const persistOrderForExport = async (): Promise<boolean> => {
+  const persistOrderForExport = async (): Promise<SavedPestSeizureOrder | null> => {
     const errors: Record<string, string> = {};
     if (!String(form.firmName ?? '').trim()) errors.firmName = 'Firm name is required.';
     if (!form.products.some((row) => row.name.trim())) errors.productName = 'Enter the name of at least one insecticide.';
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
       showWarning('Please complete required fields', Object.values(errors)[0]);
-      return false;
+      return null;
     }
     const dealer = String(form.firmName ?? '').trim();
     const f = form as unknown as Record<string, unknown>;
@@ -430,9 +434,20 @@ export function PesticideSeizureOrderEntry() {
       message: 'The record will be saved to cloud records.',
       confirmLabel: 'Issue',
     });
-    if (!ok) return false;
-    persistOrder(false, true);
-    return true;
+    if (!ok) return null;
+    return persistOrder(false, true);
+  };
+
+  // Binds the issued PDF's SHA-256 into the saved record + cloud payload so
+  // the stored record can be verified against the document later.
+  const bindIssuedPdfHash = (entry: SavedPestSeizureOrder, blob: Blob) => {
+    void sha256Hex(blob)
+      .then((hash) => {
+        const bound: SavedPestSeizureOrder = { ...entry, issuedPdfSha256: hash };
+        setSavedOrders((current) => current.map((item) => (item.id === entry.id ? bound : item)));
+        void OfficerCloudSyncService.syncStatutoryOrder('seizure', 'pesticide', bound as unknown as Record<string, unknown>);
+      })
+      .catch(() => {});
   };
 
   const editSavedOrder = (order: SavedPestSeizureOrder) => {
@@ -495,14 +510,17 @@ export function PesticideSeizureOrderEntry() {
   const fileBase = () => `${form.refNumber || 'receipt-seized-insecticides'}`.replace(/[\\/]/g, '-');
 
   const downloadPdf = async () => {
-    if (!(await persistOrderForExport())) return;
+    const persisted = await persistOrderForExport();
+    if (!persisted) return;
     const doc = await renderNoticePdfDocument(noticeBlocks, form.refNumber || 'Receipt for Seized Insecticides', 'times');
+    const pdfBlob = doc.output('blob');
+    bindIssuedPdfHash(persisted, pdfBlob);
     const filename = `${fileBase()}.pdf`;
     doc.save(filename);
     showSuccess('PDF downloaded', filename);
 
     // Auto-archive in background (non-blocking)
-    await OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+    await OfficerDocumentArchiveService.archiveGeneratedDocument(pdfBlob, {
       filename,
       documentCategory: 'order',
       documentNumber: form.refNumber || undefined,
@@ -515,9 +533,11 @@ export function PesticideSeizureOrderEntry() {
 
   const printPreview = async () => {
     try {
-      if (!(await persistOrderForExport())) return;
+      const persisted = await persistOrderForExport();
+      if (!persisted) return;
       const doc = await renderNoticePdfDocument(noticeBlocks, form.refNumber || 'Receipt for Seized Insecticides', 'times');
       const pdfBlob = doc.output('blob');
+      bindIssuedPdfHash(persisted, pdfBlob);
       const pdfUrl = URL.createObjectURL(pdfBlob);
       const printWindow = window.open(pdfUrl, '_blank');
       if (printWindow) {

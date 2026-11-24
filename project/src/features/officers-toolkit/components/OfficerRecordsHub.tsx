@@ -444,6 +444,70 @@ function findRecordAddress(details: Record<string, unknown> | null | undefined):
   return '';
 }
 
+const RECORD_LICENCE_PREFERRED_KEYS = [
+  'licenceNumber',
+  'licenceNo',
+  'licenseNumber',
+  'licenseNo',
+  'licence_number',
+  'license_number',
+  'formA2Number',
+];
+const RECORD_LICENCE_KEY_RE = /licen[cs]e.*(number|no)|forma2/i;
+
+const RECORD_NOTICE_PREFERRED_KEYS = [
+  'noticeNo',
+  'noticeNumber',
+  'notice_no',
+  'notice_number',
+  'stopSaleNoticeNo',
+  'stopSaleNoticeNumber',
+  'originalNoticeNo',
+  'originalNoticeNumber',
+];
+const RECORD_NOTICE_KEY_RE = /(stop.*sale.*notice|original.*notice|notice.*(number|no))/i;
+
+/** Finds a labelled field inside a record's details (incl. nested form/data/payload). */
+function findRecordField(
+  details: Record<string, unknown> | null | undefined,
+  preferredKeys: string[],
+  keyRe: RegExp
+): { key: string; value: string } | null {
+  if (!details || typeof details !== 'object') return null;
+  const objects: Record<string, unknown>[] = [details];
+  for (const key of ['form', 'data', 'payload']) {
+    const nested = details[key];
+    if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+      objects.push(nested as Record<string, unknown>);
+    }
+  }
+  for (const preferred of preferredKeys) {
+    for (const obj of objects) {
+      const text = stringifyAddressValue(obj[preferred]);
+      if (text) return { key: preferred, value: text };
+    }
+  }
+  for (const obj of objects) {
+    for (const [key, val] of Object.entries(obj)) {
+      if (keyRe.test(key)) {
+        const text = stringifyAddressValue(val);
+        if (text) return { key, value: text };
+      }
+    }
+  }
+  return null;
+}
+
+/** Finds the dealer licence/authorization number inside a record's details (incl. nested form/data/payload). */
+function findRecordLicence(details: Record<string, unknown> | null | undefined): { key: string; value: string } | null {
+  return findRecordField(details, RECORD_LICENCE_PREFERRED_KEYS, RECORD_LICENCE_KEY_RE);
+}
+
+/** Finds the original stop-sale notice number referenced by a revocation record. */
+function findRecordNoticeNo(details: Record<string, unknown> | null | undefined): { key: string; value: string } | null {
+  return findRecordField(details, RECORD_NOTICE_PREFERRED_KEYS, RECORD_NOTICE_KEY_RE);
+}
+
 export function OfficerRecordsHub() {
   const { user, officerProfile, isAdminUser } = useAuth();
   const { t } = useLanguage();
@@ -479,6 +543,7 @@ export function OfficerRecordsHub() {
   const [refreshing, setRefreshing] = useState(false);
   const [syncingRecords, setSyncingRecords] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+  const [clearSpinning, setClearSpinning] = useState(false);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -1589,6 +1654,8 @@ export function OfficerRecordsHub() {
           <button
             type="button"
             onClick={() => {
+              setClearSpinning(true);
+              window.setTimeout(() => setClearSpinning(false), 600);
               setSearchQuery('');
               setDistrictFilter('all');
               setMandalFilter('all');
@@ -1600,10 +1667,10 @@ export function OfficerRecordsHub() {
               setDateFilter('all');
             }}
             className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-xs transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-            title={t('Reset all filters', 'అన్ని ఫిల్టర్లను రీసెట్ చేయండి')}
+            title={t('Clear all filters', 'అన్ని ఫిల్టర్లను క్లియర్ చేయండి')}
           >
-            <RotateCcw className="h-3.5 w-3.5" />
-            <span>{t('Reset', 'రీసెట్')}</span>
+            <RotateCcw className={`h-3.5 w-3.5 ${clearSpinning ? 'reset-ccw-spin' : ''}`} />
+            <span>{t('Clear', 'క్లియర్')}</span>
           </button>
 
           {/* Result count — colored badge */}
@@ -2329,6 +2396,16 @@ export function OfficerRecordsHub() {
                   <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{selectedRecord.entityName || 'N/A'}</span>
                 </div>
                 {(() => {
+                  const licence = findRecordLicence(selectedRecord.details as Record<string, unknown>);
+                  if (!licence) return null;
+                  return (
+                    <div>
+                      <span className="block font-semibold text-slate-400">{t('Licence Number', 'లైసెన్స్ నంబర్')}</span>
+                      <span className="font-mono text-sm font-bold text-slate-800 dark:text-slate-200">{licence.value}</span>
+                    </div>
+                  );
+                })()}
+                {(() => {
                   const addr = findRecordAddress(selectedRecord.details as Record<string, unknown>);
                   if (!addr) return null;
                   return (
@@ -2400,7 +2477,7 @@ export function OfficerRecordsHub() {
                             <th className="px-3 py-2">{t('Batch / Lot No', 'బ్యాచ్ సంఖ్య')}</th>
                             <th className="px-3 py-2">{t('Manufacturer / Source', 'తయారీదారు')}</th>
                             <th className="px-3 py-2">{t('Quantity', 'పరిమాణం')}</th>
-                            <th className="px-3 py-2">{t('Remarks', 'రిమార్కులు')}</th>
+                            <th className="px-3 py-2">{t('Value (₹)', 'విలువ (₹)')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -2408,7 +2485,7 @@ export function OfficerRecordsHub() {
                             <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
                               <td className="px-3 py-2 font-mono text-slate-400">{idx + 1}</td>
                               <td className="px-3 py-2 font-semibold text-slate-800 dark:text-slate-200">
-                                {String(prod.name || prod.productName || prod.commodity || prod.particulars || '—')}
+                                {String(prod.name || prod.productName || prod.crop || prod.commodity || prod.particulars || '—')}
                               </td>
                               <td className="px-3 py-2 font-mono text-slate-600 dark:text-slate-400">
                                 {String(prod.batchNo || prod.batch_no || prod.lotNo || prod.lot_no || '—')}
@@ -2419,14 +2496,33 @@ export function OfficerRecordsHub() {
                               <td className="px-3 py-2 font-semibold text-emerald-700 dark:text-emerald-400">
                                 {String(prod.quantityMt || prod.quantity || prod.qty || prod.bags || '—')}
                               </td>
-                              <td className="px-3 py-2 text-slate-500 dark:text-slate-400">
-                                {String(prod.remarks || '—')}
+                              <td className="px-3 py-2 font-semibold text-slate-800 dark:text-slate-200">
+                                {String(prod.value ?? prod.stockValue ?? prod.estimatedValue ?? prod.rate ?? '—')}
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
+                    {(() => {
+                      const remarksLines = productsList
+                        .flatMap((prod) => String(prod.remarks ?? prod.remark ?? '').split('\n'))
+                        .map((line) => line.trim())
+                        .filter(Boolean);
+                      if (remarksLines.length === 0) return null;
+                      return (
+                        <div className="border-t border-slate-200 px-4 py-3 text-xs dark:border-slate-800">
+                          <span className="font-bold text-slate-700 dark:text-slate-300">
+                            {t('Remarks:', 'రిమార్కులు:')}
+                          </span>
+                          {remarksLines.map((line, i) => (
+                            <p key={i} className="mt-1 whitespace-pre-wrap text-slate-600 dark:text-slate-300">
+                              {line}
+                            </p>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })()}
@@ -2468,19 +2564,49 @@ export function OfficerRecordsHub() {
 
                 // Address fields are shown in the core info card above — keep
                 // them out of the grouped sections so no separate card appears.
-                const flatEntries = flatEntriesAll.filter(([key]) => !RECORD_ADDRESS_KEY_RE.test(key));
-                if (flatEntries.length === 0) return null;
+                // Same for the licence number, which now sits next to the dealer name.
+                const shownLicenceKey = findRecordLicence(d)?.key?.toLowerCase() ?? null;
+                const isOrderRecord = selectedRecord.category === 'order';
+                const isRevocationRecord = isOrderRecord && String(selectedRecord.subType || '').toLowerCase().includes('revoc');
+                const shownNoticeKey = isRevocationRecord
+                  ? (findRecordNoticeNo(d)?.key?.toLowerCase() ?? null)
+                  : null;
+                const noticeEntry = shownNoticeKey
+                  ? (flatEntriesAll.find(([key]) => key.toLowerCase() === shownNoticeKey) ?? null)
+                  : null;
+                const ORDER_DATE_KEY_RE = /^(order_?date|notice_?date|revoke_?date|seizure_?date|document_?date|issued_?on|date)$/i;
+                const STOP_DAYS_KEY_RE = /stop.*days?|stoppage.*days?|detention.*days?/i;
+                let stopDaysEntry: [string, unknown] | null = null;
+                let flatEntries = flatEntriesAll.filter(
+                  ([key]) =>
+                    !RECORD_ADDRESS_KEY_RE.test(key) &&
+                    key.toLowerCase() !== shownLicenceKey &&
+                    key.toLowerCase() !== shownNoticeKey
+                );
+                if (isOrderRecord) {
+                  // Stop-sale style orders: pull the stop period out for the
+                  // enforcement card and drop redundant order-date fields.
+                  const stopIdx = flatEntries.findIndex(([key]) => STOP_DAYS_KEY_RE.test(key));
+                  if (stopIdx !== -1) {
+                    stopDaysEntry = flatEntries[stopIdx];
+                    flatEntries = flatEntries.filter((_, i) => i !== stopIdx);
+                  }
+                  flatEntries = flatEntries.filter(([key]) => !ORDER_DATE_KEY_RE.test(key));
+                }
+                if (flatEntries.length === 0 && !stopDaysEntry) return null;
 
                 const GROUP_DEFS: { title: string; te: string; pattern: RegExp }[] = [
+                  ...(isOrderRecord
+                    ? []
+                    : [{
+                        title: 'Sample / Product Details',
+                        te: 'నమూనా / ఉత్పత్తి వివరాలు',
+                        pattern: /sample|batch|lot|code|product|fertiliz|pesticide|insecticide|seed|crop|variety|trade|technical|activeingredient|formulation|quantity|grade|stock|commodity|schedule|specification|invoice|memo|order|notice|seizure|stop|mrp|price|bag|packet|expiry|manufactur|regist|drawn|collection|source|supply|pack/i,
+                      }]),
                   {
-                    title: 'Sample / Product Details',
-                    te: 'నమూనా / ఉత్పత్తి వివరాలు',
-                    pattern: /sample|batch|lot|code|product|fertiliz|pesticide|insecticide|seed|crop|variety|trade|technical|activeingredient|formulation|quantity|grade|stock|commodity|schedule|specification|invoice|memo|order|notice|seizure|stop|mrp|price|bag|packet|expiry|manufactur|regist|drawn|collection|source|supply|pack/i,
-                  },
-                  {
-                    title: 'Dealer / Party Details',
-                    te: 'డీలర్ / పార్టీ వివరాలు',
-                    pattern: /dealer|firm|licen|party|owner|proprietor|address/i,
+                    title: 'Inspection / Enforcement',
+                    te: 'తనిఖీ / అమలు',
+                    pattern: /officer|inspector|designation|qualification|inspection|visit|sign|status|observ|finding|result|test|lab|report|dispatch|receiv|issue|deadline|enclosure|violation|clause|section|act/i,
                   },
                   {
                     title: 'Location / Jurisdiction',
@@ -2488,9 +2614,9 @@ export function OfficerRecordsHub() {
                     pattern: /mandal|district|division|place|location|premises|office|zone|region|village|street|road|door/i,
                   },
                   {
-                    title: 'Inspection / Enforcement',
-                    te: 'తనిఖీ / అమలు',
-                    pattern: /officer|inspector|designation|qualification|inspection|visit|sign|status|observ|finding|result|test|lab|report|dispatch|receiv|issue|deadline|enclosure|violation|clause|section|act/i,
+                    title: 'Other Details',
+                    te: 'ఇతర వివరాలు',
+                    pattern: /.*/,
                   },
                 ];
 
@@ -2528,6 +2654,20 @@ export function OfficerRecordsHub() {
                     .map((e, i) => ({ e, i }))
                     .sort((a, b) => rankOf(a.e[0]) - rankOf(b.e[0]) || a.i - b.i)
                     .map((x) => x.e);
+                }
+
+                // Stop-sale orders: show the notice reference and stop period
+                // first inside the Inspection / Enforcement card.
+                if (noticeEntry || stopDaysEntry) {
+                  const enforcementGroup = grouped.find((g) => g.title === 'Inspection / Enforcement');
+                  if (enforcementGroup) {
+                    const injected: [string, unknown][] = (
+                      [noticeEntry, stopDaysEntry].filter(Boolean) as [string, unknown][]
+                    ).map((entry): [string, unknown] =>
+                      entry === noticeEntry ? ['stopSaleNoticeNo', entry[1]] : entry
+                    );
+                    enforcementGroup.entries.unshift(...injected);
+                  }
                 }
 
                 const humanize = (key: string) =>
@@ -2610,16 +2750,16 @@ export function OfficerRecordsHub() {
 
       {/* Document Preview Modal */}
       {previewDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-2 backdrop-blur-xs sm:p-4">
           <div className="flex h-[90vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-2xl dark:bg-slate-900 overflow-hidden">
-            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3 dark:border-slate-800">
-              <div className="flex items-center gap-2 truncate">
-                <FileText className="h-4 w-4 text-emerald-600" />
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-3 py-2.5 dark:border-slate-800 sm:px-5 sm:py-3">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <FileText className="h-4 w-4 shrink-0 text-emerald-600" />
+                <h3 className="truncate text-sm font-bold text-slate-900 dark:text-white">
                   {previewDoc.doc.document_name}
                 </h3>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                 <button
                   type="button"
                   onClick={() => previewDoc.url && window.open(previewDoc.url, '_blank', 'noopener')}

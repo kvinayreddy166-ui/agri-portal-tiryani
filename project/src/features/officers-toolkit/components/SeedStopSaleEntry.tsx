@@ -35,6 +35,7 @@ import {
 } from './ShowCauseNoticeEntry';
 
 import { safeStorage } from '../../../shared/lib/safeStorage';
+import { sha256Hex } from '../../../shared/lib/fileHash';
 import { OfficerCloudSyncService } from '../services/officerCloudSyncService';
 import { useDealers, dealerAddressLine } from '../../../shared/hooks/useDealers';
 import { DealerPartySelect } from '../../../shared/components/DealerPartySelect';
@@ -77,6 +78,8 @@ export interface SavedSeedStopSaleOrder extends SeedStopSaleFormState {
   id: string;
   savedAt: string;
   issuedAt?: string;
+  /** SHA-256 of the issued PDF, bound on download/print for later verification. */
+  issuedPdfSha256?: string;
 }
 
 const STORAGE_KEY = 'agri-legal-seed-stop-sale-orders';
@@ -272,6 +275,7 @@ function buildStopSaleModel(form: SeedStopSaleFormState): NoticeBlock[] {
       kind: 'lines',
       items: [[{ text: 'Total Value: ', bold: true }, { text: stockValueTotal(productRows) || '______________', bold: true }]],
     },
+    { kind: 'gap', mm: 2 },
     ...remarkBlocks,
     { kind: 'gap', mm: 3 },
     {
@@ -401,7 +405,7 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
   const removeProduct = (id: string) =>
     setForm((current) => ({ ...current, products: current.products.filter((row) => row.id !== id) }));
 
-  const persistOrder = (notify = false, issue = false) => {
+  const persistOrder = (notify = false, issue = false): SavedSeedStopSaleOrder => {
     const entryId = editingId || uid();
     const entry: SavedSeedStopSaleOrder = {
       ...form,
@@ -413,19 +417,20 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
     setEditingId(entry.id);
     if (issue) void OfficerCloudSyncService.syncStatutoryOrder('stop_sale', 'seed', entry as unknown as Record<string, unknown>);
     if (notify) showSaved('Order saved', entry.orderNumber || 'Stop Sale Order');
+    return entry;
   };
 
   const saveOrder = () => persistOrder(true);
 
   // Persist the record when the document is actually issued (download/print),
   // not merely when the form is filled in.
-  const persistOrderForExport = async (): Promise<boolean> => {
+  const persistOrderForExport = async (): Promise<SavedSeedStopSaleOrder | null> => {
     const errors: Record<string, string> = {};
     if (!String(form.firmName ?? '').trim()) errors.firmName = 'Firm name is required.';
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
       showWarning('Please complete required fields', Object.values(errors)[0]);
-      return false;
+      return null;
     }
     const dealer = String(form.firmName ?? '').trim();
     const f = form as unknown as Record<string, unknown>;
@@ -435,9 +440,20 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
       message: 'The record will be saved to cloud records.',
       confirmLabel: 'Issue',
     });
-    if (!ok) return false;
-    persistOrder(false, true);
-    return true;
+    if (!ok) return null;
+    return persistOrder(false, true);
+  };
+
+  // Binds the issued PDF's SHA-256 into the saved record + cloud payload so
+  // the stored record can be verified against the document later.
+  const bindIssuedPdfHash = (entry: SavedSeedStopSaleOrder, blob: Blob) => {
+    void sha256Hex(blob)
+      .then((hash) => {
+        const bound: SavedSeedStopSaleOrder = { ...entry, issuedPdfSha256: hash };
+        setSavedOrders((current) => current.map((item) => (item.id === entry.id ? bound : item)));
+        void OfficerCloudSyncService.syncStatutoryOrder('stop_sale', 'seed', bound as unknown as Record<string, unknown>);
+      })
+      .catch(() => {});
   };
 
   const editSavedOrder = (order: SavedSeedStopSaleOrder) => {
@@ -488,14 +504,17 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
   const fileBase = () => `${form.orderNumber || 'stop-sale-order'}`.replace(/[\\/]/g, '-');
 
   const downloadPdf = async () => {
-    if (!(await persistOrderForExport())) return;
+    const persisted = await persistOrderForExport();
+    if (!persisted) return;
     const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'times');
+    const pdfBlob = doc.output('blob');
+    bindIssuedPdfHash(persisted, pdfBlob);
     const filename = `${fileBase()}.pdf`;
     doc.save(filename);
     showSuccess('PDF downloaded', filename);
 
     // Auto-archive in background (non-blocking)
-    await OfficerDocumentArchiveService.archiveGeneratedDocument(doc.output('blob'), {
+    await OfficerDocumentArchiveService.archiveGeneratedDocument(pdfBlob, {
       filename,
       documentCategory: 'order',
       documentNumber: form.orderNumber || undefined,
@@ -508,9 +527,11 @@ export function SeedStopSaleEntry({ onRevoke }: { onRevoke?: (order: SavedSeedSt
 
   const printOrder = async () => {
     try {
-      if (!(await persistOrderForExport())) return;
+      const persisted = await persistOrderForExport();
+      if (!persisted) return;
       const doc = await renderNoticePdfDocument(noticeBlocks, form.orderNumber || 'Stop Sale Order', 'times');
       const pdfBlob = doc.output('blob');
+      bindIssuedPdfHash(persisted, pdfBlob);
       const pdfUrl = URL.createObjectURL(pdfBlob);
       const printWindow = window.open(pdfUrl, '_blank');
       if (printWindow) {

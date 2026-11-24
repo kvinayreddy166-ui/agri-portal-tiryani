@@ -21,6 +21,17 @@ export interface DonutDatum {
   count: number;
 }
 
+const CHART_EASE = 'cubic-bezier(0.23, 1, 0.32, 1)';
+const CHART_DURATION = 700;
+
+function usePrefersReducedMotion() {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
 export const CategoryDonutChart = React.memo(function CategoryDonutChart({
   data,
   centerLabel,
@@ -28,6 +39,7 @@ export const CategoryDonutChart = React.memo(function CategoryDonutChart({
   data: DonutDatum[];
   centerLabel?: string;
 }) {
+  const reduceMotion = usePrefersReducedMotion();
   const total = data.reduce((sum, d) => sum + d.count, 0);
   const chartData = data.map((d, i) => ({ ...d, fill: PALETTE[i % PALETTE.length] }));
 
@@ -45,7 +57,9 @@ export const CategoryDonutChart = React.memo(function CategoryDonutChart({
               paddingAngle={3}
               cornerRadius={6}
               strokeWidth={0}
-              isAnimationActive={false}
+              isAnimationActive={!reduceMotion}
+              animationDuration={CHART_DURATION}
+              animationEasing={CHART_EASE}
             >
               {chartData.map((entry) => (
                 <Cell key={entry.name} fill={entry.fill} />

@@ -9,6 +9,17 @@ import {
   YAxis,
 } from 'recharts';
 
+const CHART_EASE = 'cubic-bezier(0.23, 1, 0.32, 1)';
+const CHART_DURATION = 600;
+
+function usePrefersReducedMotion() {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
 export const SimpleBarChart = React.memo(function SimpleBarChart({
   data,
   dataKey,
@@ -22,6 +33,7 @@ export const SimpleBarChart = React.memo(function SimpleBarChart({
   height?: number;
   minWidth?: number;
 }) {
+  const reduceMotion = usePrefersReducedMotion();
   const width = Math.max(minWidth, data.length * 72);
   const truncate = (value: unknown) => {
     const text = String(value ?? '');
@@ -44,7 +56,14 @@ export const SimpleBarChart = React.memo(function SimpleBarChart({
             />
             <YAxis tick={{ fontSize: 10 }} />
             <Tooltip />
-            <Bar dataKey={dataKey} fill="#166534" radius={[5, 5, 0, 0]} />
+            <Bar
+              dataKey={dataKey}
+              fill="#166534"
+              radius={[5, 5, 0, 0]}
+              isAnimationActive={!reduceMotion}
+              animationDuration={CHART_DURATION}
+              animationEasing={CHART_EASE}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

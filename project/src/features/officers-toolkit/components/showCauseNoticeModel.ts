@@ -52,6 +52,8 @@ export interface SavedNotice extends NoticeFormState {
   id: string;
   savedAt: string;
   issuedAt?: string;
+  /** SHA-256 of the issued PDF, bound on download/print for later verification. */
+  issuedPdfSha256?: string;
 }
 
 export const STORAGE_KEY = 'agri-legal-show-cause-notices';
