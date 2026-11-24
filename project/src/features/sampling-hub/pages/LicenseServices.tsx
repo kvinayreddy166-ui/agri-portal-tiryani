@@ -658,13 +658,13 @@ export function LicenseServices() {
     const heads = getChallanHeads();
     const lines: string[] = isTelugu
       ? [
-          '*AGRONIX — లైసెన్స్ సేవలు*',
+          '*AGRONIX — లైసెన్స్ డెస్క్*',
           '*ట్రెజరీ చలాన్ వివరాలు (IFMIS)*',
           '',
           '*లైసెన్స్ సారాంశం*',
         ]
       : [
-          '*AGRONIX — License Services*',
+          '*AGRONIX — License Desk*',
           '*Treasury Challan Details (IFMIS)*',
           '',
           '*License Summary*',
@@ -694,8 +694,8 @@ export function LicenseServices() {
       `• ${isTelugu ? 'సబ్ హెడ్' : 'Sub Head'}: ${heads.subHead}`,
       '',
       isTelugu
-        ? `_AGRONIX లైసెన్స్ సేవలు — ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}_`
-        : `_Generated from Agronix License Services — ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}_`,
+        ? `_AGRONIX లైసెన్స్ డెస్క్ — ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}_`
+        : `_Generated from Agronix License Desk — ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}_`,
     );
     return lines.join('\n');
   };
@@ -712,7 +712,7 @@ export function LicenseServices() {
       <div className="mx-auto w-full max-w-7xl space-y-4">
         {/* Module Header */}
         <ModulePageHeader
-          title={t('License Services', 'లైసెన్స్ సేవలు')}
+          title={t('License Desk', 'లైసెన్స్ డెస్క్')}
           subtitle={t('Statutory Treasury Challan Details & DDO Code Directory', 'చట్టబద్ధమైన ట్రెజరీ చలాన్ వివరాలు & DDO కోడ్ డైరెక్టరీ')}
           icon={ReceiptText}
         />
@@ -1305,7 +1305,7 @@ export function LicenseServices() {
         {/* Header */}
         <ModulePageHeader
           className="mb-4"
-          title={t('License Services', 'లైసెన్స్ సేవలు')}
+          title={t('License Desk', 'లైసెన్స్ డెస్క్')}
           subtitle={t('Challan Details', 'చలాన్ వివరాలు')}
           icon={FileCheck}
           onBack={() => navigate('/officer-toolkit')}

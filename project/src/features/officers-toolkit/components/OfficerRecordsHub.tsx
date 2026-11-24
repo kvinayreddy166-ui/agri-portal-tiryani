@@ -2604,8 +2604,8 @@ export function OfficerRecordsHub() {
                         pattern: /sample|batch|lot|code|product|fertiliz|pesticide|insecticide|seed|crop|variety|trade|technical|activeingredient|formulation|quantity|grade|stock|commodity|schedule|specification|invoice|memo|order|notice|seizure|stop|mrp|price|bag|packet|expiry|manufactur|regist|drawn|collection|source|supply|pack/i,
                       }]),
                   {
-                    title: 'Inspection / Enforcement',
-                    te: 'తనిఖీ / అమలు',
+                    title: 'Inspection and Compliance',
+                    te: 'Inspection and Compliance',
                     pattern: /officer|inspector|designation|qualification|inspection|visit|sign|status|observ|finding|result|test|lab|report|dispatch|receiv|issue|deadline|enclosure|violation|clause|section|act/i,
                   },
                   {
@@ -2657,9 +2657,9 @@ export function OfficerRecordsHub() {
                 }
 
                 // Stop-sale orders: show the notice reference and stop period
-                // first inside the Inspection / Enforcement card.
+                // first inside the Inspection and Compliance card.
                 if (noticeEntry || stopDaysEntry) {
-                  const enforcementGroup = grouped.find((g) => g.title === 'Inspection / Enforcement');
+                  const enforcementGroup = grouped.find((g) => g.title === 'Inspection and Compliance');
                   if (enforcementGroup) {
                     const injected: [string, unknown][] = (
                       [noticeEntry, stopDaysEntry].filter(Boolean) as [string, unknown][]

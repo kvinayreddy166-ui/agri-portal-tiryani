@@ -116,7 +116,7 @@ const seedViolationGroups = {
   quality: 'C. Seed Quality & Standards',
   labelling: 'D. Labelling & Packaging',
   records: 'E. Records & Registers',
-  inspection: 'F. Inspection & Enforcement',
+  inspection: 'F. Inspection & Compliance',
   btCotton: 'G. Bt Cotton / Special Cases',
 } as const;
 

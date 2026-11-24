@@ -469,7 +469,7 @@ type BreadcrumbItem = {
 function getPageMeta(page: string, t: (key: string, telugu: string) => string): { title: string; breadcrumbs: BreadcrumbItem[] } {
   const dashboard = { label: t('Dashboard', 'డ్యాష్‌బోర్డ్'), page: 'dashboard' };
   const farmCalculators = { label: t('Farm Calculators', 'వ్యవసాయ కాలిక్యులేటర్లు'), page: 'farm-calculators' };
-  const inspectionsHub = { label: t('Inspection & Enforcement', 'తనిఖీ & అమలు'), page: 'inspection-enforcement' };
+  const inspectionsHub = { label: t('Inspection & Compliance', 'తనిఖీ & అనువర్తనం'), page: 'inspection-enforcement' };
 
   if (page.startsWith('knowledge-')) {
     const knowledgeTitles: Record<string, { en: string; te: string }> = {
@@ -521,9 +521,9 @@ function getPageMeta(page: string, t: (key: string, telugu: string) => string): 
     'seed-dealer-inspection': { title: t('Seed Dealer Inspection', 'విత్తన డీలర్ తనిఖీ'), breadcrumbs: [dashboard, inspectionsHub] },
     'fertilizer-dealer-inspection': { title: t('Fertilizer Dealer Inspection', 'ఎరువుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, inspectionsHub] },
     'insecticide-dealer-inspection': { title: t('Pesticide Dealer Inspection', 'పురుగుమందుల డీలర్ తనిఖీ'), breadcrumbs: [dashboard, inspectionsHub] },
-    'inspection-enforcement': { title: t('Inspection & Enforcement', 'తనిఖీ & అమలు'), breadcrumbs: [dashboard] },
+    'inspection-enforcement': { title: t('Inspection & Compliance', 'తనిఖీ & అనువర్తనం'), breadcrumbs: [dashboard] },
     'enforcement-tracker': { title: t('Enforcement Tracker', 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్'), breadcrumbs: [dashboard] },
-    'license-services': { title: t('License Services', 'లైసెన్స్ సేవలు'), breadcrumbs: [dashboard] },
+    'license-services': { title: t('License Desk', 'లైసెన్స్ డెస్క్'), breadcrumbs: [dashboard] },
     'tour-diary': { title: t('Tour Diary', 'టూర్ డైరీ'), breadcrumbs: [dashboard] },
     'officer-contacts': { title: t('Officer Contacts', 'అధికారుల పరిచయాలు'), breadcrumbs: [dashboard] },
     'officer-contacts-admin': { title: t('Officer Contacts Admin', 'అధికారుల పరిచయాల నిర్వహణ'), breadcrumbs: [dashboard, { label: t('Officer Contacts', 'అధికారుల పరిచయాలు'), page: 'officer-contacts' }] },

@@ -62,8 +62,8 @@ type ModuleHighlight = {
 const MODULE_HIGHLIGHTS: ModuleHighlight[] = [
   {
     icon: ClipboardCheck,
-    title: 'Statutory Inspection & Enforcement',
-    titleTe: 'చట్టబద్ధమైన తనిఖీ & అమలు',
+    title: 'Statutory Inspection & Compliance',
+    titleTe: 'చట్టబద్ధమైన తనిఖీ & అనువర్తనం',
     desc: 'Instant digital inspection for Seed, Fertilizer & Pesticide dealers. Issue stop-sale notices, Form VIII & Form J seizure orders with cloud backup.',
     descTe: 'విత్తన, ఎరువుల & పురుగుమందుల డీలర్ల తనిఖీలు, స్టాప్ సేల్ ఆర్డర్లు, ఫారం VIII & J రికార్డులను నిర్వహించండి.',
     badge: 'Statutory',

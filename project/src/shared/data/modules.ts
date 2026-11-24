@@ -26,15 +26,15 @@ export const MODULE_MENU_ITEMS: ModuleMenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, hidden: true, desc: 'Your daily overview and quick actions', descTe: 'మీ రోజువారీ అవలోకనం & త్వరిత చర్యలు' },
   { id: 'analytics', label: 'Reports', icon: BarChart3, adminOnly: true, desc: 'Portal reports and analytics', descTe: 'పోర్టల్ నివేదికలు & విశ్లేషణలు' },
 
-  // Statutory & Enforcement
+  // Quality Control
   { id: 'acts-and-orders', label: 'Acts & Orders', icon: Scale, desc: 'Acts, rules, orders and ready reckoners', descTe: 'చట్టాలు, నిబంధనలు, ఉత్తర్వులు & రెడీ రెకనర్లు' },
   { id: 'enforcement-tracker', label: 'Enforcement Tracker', icon: Gavel, desc: 'Track notices, cases and enforcement actions', descTe: 'నోటీసులు, కేసులు & అమలు చర్యలను ట్రాక్ చేయండి' },
   { id: 'forms-library', label: 'Forms & Library', icon: FolderOpen, desc: 'Statutory forms and document library', descTe: 'చట్టబద్ధ ఫారాలు & పత్ర లైబ్రరీ' },
-  { id: 'inspection-enforcement', label: 'Inspection & Enforcement', icon: ClipboardCheck, desc: 'Dealer inspections and enforcement hub', descTe: 'డీలర్ తనిఖీలు & అమలు హబ్' },
-  { id: 'license-services', label: 'License Services', icon: FileCheck, desc: 'License applications and services', descTe: 'లైసెన్స్ దరఖాస్తులు & సేవలు' },
+  { id: 'inspection-enforcement', label: 'Inspection & Compliance', icon: ClipboardCheck, desc: 'Dealer inspections and compliance hub', descTe: 'డీలర్ తనిఖీలు & అనువర్తనం హబ్' },
+  { id: 'license-services', label: 'License Desk', icon: FileCheck, desc: 'License applications and services', descTe: 'లైసెన్స్ దరఖాస్తులు & సేవలు' },
   { id: 'forms', label: 'Smart Sampling', icon: Files, desc: 'Sampling plans and smart sampling tools', descTe: 'సాంప్లింగ్ ప్లాన్‌లు & స్మార్ట్ సాంప్లింగ్ టూల్స్' },
 
-  // Field Advisory & Diagnostics
+  // Field Advisories
   { id: 'agrochemicals', label: 'Agrochemicals Database', icon: FlaskConical, desc: 'Fertilizer, pesticide and seed chemistry data', descTe: 'ఎరువు, పురుగుమందు & విత్తన రసాయన డేటా' },
   { id: 'crop-doctor', label: 'Crop Doctor', icon: Stethoscope, desc: 'Diagnose crop problems and get remedies', descTe: 'పంట సమస్యలను నిర్ధారించండి & మందులు పొందండి' },
   { id: 'farm-calculators', label: 'Farm Calculators', icon: Calculator, desc: 'Area, fertilizer, seed and profit calculators', descTe: 'ఎకరాల, ఎరువు, విత్తనం & లాభ కాలిక్యులేటర్లు' },
@@ -47,7 +47,7 @@ export const MODULE_MENU_ITEMS: ModuleMenuItem[] = [
   { id: 'officer-contacts', label: 'Officer Contacts', icon: Phone, desc: 'Directory of agriculture officers', descTe: 'వ్యవసాయ అధికారి డైరెక్టరీ' },
   { id: 'tour-diary', label: 'Tour Diary', icon: CalendarDays, desc: 'Daily field tour logs and visits', descTe: 'రోజువారీ ఫీల్డ్ టూర్ లాగ్‌లు & సందర్శనలు' },
 
-  // Knowledge & Portals
+  // Knowledge & Resources
   { id: 'gos-circulars', label: 'GOs & Circulars', icon: ScrollText, desc: 'Government orders and circulars', descTe: 'ప్రభుత్వ ఉత్తర్వులు & సర్క్యులర్లు' },
   { id: 'government-portals', label: 'Government Portals', icon: Globe, desc: 'Links to official government portals', descTe: 'అధికారిక ప్రభుత్వ పోర్టళ్ళ లింక్‌లు' },
   { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen, adminOnly: true, officerAccess: true, desc: 'AI assistant over official agri documents', descTe: 'అధికారిక వ్యవసాయ పత్రాలపై AI అసిస్టెంట్' },
@@ -93,23 +93,23 @@ export function moduleSections(items: ModuleMenuItem[], t: (key: string, telugu:
       ids: ['stock-analytics', 'dashboard', 'analytics'],
     },
     {
-      title: t('Statutory & Enforcement', 'చట్టబద్ధమైన & అమలు'),
+      title: t('Quality Control', 'నాణ్యత నియంత్రణ'),
       ids: ['acts-and-orders', 'enforcement-tracker', 'forms-library', 'inspection-enforcement', 'license-services', 'forms'],
     },
     {
-      title: t('Field Advisory & Diagnostics', 'ఫీల్డ్ అడ్వైజరీ & నిర్ధారణ'),
+      title: t('Field Advisories', 'ఫీల్డ్ సలహాలు'),
       ids: ['agrochemicals', 'crop-doctor', 'farm-calculators'],
     },
     {
-      title: t('Field Operations & Duties', 'ఫీల్డ్ విధులు & కార్యకలాపాలు'),
+      title: t('Field Operations', 'ఫీల్డ్ కార్యకలాపాలు'),
       ids: ['dealers', 'farm-mechanization', 'farmer-database', 'officer-contacts', 'tour-diary'],
     },
     {
-      title: t('Knowledge & Portals', 'జ్ఞాన భాండాగారం & పోర్టల్స్'),
+      title: t('Knowledge & Resources', 'జ్ఞానం & వనరులు'),
       ids: ['gos-circulars', 'government-portals', 'knowledge', 'feedback'],
     },
     {
-      title: t('Records & Archives', 'రికార్డులు & ఆర్కైవ్'),
+      title: t('Records & Files', 'రికార్డులు & ఫైళ్లు'),
       ids: ['file-directory', 'excel', 'officer-records'],
     },
     {
@@ -140,11 +140,11 @@ export function moduleSections(items: ModuleMenuItem[], t: (key: string, telugu:
 export function translateMenu(label: string) {
   const labels: Record<string, string> = {
     Overview: 'అవలోకనం',
-    'Statutory & Enforcement': 'చట్టబద్ధమైన & అమలు',
-    'Field Advisory & Diagnostics': 'ఫీల్డ్ అడ్వైజరీ & నిర్ధారణ',
-    'Field Operations & Duties': 'ఫీల్డ్ విధులు & కార్యకలాపాలు',
-    'Knowledge & Portals': 'జ్ఞాన భాండాగారం & పోర్టల్స్',
-    'Records & Archives': 'రికార్డులు & ఆర్కైవ్',
+    'Quality Control': 'నాణ్యత నియంత్రణ',
+    'Field Advisories': 'ఫీల్డ్ సలహాలు',
+    'Field Operations': 'ఫీల్డ్ కార్యకలాపాలు',
+    'Knowledge & Resources': 'జ్ఞానం & వనరులు',
+    'Records & Files': 'రికార్డులు & ఫైళ్లు',
     Administration: 'నిర్వహణ',
     More: 'మరిన్ని',
     Dashboard: 'డ్యాష్‌బోర్డ్',
@@ -179,8 +179,8 @@ export function translateMenu(label: string) {
     'Document Repository': 'పత్రాల భాండాగారం',
     'Tour Diary': 'టూర్ డైరీ',
     'Officer Contacts': 'అధికారుల పరిచయాలు',
-    'License Services': 'లైసెన్స్ సేవలు',
-    'Inspection & Enforcement': 'తనిఖీ & అమలు',
+    'License Desk': 'లైసెన్స్ డెస్క్',
+    'Inspection & Compliance': 'తనిఖీ & అనువర్తనం',
     'Enforcement Tracker': 'ఎన్‌ఫోర్స్‌మెంట్ ట్రాకర్',
     'Crop Doctor': 'పంట డాక్టర్',
     'Knowledge Base': 'జ్ఞాన భాండాగారం',
