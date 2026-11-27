@@ -592,7 +592,7 @@ export function EnforcementTracker({ embedded = false }: { embedded?: boolean })
       </div>
 
       {/* Tabs */}
-      <div className="mb-4 flex w-full max-w-2xl items-stretch gap-1 overflow-x-auto rounded-2xl border border-slate-200/90 bg-white/90 p-1 shadow-2xs backdrop-blur-sm [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden dark:border-slate-800 dark:bg-slate-900/90">
+      <div className="mb-4 flex w-full flex-wrap items-stretch gap-1 rounded-2xl border border-slate-200/90 bg-white/90 p-1 shadow-2xs backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/90 sm:flex-nowrap sm:overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {tabs.map((tab) => (
           <button
             key={tab.id}

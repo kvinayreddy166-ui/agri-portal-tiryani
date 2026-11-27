@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, BadgeCheck, Briefcase, CalendarClock, FlaskConical, MapPin, Phone, Scale, Search, X } from 'lucide-react';
+import { AlertTriangle, BadgeCheck, Briefcase, CalendarClock, FlaskConical, MapPin, Phone, Printer, Scale, Search, X } from 'lucide-react';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { supabase } from '../../../shared/lib/supabase';
 import type { Dealer } from '../../../shared/types/database';
@@ -104,6 +104,71 @@ export function DealerProfileDrawer({ dealerName, data, onClose }: DealerProfile
   const totalRecords =
     profile.inspections.length + profile.orders.length + profile.samples.length;
 
+  const esc = (v: unknown) =>
+    String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const handlePrint = () => {
+    const rows = (items: React.ReactNode[]) =>
+      items.length
+        ? `<ul>${items.map((i) => `<li>${i}</li>`).join('')}</ul>`
+        : `<p class="empty">${t('None', 'లేదు')}</p>`;
+
+    const caseItems = profile.cases.map(
+      (c) =>
+        `<b>${esc(c.case_number)}</b> — ${esc(c.stage)} · ${esc(t(COMMODITY_LABELS[c.commodity].en, COMMODITY_LABELS[c.commodity].te))} · ${esc(c.opened_date)}`
+    );
+    const orderItems = profile.orders.map(
+      (o) =>
+        `<b>${esc(o.order_number)}</b> — ${esc(o.order_type.replace('_', ' ').toUpperCase())} · ${esc(o.order_date)} · ${esc(t(COMMODITY_LABELS[o.commodity].en, COMMODITY_LABELS[o.commodity].te))}${o.reply_deadline ? ` · ${t('reply by', 'గడువు')} ${esc(o.reply_deadline)}` : ''}`
+    );
+    const sampleItems = profile.samples.map(
+      (s) =>
+        `<b>${esc(s.sample_code)}</b> — ${esc(s.date_of_sampling)} · ${esc(t(COMMODITY_LABELS[s.commodity].en, COMMODITY_LABELS[s.commodity].te))} · ${esc(t(LAB_STATUS_LABELS[s.lab_status]?.en ?? s.lab_status, LAB_STATUS_LABELS[s.lab_status]?.te ?? s.lab_status))}${s.lab_report_ref ? ` · ${esc(s.lab_report_ref)}` : ''}`
+    );
+    const inspectionItems = profile.inspections.map(
+      (i) =>
+        `<b>${esc(i.inspection_type.toUpperCase())}</b> — ${esc(i.license_number || '—')} · ${esc(i.inspection_date)}`
+    );
+
+    const scorecard = profile.scorecard
+      ? `<table class="score"><tr>
+          <td><b>${profile.scorecard.inspections}</b><span>${t('Inspections', 'తనిఖీలు')}</span></td>
+          <td><b>${profile.scorecard.stopSale}</b><span>${t('Stop Sale', 'స్టాప్ సేల్')}</span></td>
+          <td><b>${profile.scorecard.showCause}</b><span>${t('Show Cause', 'షో కారణం')}</span></td>
+          <td><b>${profile.scorecard.seizures}</b><span>${t('Seizures', 'సీజర్లు')}</span></td>
+          <td><b>${profile.scorecard.samplesTotal}</b><span>${t('Samples', 'నమూనాలు')}</span></td>
+        </tr></table>
+        <p class="risk">${t('Risk:', 'రిస్క్:')} <b>${esc(profile.scorecard.riskLevel)} · ${profile.scorecard.riskScore}</b></p>`
+      : '';
+
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${t('Dealer 360° Profile', 'డీలర్ 360° ప్రొఫైల్')} — ${esc(dealerName)}</title>
+      <style>
+        body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;max-width:800px;margin:24px auto;padding:0 16px}
+        h1{font-size:20px;margin:0} h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#166534;margin:20px 0 6px;border-bottom:1px solid #e2e8f0;padding-bottom:4px}
+        .meta{font-size:12px;color:#475569;margin-top:4px} .meta b{color:#0f172a}
+        table.score{width:100%;border-collapse:collapse;margin:12px 0} table.score td{border:1px solid #e2e8f0;padding:8px;text-align:center} table.score b{display:block;font-size:20px} table.score span{font-size:10px;text-transform:uppercase;color:#64748b}
+        .risk{font-size:12px;color:#475569;margin:0 0 8px} ul{margin:0;padding-left:18px} li{font-size:12px;margin:4px 0} .empty{font-size:12px;color:#94a3b8;font-style:italic}
+        .foot{margin-top:24px;font-size:10px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:8px}
+      </style></head><body>
+      <h1>${t('Dealer 360° Profile', 'డీలర్ 360° ప్రొఫైల్')}</h1>
+      <div class="meta"><b>${esc(dealerName)}</b> · ${totalRecords} ${t('total records', 'మొత్తం రికార్డులు')}${licenseNo ? ` · ${t('License / Authorization No.', 'లైసెన్స్ / అథారిటీ నం.')}: ${esc(licenseNo)}` : ''}${addressLine ? ` · ${esc(addressLine)}` : ''}${dealerRecord?.phone_number ? ` · ${esc(dealerRecord.phone_number)}` : ''}</div>
+      <div class="meta">${new Date().toLocaleString('en-IN')}</div>
+      ${scorecard}
+      <h2>${t('Cases', 'కేసులు')} (${profile.cases.length})</h2>${rows(caseItems)}
+      <h2>${t('Orders & Notices', 'ఆర్డర్లు & నోటీసులు')} (${profile.orders.length})</h2>${rows(orderItems)}
+      <h2>${t('Samples', 'నమూనాలు')} (${profile.samples.length})</h2>${rows(sampleItems)}
+      <h2>${t('Inspections', 'తనిఖీలు')} (${profile.inspections.length})</h2>${rows(inspectionItems)}
+      <div class="foot">AGRONIX — ${t('generated from Enforcement Tracker', 'అమలు ట్రాకర్ నుండి రూపొందించబడింది')}</div>
+      <script>window.onload=function(){window.print();}</script>
+      </body></html>`;
+
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.opener = null;
+    w.document.write(html);
+    w.document.close();
+  };
+
   return (
     <div className="fixed inset-0 z-[96] flex justify-end bg-slate-950/60 backdrop-blur-sm" onClick={onClose}>
       <div
@@ -153,14 +218,25 @@ export function DealerProfileDrawer({ dealerName, data, onClose }: DealerProfile
               </div>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-            aria-label={t('Close', 'మూసివేయి')}
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              title={t('Print profile', 'ప్రొఫైల్ ప్రింట్')}
+              aria-label={t('Print profile', 'ప్రొఫైల్ ప్రింట్')}
+            >
+              <Printer className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              aria-label={t('Close', 'మూసివేయి')}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* Body */}

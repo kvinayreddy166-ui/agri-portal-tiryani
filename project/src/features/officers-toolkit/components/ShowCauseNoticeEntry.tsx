@@ -174,7 +174,9 @@ export function ShowCauseNoticeEntry({ lockedCategory }: { lockedCategory?: Noti
       return next;
     });
   };
-  const { dealers: directoryDealers } = useDealers();
+  const { dealers: directoryDealers } = useDealers(
+    (form.category === 'fertiliser' ? 'fertilizer' : form.category) as Dealer['dealer_category']
+  );
   const applyDealerPick = (dealer: Dealer | null) => {
     if (!dealer) return;
     updateForm({
