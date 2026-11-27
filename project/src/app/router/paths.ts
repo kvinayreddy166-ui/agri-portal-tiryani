@@ -88,6 +88,7 @@ export const PUBLIC_PAGES = new Set([
   'acts-and-orders',
   'officer-contacts',
   'tour-diary',
+  'tour-diary-new',
   'seed-dealer-inspection',
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
@@ -136,6 +137,7 @@ export const PAGE_PATHS: Record<string, string> = {
   'officer-contacts-admin': '/admin/officer-contacts',
   'user-management': '/admin/user-management',
   'tour-diary': '/officer-toolkit/tour-diary',
+  'tour-diary-new': '/officer-toolkit/tour-diary-new',
   'seed-dealer-inspection': '/officer-toolkit/seed-dealer-inspection',
   'fertilizer-dealer-inspection': '/officer-toolkit/fertilizer-dealer-inspection',
   'insecticide-dealer-inspection': '/officer-toolkit/insecticide-dealer-inspection',
@@ -178,6 +180,9 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
   }
   if (pathname === '/admin/user-management') {
     return '/settings';
+  }
+  if (pathname === '/officer-toolkit/tour-diary-new') {
+    return '/officer-toolkit/tour-diary';
   }
   if (pathname === '/officer-toolkit/my-records' || pathname === '/officer-toolkit/enforcement-tracker' || pathname === '/enforcement-tracker') {
     return '/dashboard';
@@ -228,6 +233,7 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
     page === 'acts-and-orders' ||
     page === 'inspection-enforcement' ||
     page === 'tour-diary' ||
+    page === 'tour-diary-new' ||
     page === 'officer-contacts'
   ) return 'dashboard';
   if (
@@ -302,6 +308,7 @@ export const VALID_PAGES = new Set([
   'officer-contacts-admin',
   'user-management',
   'tour-diary',
+  'tour-diary-new',
   'seed-dealer-inspection',
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
@@ -350,6 +357,7 @@ const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'legal-ready-reckoner',
   'officer-contacts',
   'tour-diary',
+  'tour-diary-new',
   'seed-dealer-inspection',
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',

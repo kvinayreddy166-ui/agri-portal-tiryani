@@ -40,6 +40,7 @@ const FULL_SCREEN_PAGE_KEYS = new Set([
   'seed-dealer-inspection',
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
+  'tour-diary-new',
 ]);
 
 function AppContent() {

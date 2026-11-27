@@ -203,6 +203,8 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser
       );
     case 'tour-diary':
       return <TourDiary />;
+    case 'tour-diary-new':
+      return <TourDiary startInEditor />;
     case 'seed-dealer-inspection':
       return <SeedDealerInspection />;
     case 'fertilizer-dealer-inspection':
