@@ -58,6 +58,12 @@ export function LanguageProvider({ children, sectionKey = 'default', userKey = '
     setLanguage(readStoredLanguage(storageKey));
   }, [storageKey]);
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = language === 'te' ? 'te' : 'en';
+    }
+  }, [language]);
+
   const value = useMemo(
     () => ({
       language,

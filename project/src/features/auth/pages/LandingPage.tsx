@@ -337,7 +337,7 @@ export function LandingPage() {
                 <span>{t('Comprehensive Agricultural Digital Ecosystem', 'సమగ్ర వ్యవసాయ డిజిటల్ వ్యవస్థ')}</span>
               </div>
 
-              <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-4xl md:text-5xl">
+              <h1 className={`text-3xl font-black sm:text-4xl md:text-5xl ${language === 'te' ? 'leading-[1.45] tracking-normal' : 'leading-tight tracking-tight'}`}>
                 {t('Empowering Agriculture Through', 'వ్యవసాయానికి ఆధునిక సాంకేతికత')}
                 <br />
                 <ShinyText
@@ -439,7 +439,7 @@ export function LandingPage() {
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-800 transition-transform group-hover:scale-110 dark:bg-emerald-950/60 dark:text-emerald-300">
                     <s.icon className="h-4.5 w-4.5" />
                   </span>
-                  <span className="text-right text-[10px] font-bold leading-tight text-slate-500 dark:text-slate-400">
+                  <span className={`text-right text-[10px] font-bold text-slate-500 dark:text-slate-400 ${language === 'te' ? 'leading-normal' : 'leading-tight'}`}>
                     {language === 'te' ? s.subTe : s.sub}
                   </span>
                 </div>
@@ -464,7 +464,7 @@ export function LandingPage() {
               <Users className="h-3.5 w-3.5" />
               {t('Stakeholder Ecosystem', 'భాగస్వామ్య వ్యవస్థ')}
             </span>
-            <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            <h2 className={`mt-3 text-2xl font-black text-slate-900 dark:text-white sm:text-3xl ${language === 'te' ? 'leading-snug tracking-normal' : 'tracking-tight'}`}>
               {t('One Platform Built for Three Core Communities', 'ఒకే పోర్టల్ — ముగ్గురు కీలక భాగస్వాములకు')}
             </h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
@@ -505,7 +505,7 @@ export function LandingPage() {
                   <currentTab.icon className="h-4 w-4" />
                   <span>{language === 'te' ? currentTab.labelTe : currentTab.label}</span>
                 </div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white sm:text-2xl">
+                <h3 className={`text-xl font-black text-slate-900 dark:text-white sm:text-2xl ${language === 'te' ? 'leading-[1.45] tracking-normal' : ''}`}>
                   <ShinyText
                     text={language === 'te' ? currentTab.headlineTe : currentTab.headline}
                     color="#0f172a"
@@ -604,7 +604,7 @@ export function LandingPage() {
               <Sparkles className="h-3.5 w-3.5" />
               {t('Full System Capabilities', 'సమగ్ర మాడ్యూల్స్')}
             </span>
-            <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            <h2 className={`mt-3 text-2xl font-black text-slate-900 dark:text-white sm:text-3xl ${language === 'te' ? 'leading-snug tracking-normal' : 'tracking-tight'}`}>
               {t('A Modern Toolkit Built Around Field Reality', 'క్షేత్రస్థాయి అవసరాలకు తగిన సాధనాలు')}
             </h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
@@ -640,7 +640,7 @@ export function LandingPage() {
                     </span>
                   </div>
 
-                  <h3 className="line-clamp-2 min-h-[2.5rem] text-base font-black leading-snug text-slate-900 dark:text-white">
+                  <h3 className={`line-clamp-2 text-base font-black text-slate-900 dark:text-white ${language === 'te' ? 'min-h-[3.1rem] leading-[1.55] tracking-normal' : 'min-h-[2.5rem] leading-snug'}`}>
                     <ShinyText
                       text={language === 'te' ? mod.titleTe : mod.title}
                       color="#0f172a"
@@ -681,7 +681,7 @@ export function LandingPage() {
                   <HelpCircle className="h-3.5 w-3.5" />
                   <span>{t('Farmer Grievance & Assistance', 'రైతు సమస్యల పరిష్కారం & సహాయం')}</span>
                 </div>
-                <h3 className="text-2xl font-black tracking-tight sm:text-3xl">
+                <h3 className={`text-2xl font-black sm:text-3xl ${language === 'te' ? 'leading-snug tracking-normal' : 'tracking-tight'}`}>
                   {t('Facing Fertilizer Shortages or Seed Quality Issues?', 'ఎరువుల కొరత లేదా నాణ్యత సమస్యలు ఎదుర్కొంటున్నారా?')}
                 </h3>
                 <p className="max-w-2xl text-xs text-justify text-emerald-100 sm:text-sm">
@@ -715,7 +715,7 @@ export function LandingPage() {
               <Sparkles className="h-3.5 w-3.5" />
               {t('The Visionary', 'ఆవిష్కర్త')}
             </span>
-            <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            <h2 className={`mt-3 text-2xl font-black text-slate-900 dark:text-white sm:text-3xl ${language === 'te' ? 'leading-snug tracking-normal' : 'tracking-tight'}`}>
               {t('About the Developer', 'డెవలపర్ గురించి')}
             </h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
@@ -938,7 +938,7 @@ export function LandingPage() {
             <Tractor className="h-7 w-7" />
           </div>
 
-          <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          <h2 className={`text-2xl font-black text-slate-900 dark:text-white sm:text-3xl ${language === 'te' ? 'leading-snug tracking-normal' : 'tracking-tight'}`}>
             {t('Ready to Experience Modern Agricultural Management?', 'ఆధునిక వ్యవసాయ పరిపాలనా వేదికను ప్రారంభించడానికి సిద్ధమా?')}
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-slate-600 dark:text-slate-400">
