@@ -511,6 +511,7 @@ const DOCKET_CONTENT_START_Y = PAGE.top + 5;
 
 // Tracks continuation pages created during docket rendering that need watermark + header.
 // Populated by ensure/fieldList page-breaks when _docketContinuationTracking is enabled.
+let _docketStartPage = 1;
 let _docketContinuationTracking = false;
 let _docketContinuationPages: number[] = [];
 
@@ -574,6 +575,7 @@ function createDocument(
 function drawPesticideForm(doc: JsPdfInstance, formType: PesticideStatutoryFormType, values: PesticidePdfValues) {
   const cursor = resetPage(doc);
   if (formType === 'DOCKET') {
+    _docketStartPage = doc.getNumberOfPages();
     _docketContinuationTracking = true;
     _docketContinuationPages = [];
   }
@@ -2121,13 +2123,28 @@ function sanitizeFilePart(value: string) {
 /**
  * Post-process continuation pages of a Docket Sheet: draw the watermark and
  * "DOCKET SHEET" title header on every overflow page so the document looks
- * consistent across all pages. Called AFTER drawDocket has finished so that
- * no existing layout, spacing, or page-break logic is modified.
+ * consistent across all pages. Also adds page numbering ("Page 1/2", "Page 2/2")
+ * on all docket pages strictly ONLY if the Docket Sheet extends to more than one page
+ * (if 1 page, never display "1/1").
+ * Called AFTER drawDocket has finished so that no existing layout, spacing,
+ * or page-break logic is modified.
  */
 async function drawDocketContinuationHeaders(doc: JsPdfInstance) {
+  // If no continuation pages were created, Docket Sheet is strictly a single page.
+  // Never display page numbers (no "1/1") and do not modify the 1-page layout.
   if (_docketContinuationPages.length === 0) return;
+
+  const docketEndPage = doc.getNumberOfPages();
+  const totalDocketPages = docketEndPage - _docketStartPage + 1;
+  if (totalDocketPages <= 1) {
+    _docketContinuationPages = [];
+    return;
+  }
+
   const lastPage = doc.getNumberOfPages();
   const uniquePages = Array.from(new Set(_docketContinuationPages));
+
+  // 1. Watermark and title header on every continuation page
   for (const pageNum of uniquePages) {
     doc.setPage(pageNum);
     await drawWatermark(doc);
@@ -2142,6 +2159,18 @@ async function drawDocketContinuationHeaders(doc: JsPdfInstance) {
     doc.setFont(PDF_FONT, 'normal');
     doc.setFontSize(BODY_SIZE);
   }
+
+  // 2. Page numbers (e.g. "Page 1/2", "Page 2/2") strictly ONLY when more than one page (never for 1 page / no "1/1")
+  for (let pageNum = _docketStartPage; pageNum <= docketEndPage; pageNum++) {
+    doc.setPage(pageNum);
+    const docketPageIndex = pageNum - _docketStartPage + 1;
+    const pageText = `Page ${docketPageIndex}/${totalDocketPages}`;
+    doc.setFont(PDF_FONT, 'normal');
+    doc.setFontSize(10);
+    doc.text(pageText, PAGE.width / 2, 286, { align: 'center' });
+    doc.setFontSize(BODY_SIZE);
+  }
+
   // Return to the last page so any subsequent drawing (if any) continues there
   doc.setPage(lastPage);
   _docketContinuationPages = [];
