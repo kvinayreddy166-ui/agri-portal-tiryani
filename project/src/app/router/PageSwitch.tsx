@@ -205,6 +205,8 @@ export function PageSwitch({ currentPage, isAdminUser, isTestUser, isOfficerUser
       return <TourDiary />;
     case 'tour-diary-new':
       return <TourDiary startInEditor />;
+    case 'tour-diary-resume':
+      return <TourDiary startInEditor resumeDraft />;
     case 'seed-dealer-inspection':
       return <SeedDealerInspection />;
     case 'fertilizer-dealer-inspection':
@@ -426,6 +428,8 @@ export function PublicPageSwitch({ currentPage, onPublicShellHome }: PublicPageS
       return <PublicToolkitPage><OfficerContacts /></PublicToolkitPage>;
     case 'tour-diary':
       return <PublicToolkitPage><TourDiary /></PublicToolkitPage>;
+    case 'tour-diary-resume':
+      return <PublicToolkitPage><TourDiary startInEditor resumeDraft /></PublicToolkitPage>;
     case 'seed-dealer-inspection':
       return <PublicToolkitPage><SeedDealerInspection /></PublicToolkitPage>;
     case 'fertilizer-dealer-inspection':

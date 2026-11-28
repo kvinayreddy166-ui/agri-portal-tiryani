@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
 import { useLanguage } from '../../../shared/context/LanguageContext';
 import { supabase } from '../../../shared/lib/supabase';
@@ -27,7 +27,6 @@ import type {
 import {
   MONTHS,
   RECOVERY_STORAGE_KEY,
-  TOUR_DIARY_BACK_EVENT,
   DRAFT_VERSION,
   TOUR_DIARY_COLUMN_COUNT,
   JOURNEY_MODES,
@@ -49,12 +48,6 @@ import { generateTourDiaryPdf } from '../lib/tourDiaryPdf';
 import { exportTourDiaryExcel } from '../lib/tourDiaryExcel';
 import { OfficerDocumentArchiveService } from '../../officers-toolkit/services/officerDocumentArchiveService';
 import { PageSkeleton } from '../../../shared/components/ui/PageSkeleton';
-
-const handleBack = () => {
-  const idx = (window.history.state as { idx?: number } | null)?.idx;
-  if (typeof idx === 'number' && idx > 0) window.history.back();
-  else window.location.href = '/officer-toolkit';
-};
 
 function formatOptionalTime(time?: string | null): string {
   return time ? formatTime(time) : '';
@@ -313,8 +306,9 @@ function DiaryDialog({ dialog, onResolve }: { dialog: DialogState; onResolve: (v
   );
 }
 
-export function TourDiary({ startInEditor = false }: { startInEditor?: boolean } = {}) {
+export function TourDiary({ startInEditor = false, resumeDraft = false }: { startInEditor?: boolean; resumeDraft?: boolean } = {}) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, officerProfile } = useAuth();
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
@@ -380,6 +374,19 @@ export function TourDiary({ startInEditor = false }: { startInEditor?: boolean }
   const [pdfPreview, setPdfPreview] = useState<{ blob: Blob; fileName: string } | null>(null);
   const [showMyDiariesDropdown, setShowMyDiariesDropdown] = useState(false);
   const [diaryResetNonce, setDiaryResetNonce] = useState(0);
+
+  const handleBack = () => {
+    // In chromeless mode (startInEditor or resumeDraft), go back to Tour Diary landing page
+    if (startInEditor || resumeDraft) {
+      navigate('/officer-toolkit/tour-diary', { replace: true });
+      // Clear history state to prevent back from returning to chromeless
+      window.history.replaceState({ tiryaniPage: 'tour-diary' }, '');
+      return;
+    }
+    const idx = (window.history.state as { idx?: number } | null)?.idx;
+    if (typeof idx === 'number' && idx > 0) window.history.back();
+    else window.location.href = '/officer-toolkit';
+  };
 
   const pdfPreviewUrl = useMemo(() => {
     if (!pdfPreview?.blob) return null;
@@ -696,6 +703,99 @@ export function TourDiary({ startInEditor = false }: { startInEditor?: boolean }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, officerProfile]);
 
+  // Load draft from IndexedDB (moved before useEffect that depends on it)
+  const loadDraftFromLocal = useCallback(async (draft: TourDiaryDraft, skipUnsavedCheck = false) => {
+    if (!skipUnsavedCheck && hasUnsavedChanges) {
+      const proceed = await askConfirm({
+        title: 'Unsaved changes',
+        message: 'Loading another draft will replace the current Tour Diary.\n\nDo you want to continue?',
+        confirmLabel: 'Load Draft',
+        destructive: true
+      });
+      if (!proceed) {
+        return;
+      }
+    }
+
+    try {
+      setOfficerName(draft.officerName);
+      setDesignation(draft.designation);
+      setCustomDesignation(draft.customDesignation || '');
+      setDistrict(draft.district);
+      setCustomDistrict(draft.customDistrict || '');
+      setMandal(draft.mandal);
+      setCustomMandal(draft.customMandal || '');
+      setDivision(draft.division);
+      setCustomDivision(draft.customDivision || '');
+      setCurrentYear(draft.year);
+      setCurrentMonth(draft.month);
+
+      // Add backward compatibility for old drafts without custom fields
+      const backwardCompatibleJourneys = draft.journeys.map(journey => ({
+        ...journey,
+        custom_mode_of_journey: journey.custom_mode_of_journey || null,
+        custom_purpose: journey.custom_purpose || null,
+        // Convert old single purpose to purposes array for backward compatibility
+        purposes: (journey as any).purpose ? [(journey as any).purpose] : (journey.purposes || [])
+      }));
+
+      setJourneys(backwardCompatibleJourneys);
+      setDateStatusOverrides(draft.dateStatusOverrides || {});
+      setDateRemarks(draft.dateRemarks || {});
+
+      if (tourDiary) {
+        setTourDiary({
+          ...tourDiary,
+          opening_meter: draft.openingMeter,
+          closing_meter: draft.closingMeter,
+          total_km: draft.totalKm
+        });
+      }
+
+      setLastSavedState(JSON.stringify({
+        officerName: draft.officerName,
+        designation: draft.designation,
+        district: draft.district,
+        mandal: draft.mandal,
+        division: draft.division,
+        journeys: draft.journeys,
+        dateStatusOverrides: draft.dateStatusOverrides || {}
+      }));
+      setHasUnsavedChanges(false);
+      setShowDraftPicker(false);
+      restoredPeriodRef.current = { year: draft.year, month: draft.month };
+      setShowLandingPage(false);
+    } catch (error) {
+      console.error('Error loading draft:', error);
+      showToast('Failed to load draft. Please try again.', 'error');
+    }
+  }, [hasUnsavedChanges, askConfirm, resumeDraft, tourDiary]);
+
+  // When resumeDraft prop is true, find and load the resumable draft automatically
+  // and skip the landing page (chromeless view)
+  useEffect(() => {
+    if (!resumeDraft) return;
+
+    const searchParams = new URLSearchParams(location.search);
+    const draftId = searchParams.get('draftId');
+
+    const loadAndOpen = async (draftToLoad: TourDiaryDraft) => {
+      await loadDraftFromLocal(draftToLoad, true); // Skip unsaved check for auto-resume
+      setShowLandingPage(false);
+    };
+
+    // If a specific draftId is provided in URL, load that draft
+    if (draftId) {
+      const specificDraft = allDrafts.find(d => d.id === draftId);
+      if (specificDraft) {
+        void loadAndOpen(specificDraft);
+      }
+    } else if (resumableDraft) {
+      // Otherwise load the auto-detected resumable draft
+      void loadAndOpen(resumableDraft);
+    }
+  }, [resumeDraft, resumableDraft, allDrafts, location.search, loadDraftFromLocal]);
+
   // Load data when month/year changes
   useEffect(() => {
     // Load holidays regardless of user (static data)
@@ -836,20 +936,6 @@ export function TourDiary({ startInEditor = false }: { startInEditor?: boolean }
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
-
-  // The app-level Back button (Layout breadcrumb) asks the diary to return to
-  // its landing view first. Only when already on the landing view does the
-  // default navigation proceed, so Back inside an open diary/draft never
-  // leaves the module or touches the in-progress session.
-  useEffect(() => {
-    const handleAppBack = (event: Event) => {
-      if (showLandingPage) return;
-      event.preventDefault();
-      setShowLandingPage(true);
-    };
-    window.addEventListener(TOUR_DIARY_BACK_EVENT, handleAppBack);
-    return () => window.removeEventListener(TOUR_DIARY_BACK_EVENT, handleAppBack);
-  }, [showLandingPage]);
 
   // While a diary/draft is open (off the landing view), surface the module
   // itself in the breadcrumb so users can tap back to the Tour Diary home.
@@ -1009,74 +1095,6 @@ export function TourDiary({ startInEditor = false }: { startInEditor?: boolean }
       showToast('Failed to save draft. Please try again.', 'error');
     } finally {
       setIsSavingDraft(false);
-    }
-  }
-
-  // Load draft from IndexedDB
-  async function loadDraftFromLocal(draft: TourDiaryDraft) {
-    if (hasUnsavedChanges) {
-      const proceed = await askConfirm({
-        title: 'Unsaved changes',
-        message: 'Loading another draft will replace the current Tour Diary.\n\nDo you want to continue?',
-        confirmLabel: 'Load Draft',
-        destructive: true
-      });
-      if (!proceed) {
-        return;
-      }
-    }
-
-    try {
-      setOfficerName(draft.officerName);
-      setDesignation(draft.designation);
-      setCustomDesignation(draft.customDesignation || '');
-      setDistrict(draft.district);
-      setCustomDistrict(draft.customDistrict || '');
-      setMandal(draft.mandal);
-      setCustomMandal(draft.customMandal || '');
-      setDivision(draft.division);
-      setCustomDivision(draft.customDivision || '');
-      setCurrentYear(draft.year);
-      setCurrentMonth(draft.month);
-      
-      // Add backward compatibility for old drafts without custom fields
-      const backwardCompatibleJourneys = draft.journeys.map(journey => ({
-        ...journey,
-        custom_mode_of_journey: journey.custom_mode_of_journey || null,
-        custom_purpose: journey.custom_purpose || null,
-        // Convert old single purpose to purposes array for backward compatibility
-        purposes: (journey as any).purpose ? [(journey as any).purpose] : (journey.purposes || [])
-      }));
-      
-      setJourneys(backwardCompatibleJourneys);
-      setDateStatusOverrides(draft.dateStatusOverrides || {});
-      setDateRemarks(draft.dateRemarks || {});
-
-      if (tourDiary) {
-        setTourDiary({
-          ...tourDiary,
-          opening_meter: draft.openingMeter,
-          closing_meter: draft.closingMeter,
-          total_km: draft.totalKm
-        });
-      }
-
-      setLastSavedState(JSON.stringify({
-        officerName: draft.officerName,
-        designation: draft.designation,
-        district: draft.district,
-        mandal: draft.mandal,
-        division: draft.division,
-        journeys: draft.journeys,
-        dateStatusOverrides: draft.dateStatusOverrides || {}
-      }));
-      setHasUnsavedChanges(false);
-      setShowDraftPicker(false);
-      restoredPeriodRef.current = { year: draft.year, month: draft.month };
-      setShowLandingPage(false);
-    } catch (error) {
-      console.error('Error loading draft:', error);
-      showToast('Failed to load draft. Please try again.', 'error');
     }
   }
 
@@ -2057,7 +2075,6 @@ export function TourDiary({ startInEditor = false }: { startInEditor?: boolean }
             title={t('Tour Diary', 'టూర్ డైరీ')}
             subtitle={t('Manage your monthly tour diaries', 'మీ నెలవారీ టూర్ డైరీలను నిర్వహించండి')}
             icon={NotebookPen}
-            onBack={!user ? () => navigate('/officer-toolkit') : undefined}
           />
 
           {/* Action Cards - Modern Mobile-First Design */}
@@ -2087,7 +2104,7 @@ export function TourDiary({ startInEditor = false }: { startInEditor?: boolean }
             {resumableDraft && (
               <button
                 onClick={() => {
-                  void loadDraftFromLocal(resumableDraft);
+                  navigate('/officer-toolkit/tour-diary-resume');
                 }}
                 className="group flex w-full items-center gap-3 rounded-xl border border-amber-200/60 bg-amber-50/60 px-4 py-3 text-left shadow-sm transition-colors hover:border-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-amber-800/50 dark:bg-amber-950/20 dark:hover:border-amber-600"
               >
@@ -2225,7 +2242,7 @@ export function TourDiary({ startInEditor = false }: { startInEditor?: boolean }
                                     <button
                                       role="menuitem"
                                       onClick={() => {
-                                        loadDraftFromLocal(item.data as TourDiaryDraft);
+                                        navigate(`/officer-toolkit/tour-diary-resume?draftId=${item.id}`);
                                         setDraftMenuOpen(null);
                                         setShowMyDiariesDropdown(false);
                                       }}

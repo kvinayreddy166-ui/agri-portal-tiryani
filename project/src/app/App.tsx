@@ -41,6 +41,7 @@ const FULL_SCREEN_PAGE_KEYS = new Set([
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
   'tour-diary-new',
+  'tour-diary-resume',
 ]);
 
 function AppContent() {
@@ -130,14 +131,16 @@ function AppContent() {
   }, [currentPage]);
 
   const handleBack = useCallback(() => {
-    // Tour Diary keeps its landing view (Continue Draft / New Tour Diary /
-    // My Diaries) inside the page component. When a diary or saved draft is
-    // open, Back must return to that landing view instead of leaving the
-    // module - the page prevents default after switching back.
-    if (currentPage === 'tour-diary') {
-      const backEvent = new CustomEvent(TOUR_DIARY_BACK_EVENT, { cancelable: true });
-      window.dispatchEvent(backEvent);
-      if (backEvent.defaultPrevented) return;
+    // Chromeless tour diary pages (new editor and draft resume) should always
+    // go back to the Tour Diary landing page with replace to avoid history stack
+    if (currentPage === 'tour-diary-new' || currentPage === 'tour-diary-resume') {
+      // Use replace and clear the from state so back from landing page
+      // doesn't go back to chromeless page
+      navigate(pageToPath('tour-diary'), { replace: true });
+      setCurrentPage('tour-diary');
+      // Clear history state to prevent back from returning to chromeless
+      window.history.replaceState({ tiryaniPage: 'tour-diary' }, '');
+      return;
     }
     // Acts & Orders keeps FCO card/section/form drill-downs inside the page —
     // let it unwind one level at a time before leaving the module.
@@ -167,9 +170,9 @@ function AppContent() {
         return;
       }
     }
-    const fallbackPage = getPageBackFallback(currentPage, isDealerUser);
+    const fallbackPage = getPageBackFallback(currentPage, isDealerUser, !!user);
     navigate(pageToPath(fallbackPage), { replace: true });
-  }, [currentPage, isAdminUser, isTestUser, isDealerUser, navigate, validPages]);
+  }, [currentPage, isAdminUser, isTestUser, isDealerUser, user, navigate, validPages]);
 
   useEffect(() => {
     const nextPage = getPageFromLocation();

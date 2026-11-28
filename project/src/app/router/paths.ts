@@ -32,6 +32,8 @@ export const PUBLIC_AUTH_ROUTES = new Set([
   '/officer-toolkit/acts-and-orders',
   '/officer-toolkit/officer-contacts',
   '/officer-toolkit/tour-diary',
+  '/officer-toolkit/tour-diary-new',
+  '/officer-toolkit/tour-diary-resume',
   '/officer-toolkit/seed-dealer-inspection',
   '/officer-toolkit/fertilizer-dealer-inspection',
   '/officer-toolkit/insecticide-dealer-inspection',
@@ -89,6 +91,7 @@ export const PUBLIC_PAGES = new Set([
   'officer-contacts',
   'tour-diary',
   'tour-diary-new',
+  'tour-diary-resume',
   'seed-dealer-inspection',
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
@@ -138,6 +141,7 @@ export const PAGE_PATHS: Record<string, string> = {
   'user-management': '/admin/user-management',
   'tour-diary': '/officer-toolkit/tour-diary',
   'tour-diary-new': '/officer-toolkit/tour-diary-new',
+  'tour-diary-resume': '/officer-toolkit/tour-diary-resume',
   'seed-dealer-inspection': '/officer-toolkit/seed-dealer-inspection',
   'fertilizer-dealer-inspection': '/officer-toolkit/fertilizer-dealer-inspection',
   'insecticide-dealer-inspection': '/officer-toolkit/insecticide-dealer-inspection',
@@ -181,8 +185,11 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
   if (pathname === '/admin/user-management') {
     return '/settings';
   }
-  if (pathname === '/officer-toolkit/tour-diary-new') {
+  if (pathname === '/officer-toolkit/tour-diary-new' || pathname === '/officer-toolkit/tour-diary-resume') {
     return '/officer-toolkit/tour-diary';
+  }
+  if (pathname === '/officer-toolkit/tour-diary') {
+    return isAuthenticated ? '/dashboard' : '/officer-toolkit';
   }
   if (pathname === '/officer-toolkit/my-records' || pathname === '/officer-toolkit/enforcement-tracker' || pathname === '/enforcement-tracker') {
     return '/dashboard';
@@ -218,11 +225,13 @@ export function getRouteBackFallback(pathname: string, isAuthenticated: boolean)
   return null;
 }
 
-export function getPageBackFallback(page: string, isDealerUser: boolean) {
+export function getPageBackFallback(page: string, isDealerUser: boolean, isAuthenticated = false) {
   if (page === 'all-modules') return 'dashboard';
   if (page === 'officer-records' || page === 'enforcement-tracker') return 'dashboard';
   if (page === 'field-tools' || page === 'government-portals') return 'dashboard';
   if (page === 'disclaimer' || page === 'privacy-policy' || page === 'terms-conditions' || page === 'security-trust') return 'landing';
+  if (page === 'tour-diary-new' || page === 'tour-diary-resume') return 'tour-diary';
+  if (page === 'tour-diary') return isAuthenticated ? 'dashboard' : 'officer-toolkit';
   if (
     page === 'forms' ||
     page === 'forms-library' ||
@@ -232,8 +241,6 @@ export function getPageBackFallback(page: string, isDealerUser: boolean) {
     page === 'crop-doctor' ||
     page === 'acts-and-orders' ||
     page === 'inspection-enforcement' ||
-    page === 'tour-diary' ||
-    page === 'tour-diary-new' ||
     page === 'officer-contacts'
   ) return 'dashboard';
   if (
@@ -309,6 +316,7 @@ export const VALID_PAGES = new Set([
   'user-management',
   'tour-diary',
   'tour-diary-new',
+  'tour-diary-resume',
   'seed-dealer-inspection',
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
@@ -358,6 +366,7 @@ const OFFICER_TOOLKIT_SUBPAGES = new Set([
   'officer-contacts',
   'tour-diary',
   'tour-diary-new',
+  'tour-diary-resume',
   'seed-dealer-inspection',
   'fertilizer-dealer-inspection',
   'insecticide-dealer-inspection',
