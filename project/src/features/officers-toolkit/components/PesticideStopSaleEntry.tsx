@@ -216,7 +216,7 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
     item.name,
     item.manufacturer,
     item.batchNo,
-    [item.mfgDate && `Mfg: ${formatNoticeDate(item.mfgDate)}`, item.expiryDate && `Exp: ${formatNoticeDate(item.expiryDate)}`].filter(Boolean).join(' / '),
+    [item.mfgDate && `Mfg: ${formatNoticeDate(item.mfgDate)}`, item.expiryDate && `Exp: ${formatNoticeDate(item.expiryDate)}`].filter(Boolean).join(', '),
     item.quantity,
     stockValueDisplay(item.value),
   ]);
@@ -283,8 +283,8 @@ function buildStopSaleModel(form: StopSaleFormState): NoticeBlock[] {
     { kind: 'gap', mm: 2 },
     {
       kind: 'gridTable',
-      header: ['S.No.', 'Name of the Insecticide with complete details', 'Manufactured by', 'Batch No.', 'Date of Manufacture and Date of Expiry', 'Stock Quantity as on Date (indicate units also)', 'Value (Rs.)'],
-      colWeights: [6, 27, 15, 9, 14, 13, 16],
+      header: ['S.No', 'Name of the Insecticide with complete details', 'Manufactured by', 'Batch No', 'Date of Manufacture and Date of Expiry', 'Stock Quantity as on Date (indicate units also)', 'Value (Rs)'],
+      colWeights: [6, 25, 15, 11, 16, 13, 14],
       rows: tableRows,
     },
     { kind: 'gap', mm: 1 },

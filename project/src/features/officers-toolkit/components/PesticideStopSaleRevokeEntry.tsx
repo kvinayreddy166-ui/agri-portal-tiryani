@@ -299,8 +299,8 @@ function buildRevokeModel(form: PestRevokeFormState): NoticeBlock[] {
     { kind: 'gap', mm: 1, keepWithNext: true },
     {
       kind: 'gridTable',
-      header: ['S.No.', 'Name of the Insecticide with Complete Details', 'Manufactured by', 'Batch No.', 'Date of Manufacture', 'Date of Expiry', 'Quantity', 'Value (Rs.)'],
-      colWeights: [5, 24, 14, 9, 11, 11, 10, 16],
+      header: ['S.No', 'Name of the Insecticide with Complete Details', 'Manufactured by', 'Batch No', 'Date of Manufacture', 'Date of Expiry', 'Quantity', 'Value (Rs)'],
+      colWeights: [5, 22, 14, 11, 12, 12, 10, 14],
       rows: tableRows,
       keepWithNext: true,
     },

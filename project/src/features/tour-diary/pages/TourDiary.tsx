@@ -643,19 +643,23 @@ export function TourDiary({ startInEditor = false, resumeDraft = false }: { star
     loadAllDrafts();
     loadCompletedDiaries();
     loadSavedDiaries();
-    
-    // Check for recovery state
-    const recovery = getRecoveryState();
-    if (recovery) {
-      setRecoveryDraft(recovery);
-      setShowRecoveryPrompt(true);
+
+    // Check for recovery state (only in chromeless mode, not on landing page)
+    if (startInEditor || resumeDraft) {
+      const recovery = getRecoveryState();
+      if (recovery) {
+        setRecoveryDraft(recovery);
+        setShowRecoveryPrompt(true);
+      }
     }
-  }, []);
+  }, [startInEditor, resumeDraft]);
 
   // Auto-resume the current month's draft for the logged-in officer so
   // saved entries survive leaving the session and returning. Runs once per user.
+  // Only runs in chromeless mode (startInEditor or resumeDraft), not on landing page.
   useEffect(() => {
     if (!user || autoResumeUserRef.current === user.id) return;
+    if (!startInEditor && !resumeDraft) return; // Skip auto-resume on landing page
     autoResumeUserRef.current = user.id;
 
     let cancelled = false;
@@ -701,7 +705,7 @@ export function TourDiary({ startInEditor = false, resumeDraft = false }: { star
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, officerProfile]);
+  }, [user, officerProfile, startInEditor, resumeDraft]);
 
   // Load draft from IndexedDB (moved before useEffect that depends on it)
   const loadDraftFromLocal = useCallback(async (draft: TourDiaryDraft, skipUnsavedCheck = false) => {
@@ -2082,7 +2086,7 @@ export function TourDiary({ startInEditor = false, resumeDraft = false }: { star
             {/* New Tour Diary Card */}
             <button
               onClick={() => {
-                navigate('/officer-toolkit/tour-diary-new');
+                navigate('/officer-toolkit/tour-diary-new', { replace: true });
               }}
               className="group flex w-full items-center gap-3 rounded-xl border border-emerald-200/60 bg-white px-4 py-3 text-left shadow-sm transition-colors hover:border-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-emerald-800/50 dark:bg-slate-900/80 dark:hover:border-emerald-600"
             >
@@ -2104,7 +2108,7 @@ export function TourDiary({ startInEditor = false, resumeDraft = false }: { star
             {resumableDraft && (
               <button
                 onClick={() => {
-                  navigate('/officer-toolkit/tour-diary-resume');
+                  navigate('/officer-toolkit/tour-diary-resume', { replace: true });
                 }}
                 className="group flex w-full items-center gap-3 rounded-xl border border-amber-200/60 bg-amber-50/60 px-4 py-3 text-left shadow-sm transition-colors hover:border-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-amber-800/50 dark:bg-amber-950/20 dark:hover:border-amber-600"
               >
@@ -2242,7 +2246,7 @@ export function TourDiary({ startInEditor = false, resumeDraft = false }: { star
                                     <button
                                       role="menuitem"
                                       onClick={() => {
-                                        navigate(`/officer-toolkit/tour-diary-resume?draftId=${item.id}`);
+                                        navigate(`/officer-toolkit/tour-diary-resume?draftId=${item.id}`, { replace: true });
                                         setDraftMenuOpen(null);
                                         setShowMyDiariesDropdown(false);
                                       }}
