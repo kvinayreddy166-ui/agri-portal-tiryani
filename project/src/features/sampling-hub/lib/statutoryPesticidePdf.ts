@@ -502,6 +502,18 @@ const BODY_SIZE = 12.2;
 const TITLE_SIZE = 15;
 const LINE_HEIGHT = 6.2;
 
+// On page 1 of Docket Sheet, title "DOCKET SHEET" is rendered at PAGE.top - 6 (16mm).
+// Then cursor advances by 8 + 8 - 5 = 11mm, placing the first field at PAGE.top + 5 (27mm).
+// To maintain identical header styling, positioning, and content start position on every
+// subsequent page:
+const DOCKET_TITLE_Y = PAGE.top - 6;
+const DOCKET_CONTENT_START_Y = PAGE.top + 5;
+
+// Tracks continuation pages created during docket rendering that need watermark + header.
+// Populated by ensure/fieldList page-breaks when _docketContinuationTracking is enabled.
+let _docketContinuationTracking = false;
+let _docketContinuationPages: number[] = [];
+
 type PdfCursor = {
   doc: JsPdfInstance;
   y: number;
@@ -514,6 +526,9 @@ export async function generatePesticideStatutoryPdf(formType: PesticideStatutory
   await setupPdfUnicodeFonts(doc);
   await drawWatermark(doc);
   drawPesticideForm(doc, formType, normalizePesticideValues(values));
+  if (formType === 'DOCKET') {
+    await drawDocketContinuationHeaders(doc);
+  }
   return doc;
 }
 
@@ -533,6 +548,7 @@ export async function generateAllPesticideStatutoryPdf(values: PesticidePdfValue
   doc.addPage();
   await drawWatermark(doc);
   drawPesticideForm(doc, 'DOCKET', normalized);
+  await drawDocketContinuationHeaders(doc);
   return doc;
 }
 
@@ -557,10 +573,17 @@ function createDocument(
 
 function drawPesticideForm(doc: JsPdfInstance, formType: PesticideStatutoryFormType, values: PesticidePdfValues) {
   const cursor = resetPage(doc);
+  if (formType === 'DOCKET') {
+    _docketContinuationTracking = true;
+    _docketContinuationPages = [];
+  }
   if (formType === 'VD') drawFormVD(cursor, values);
   if (formType === 'VE') drawFormVE(cursor, values);
   if (formType === 'VC') drawFormVC(cursor, values);
   if (formType === 'DOCKET') drawDocket(cursor, values);
+  if (formType === 'DOCKET') {
+    _docketContinuationTracking = false;
+  }
 }
 
 function resetPage(doc: JsPdfInstance): PdfCursor {
@@ -1349,6 +1372,10 @@ function drawDocket(cursor: PdfCursor, values: PesticidePdfValues) {
   if (cursor.y > PAGE.bottom - 40) {
     cursor.doc.addPage();
     cursor.y = PAGE.top;
+    if (_docketContinuationTracking) {
+      _docketContinuationPages.push(cursor.doc.getNumberOfPages());
+      cursor.y = DOCKET_CONTENT_START_Y;
+    }
   }
 
   // Render fields 4-5: default spacing
@@ -1431,6 +1458,10 @@ function fieldList(cursor: PdfCursor, rows: Array<[string, string, string?]>, la
     if (cursor.y > PAGE.bottom - 25) {
       cursor.doc.addPage();
       cursor.y = PAGE.top;
+      if (_docketContinuationTracking) {
+        _docketContinuationPages.push(cursor.doc.getNumberOfPages());
+        cursor.y = DOCKET_CONTENT_START_Y;
+      }
     }
     fieldRow(cursor, label, value, note || '', labelWidth, xOffset, options);
   });
@@ -1794,6 +1825,10 @@ function ensure(cursor: PdfCursor, neededHeight: number, noPageBreak = false) {
   if (noPageBreak) return;
   cursor.doc.addPage();
   cursor.y = PAGE.top;
+  if (_docketContinuationTracking) {
+    _docketContinuationPages.push(cursor.doc.getNumberOfPages());
+    cursor.y = DOCKET_CONTENT_START_Y;
+  }
 }
 
 function split(cursor: PdfCursor, value: string, width: number) {
@@ -2081,6 +2116,35 @@ function formatDate(value: string) {
 
 function sanitizeFilePart(value: string) {
   return value.trim().replace(/[^a-z0-9_-]+/gi, '_').slice(0, 40);
+}
+
+/**
+ * Post-process continuation pages of a Docket Sheet: draw the watermark and
+ * "DOCKET SHEET" title header on every overflow page so the document looks
+ * consistent across all pages. Called AFTER drawDocket has finished so that
+ * no existing layout, spacing, or page-break logic is modified.
+ */
+async function drawDocketContinuationHeaders(doc: JsPdfInstance) {
+  if (_docketContinuationPages.length === 0) return;
+  const lastPage = doc.getNumberOfPages();
+  const uniquePages = Array.from(new Set(_docketContinuationPages));
+  for (const pageNum of uniquePages) {
+    doc.setPage(pageNum);
+    await drawWatermark(doc);
+    // Draw the same title as page 1: bold, centered, underlined "DOCKET SHEET" at exact DOCKET_TITLE_Y
+    doc.setFont(PDF_FONT, 'bold');
+    doc.setFontSize(TITLE_SIZE);
+    const title = 'DOCKET SHEET';
+    doc.text(title, PAGE.width / 2, DOCKET_TITLE_Y, { align: 'center' });
+    const titleWidth = doc.getTextWidth(title);
+    doc.line(PAGE.width / 2 - titleWidth / 2, DOCKET_TITLE_Y + 1.5, PAGE.width / 2 + titleWidth / 2, DOCKET_TITLE_Y + 1.5);
+    // Reset font back to body defaults
+    doc.setFont(PDF_FONT, 'normal');
+    doc.setFontSize(BODY_SIZE);
+  }
+  // Return to the last page so any subsequent drawing (if any) continues there
+  doc.setPage(lastPage);
+  _docketContinuationPages = [];
 }
 
 async function drawWatermark(doc: JsPdfInstance) {
